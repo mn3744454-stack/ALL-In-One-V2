@@ -18,6 +18,10 @@ import {
   resolveActiveContractType,
   MAX_PRIMARY_TABS,
 } from "@/contracts/registry";
+import { ContractDocumentsSection } from "@/contracts/sections/ContractDocumentsSection";
+import { ContractTemplatesSection } from "@/contracts/sections/ContractTemplatesSection";
+
+type HubSection = "operational" | "documents" | "templates";
 
 export default function DashboardContracts() {
   const { t } = useI18n();
@@ -41,6 +45,14 @@ export default function DashboardContracts() {
 
   const ActiveComponent = active?.component ?? null;
 
+  const normalizedPath = location.pathname.replace(/\/+$/, "");
+  const section: HubSection =
+    normalizedPath === "/dashboard/contracts/documents"
+      ? "documents"
+      : normalizedPath === "/dashboard/contracts/templates"
+      ? "templates"
+      : "operational";
+
   const onPickOperational = () => {
     const next = new URLSearchParams(searchParams);
     if (active) next.set("type", active.key);
@@ -59,20 +71,19 @@ export default function DashboardContracts() {
       to: "/dashboard/contracts",
       label: t("contracts.hub.operational"),
       icon: Briefcase,
-      match: (p: string) =>
-        p === "/dashboard/contracts" || p.startsWith("/dashboard/contracts?"),
+      match: () => section === "operational",
     },
     {
       to: "/dashboard/contracts/documents",
       label: t("contracts.hub.documents"),
       icon: FileText,
-      match: (p: string) => p.startsWith("/dashboard/contracts/documents"),
+      match: () => section === "documents",
     },
     {
       to: "/dashboard/contracts/templates",
       label: t("contracts.hub.forms"),
       icon: BookOpen,
-      match: (p: string) => p.startsWith("/dashboard/contracts/templates"),
+      match: () => section === "templates",
     },
   ];
 
@@ -132,7 +143,7 @@ export default function DashboardContracts() {
         {/* Hub sub-nav */}
         <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
           {subNavItems.map((item) => {
-            const isActive = item.match(location.pathname);
+            const isActive = item.match();
             const Icon = item.icon;
             return (
               <NavLink
@@ -153,7 +164,11 @@ export default function DashboardContracts() {
           })}
         </div>
 
-        {visible.length === 0 ? (
+        {section === "documents" ? (
+          <ContractDocumentsSection />
+        ) : section === "templates" ? (
+          <ContractTemplatesSection />
+        ) : visible.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("contracts.noTypes")}</p>
         ) : (
           <>
