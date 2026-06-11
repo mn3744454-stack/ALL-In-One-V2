@@ -13,34 +13,17 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    // Kill-switch PWA: ships a self-destroying /sw.js that unregisters any
+    // previously-installed app-shell service worker and clears its caches on
+    // first load. This evicts the stale Workbox precache that was sticking old
+    // builds to devices on preview--*.lovable.app even in Incognito. The push
+    // notification worker lives at /push-sw.js and is not affected.
     VitePWA({
       registerType: "autoUpdate",
+      selfDestroying: true,
       manifest: false, // reuse existing public/manifest.json
-      includeAssets: ["favicon.ico", "icons/icon-192x192.png", "icons/icon-512x512.png"],
-      workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api/, /^\/supabase/],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-stylesheets",
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-webfonts",
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-        ],
-      },
+      injectRegister: null,
+      devOptions: { enabled: false },
     }),
   ].filter(Boolean),
   resolve: {
