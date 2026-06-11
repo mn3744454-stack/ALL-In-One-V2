@@ -45,6 +45,14 @@ export default function DashboardContracts() {
 
   const ActiveComponent = active?.component ?? null;
 
+  const normalizedPath = location.pathname.replace(/\/+$/, "");
+  const section: HubSection =
+    normalizedPath === "/dashboard/contracts/documents"
+      ? "documents"
+      : normalizedPath === "/dashboard/contracts/templates"
+      ? "templates"
+      : "operational";
+
   const onPickOperational = () => {
     const next = new URLSearchParams(searchParams);
     if (active) next.set("type", active.key);
