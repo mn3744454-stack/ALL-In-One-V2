@@ -18,6 +18,10 @@ import {
   resolveActiveContractType,
   MAX_PRIMARY_TABS,
 } from "@/contracts/registry";
+import { ContractDocumentsSection } from "@/contracts/sections/ContractDocumentsSection";
+import { ContractTemplatesSection } from "@/contracts/sections/ContractTemplatesSection";
+
+type HubSection = "operational" | "documents" | "templates";
 
 export default function DashboardContracts() {
   const { t } = useI18n();
