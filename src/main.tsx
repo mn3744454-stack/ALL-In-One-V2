@@ -3,14 +3,15 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Cache cleanup — skip the push service worker (sw.js)
+// Cache cleanup — keep ONLY the push notification service worker (push-sw.js).
+// Any other registered worker (including the legacy /sw.js app-shell PWA cache
+// that used to stick stale builds to devices) gets unregistered on every load.
 (async function cleanupCaches() {
   try {
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const registration of registrations) {
-        // Keep the push notification service worker
-        if (registration.active?.scriptURL?.endsWith('/sw.js')) {
+        if (registration.active?.scriptURL?.endsWith('/push-sw.js')) {
           console.log('[CACHE] Keeping push SW:', registration.scope);
           continue;
         }

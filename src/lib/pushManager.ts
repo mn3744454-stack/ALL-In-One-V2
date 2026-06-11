@@ -66,7 +66,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   if (!("serviceWorker" in navigator)) return null;
 
   try {
-    const registration = await navigator.serviceWorker.register("/sw.js", {
+    const registration = await navigator.serviceWorker.register("/push-sw.js", {
       scope: "/",
     });
     console.log("[Push] Service worker registered:", registration.scope);
