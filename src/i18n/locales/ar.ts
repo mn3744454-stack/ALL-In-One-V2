@@ -6789,8 +6789,10 @@ export const ar = {
       operationalContractDesc: "إنشاء عقد مرتبط بتدفق تشغيلي مثل الإيواء.",
       contractDocument: "مستند عقد",
       contractDocumentDesc: "إنشاء مستند عقد منسق للمراجعة والاعتماد.",
-      fromContractForm: "من نموذج عقد",
+      fromContractForm: "مستند من نموذج محفوظ",
       fromContractFormDesc: "إنشاء مستند عقد بناءً على نموذج محفوظ.",
+      noPublishedFormsTitle: "لا توجد نماذج عقود منشورة",
+      noPublishedFormsDesc: "أنشئ نموذج عقد وانشره أولاً، ثم يمكنك إنشاء مستند منه.",
     },
     documents: {
       title: "مستندات العقود",

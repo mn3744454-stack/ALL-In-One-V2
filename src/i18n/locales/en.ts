@@ -6812,8 +6812,10 @@ export const en = {
       operationalContractDesc: "Create a contract tied to an operational flow such as Boarding.",
       contractDocument: "Contract Document",
       contractDocumentDesc: "Create a formatted contract document for review and approval.",
-      fromContractForm: "From Contract Form",
+      fromContractForm: "Document from Saved Form",
       fromContractFormDesc: "Create a contract document based on a saved form.",
+      noPublishedFormsTitle: "No published contract forms",
+      noPublishedFormsDesc: "Create and publish a contract form first, then you can create a document from it.",
     },
     documents: {
       title: "Contract Documents",
