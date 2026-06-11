@@ -140,28 +140,30 @@ export default function DashboardContracts() {
           </DropdownMenu>
         </div>
 
-        {/* Hub sub-nav */}
-        <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
-          {subNavItems.map((item) => {
-            const isActive = item.match();
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/dashboard/contracts"}
-                className={cn(
-                  "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
-                  isActive
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {item.label}
-              </NavLink>
-            );
-          })}
+        {/* Hub sub-nav — segmented pill */}
+        <div className="overflow-x-auto -mx-1 px-1">
+          <div className="inline-flex items-center gap-1 bg-muted/40 border border-border rounded-lg p-1">
+            {subNavItems.map((item) => {
+              const isActive = item.match();
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === "/dashboard/contracts"}
+                  className={cn(
+                    "inline-flex items-center gap-2 px-4 h-9 rounded-md text-sm transition-colors whitespace-nowrap",
+                    isActive
+                      ? "bg-background text-primary ring-1 ring-primary/30 shadow-sm font-semibold"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {item.label}
+                </NavLink>
+              );
+            })}
+          </div>
         </div>
 
         {section === "documents" ? (
