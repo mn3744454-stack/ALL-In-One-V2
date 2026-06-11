@@ -6844,6 +6844,9 @@ export const ar = {
       plan: "الباقة",
       date: "التاريخ",
       actions: "الإجراءات",
+      name: "الاسم",
+      updated: "آخر تحديث",
+      open: "فتح",
     },
     rowActions: { menuLabel: "الإجراءات" },
     detailsSheet: {
