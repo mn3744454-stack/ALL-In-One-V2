@@ -164,7 +164,11 @@ export default function DashboardContracts() {
           })}
         </div>
 
-        {visible.length === 0 ? (
+        {section === "documents" ? (
+          <ContractDocumentsSection />
+        ) : section === "templates" ? (
+          <ContractTemplatesSection />
+        ) : visible.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("contracts.noTypes")}</p>
         ) : (
           <>
