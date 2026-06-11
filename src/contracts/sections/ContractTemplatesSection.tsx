@@ -15,8 +15,16 @@ import {
 import { Plus, FileText } from "lucide-react";
 import { useContractTemplates } from "@/contracts/hooks/useContractTemplates";
 import { useI18n } from "@/i18n";
-import type { ContractType } from "@/contracts/docModel/types";
+import type { ContractType, ContractTemplateStatus } from "@/contracts/docModel/types";
 import { formatStandardDate } from "@/lib/displayHelpers";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
+
+const STATUS_VARIANT: Record<ContractTemplateStatus, "default" | "secondary" | "outline"> = {
+  draft: "secondary", published: "default", archived: "outline",
+};
+
+const CONTRACT_TYPES: ContractType[] = ["boarding", "training", "reproduction", "custom"];
 
 export function ContractTemplatesSection() {
   const { t } = useI18n();
@@ -26,6 +34,11 @@ export function ContractTemplatesSection() {
   const [name, setName] = useState("");
   const [nameAr, setNameAr] = useState("");
   const [type, setType] = useState<ContractType>("boarding");
+  const { viewMode, gridColumns, setViewMode, setGridColumns } =
+    useViewPreference("contracts.forms");
+
+  const statusLabel = (s: ContractTemplateStatus) => t(`contracts.forms.status.${s}`);
+  const typeLabel = (ct: ContractType) => t(`contracts.types.${ct}.label`);
 
   const handleCreate = async () => {
     if (!name.trim()) return;
@@ -39,8 +52,22 @@ export function ContractTemplatesSection() {
     navigate(`/dashboard/contracts/templates/${id}`);
   };
 
+  const openTpl = (id: string) => navigate(`/dashboard/contracts/templates/${id}`);
+
   return (
     <div className="space-y-4">
+      {!isLoading && templates.length > 0 && (
+        <div className="flex items-center justify-end">
+          <ViewSwitcher
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+            onViewModeChange={setViewMode}
+            onGridColumnsChange={setGridColumns}
+            showTable
+          />
+        </div>
+      )}
+
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : templates.length === 0 ? (
@@ -53,13 +80,61 @@ export function ContractTemplatesSection() {
             </Button>
           </CardContent>
         </Card>
+      ) : viewMode === "table" ? (
+        <div className="overflow-x-auto border border-border rounded-lg">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-muted-foreground">
+              <tr>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.name")}</th>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.type")}</th>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.status")}</th>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.updated")}</th>
+                <th className="text-end font-medium px-3 py-2">{t("contracts.columns.actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {templates.map((tpl) => (
+                <tr key={tpl.id} className="border-t border-border hover:bg-muted/30 cursor-pointer" onClick={() => openTpl(tpl.id)}>
+                  <td className="px-3 py-2">
+                    <div className="font-medium">{tpl.name}</div>
+                    {tpl.name_ar && <div className="text-xs text-muted-foreground" dir="rtl">{tpl.name_ar}</div>}
+                  </td>
+                  <td className="px-3 py-2">{typeLabel(tpl.contract_type)}</td>
+                  <td className="px-3 py-2"><Badge variant={STATUS_VARIANT[tpl.status]}>{statusLabel(tpl.status)}</Badge></td>
+                  <td className="px-3 py-2 whitespace-nowrap">{formatStandardDate(tpl.updated_at)}</td>
+                  <td className="px-3 py-2 text-end">
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openTpl(tpl.id); }}>
+                      {t("contracts.columns.open")}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : viewMode === "list" ? (
+        <div className="grid grid-cols-1 gap-2">
+          {templates.map((tpl) => (
+            <Card key={tpl.id} className="hover:border-primary/40 cursor-pointer" onClick={() => openTpl(tpl.id)}>
+              <CardContent className="p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{tpl.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {typeLabel(tpl.contract_type)} · {formatStandardDate(tpl.updated_at)}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[tpl.status]}>{statusLabel(tpl.status)}</Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div className={getGridClass(gridColumns, "grid")}>
           {templates.map((tpl) => (
             <Card
               key={tpl.id}
               className="hover:border-primary/40 transition-colors cursor-pointer"
-              onClick={() => navigate(`/dashboard/contracts/templates/${tpl.id}`)}
+              onClick={() => openTpl(tpl.id)}
             >
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
@@ -69,12 +144,10 @@ export function ContractTemplatesSection() {
                       <p className="text-xs text-muted-foreground truncate" dir="rtl">{tpl.name_ar}</p>
                     )}
                   </div>
-                  <Badge variant={tpl.status === "published" ? "default" : "secondary"}>
-                    {tpl.status}
-                  </Badge>
+                  <Badge variant={STATUS_VARIANT[tpl.status]}>{statusLabel(tpl.status)}</Badge>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="capitalize">{tpl.contract_type}</span>
+                  <span>{typeLabel(tpl.contract_type)}</span>
                   <span>{formatStandardDate(tpl.updated_at)}</span>
                 </div>
               </CardContent>
@@ -88,30 +161,29 @@ export function ContractTemplatesSection() {
           <DialogHeader><DialogTitle>{t("contracts.forms.dialogTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>{t("contracts.columns.type")}</Label>
+              <Label>{t("contracts.forms.contractType")}</Label>
               <Select value={type} onValueChange={(v) => setType(v as ContractType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="boarding">Boarding</SelectItem>
-                  <SelectItem value="training">Training</SelectItem>
-                  <SelectItem value="reproduction">Reproduction</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  {CONTRACT_TYPES.map((ct) => (
+                    <SelectItem key={ct} value={ct}>{typeLabel(ct)}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Name (English)</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Standard Boarding Contract" />
+              <Label>{t("contracts.forms.nameEn")}</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("contracts.forms.placeholderEn")} />
             </div>
             <div className="space-y-1.5">
-              <Label>Name (Arabic) — optional</Label>
-              <Input value={nameAr} onChange={(e) => setNameAr(e.target.value)} dir="rtl" placeholder="مثال: عقد إيواء قياسي" />
+              <Label>{t("contracts.forms.nameAr")}</Label>
+              <Input value={nameAr} onChange={(e) => setNameAr(e.target.value)} dir="rtl" placeholder={t("contracts.forms.placeholderAr")} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
             <Button onClick={handleCreate} disabled={!name.trim() || create.isPending}>
-              Create
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
