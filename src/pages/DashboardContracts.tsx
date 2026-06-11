@@ -71,20 +71,19 @@ export default function DashboardContracts() {
       to: "/dashboard/contracts",
       label: t("contracts.hub.operational"),
       icon: Briefcase,
-      match: (p: string) =>
-        p === "/dashboard/contracts" || p.startsWith("/dashboard/contracts?"),
+      match: () => section === "operational",
     },
     {
       to: "/dashboard/contracts/documents",
       label: t("contracts.hub.documents"),
       icon: FileText,
-      match: (p: string) => p.startsWith("/dashboard/contracts/documents"),
+      match: () => section === "documents",
     },
     {
       to: "/dashboard/contracts/templates",
       label: t("contracts.hub.forms"),
       icon: BookOpen,
-      match: (p: string) => p.startsWith("/dashboard/contracts/templates"),
+      match: () => section === "templates",
     },
   ];
 
