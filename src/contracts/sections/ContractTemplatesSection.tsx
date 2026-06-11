@@ -83,13 +83,13 @@ export function ContractTemplatesSection() {
       ) : viewMode === "table" ? (
         <div className="overflow-x-auto border border-border rounded-lg">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-muted-foreground">
+            <thead className="bg-muted/40 text-foreground">
               <tr>
-                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.name")}</th>
-                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.type")}</th>
-                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.status")}</th>
-                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.updated")}</th>
-                <th className="text-end font-medium px-3 py-2">{t("contracts.columns.actions")}</th>
+                <th className="text-start font-bold px-3 py-2">{t("contracts.columns.name")}</th>
+                <th className="text-start font-bold px-3 py-2">{t("contracts.columns.type")}</th>
+                <th className="text-start font-bold px-3 py-2">{t("contracts.columns.status")}</th>
+                <th className="text-start font-bold px-3 py-2">{t("contracts.columns.updated")}</th>
+                <th className="text-end font-bold px-3 py-2">{t("contracts.columns.actions")}</th>
               </tr>
             </thead>
             <tbody>
