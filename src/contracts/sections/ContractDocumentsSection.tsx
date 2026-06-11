@@ -20,11 +20,15 @@ import { useContractDocuments } from "@/contracts/hooks/useContractDocuments";
 import { useContractTemplates } from "@/contracts/hooks/useContractTemplates";
 import type { ContractType, ContractDocumentStatus } from "@/contracts/docModel/types";
 import { formatStandardDate } from "@/lib/displayHelpers";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 const STATUS_VARIANT: Record<ContractDocumentStatus, "default" | "secondary" | "outline" | "destructive"> = {
   draft: "secondary", sent_for_review: "secondary", approved: "default",
   rejected: "destructive", cancelled: "outline", archived: "outline",
 };
+
+const CONTRACT_TYPES: ContractType[] = ["boarding", "training", "reproduction", "custom"];
 
 export function ContractDocumentsSection() {
   const { t } = useI18n();
@@ -33,6 +37,8 @@ export function ContractDocumentsSection() {
   const { documents, isLoading, createBlank, createFromTemplate } = useContractDocuments();
   const { templates } = useContractTemplates();
   const publishedTemplates = templates.filter((tpl) => tpl.status === "published");
+  const { viewMode, gridColumns, setViewMode, setGridColumns } =
+    useViewPreference("contracts.documents");
 
   const [filter, setFilter] = useState<"all" | ContractDocumentStatus>("all");
   const [open, setOpen] = useState(false);
@@ -45,7 +51,6 @@ export function ContractDocumentsSection() {
     const create = searchParams.get("create");
     if (create !== "blank" && create !== "fromForm") return;
 
-    // Guard: fromForm requires at least one published form.
     if (create === "fromForm" && publishedTemplates.length === 0) {
       toast.error(t("contracts.cta.noPublishedFormsTitle"), {
         description: t("contracts.cta.noPublishedFormsDesc"),
@@ -74,6 +79,8 @@ export function ContractDocumentsSection() {
     archived: t("contracts.documents.filters.archived"),
   };
 
+  const typeLabel = (ct: ContractType) => t(`contracts.types.${ct}.label`);
+
   const visible = filter === "all" ? documents : documents.filter((d) => d.status === filter);
 
   const handleCreate = async () => {
@@ -86,18 +93,31 @@ export function ContractDocumentsSection() {
     navigate(`/dashboard/contracts/documents/${id}`);
   };
 
+  const openDoc = (id: string) => navigate(`/dashboard/contracts/documents/${id}`);
+
   return (
     <div className="space-y-4">
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-        <TabsList>
-          <TabsTrigger value="all">{t("contracts.documents.filters.all")}</TabsTrigger>
-          <TabsTrigger value="draft">{t("contracts.documents.filters.draft")}</TabsTrigger>
-          <TabsTrigger value="sent_for_review">{t("contracts.documents.filters.sent_for_review")}</TabsTrigger>
-          <TabsTrigger value="approved">{t("contracts.documents.filters.approved")}</TabsTrigger>
-          <TabsTrigger value="rejected">{t("contracts.documents.filters.rejected")}</TabsTrigger>
-          <TabsTrigger value="archived">{t("contracts.documents.filters.archived")}</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+          <TabsList>
+            <TabsTrigger value="all">{t("contracts.documents.filters.all")}</TabsTrigger>
+            <TabsTrigger value="draft">{t("contracts.documents.filters.draft")}</TabsTrigger>
+            <TabsTrigger value="sent_for_review">{t("contracts.documents.filters.sent_for_review")}</TabsTrigger>
+            <TabsTrigger value="approved">{t("contracts.documents.filters.approved")}</TabsTrigger>
+            <TabsTrigger value="rejected">{t("contracts.documents.filters.rejected")}</TabsTrigger>
+            <TabsTrigger value="archived">{t("contracts.documents.filters.archived")}</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        {visible.length > 0 && (
+          <ViewSwitcher
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+            onViewModeChange={setViewMode}
+            onGridColumnsChange={setGridColumns}
+            showTable
+          />
+        )}
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -111,13 +131,61 @@ export function ContractDocumentsSection() {
             </Button>
           </CardContent>
         </Card>
+      ) : viewMode === "table" ? (
+        <div className="overflow-x-auto border border-border rounded-lg">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-muted-foreground">
+              <tr>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.name")}</th>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.type")}</th>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.status")}</th>
+                <th className="text-start font-medium px-3 py-2">{t("contracts.columns.updated")}</th>
+                <th className="text-end font-medium px-3 py-2">{t("contracts.columns.actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((doc) => (
+                <tr key={doc.id} className="border-t border-border hover:bg-muted/30 cursor-pointer" onClick={() => openDoc(doc.id)}>
+                  <td className="px-3 py-2">
+                    <div className="font-medium">{doc.title}</div>
+                    {doc.title_ar && <div className="text-xs text-muted-foreground" dir="rtl">{doc.title_ar}</div>}
+                  </td>
+                  <td className="px-3 py-2">{typeLabel(doc.contract_type)}</td>
+                  <td className="px-3 py-2"><Badge variant={STATUS_VARIANT[doc.status]}>{STATUS_LABEL[doc.status]}</Badge></td>
+                  <td className="px-3 py-2 whitespace-nowrap">{formatStandardDate(doc.updated_at)}</td>
+                  <td className="px-3 py-2 text-end">
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openDoc(doc.id); }}>
+                      {t("contracts.columns.open")}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : viewMode === "list" ? (
+        <div className="grid grid-cols-1 gap-2">
+          {visible.map((doc) => (
+            <Card key={doc.id} className="hover:border-primary/40 cursor-pointer" onClick={() => openDoc(doc.id)}>
+              <CardContent className="p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{doc.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {typeLabel(doc.contract_type)} · {formatStandardDate(doc.updated_at)}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[doc.status]}>{STATUS_LABEL[doc.status]}</Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div className={getGridClass(gridColumns, "grid")}>
           {visible.map((doc) => (
             <Card
               key={doc.id}
               className="hover:border-primary/40 transition-colors cursor-pointer"
-              onClick={() => navigate(`/dashboard/contracts/documents/${doc.id}`)}
+              onClick={() => openDoc(doc.id)}
             >
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
@@ -130,7 +198,7 @@ export function ContractDocumentsSection() {
                   <Badge variant={STATUS_VARIANT[doc.status]}>{STATUS_LABEL[doc.status]}</Badge>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="capitalize">{doc.contract_type}</span>
+                  <span>{typeLabel(doc.contract_type)}</span>
                   <span>{formatStandardDate(doc.updated_at)}</span>
                 </div>
               </CardContent>
@@ -144,11 +212,11 @@ export function ContractDocumentsSection() {
           <DialogHeader><DialogTitle>{t("contracts.documents.newDocument")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>{t("contracts.cta.fromContractForm")}</Label>
+              <Label>{t("contracts.documentDialog.basedOn")}</Label>
               <Select value={tplId} onValueChange={setTplId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__blank__">{t("contracts.cta.contractDocument")}</SelectItem>
+                  <SelectItem value="__blank__">{t("contracts.documentDialog.blank")}</SelectItem>
                   {publishedTemplates.map((tpl) => (
                     <SelectItem key={tpl.id} value={tpl.id}>{tpl.name}</SelectItem>
                   ))}
@@ -161,27 +229,26 @@ export function ContractDocumentsSection() {
                 <Select value={type} onValueChange={(v) => setType(v as ContractType)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="boarding">{t("contracts.types.boarding.label")}</SelectItem>
-                    <SelectItem value="training">Training</SelectItem>
-                    <SelectItem value="reproduction">Reproduction</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
+                    {CONTRACT_TYPES.map((ct) => (
+                      <SelectItem key={ct} value={ct}>{typeLabel(ct)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
             <div className="space-y-1.5">
-              <Label>Title (English)</Label>
+              <Label>{t("contracts.documentDialog.titleEn")}</Label>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Title (Arabic) — optional</Label>
+              <Label>{t("contracts.documentDialog.titleAr")}</Label>
               <Input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} dir="rtl" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel") || "Cancel"}</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
             <Button onClick={handleCreate} disabled={!title.trim() || createBlank.isPending || createFromTemplate.isPending}>
-              {t("contracts.documents.newDocument")}
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
