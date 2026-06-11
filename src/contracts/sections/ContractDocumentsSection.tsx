@@ -1,6 +1,7 @@
 // B2.5e — Contract Documents inner section (renders inside DashboardContracts Hub shell).
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,16 +43,27 @@ export function ContractDocumentsSection() {
 
   useEffect(() => {
     const create = searchParams.get("create");
-    if (create === "blank" || create === "fromForm") {
-      setTplId(create === "fromForm" && publishedTemplates[0]?.id
-        ? publishedTemplates[0].id
-        : "__blank__");
-      setOpen(true);
+    if (create !== "blank" && create !== "fromForm") return;
+
+    // Guard: fromForm requires at least one published form.
+    if (create === "fromForm" && publishedTemplates.length === 0) {
+      toast.error(t("contracts.cta.noPublishedFormsTitle"), {
+        description: t("contracts.cta.noPublishedFormsDesc"),
+      });
       const next = new URLSearchParams(searchParams);
       next.delete("create");
       setSearchParams(next, { replace: true });
+      return;
     }
-  }, [searchParams, setSearchParams, publishedTemplates]);
+
+    setTplId(create === "fromForm" && publishedTemplates[0]?.id
+      ? publishedTemplates[0].id
+      : "__blank__");
+    setOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("create");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, publishedTemplates, t]);
 
   const STATUS_LABEL: Record<ContractDocumentStatus, string> = {
     draft: t("contracts.documents.filters.draft"),
