@@ -6867,6 +6867,9 @@ export const en = {
       plan: "Plan",
       date: "Date",
       actions: "Actions",
+      name: "Name",
+      updated: "Updated",
+      open: "Open",
     },
     rowActions: { menuLabel: "Actions" },
     detailsSheet: {
