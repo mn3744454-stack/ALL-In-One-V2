@@ -15,9 +15,6 @@ import "./index.css";
           console.log('[CACHE] Keeping push SW:', registration.scope);
           continue;
         }
-          console.log('[CACHE] Keeping push SW:', registration.scope);
-          continue;
-        }
         await registration.unregister();
         console.log('[CACHE] Unregistered service worker:', registration.scope);
       }
