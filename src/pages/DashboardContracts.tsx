@@ -143,7 +143,7 @@ export default function DashboardContracts() {
         {/* Hub sub-nav */}
         <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
           {subNavItems.map((item) => {
-            const isActive = item.match(location.pathname);
+            const isActive = item.match();
             const Icon = item.icon;
             return (
               <NavLink
