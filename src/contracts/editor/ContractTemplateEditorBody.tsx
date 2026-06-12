@@ -68,6 +68,12 @@ export function ContractTemplateEditorBody({
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
 
+  const isBusy = saveDraft.isPending || publish.isPending;
+
+  useEffect(() => {
+    onBusyChange?.(isBusy);
+  }, [isBusy, onBusyChange]);
+
   const markDirty = () => setIsDirty(true);
 
   const addVariable = () => {
