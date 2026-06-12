@@ -52,6 +52,7 @@ interface CreateBreedingAttemptDialogProps {
 export function CreateBreedingAttemptDialog({
   open,
   onOpenChange,
+  onCreated,
 }: CreateBreedingAttemptDialogProps) {
   const { horses, refresh: refreshHorses } = useHorses();
   const { createAttempt } = useBreedingAttempts();
