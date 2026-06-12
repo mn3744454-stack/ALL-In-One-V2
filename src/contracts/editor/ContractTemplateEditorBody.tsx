@@ -151,17 +151,6 @@ export function ContractTemplateEditorBody({
       <Button size="sm" onClick={onPublish} disabled={!draftVersion || publish.isPending || saveDraft.isPending}>
         <Send className="w-4 h-4 me-1" /> {t("contracts.editor.actions.publish")}
       </Button>
-      {inDialog && onRequestClose && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onRequestClose}
-          aria-label={t("common.close")}
-          className="ms-1"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      )}
     </>
   );
 
