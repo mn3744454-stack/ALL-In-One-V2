@@ -29,7 +29,7 @@ const CONTRACT_TYPES: ContractType[] = ["boarding", "training", "reproduction", 
 export function ContractTemplatesSection() {
   const { t } = useI18n();
   const { templates, isLoading, create } = useContractTemplates();
-  const navigate = useNavigate();
+  const [editorId, setEditorId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [nameAr, setNameAr] = useState("");
@@ -49,10 +49,10 @@ export function ContractTemplatesSection() {
     });
     setOpen(false);
     setName(""); setNameAr("");
-    navigate(`/dashboard/contracts/templates/${id}`);
+    setEditorId(id);
   };
 
-  const openTpl = (id: string) => navigate(`/dashboard/contracts/templates/${id}`);
+  const openTpl = (id: string) => setEditorId(id);
 
   return (
     <div className="space-y-4">
