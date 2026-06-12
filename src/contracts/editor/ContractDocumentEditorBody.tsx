@@ -185,7 +185,11 @@ export function ContractDocumentEditorBody({
       )}
       {isSent && (
         <>
-          <Button size="sm" onClick={() => approve.mutate()} disabled={approve.isPending}>
+          <Button
+            size="sm"
+            onClick={() => approve.mutate(undefined, { onSuccess: () => setIsDirty(false) })}
+            disabled={approve.isPending}
+          >
             <CheckCircle2 className="w-4 h-4 me-1" /> {t("contracts.editor.actions.approve")}
           </Button>
           <AlertDialog>
@@ -206,7 +210,13 @@ export function ContractDocumentEditorBody({
               />
               <AlertDialogFooter>
                 <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                <AlertDialogAction onClick={() => reject.mutate(rejectReason || undefined)}>
+                <AlertDialogAction
+                  onClick={() =>
+                    reject.mutate(rejectReason || undefined, {
+                      onSuccess: () => { setIsDirty(false); setRejectReason(""); },
+                    })
+                  }
+                >
                   {t("contracts.editor.reject.action")}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -228,23 +238,17 @@ export function ContractDocumentEditorBody({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-              <AlertDialogAction onClick={() => archive.mutate()} disabled={archive.isPending}>
+              <AlertDialogAction
+                onClick={() =>
+                  archive.mutate(undefined, { onSuccess: () => setIsDirty(false) })
+                }
+                disabled={archive.isPending}
+              >
                 {t("contracts.editor.archive.action")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      )}
-      {inDialog && onRequestClose && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onRequestClose}
-          aria-label={t("common.close")}
-          className="ms-1"
-        >
-          <X className="w-4 h-4" />
-        </Button>
       )}
     </>
   );
