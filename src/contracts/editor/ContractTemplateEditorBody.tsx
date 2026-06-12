@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Save, Send, Trash2, Plus,
-  FileText, ListChecks, IdCard, Rocket, X,
+  FileText, ListChecks, IdCard, Rocket,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useContractTemplate } from "@/contracts/hooks/useContractTemplates";
@@ -29,13 +29,15 @@ export interface ContractTemplateEditorBodyProps {
   inDialog?: boolean;
   onRequestClose?: () => void;
   onDirtyChange?: (dirty: boolean) => void;
+  onBusyChange?: (busy: boolean) => void;
 }
 
 export function ContractTemplateEditorBody({
   templateId,
   inDialog,
-  onRequestClose,
+  onRequestClose: _onRequestClose,
   onDirtyChange,
+  onBusyChange,
 }: ContractTemplateEditorBodyProps) {
   const { dir, t } = useI18n();
   const { data, isLoading, saveDraft, publish } = useContractTemplate(templateId);
@@ -66,6 +68,12 @@ export function ContractTemplateEditorBody({
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
 
+  const isBusy = saveDraft.isPending || publish.isPending;
+
+  useEffect(() => {
+    onBusyChange?.(isBusy);
+  }, [isBusy, onBusyChange]);
+
   const markDirty = () => setIsDirty(true);
 
   const addVariable = () => {
@@ -94,7 +102,14 @@ export function ContractTemplateEditorBody({
     if (!draftVersion) return;
     saveDraft.mutate(
       { body_json: bodyDoc, variables_json: variables },
-      { onSuccess: () => { setIsDirty(false); publish.mutate(draftVersion.id); } },
+      {
+        onSuccess: () => {
+          setIsDirty(false);
+          publish.mutate(draftVersion.id, {
+            onSuccess: () => setIsDirty(false),
+          });
+        },
+      },
     );
   };
 
@@ -136,17 +151,6 @@ export function ContractTemplateEditorBody({
       <Button size="sm" onClick={onPublish} disabled={!draftVersion || publish.isPending || saveDraft.isPending}>
         <Send className="w-4 h-4 me-1" /> {t("contracts.editor.actions.publish")}
       </Button>
-      {inDialog && onRequestClose && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onRequestClose}
-          aria-label={t("common.close")}
-          className="ms-1"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      )}
     </>
   );
 

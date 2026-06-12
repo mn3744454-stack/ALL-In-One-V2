@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, Save, Send, CheckCircle2, XCircle, Printer, Archive,
-  FileText, ListChecks, Eye, Clock, IdCard, X,
+  FileText, ListChecks, Eye, Clock, IdCard,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useContractDocument } from "@/contracts/hooks/useContractDocuments";
@@ -31,18 +31,21 @@ import { EditorShell, type EditorShellSection } from "./EditorShell";
 
 export interface ContractDocumentEditorBodyProps {
   documentId: string;
-  /** When true, render an X close button instead of a "back to list" link. */
+  /** When true, suppress the "back to list" link (Dialog provides its own close X). */
   inDialog?: boolean;
   onRequestClose?: () => void;
   /** Notifies parent of dirty state — used by SafeFormDialog discard guard. */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Notifies parent that a mutation is in-flight (used to block close). */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 export function ContractDocumentEditorBody({
   documentId,
   inDialog,
-  onRequestClose,
+  onRequestClose: _onRequestClose,
   onDirtyChange,
+  onBusyChange,
 }: ContractDocumentEditorBodyProps) {
   const { dir, t } = useI18n();
   const { data, isLoading, saveDraft, send, approve, reject, archive } = useContractDocument(documentId);
@@ -71,6 +74,17 @@ export function ContractDocumentEditorBody({
   useEffect(() => {
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
+
+  const isBusy =
+    saveDraft.isPending ||
+    send.isPending ||
+    approve.isPending ||
+    reject.isPending ||
+    archive.isPending;
+
+  useEffect(() => {
+    onBusyChange?.(isBusy);
+  }, [isBusy, onBusyChange]);
 
   const doc = data?.document;
   const isDraft = doc?.status === "draft";
@@ -171,7 +185,11 @@ export function ContractDocumentEditorBody({
       )}
       {isSent && (
         <>
-          <Button size="sm" onClick={() => approve.mutate()} disabled={approve.isPending}>
+          <Button
+            size="sm"
+            onClick={() => approve.mutate(undefined, { onSuccess: () => setIsDirty(false) })}
+            disabled={approve.isPending}
+          >
             <CheckCircle2 className="w-4 h-4 me-1" /> {t("contracts.editor.actions.approve")}
           </Button>
           <AlertDialog>
@@ -192,7 +210,13 @@ export function ContractDocumentEditorBody({
               />
               <AlertDialogFooter>
                 <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                <AlertDialogAction onClick={() => reject.mutate(rejectReason || undefined)}>
+                <AlertDialogAction
+                  onClick={() =>
+                    reject.mutate(rejectReason || undefined, {
+                      onSuccess: () => { setIsDirty(false); setRejectReason(""); },
+                    })
+                  }
+                >
                   {t("contracts.editor.reject.action")}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -214,23 +238,17 @@ export function ContractDocumentEditorBody({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-              <AlertDialogAction onClick={() => archive.mutate()} disabled={archive.isPending}>
+              <AlertDialogAction
+                onClick={() =>
+                  archive.mutate(undefined, { onSuccess: () => setIsDirty(false) })
+                }
+                disabled={archive.isPending}
+              >
                 {t("contracts.editor.archive.action")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      )}
-      {inDialog && onRequestClose && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onRequestClose}
-          aria-label={t("common.close")}
-          className="ms-1"
-        >
-          <X className="w-4 h-4" />
-        </Button>
       )}
     </>
   );
