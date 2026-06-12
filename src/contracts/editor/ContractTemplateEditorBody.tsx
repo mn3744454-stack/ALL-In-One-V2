@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Save, Send, Trash2, Plus,
-  FileText, ListChecks, IdCard, Rocket, X,
+  FileText, ListChecks, IdCard, Rocket,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useContractTemplate } from "@/contracts/hooks/useContractTemplates";
