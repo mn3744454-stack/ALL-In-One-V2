@@ -91,10 +91,10 @@ export function ContractDocumentsSection() {
       : await createBlank.mutateAsync({ contract_type: type, title: title.trim(), title_ar: titleAr.trim() || undefined });
     setOpen(false);
     setTitle(""); setTitleAr("");
-    navigate(`/dashboard/contracts/documents/${id}`);
+    setEditorId(id);
   };
 
-  const openDoc = (id: string) => navigate(`/dashboard/contracts/documents/${id}`);
+  const openDoc = (id: string) => setEditorId(id);
 
   return (
     <div className="space-y-4">
