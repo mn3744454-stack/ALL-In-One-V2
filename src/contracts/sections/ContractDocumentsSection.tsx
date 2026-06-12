@@ -254,6 +254,12 @@ export function ContractDocumentsSection() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ContractDocumentEditorDialog
+        documentId={editorId}
+        open={editorId !== null}
+        onOpenChange={(next) => { if (!next) setEditorId(null); }}
+      />
     </div>
   );
 }
