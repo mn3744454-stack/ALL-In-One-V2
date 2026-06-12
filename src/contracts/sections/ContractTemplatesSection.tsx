@@ -1,6 +1,5 @@
 // B2.5e — Contract Forms inner section (renders inside DashboardContracts Hub shell).
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +18,7 @@ import type { ContractType, ContractTemplateStatus } from "@/contracts/docModel/
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { ContractTemplateEditorDialog } from "@/contracts/editor/ContractTemplateEditorDialog";
 
 const STATUS_VARIANT: Record<ContractTemplateStatus, "default" | "secondary" | "outline"> = {
   draft: "secondary", published: "default", archived: "outline",
