@@ -43,8 +43,9 @@ export interface ContractDocumentEditorBodyProps {
 export function ContractDocumentEditorBody({
   documentId,
   inDialog,
-  onRequestClose,
+  onRequestClose: _onRequestClose,
   onDirtyChange,
+  onBusyChange,
 }: ContractDocumentEditorBodyProps) {
   const { dir, t } = useI18n();
   const { data, isLoading, saveDraft, send, approve, reject, archive } = useContractDocument(documentId);
