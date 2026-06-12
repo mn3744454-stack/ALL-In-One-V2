@@ -31,11 +31,13 @@ import { EditorShell, type EditorShellSection } from "./EditorShell";
 
 export interface ContractDocumentEditorBodyProps {
   documentId: string;
-  /** When true, render an X close button instead of a "back to list" link. */
+  /** When true, suppress the "back to list" link (Dialog provides its own close X). */
   inDialog?: boolean;
   onRequestClose?: () => void;
   /** Notifies parent of dirty state — used by SafeFormDialog discard guard. */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Notifies parent that a mutation is in-flight (used to block close). */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 export function ContractDocumentEditorBody({
