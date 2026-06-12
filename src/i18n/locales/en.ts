@@ -6909,6 +6909,12 @@ export const en = {
       missingRequired: "Missing required",
       rejectionPrefix: "Rejection",
       addVariable: "Add variable",
+      identitySection: "Identity",
+      reviewSection: "Review & status",
+      publishingSection: "Publishing",
+      noVariables: "No variables yet. Add one to start collecting values.",
+      noHistory: "No history yet.",
+      filledOfTotal: "{filled} / {total} filled",
       actions: {
         saveDraft: "Save draft",
         sendForReview: "Send for review",

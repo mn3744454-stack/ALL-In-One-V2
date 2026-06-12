@@ -6886,6 +6886,12 @@ export const ar = {
       missingRequired: "حقول مطلوبة مفقودة",
       rejectionPrefix: "سبب الرفض",
       addVariable: "إضافة متغير",
+      identitySection: "الهوية",
+      reviewSection: "المراجعة والحالة",
+      publishingSection: "النشر",
+      noVariables: "لا توجد متغيرات بعد. أضف متغيراً للبدء بجمع القيم.",
+      noHistory: "لا يوجد سجل بعد.",
+      filledOfTotal: "{filled} / {total} مكتمل",
       actions: {
         saveDraft: "حفظ المسودة",
         sendForReview: "إرسال للمراجعة",
