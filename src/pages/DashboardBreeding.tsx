@@ -67,7 +67,7 @@ export default function DashboardBreeding() {
     setSearchParams(next, { replace: true });
   };
   
-  const { attempts, loading: attemptsLoading, canManage, updateAttempt, deleteAttempt } = useBreedingAttempts();
+  const { attempts, loading: attemptsLoading, canManage, updateAttempt, deleteAttempt, refresh: refreshAttempts } = useBreedingAttempts();
   const { pregnancies, loading: pregnanciesLoading, canManage: pregCanManage, closePregnancy, refresh: refreshPregnancies } = usePregnancies();
   const { transfers, loading: transfersLoading, updateTransfer, deleteTransfer } = useEmbryoTransfers();
   const { batches, loading: inventoryLoading, deleteBatch } = useSemenInventory();
