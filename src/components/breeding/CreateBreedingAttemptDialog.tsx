@@ -46,6 +46,7 @@ import { QuickCreateHorseDialog, type QuickCreateHorseDefaults } from "@/compone
 interface CreateBreedingAttemptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void | Promise<void>;
 }
 
 export function CreateBreedingAttemptDialog({
