@@ -188,6 +188,12 @@ export function ContractTemplatesSection() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ContractTemplateEditorDialog
+        templateId={editorId}
+        open={!!editorId}
+        onOpenChange={(o) => { if (!o) setEditorId(null); }}
+      />
     </div>
   );
 }
