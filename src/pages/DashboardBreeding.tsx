@@ -292,7 +292,7 @@ export default function DashboardBreeding() {
         </div>
 
         {/* Dialogs */}
-        <CreateBreedingAttemptDialog open={showAttemptDialog} onOpenChange={setShowAttemptDialog} />
+        <CreateBreedingAttemptDialog open={showAttemptDialog} onOpenChange={setShowAttemptDialog} onCreated={refreshAttempts} />
         <CreatePregnancyDialog open={showPregnancyDialog} onOpenChange={setShowPregnancyDialog} />
         <CreateEmbryoTransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} />
         <CreateSemenBatchDialog open={showBatchDialog} onOpenChange={setShowBatchDialog} />
