@@ -35,8 +35,9 @@ export interface ContractTemplateEditorBodyProps {
 export function ContractTemplateEditorBody({
   templateId,
   inDialog,
-  onRequestClose,
+  onRequestClose: _onRequestClose,
   onDirtyChange,
+  onBusyChange,
 }: ContractTemplateEditorBodyProps) {
   const { dir, t } = useI18n();
   const { data, isLoading, saveDraft, publish } = useContractTemplate(templateId);
