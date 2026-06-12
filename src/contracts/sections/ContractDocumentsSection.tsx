@@ -1,6 +1,6 @@
 // B2.5e — Contract Documents inner section (renders inside DashboardContracts Hub shell).
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import type { ContractType, ContractDocumentStatus } from "@/contracts/docModel/
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { ContractDocumentEditorDialog } from "@/contracts/editor/ContractDocumentEditorDialog";
 
 const STATUS_VARIANT: Record<ContractDocumentStatus, "default" | "secondary" | "outline" | "destructive"> = {
   draft: "secondary", sent_for_review: "secondary", approved: "default",
