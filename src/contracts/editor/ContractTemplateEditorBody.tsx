@@ -102,7 +102,14 @@ export function ContractTemplateEditorBody({
     if (!draftVersion) return;
     saveDraft.mutate(
       { body_json: bodyDoc, variables_json: variables },
-      { onSuccess: () => { setIsDirty(false); publish.mutate(draftVersion.id); } },
+      {
+        onSuccess: () => {
+          setIsDirty(false);
+          publish.mutate(draftVersion.id, {
+            onSuccess: () => setIsDirty(false),
+          });
+        },
+      },
     );
   };
 
