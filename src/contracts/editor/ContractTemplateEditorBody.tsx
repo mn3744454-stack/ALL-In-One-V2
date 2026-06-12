@@ -29,6 +29,7 @@ export interface ContractTemplateEditorBodyProps {
   inDialog?: boolean;
   onRequestClose?: () => void;
   onDirtyChange?: (dirty: boolean) => void;
+  onBusyChange?: (busy: boolean) => void;
 }
 
 export function ContractTemplateEditorBody({
