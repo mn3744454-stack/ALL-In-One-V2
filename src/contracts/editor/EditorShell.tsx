@@ -36,8 +36,14 @@ interface EditorShellProps {
  * fallback) owns sizing and chrome.
  */
 export function EditorShell({ header, actions, banner, footer, sections }: EditorShellProps) {
+  // Phase 3a.1 — All sections start collapsed on initial mount so the
+  // Dialog opens in a compact accordion state. Re-opening the Dialog
+  // remounts this component (Radix unmounts on close), giving a fresh
+  // collapsed state per open. Rail/card clicks still toggle normally and
+  // collapsed children remain mounted (see EditorSectionCard) to preserve
+  // TipTap and form state across toggles.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(sections.map((s) => [s.id, !!s.defaultCollapsed])),
+    Object.fromEntries(sections.map((s) => [s.id, true])),
   );
   const [activeId, setActiveId] = useState<string>(sections[0]?.id ?? "");
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -92,9 +98,12 @@ export function EditorShell({ header, actions, banner, footer, sections }: Edito
 
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
-      {/* Sticky shell header */}
+      {/* Sticky shell header — reserve a safe area at the logical end for
+          the Radix Dialog close X (positioned end-4 top-4) so action
+          buttons never crowd or overlap the close control in either LTR
+          or RTL. */}
       {(header || actions) && (
-        <div className="shrink-0 border-b border-border bg-card px-4 lg:px-6 py-3">
+        <div className="shrink-0 border-b border-border bg-card ps-4 lg:ps-6 pe-12 lg:pe-14 py-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0 flex-1">{header}</div>
             {actions && (
