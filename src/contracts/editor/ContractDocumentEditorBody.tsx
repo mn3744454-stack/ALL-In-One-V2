@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, Save, Send, CheckCircle2, XCircle, Printer, Archive,
-  FileText, ListChecks, Eye, Clock, IdCard, X,
+  FileText, ListChecks, Eye, Clock, IdCard,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useContractDocument } from "@/contracts/hooks/useContractDocuments";
