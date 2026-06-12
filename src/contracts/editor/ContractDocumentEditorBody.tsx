@@ -75,6 +75,17 @@ export function ContractDocumentEditorBody({
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
 
+  const isBusy =
+    saveDraft.isPending ||
+    send.isPending ||
+    approve.isPending ||
+    reject.isPending ||
+    archive.isPending;
+
+  useEffect(() => {
+    onBusyChange?.(isBusy);
+  }, [isBusy, onBusyChange]);
+
   const doc = data?.document;
   const isDraft = doc?.status === "draft";
   const isSent = doc?.status === "sent_for_review";
