@@ -33,7 +33,7 @@ const CONTRACT_TYPES: ContractType[] = ["boarding", "training", "reproduction", 
 
 export function ContractDocumentsSection() {
   const { t } = useI18n();
-  const navigate = useNavigate();
+  const [editorId, setEditorId] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const { documents, isLoading, createBlank, createFromTemplate } = useContractDocuments();
   const { templates } = useContractTemplates();
