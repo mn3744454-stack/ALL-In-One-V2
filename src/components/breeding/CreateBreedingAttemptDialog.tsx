@@ -119,7 +119,7 @@ export function CreateBreedingAttemptDialog({
 
     setLoading(true);
     try {
-      await createAttempt({
+      const created = await createAttempt({
         mare_id: mareId,
         stallion_id: sourceMode === "external" ? null : stallionId || null,
         external_stallion_name: sourceMode === "external" ? externalStallionName || null : null,
@@ -130,8 +130,11 @@ export function CreateBreedingAttemptDialog({
         external_provider_name: sourceMode === "external" ? externalProviderName || null : null,
         contract_id: contractId || null,
       });
-      resetForm();
-      onOpenChange(false);
+      if (created) {
+        await onCreated?.();
+        resetForm();
+        onOpenChange(false);
+      }
     } finally {
       setLoading(false);
     }
