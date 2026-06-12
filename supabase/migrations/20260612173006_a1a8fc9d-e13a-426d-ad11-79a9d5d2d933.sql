@@ -1,0 +1,1 @@
+ALTER TABLE public.breeding_attempts ALTER COLUMN result SET DEFAULT 'unknown';
