@@ -1,7 +1,9 @@
-// B2.5e Phase 2 — Contracts editor shell.
-// Provides a focused editor layout with a side section rail (desktop/tablet)
-// and a horizontal jump bar (mobile). Section content stays mounted when
-// collapsed to preserve TipTap and form state.
+// B2.5e Phase 2b — Contracts editor shell.
+// Lab-style focused container: centered, max-w-6xl, internal scroll body,
+// sticky shell header, side rail (desktop) / horizontal jump bar (mobile)
+// rendered INSIDE the focused container so it does not collide with the
+// app sidebar and the body editor occupies the main content area.
+// Section content stays mounted when collapsed to preserve TipTap/form state.
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorSectionRail, type EditorRailItem } from "./EditorSectionRail";
 import { EditorSectionCard } from "./EditorSectionCard";
@@ -27,19 +29,22 @@ export interface EditorShellSection {
 
 interface EditorShellProps {
   header?: ReactNode;
-  /** Persistent action area (top of main column). */
+  /** Persistent action area rendered in the sticky shell header. */
   actions?: ReactNode;
   /** Optional validation/inline messages rendered above sections. */
   banner?: ReactNode;
+  /** Optional sticky footer slot (reserved for Phase 3 — not used yet). */
+  footer?: ReactNode;
   sections: EditorShellSection[];
 }
 
-export function EditorShell({ header, actions, banner, sections }: EditorShellProps) {
+export function EditorShell({ header, actions, banner, footer, sections }: EditorShellProps) {
   const { isRTL } = useRTL();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(sections.map((s) => [s.id, !!s.defaultCollapsed])),
   );
   const [activeId, setActiveId] = useState<string>(sections[0]?.id ?? "");
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const refs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const items: EditorRailItem[] = useMemo(
@@ -66,83 +71,117 @@ export function EditorShell({ header, actions, banner, sections }: EditorShellPr
     setActiveId(id);
   }, []);
 
-  // Track active section by scroll position.
+  // Track active section by scroll position within the internal scroll container.
   useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
     const onScroll = () => {
+      const containerTop = container.getBoundingClientRect().top;
       let current = activeId;
       let bestTop = Number.NEGATIVE_INFINITY;
       for (const s of sections) {
         const el = refs.current[s.id];
         if (!el) continue;
-        const top = el.getBoundingClientRect().top;
-        if (top < 120 && top > bestTop) {
+        const top = el.getBoundingClientRect().top - containerTop;
+        if (top < 96 && top > bestTop) {
           bestTop = top;
           current = s.id;
         }
       }
       if (current !== activeId) setActiveId(current);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => container.removeEventListener("scroll", onScroll);
   }, [sections, activeId]);
 
   return (
-    <div className="space-y-4">
-      {header}
-      {actions && (
-        <div className="flex flex-wrap items-center gap-2 justify-end">{actions}</div>
+    <div
+      className={cn(
+        // Lab-style focused container
+        "w-[95vw] max-w-6xl mx-auto",
+        "max-h-[85vh] min-h-[60vh]",
+        "bg-card border border-border rounded-2xl shadow-sm",
+        "flex flex-col overflow-hidden",
       )}
-      {banner}
+    >
+      {/* Sticky shell header */}
+      {(header || actions) && (
+        <div className="shrink-0 border-b border-border bg-card px-4 lg:px-6 py-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0 flex-1">{header}</div>
+            {actions && (
+              <div className="flex flex-wrap items-center gap-2 justify-end shrink-0">
+                {actions}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
-      {/* Mobile jump bar */}
-      <div className="lg:hidden -mx-4 px-4">
-        <EditorSectionRail
-          items={items}
-          activeId={activeId}
-          onSelect={handleSelect}
-          orientation="horizontal"
-        />
-      </div>
+      {/* Internal scroll body */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
+        <div className="px-4 lg:px-6 py-4 space-y-4">
+          {banner}
 
-      <div className={cn("grid gap-4 lg:gap-6", "lg:grid-cols-[220px_minmax(0,1fr)]")}>
-        {/* Desktop/tablet side rail */}
-        <aside className={cn("hidden lg:block", isRTL ? "lg:order-2" : "lg:order-1")}>
-          <div className="sticky top-20">
+          {/* Mobile / tablet horizontal jump bar (sticky inside scroll body) */}
+          <div className="lg:hidden sticky top-0 z-10 -mx-4 px-4 py-2 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-b border-border">
             <EditorSectionRail
               items={items}
               activeId={activeId}
               onSelect={handleSelect}
-              orientation="vertical"
+              orientation="horizontal"
             />
           </div>
-        </aside>
 
-        <div className={cn("min-w-0 space-y-4", isRTL ? "lg:order-1" : "lg:order-2")}>
-          {sections.map((s) => (
-            <div
-              key={s.id}
-              ref={(el) => {
-                refs.current[s.id] = el;
-              }}
-              data-section-id={s.id}
-              style={{ scrollMarginTop: 80 }}
-            >
-              <EditorSectionCard
-                title={s.label}
-                description={s.description}
-                count={s.count}
-                badge={s.badge}
-                hasIssue={s.hasIssue}
-                headerAside={s.headerAside}
-                isOpen={!collapsed[s.id]}
-                onToggle={() => handleToggle(s.id)}
-              >
-                {s.content}
-              </EditorSectionCard>
+          <div className={cn("grid gap-4 lg:gap-6", "lg:grid-cols-[200px_minmax(0,1fr)]")}>
+            {/* Desktop side rail — inside the focused container */}
+            <aside className={cn("hidden lg:block", isRTL ? "lg:order-2" : "lg:order-1")}>
+              <div className="sticky top-2">
+                <EditorSectionRail
+                  items={items}
+                  activeId={activeId}
+                  onSelect={handleSelect}
+                  orientation="vertical"
+                />
+              </div>
+            </aside>
+
+            {/* Main content column */}
+            <div className={cn("min-w-0 space-y-4", isRTL ? "lg:order-1" : "lg:order-2")}>
+              {sections.map((s) => (
+                <div
+                  key={s.id}
+                  ref={(el) => {
+                    refs.current[s.id] = el;
+                  }}
+                  data-section-id={s.id}
+                  style={{ scrollMarginTop: 12 }}
+                >
+                  <EditorSectionCard
+                    title={s.label}
+                    description={s.description}
+                    count={s.count}
+                    badge={s.badge}
+                    hasIssue={s.hasIssue}
+                    headerAside={s.headerAside}
+                    isOpen={!collapsed[s.id]}
+                    onToggle={() => handleToggle(s.id)}
+                  >
+                    {s.content}
+                  </EditorSectionCard>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </div>
+
+      {/* Reserved footer slot (Phase 3) */}
+      {footer && (
+        <div className="shrink-0 border-t border-border bg-card px-4 lg:px-6 py-3">
+          {footer}
+        </div>
+      )}
     </div>
   );
 }
