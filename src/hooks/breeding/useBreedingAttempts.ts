@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export type SourceMode = "internal" | "connected" | "external";
 export type AttemptType = "natural" | "ai_fresh" | "ai_frozen";
-export type AttemptResult = "pending" | "successful" | "unsuccessful";
+export type AttemptResult = "unknown" | "successful" | "unsuccessful";
 
 export interface BreedingAttempt {
   id: string;
@@ -184,6 +184,7 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
         external_provider_name: data.external_provider_name || null,
         performed_by: data.performed_by || null,
         contract_id: data.contract_id || null,
+        result: "unknown" as AttemptResult,
       };
 
       const { data: newAttempt, error } = await supabase

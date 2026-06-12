@@ -5017,7 +5017,7 @@ export const en = {
     cancelled: "Cancelled",
     approved: "Approved",
     rejected: "Rejected",
-    unknown: "Pending",
+    unknown: "Unknown",
     successful: "Successful",
     unsuccessful: "Unsuccessful",
     open: "Suspected",

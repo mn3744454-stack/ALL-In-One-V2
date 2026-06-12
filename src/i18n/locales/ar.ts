@@ -5014,7 +5014,7 @@ export const ar = {
     cancelled: "ملغي",
     approved: "معتمد",
     rejected: "مرفوض",
-    unknown: "قيد الانتظار",
+    unknown: "غير معروف",
     successful: "ناجح",
     unsuccessful: "غير ناجح",
     open: "مشتبه",
