@@ -1,6 +1,6 @@
 // B2.5e — Contract Documents inner section (renders inside DashboardContracts Hub shell).
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import type { ContractType, ContractDocumentStatus } from "@/contracts/docModel/
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { ContractDocumentEditorDialog } from "@/contracts/editor/ContractDocumentEditorDialog";
 
 const STATUS_VARIANT: Record<ContractDocumentStatus, "default" | "secondary" | "outline" | "destructive"> = {
   draft: "secondary", sent_for_review: "secondary", approved: "default",
@@ -32,7 +33,7 @@ const CONTRACT_TYPES: ContractType[] = ["boarding", "training", "reproduction", 
 
 export function ContractDocumentsSection() {
   const { t } = useI18n();
-  const navigate = useNavigate();
+  const [editorId, setEditorId] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const { documents, isLoading, createBlank, createFromTemplate } = useContractDocuments();
   const { templates } = useContractTemplates();
@@ -90,10 +91,10 @@ export function ContractDocumentsSection() {
       : await createBlank.mutateAsync({ contract_type: type, title: title.trim(), title_ar: titleAr.trim() || undefined });
     setOpen(false);
     setTitle(""); setTitleAr("");
-    navigate(`/dashboard/contracts/documents/${id}`);
+    setEditorId(id);
   };
 
-  const openDoc = (id: string) => navigate(`/dashboard/contracts/documents/${id}`);
+  const openDoc = (id: string) => setEditorId(id);
 
   return (
     <div className="space-y-4">
@@ -253,6 +254,12 @@ export function ContractDocumentsSection() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ContractDocumentEditorDialog
+        documentId={editorId}
+        open={editorId !== null}
+        onOpenChange={(next) => { if (!next) setEditorId(null); }}
+      />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 // B2.5e — Contract Forms inner section (renders inside DashboardContracts Hub shell).
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +18,7 @@ import type { ContractType, ContractTemplateStatus } from "@/contracts/docModel/
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { ContractTemplateEditorDialog } from "@/contracts/editor/ContractTemplateEditorDialog";
 
 const STATUS_VARIANT: Record<ContractTemplateStatus, "default" | "secondary" | "outline"> = {
   draft: "secondary", published: "default", archived: "outline",
@@ -29,7 +29,7 @@ const CONTRACT_TYPES: ContractType[] = ["boarding", "training", "reproduction", 
 export function ContractTemplatesSection() {
   const { t } = useI18n();
   const { templates, isLoading, create } = useContractTemplates();
-  const navigate = useNavigate();
+  const [editorId, setEditorId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [nameAr, setNameAr] = useState("");
@@ -49,10 +49,10 @@ export function ContractTemplatesSection() {
     });
     setOpen(false);
     setName(""); setNameAr("");
-    navigate(`/dashboard/contracts/templates/${id}`);
+    setEditorId(id);
   };
 
-  const openTpl = (id: string) => navigate(`/dashboard/contracts/templates/${id}`);
+  const openTpl = (id: string) => setEditorId(id);
 
   return (
     <div className="space-y-4">
