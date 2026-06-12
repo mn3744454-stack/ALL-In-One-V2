@@ -1,13 +1,12 @@
-// B2.5e Phase 2b — Contracts editor shell.
-// Lab-style focused container: centered, max-w-6xl, internal scroll body,
-// sticky shell header, side rail (desktop) / horizontal jump bar (mobile)
-// rendered INSIDE the focused container so it does not collide with the
-// app sidebar and the body editor occupies the main content area.
-// Section content stays mounted when collapsed to preserve TipTap/form state.
+// B2.5e Phase 2c — Shared contracts editor shell.
+// Lab Template-parity layout: fills its parent (Dialog or route fallback),
+// sticky internal header, internal scroll body, leading-side rail (RTL-safe
+// via dir + flex source order — NO order swap that would collide with a
+// fixed-width grid track), main content always occupies the wide column.
+// Section children stay mounted when collapsed to preserve TipTap/form state.
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorSectionRail, type EditorRailItem } from "./EditorSectionRail";
 import { EditorSectionCard } from "./EditorSectionCard";
-import { useRTL } from "@/hooks/useRTL";
 import { cn } from "@/lib/utils";
 
 export interface EditorShellSection {
@@ -16,30 +15,27 @@ export interface EditorShellSection {
   icon?: ReactNode;
   count?: number;
   badge?: ReactNode;
-  /** Show a warning dot on the rail (e.g. validation issues in a collapsed section). */
   hasIssue?: boolean;
-  /** Collapsed by default? Body should usually be open. */
   defaultCollapsed?: boolean;
-  /** Subtitle/description shown under the card title. */
   description?: ReactNode;
-  /** Right-side header content inside the card (small actions, status). */
   headerAside?: ReactNode;
   content: ReactNode;
 }
 
 interface EditorShellProps {
   header?: ReactNode;
-  /** Persistent action area rendered in the sticky shell header. */
   actions?: ReactNode;
-  /** Optional validation/inline messages rendered above sections. */
   banner?: ReactNode;
-  /** Optional sticky footer slot (reserved for Phase 3 — not used yet). */
   footer?: ReactNode;
   sections: EditorShellSection[];
 }
 
+/**
+ * EditorShell is a pure presentational container. It fills its parent and
+ * never imposes outer width/height — the parent (SafeFormDialog or route
+ * fallback) owns sizing and chrome.
+ */
 export function EditorShell({ header, actions, banner, footer, sections }: EditorShellProps) {
-  const { isRTL } = useRTL();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(sections.map((s) => [s.id, !!s.defaultCollapsed])),
   );
@@ -95,15 +91,7 @@ export function EditorShell({ header, actions, banner, footer, sections }: Edito
   }, [sections, activeId]);
 
   return (
-    <div
-      className={cn(
-        // Lab-style focused container
-        "w-[95vw] max-w-6xl mx-auto",
-        "max-h-[85vh] min-h-[60vh]",
-        "bg-card border border-border rounded-2xl shadow-sm",
-        "flex flex-col overflow-hidden",
-      )}
-    >
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Sticky shell header */}
       {(header || actions) && (
         <div className="shrink-0 border-b border-border bg-card px-4 lg:px-6 py-3">
@@ -119,12 +107,12 @@ export function EditorShell({ header, actions, banner, footer, sections }: Edito
       )}
 
       {/* Internal scroll body */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0 bg-background">
         <div className="px-4 lg:px-6 py-4 space-y-4">
           {banner}
 
           {/* Mobile / tablet horizontal jump bar (sticky inside scroll body) */}
-          <div className="lg:hidden sticky top-0 z-10 -mx-4 px-4 py-2 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-b border-border">
+          <div className="lg:hidden sticky top-0 z-10 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
             <EditorSectionRail
               items={items}
               activeId={activeId}
@@ -133,21 +121,31 @@ export function EditorShell({ header, actions, banner, footer, sections }: Edito
             />
           </div>
 
-          <div className={cn("grid gap-4 lg:gap-6", "lg:grid-cols-[200px_minmax(0,1fr)]")}>
-            {/* Desktop side rail — inside the focused container */}
-            <aside className={cn("hidden lg:block", isRTL ? "lg:order-2" : "lg:order-1")}>
-              <div className="sticky top-2">
-                <EditorSectionRail
-                  items={items}
-                  activeId={activeId}
-                  onSelect={handleSelect}
-                  orientation="vertical"
-                />
-              </div>
+          {/*
+            Lab-parity layout: simple flex row. dir="rtl" on an ancestor (set
+            by the i18n provider) places the rail visually on the right in
+            RTL and on the left in LTR without any order swap. The main
+            content always takes the wide flexible column.
+          */}
+          <div className="lg:flex lg:items-start lg:gap-6">
+            {/* Desktop side rail — navigation only, fixed narrow column */}
+            <aside
+              aria-label="Editor sections"
+              className={cn(
+                "hidden lg:flex lg:flex-col lg:gap-1",
+                "lg:sticky lg:top-2 lg:self-start lg:w-48 lg:shrink-0 lg:py-1",
+              )}
+            >
+              <EditorSectionRail
+                items={items}
+                activeId={activeId}
+                onSelect={handleSelect}
+                orientation="vertical"
+              />
             </aside>
 
-            {/* Main content column */}
-            <div className={cn("min-w-0 space-y-4", isRTL ? "lg:order-1" : "lg:order-2")}>
+            {/* Main content column — always takes the wide flexible area */}
+            <div className="flex-1 min-w-0 space-y-4">
               {sections.map((s) => (
                 <div
                   key={s.id}
