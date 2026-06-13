@@ -102,10 +102,11 @@ export interface BreedingAttemptFilters {
 export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
   const [attempts, setAttempts] = useState<BreedingAttempt[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  const canManage = hasPermission("breeding.manage");
 
   const fetchAttempts = useCallback(async () => {
     if (!activeTenant?.tenant?.id) {
