@@ -276,6 +276,10 @@ export function RecordMovementDialog({
         break;
       case "location": {
         if (formData.destinationType === 'connected') {
+          if (!canSendConnected) {
+            issues.push(t("movement.connected.noPermission"));
+            break;
+          }
           if (formData.movementType === 'out') {
             if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
             if (!formData.connectedTenantId) issues.push(t("movement.guards.connectedPartner"));
