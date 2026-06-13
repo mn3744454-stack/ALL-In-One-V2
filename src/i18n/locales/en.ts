@@ -1918,6 +1918,7 @@ export const en = {
       noConnection: "No accepted connection exists with this entity",
       noPermission: "You do not have permission to send connected movements.",
       noPermissionHint: "Ask a workspace admin to grant the connected movement permission.",
+      recordFailed: "Could not record the connected movement. Please try again or contact support.",
     },
     incoming: {
       title: "Incoming Arrivals",
