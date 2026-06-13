@@ -37,11 +37,13 @@ import type { SourceMode } from "@/hooks/breeding/useBreedingAttempts";
 interface CreateSemenBatchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void | Promise<void>;
 }
 
 export function CreateSemenBatchDialog({
   open,
   onOpenChange,
+  onCreated,
 }: CreateSemenBatchDialogProps) {
   const { horses } = useHorses();
   const { tanks, createBatch } = useSemenInventory();
@@ -82,7 +84,7 @@ export function CreateSemenBatchDialog({
 
     setLoading(true);
     try {
-      await createBatch({
+      const result = await createBatch({
         stallion_id: stallionId,
         tank_id: tankId || null,
         collection_date: format(collectionDate, "yyyy-MM-dd"),
@@ -95,6 +97,9 @@ export function CreateSemenBatchDialog({
         motility_percent: motilityPercent ? parseFloat(motilityPercent) : null,
         concentration_million_per_ml: concentration ? parseFloat(concentration) : null,
       });
+      if (result) {
+        await onCreated?.();
+      }
       resetForm();
       onOpenChange(false);
     } finally {

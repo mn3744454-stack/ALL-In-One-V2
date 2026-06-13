@@ -69,10 +69,10 @@ export default function DashboardBreeding() {
   
   const { attempts, loading: attemptsLoading, canManage, updateAttempt, deleteAttempt, refresh: refreshAttempts } = useBreedingAttempts();
   const { pregnancies, loading: pregnanciesLoading, canManage: pregCanManage, closePregnancy, refresh: refreshPregnancies } = usePregnancies();
-  const { transfers, loading: transfersLoading, updateTransfer, deleteTransfer } = useEmbryoTransfers();
-  const { batches, loading: inventoryLoading, deleteBatch } = useSemenInventory();
+  const { transfers, loading: transfersLoading, updateTransfer, deleteTransfer, refresh: refreshTransfers } = useEmbryoTransfers();
+  const { batches, loading: inventoryLoading, deleteBatch, refresh: refreshInventory } = useSemenInventory();
   const { foalings, loading: foalingsLoading, canManage: foalCanManage, refresh: refreshFoalings } = useFoalings();
-  const { contracts, loading: contractsLoading, canManage: contractCanManage } = useBreedingContracts();
+  const { contracts, loading: contractsLoading, canManage: contractCanManage, refresh: refreshContracts } = useBreedingContracts();
 
   const handleAddNew = () => {
     switch (activeTab) {
@@ -293,10 +293,10 @@ export default function DashboardBreeding() {
 
         {/* Dialogs */}
         <CreateBreedingAttemptDialog open={showAttemptDialog} onOpenChange={setShowAttemptDialog} onCreated={refreshAttempts} />
-        <CreatePregnancyDialog open={showPregnancyDialog} onOpenChange={setShowPregnancyDialog} />
-        <CreateEmbryoTransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} />
-        <CreateSemenBatchDialog open={showBatchDialog} onOpenChange={setShowBatchDialog} />
-        <CreateBreedingContractDialog open={showContractDialog} onOpenChange={setShowContractDialog} />
+        <CreatePregnancyDialog open={showPregnancyDialog} onOpenChange={setShowPregnancyDialog} onCreated={refreshPregnancies} />
+        <CreateEmbryoTransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onCreated={refreshTransfers} />
+        <CreateSemenBatchDialog open={showBatchDialog} onOpenChange={setShowBatchDialog} onCreated={refreshInventory} />
+        <CreateBreedingContractDialog open={showContractDialog} onOpenChange={setShowContractDialog} onCreated={refreshContracts} />
 
         {/* Foaling dialogs */}
         <RecordFoalingDialog

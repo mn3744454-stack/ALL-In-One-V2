@@ -36,11 +36,13 @@ import type { SourceMode } from "@/hooks/breeding/useBreedingAttempts";
 interface CreateEmbryoTransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void | Promise<void>;
 }
 
 export function CreateEmbryoTransferDialog({
   open,
   onOpenChange,
+  onCreated,
 }: CreateEmbryoTransferDialogProps) {
   const { horses } = useHorses();
   const { createTransfer } = useEmbryoTransfers();
@@ -84,7 +86,7 @@ export function CreateEmbryoTransferDialog({
 
     setLoading(true);
     try {
-      await createTransfer({
+      const result = await createTransfer({
         donor_mare_id: donorMareId,
         recipient_mare_id: recipientMareId,
         flush_date: flushDate ? format(flushDate, "yyyy-MM-dd") : null,
@@ -96,6 +98,9 @@ export function CreateEmbryoTransferDialog({
         external_provider_name: sourceMode === "external" ? externalProviderName || null : null,
         contract_id: contractId && contractId !== "none" ? contractId : null,
       });
+      if (result) {
+        await onCreated?.();
+      }
       resetForm();
       onOpenChange(false);
     } finally {

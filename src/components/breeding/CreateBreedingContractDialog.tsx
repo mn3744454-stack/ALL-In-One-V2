@@ -37,9 +37,10 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editContract?: any | null;
+  onCreated?: () => void | Promise<void>;
 }
 
-export function CreateBreedingContractDialog({ open, onOpenChange, editContract }: Props) {
+export function CreateBreedingContractDialog({ open, onOpenChange, editContract, onCreated }: Props) {
   const { horses } = useHorses();
   const { clients } = useClients();
   const { data: breedingServices = [] } = useServicesByKind("breeding");
@@ -106,9 +107,15 @@ export function CreateBreedingContractDialog({ open, onOpenChange, editContract 
       };
 
       if (isEdit) {
-        await updateContract(editContract.id, data);
+        const ok = await updateContract(editContract.id, data);
+        if (ok) {
+          await onCreated?.();
+        }
       } else {
-        await createContract(data);
+        const result = await createContract(data);
+        if (result) {
+          await onCreated?.();
+        }
       }
       onOpenChange(false);
     } finally {
