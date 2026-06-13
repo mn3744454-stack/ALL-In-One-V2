@@ -74,11 +74,12 @@ export interface PregnancyFilters {
 export function usePregnancies(filters?: PregnancyFilters) {
   const [pregnancies, setPregnancies] = useState<Pregnancy[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
   const { user } = useAuth();
   const { t } = useI18n();
+  const { hasPermission } = usePermissions();
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  const canManage = hasPermission("breeding.manage");
 
   const fetchPregnancies = useCallback(async () => {
     if (!activeTenant?.tenant?.id) {
