@@ -4746,6 +4746,8 @@ export const en = {
       internal: "Internal",
       connected: "Connected Partner",
       external: "External Provider",
+      connectedUnderActivation: "Under activation",
+      connectedUnderActivationHelp: "Connected partner selection is not available yet. Use Internal or External for now.",
     },
     performedBy: "Performed By",
     providerName: "Provider Name",
