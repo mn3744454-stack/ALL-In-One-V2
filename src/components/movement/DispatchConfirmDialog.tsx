@@ -124,10 +124,10 @@ export function DispatchConfirmDialog({
                 <ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-destructive">
-                    {t('housing.admissions.detail.checkout.financialBlock')}
+                    {t('housing.admissions.checkout.financialBlock')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t('housing.admissions.detail.checkout.contactManager')}
+                    {t('housing.admissions.checkout.contactManager')}
                   </p>
                   <Badge variant="destructive" className="text-xs">
                     {gate.outstandingAmount.toFixed(2)}
@@ -143,7 +143,7 @@ export function DispatchConfirmDialog({
                   <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                      {t('housing.admissions.detail.checkout.overrideRequired')}
+                      {t('housing.admissions.checkout.overrideRequired')}
                     </p>
                     <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
                       {gate.outstandingAmount.toFixed(2)}
@@ -157,7 +157,7 @@ export function DispatchConfirmDialog({
                     onCheckedChange={(checked) => setOverrideConfirmed(checked === true)}
                   />
                   <Label htmlFor="dispatch-override" className="text-xs leading-tight cursor-pointer">
-                    {t('housing.admissions.detail.checkout.confirmOverride')}
+                    {t('housing.admissions.checkout.confirmOverride')}
                   </Label>
                 </div>
               </div>
