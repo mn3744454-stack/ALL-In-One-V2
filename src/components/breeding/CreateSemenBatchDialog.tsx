@@ -52,7 +52,8 @@ export function CreateSemenBatchDialog({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [stallionId, setStallionId] = useState("");
-  const [tankId, setTankId] = useState("");
+  const TANK_NONE = "__none__";
+  const [tankId, setTankId] = useState<string>(TANK_NONE);
   const [collectionDate, setCollectionDate] = useState<Date | undefined>(new Date());
   const [type, setType] = useState<CreateSemenBatchData["type"]>("frozen");
   const [dosesTotal, setDosesTotal] = useState("1");
