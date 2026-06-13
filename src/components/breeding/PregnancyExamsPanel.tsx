@@ -35,9 +35,10 @@ interface PregnancyExamsPanelProps {
   pregnancyId: string;
   canManage?: boolean;
   mareId?: string;
+  onCreated?: () => void | Promise<void>;
 }
 
-export function PregnancyExamsPanel({ pregnancyId, canManage = false, mareId }: PregnancyExamsPanelProps) {
+export function PregnancyExamsPanel({ pregnancyId, canManage = false, mareId, onCreated }: PregnancyExamsPanelProps) {
   const { checks, loading, createCheck } = usePregnancyChecks(pregnancyId);
   const { t } = useI18n();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -78,6 +79,7 @@ export function PregnancyExamsPanel({ pregnancyId, canManage = false, mareId }: 
         pregnancyId={pregnancyId}
         mareId={mareId}
         onSubmit={createCheck}
+        onCreated={onCreated}
       />
     </Card>
   );
