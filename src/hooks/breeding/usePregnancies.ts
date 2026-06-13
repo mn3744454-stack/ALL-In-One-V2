@@ -152,8 +152,13 @@ export function usePregnancies(filters?: PregnancyFilters) {
       fetchPregnancies();
       return newPregnancy;
     } catch (error: any) {
-      console.error("Error creating pregnancy:", error);
-      toast.error(error.message || "Failed to create pregnancy record");
+      const friendly = mapPregnancySaveError(error, t);
+      if (friendly) {
+        toast.error(friendly.title, { description: friendly.description });
+      } else {
+        console.error("Error creating pregnancy:", error);
+        toast.error(error.message || "Failed to create pregnancy record");
+      }
       return null;
     }
   };
