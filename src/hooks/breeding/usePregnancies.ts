@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useI18n } from "@/i18n";
+import { mapPregnancySaveError } from "@/lib/breedingErrorMessages";
 
 export interface Pregnancy {
   id: string;
