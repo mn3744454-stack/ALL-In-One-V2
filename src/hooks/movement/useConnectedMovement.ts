@@ -13,6 +13,7 @@ export interface RecordConnectedMovementData {
   reason?: string;
   notes?: string;
   is_demo?: boolean;
+  movement_status?: 'scheduled' | 'dispatched';
 }
 
 export function useConnectedMovement() {
@@ -33,6 +34,7 @@ export function useConnectedMovement() {
         p_reason: data.reason || null,
         p_notes: data.notes || null,
         p_is_demo: data.is_demo || false,
+        p_movement_status: data.movement_status || 'dispatched',
       });
 
       if (error) throw error;
@@ -45,13 +47,14 @@ export function useConnectedMovement() {
       invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
-      const msg = error.message;
+      console.error('[useConnectedMovement] record_connected_movement failed', error);
+      const msg = error.message || '';
       if (msg.includes('No accepted connection')) {
         toast.error(tGlobal('movement.connected.noConnection'));
       } else if (msg.includes('Permission denied')) {
         toast.error(tGlobal('movement.toasts.permissionDenied'));
       } else {
-        toast.error(msg || tGlobal('movement.toasts.failedToRecord'));
+        toast.error(tGlobal('movement.connected.recordFailed'));
       }
     },
   });

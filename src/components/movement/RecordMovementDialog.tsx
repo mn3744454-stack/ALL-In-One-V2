@@ -433,6 +433,7 @@ export function RecordMovementDialog({
           movement_at: isScheduled ? effectiveMovementAt : undefined,
           reason: formData.reason || undefined,
           notes: formData.notes || undefined,
+          movement_status: isScheduled ? 'scheduled' : 'dispatched',
         });
         onOpenChange(false);
         resetForm();
