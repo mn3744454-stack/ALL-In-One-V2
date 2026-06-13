@@ -56,6 +56,8 @@ export function CreatePregnancyDialog({
   const [notes, setNotes] = useState("");
 
   const mares = filterEligibleMares(horses);
+  const activeMareSet = new Set(activeMareIds);
+  const isMareIneligible = (id: string) => activeMareSet.has(id);
 
   const resetForm = () => {
     setMareId("");
