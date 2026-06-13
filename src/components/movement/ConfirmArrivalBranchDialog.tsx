@@ -30,10 +30,11 @@ interface ConfirmArrivalBranchDialogProps {
   onConfirm: (branchId: string) => Promise<void> | void;
   isProcessing: boolean;
   boardingContractId?: string | null;
+  sourceType?: 'boarding_contract' | 'movement' | null;
 }
 
 export function ConfirmArrivalBranchDialog({
-  open, onOpenChange, onConfirm, isProcessing, boardingContractId,
+  open, onOpenChange, onConfirm, isProcessing, boardingContractId, sourceType = 'boarding_contract',
 }: ConfirmArrivalBranchDialogProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
@@ -100,15 +101,23 @@ export function ConfirmArrivalBranchDialog({
   const { isDirty } = useDirtyForm({ selected }, open);
   const dirty = isDirty && selected !== defaulted;
 
+  const noBranches = !isLoading && branches.length === 0;
+
   const hint = useMemo(() => {
-    if (preferredBranchId && branches.some((b) => b.id === preferredBranchId)) {
+    if (noBranches) {
+      return t("movement.incoming.confirmArrivalBranch.noActiveBranches");
+    }
+    if (sourceType === 'boarding_contract' && preferredBranchId && branches.some((b) => b.id === preferredBranchId)) {
       return t("movement.incoming.confirmArrivalBranch.preferredHint");
     }
     if (branches.length === 1) {
       return t("movement.incoming.confirmArrivalBranch.soleHint");
     }
+    if (sourceType === 'movement') {
+      return t("movement.incoming.confirmArrivalBranch.connectedHint");
+    }
     return t("movement.incoming.confirmArrivalBranch.multiHint");
-  }, [preferredBranchId, branches, t]);
+  }, [noBranches, sourceType, preferredBranchId, branches, t]);
 
   const displayName = (b: Branch) => {
     if (lang === "ar") return b.name_ar || b.name || "";
