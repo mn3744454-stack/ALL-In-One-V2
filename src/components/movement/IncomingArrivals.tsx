@@ -30,8 +30,7 @@ export function IncomingArrivals() {
   const navigate = useNavigate();
   const { hasPermission, isOwner } = usePermissions();
   const [statusFilter, setStatusFilter] = useState<string>("pending");
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [confirmContractDialogId, setConfirmContractDialogId] = useState<string | null>(null);
+  const [confirmBranchId, setConfirmBranchId] = useState<string | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [nextStepData, setNextStepData] = useState<{ horseId: string; horseName: string } | null>(null);
 
@@ -45,32 +44,20 @@ export function IncomingArrivals() {
 
   if (!canView) return null;
 
-  const handleConfirm = async () => {
-    if (!confirmId) return;
-    const incoming = incomingMovements.find(m => m.id === confirmId);
-    await confirmIncoming({ incomingId: confirmId });
-    setConfirmId(null);
-    if (incoming) {
-      setNextStepData({ horseId: incoming.horse_id, horseName: incoming.horse_name });
-    }
-  };
+  const activeIncoming = incomingMovements.find(m => m.id === confirmBranchId) || null;
 
-  const handleConfirmContract = async (branchId: string) => {
-    if (!confirmContractDialogId) return;
-    const incoming = incomingMovements.find(m => m.id === confirmContractDialogId);
-    await confirmIncoming({ incomingId: confirmContractDialogId, branchId });
-    setConfirmContractDialogId(null);
+  const handleConfirmWithBranch = async (branchId: string) => {
+    if (!confirmBranchId) return;
+    const incoming = activeIncoming;
+    await confirmIncoming({ incomingId: confirmBranchId, branchId });
+    setConfirmBranchId(null);
     if (incoming) {
       setNextStepData({ horseId: incoming.horse_id, horseName: incoming.horse_name });
     }
   };
 
   const openConfirm = (incoming: IncomingMovement) => {
-    if (incoming.source_type === 'boarding_contract') {
-      setConfirmContractDialogId(incoming.id);
-    } else {
-      setConfirmId(incoming.id);
-    }
+    setConfirmBranchId(incoming.id);
   };
 
   const handleCancel = async () => {
