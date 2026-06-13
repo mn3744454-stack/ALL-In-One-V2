@@ -185,9 +185,10 @@ interface PregnancyDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canManage?: boolean;
+  onExamCreated?: () => void | Promise<void>;
 }
 
-export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage }: PregnancyDetailSheetProps) {
+export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage, onExamCreated }: PregnancyDetailSheetProps) {
   const { t, lang } = useI18n();
   if (!pregnancy) return null;
 
@@ -247,7 +248,7 @@ export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage 
           <Separator />
 
           {/* Pregnancy Exams — read-only for closed pregnancies */}
-          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage && isActive} mareId={pregnancy.mare_id} />
+          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage && isActive} mareId={pregnancy.mare_id} onCreated={onExamCreated} />
         </div>
       </SheetContent>
     </Sheet>
