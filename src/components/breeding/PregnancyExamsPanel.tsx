@@ -129,9 +129,10 @@ interface AddExamDialogProps {
   pregnancyId: string;
   mareId?: string;
   onSubmit: (data: CreatePregnancyCheckData) => Promise<unknown>;
+  onCreated?: () => void | Promise<void>;
 }
 
-function AddExamDialog({ open, onOpenChange, pregnancyId, mareId, onSubmit }: AddExamDialogProps) {
+function AddExamDialog({ open, onOpenChange, pregnancyId, mareId, onSubmit, onCreated }: AddExamDialogProps) {
   const { t } = useI18n();
   const { contracts } = useBreedingContracts();
   const [loading, setLoading] = useState(false);
@@ -164,7 +165,7 @@ function AddExamDialog({ open, onOpenChange, pregnancyId, mareId, onSubmit }: Ad
 
     setLoading(true);
     try {
-      await onSubmit({
+      const result = await onSubmit({
         pregnancy_id: pregnancyId,
         check_date: format(checkDate, "yyyy-MM-dd"),
         method,
@@ -172,8 +173,11 @@ function AddExamDialog({ open, onOpenChange, pregnancyId, mareId, onSubmit }: Ad
         notes: notes || null,
         contract_id: contractId && contractId !== "none" ? contractId : null,
       });
-      resetForm();
-      onOpenChange(false);
+      if (result) {
+        await onCreated?.();
+        resetForm();
+        onOpenChange(false);
+      }
     } finally {
       setLoading(false);
     }
