@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
