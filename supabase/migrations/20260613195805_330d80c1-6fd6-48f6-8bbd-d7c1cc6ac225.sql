@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.record_connected_movement(uuid, uuid, uuid, uuid, timestamptz, text, text, boolean);

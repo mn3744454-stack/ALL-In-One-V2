@@ -12361,34 +12361,20 @@ export type Database = {
         Args: { _version_id: string }
         Returns: undefined
       }
-      record_connected_movement:
-        | {
-            Args: {
-              p_connected_tenant_id: string
-              p_from_location_id?: string
-              p_horse_id: string
-              p_is_demo?: boolean
-              p_movement_at?: string
-              p_notes?: string
-              p_reason?: string
-              p_sender_tenant_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_connected_tenant_id: string
-              p_from_location_id?: string
-              p_horse_id: string
-              p_is_demo?: boolean
-              p_movement_at?: string
-              p_movement_status?: string
-              p_notes?: string
-              p_reason?: string
-              p_sender_tenant_id: string
-            }
-            Returns: Json
-          }
+      record_connected_movement: {
+        Args: {
+          p_connected_tenant_id: string
+          p_from_location_id?: string
+          p_horse_id: string
+          p_is_demo?: boolean
+          p_movement_at?: string
+          p_movement_status?: string
+          p_notes?: string
+          p_reason?: string
+          p_sender_tenant_id: string
+        }
+        Returns: Json
+      }
       record_horse_movement_with_housing: {
         Args: {
           p_clear_housing?: boolean
