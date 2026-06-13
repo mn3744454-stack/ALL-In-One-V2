@@ -137,29 +137,16 @@ export function IncomingArrivals() {
         </div>
       )}
 
-      {/* Confirm Dialog */}
+      {/* Confirm Dialog — unified branch confirmation for both contract & connected-movement incoming */}
       <ConfirmArrivalBranchDialog
-        open={!!confirmContractDialogId}
-        onOpenChange={(open) => !open && setConfirmContractDialogId(null)}
-        onConfirm={handleConfirmContract}
+        open={!!confirmBranchId}
+        onOpenChange={(open) => !open && setConfirmBranchId(null)}
+        onConfirm={handleConfirmWithBranch}
         isProcessing={isConfirming}
-        boardingContractId={incomingMovements.find(m => m.id === confirmContractDialogId)?.boarding_contract_id || null}
+        boardingContractId={activeIncoming?.boarding_contract_id || null}
+        sourceType={activeIncoming?.source_type ?? null}
       />
 
-      <AlertDialog open={!!confirmId} onOpenChange={(open) => !open && setConfirmId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('movement.incoming.confirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('movement.incoming.confirmDesc')}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} disabled={isConfirming}>
-              {t('common.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Cancel Dialog */}
       <AlertDialog open={!!cancelId} onOpenChange={(open) => !open && setCancelId(null)}>
