@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { getEligibleTenantTypes } from '@/lib/connections/partnerEligibility';
 
 export interface ConnectedDestination {
   id: string;
@@ -9,8 +10,6 @@ export interface ConnectedDestination {
   tenant_type: string | null;
   connection_id: string;
 }
-
-const ALLOWED_DESTINATION_TYPES = ['stable', 'clinic'];
 
 /**
  * Fetches accepted B2B connections and resolves partner tenant names
