@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { getEligibleTenantTypes } from '@/lib/connections/partnerEligibility';
 
 export interface ConnectedDestination {
   id: string;
@@ -9,8 +10,6 @@ export interface ConnectedDestination {
   tenant_type: string | null;
   connection_id: string;
 }
-
-const ALLOWED_DESTINATION_TYPES = ['stable', 'clinic'];
 
 /**
  * Fetches accepted B2B connections and resolves partner tenant names
@@ -92,7 +91,7 @@ export function useConnectedDestinations() {
         const tenantType = info?.entity_subtype || null;
 
         // Only include explicitly typed allowed destination types
-        if (!tenantType || !ALLOWED_DESTINATION_TYPES.includes(tenantType)) continue;
+        if (!tenantType || !getEligibleTenantTypes('horse_movement_destination').includes(tenantType)) continue;
 
         results.push({
           id: partnerId,
