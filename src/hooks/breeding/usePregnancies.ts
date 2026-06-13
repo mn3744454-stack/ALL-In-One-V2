@@ -75,6 +75,7 @@ export function usePregnancies(filters?: PregnancyFilters) {
   const [loading, setLoading] = useState(true);
   const { activeTenant, activeRole } = useTenant();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
