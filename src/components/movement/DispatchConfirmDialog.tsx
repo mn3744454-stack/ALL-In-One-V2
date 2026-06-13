@@ -157,7 +157,7 @@ export function DispatchConfirmDialog({
                     onCheckedChange={(checked) => setOverrideConfirmed(checked === true)}
                   />
                   <Label htmlFor="dispatch-override" className="text-xs leading-tight cursor-pointer">
-                    {t('housing.admissions.detail.checkout.confirmOverride')}
+                    {t('housing.admissions.checkout.confirmOverride')}
                   </Label>
                 </div>
               </div>
