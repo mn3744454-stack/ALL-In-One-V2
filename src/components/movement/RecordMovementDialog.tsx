@@ -422,7 +422,7 @@ export function RecordMovementDialog({
       // Connected movement uses a separate RPC
       if (formData.destinationType === 'connected' && formData.connectedTenantId) {
         if (!canSendConnected) {
-          toast({ title: t("movement.connected.noPermission"), variant: "destructive" });
+          toast.error(t("movement.connected.noPermission"));
           return;
         }
         await recordConnectedMovement({
