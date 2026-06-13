@@ -117,13 +117,26 @@ export function CreatePregnancyDialog({
                 <SelectValue placeholder={t("breeding.foaling.selectSex")} />
               </SelectTrigger>
               <SelectContent className="z-[200]">
-                {mares.map((mare) => (
-                  <SelectItem key={mare.id} value={mare.id}>
-                    {mare.name}
-                  </SelectItem>
-                ))}
+                {mares.map((mare) => {
+                  const ineligible = isMareIneligible(mare.id);
+                  return (
+                    <SelectItem key={mare.id} value={mare.id} disabled={ineligible}>
+                      <span className="flex items-center gap-2">
+                        <span>{mare.name}</span>
+                        {ineligible && (
+                          <span className="text-[10px] text-muted-foreground">
+                            · {t("breeding.hasActivePregnancy")}
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              {t("breeding.onlyMaresWithoutActive")}
+            </p>
           </div>
 
           <div className="space-y-1.5">
