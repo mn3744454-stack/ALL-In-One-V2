@@ -293,7 +293,7 @@ export default function DashboardBreeding() {
 
         {/* Dialogs */}
         <CreateBreedingAttemptDialog open={showAttemptDialog} onOpenChange={setShowAttemptDialog} onCreated={refreshAttempts} />
-        <CreatePregnancyDialog open={showPregnancyDialog} onOpenChange={setShowPregnancyDialog} onCreated={refreshPregnancies} />
+        <CreatePregnancyDialog open={showPregnancyDialog} onOpenChange={setShowPregnancyDialog} onCreated={refreshPregnancies} activeMareIds={pregnancies.filter(p => !p.ended_at).map(p => p.mare_id)} />
         <CreateEmbryoTransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} onCreated={refreshTransfers} />
         <CreateSemenBatchDialog open={showBatchDialog} onOpenChange={setShowBatchDialog} onCreated={refreshInventory} />
         <CreateBreedingContractDialog open={showContractDialog} onOpenChange={setShowContractDialog} onCreated={refreshContracts} />
