@@ -91,7 +91,7 @@ export function useConnectedDestinations() {
         const tenantType = info?.entity_subtype || null;
 
         // Only include explicitly typed allowed destination types
-        if (!tenantType || !ALLOWED_DESTINATION_TYPES.includes(tenantType)) continue;
+        if (!tenantType || !getEligibleTenantTypes('horse_movement_destination').includes(tenantType)) continue;
 
         results.push({
           id: partnerId,
