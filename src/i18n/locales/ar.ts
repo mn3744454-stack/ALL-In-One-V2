@@ -1969,6 +1969,8 @@ export const ar = {
         dirtyDiscardTitle: "تجاهل التغييرات؟",
         dirtyDiscardDesc: "سيتم فقدان اختيار الفرع.",
         branchRequired: "فرع الاستلام مطلوب.",
+        connectedHint: "اختر الفرع الذي سيستقبل هذا الخيل.",
+        noActiveBranches: "لا يوجد فرع نشط. أضف فرعاً أو فعّل فرعاً قبل تأكيد الوصول.",
       },
     },
     lifecycle: {
