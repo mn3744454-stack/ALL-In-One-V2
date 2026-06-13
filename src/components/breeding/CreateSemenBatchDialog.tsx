@@ -87,7 +87,7 @@ export function CreateSemenBatchDialog({
     try {
       const result = await createBatch({
         stallion_id: stallionId,
-        tank_id: tankId || null,
+        tank_id: tankId && tankId !== TANK_NONE ? tankId : null,
         collection_date: format(collectionDate, "yyyy-MM-dd"),
         type,
         doses_total: parseInt(dosesTotal) || 1,
