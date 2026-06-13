@@ -38,6 +38,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
 import { Switch } from "@/components/ui/switch";
 import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar, UserPlus, Clock, Search, PlusCircle, UserCheck } from "lucide-react";
+import { getEligibleTenantTypes } from "@/lib/connections/partnerEligibility";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -1097,6 +1098,14 @@ export function RecordMovementDialog({
                         )}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => setShowPartnerRequest(true)}
+                      className="flex items-center gap-2 w-full p-3 rounded-lg border border-dashed border-border text-muted-foreground hover:bg-muted/50 transition-colors text-sm"
+                    >
+                      <Plus className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{t("movement.destination.linkAnotherOrganization")}</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -1438,7 +1447,7 @@ export function RecordMovementDialog({
           onOpenChange={setShowPartnerRequest}
           onSubmit={handlePartnerRequest}
           isLoading={createConnection.isPending}
-          typeFilter={['stable', 'clinic']}
+          typeFilter={getEligibleTenantTypes('horse_movement_destination')}
         />
       </>
     );
@@ -1462,7 +1471,7 @@ export function RecordMovementDialog({
         onOpenChange={setShowPartnerRequest}
         onSubmit={handlePartnerRequest}
         isLoading={createConnection.isPending}
-        typeFilter={['stable', 'clinic']}
+        typeFilter={getEligibleTenantTypes('horse_movement_destination')}
       />
     </>
   );

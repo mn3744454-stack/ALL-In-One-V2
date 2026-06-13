@@ -1918,6 +1918,7 @@ export const ar = {
       noConnectedDestinations: "لا توجد إسطبلات أو عيادات متصلة بعد",
       noConnectedDestinationsHint: "ابحث عن إسطبل أو عيادة أخرى واطلب شراكة لتفعيل النقل المتصل.",
       requestPartnership: "طلب شراكة",
+      linkAnotherOrganization: "ربط جهة أخرى",
       partnershipRequested: "تم إرسال طلب الشراكة",
       orUseExternal: "أو استخدم الوجهة الخارجية للمواقع غير الشريكة",
       pendingRequests: "طلبات معلقة",

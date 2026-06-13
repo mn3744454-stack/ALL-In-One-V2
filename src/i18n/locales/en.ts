@@ -1900,6 +1900,7 @@ export const en = {
       noConnectedDestinations: "No connected stables or clinics yet",
       noConnectedDestinationsHint: "Search for and request a partnership with another stable or clinic to enable connected movements.",
       requestPartnership: "Request Partnership",
+      linkAnotherOrganization: "Link another organization",
       partnershipRequested: "Partnership request sent",
       orUseExternal: "Or use External destination for non-partner locations",
       pendingRequests: "Pending Requests",
