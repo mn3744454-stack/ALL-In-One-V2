@@ -276,6 +276,10 @@ export function RecordMovementDialog({
         break;
       case "location": {
         if (formData.destinationType === 'connected') {
+          if (!canSendConnected) {
+            issues.push(t("movement.connected.noPermission"));
+            break;
+          }
           if (formData.movementType === 'out') {
             if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
             if (!formData.connectedTenantId) issues.push(t("movement.guards.connectedPartner"));
@@ -417,6 +421,10 @@ export function RecordMovementDialog({
 
       // Connected movement uses a separate RPC
       if (formData.destinationType === 'connected' && formData.connectedTenantId) {
+        if (!canSendConnected) {
+          toast.error(t("movement.connected.noPermission"));
+          return;
+        }
         await recordConnectedMovement({
           horse_id: horseId,
           connected_tenant_id: formData.connectedTenantId,
@@ -832,26 +840,36 @@ export function RecordMovementDialog({
                     <MapPin className="h-3.5 w-3.5" />
                     {t("movement.destination.external")}
                   </button>
-                  {canSendConnected && (
-                    <button
-                      onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
-                      className={cn(
-                        "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
-                        formData.destinationType === 'connected'
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border text-muted-foreground hover:border-primary/50"
-                      )}
-                    >
-                      <Link2 className="h-3.5 w-3.5" />
-                      {t("movement.destination.connected")}
-                      {connectedDestinations.length > 0 && (
-                        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
-                          {connectedDestinations.length}
-                        </Badge>
-                      )}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!canSendConnected) return;
+                      setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null });
+                    }}
+                    aria-disabled={!canSendConnected}
+                    title={!canSendConnected ? t("movement.connected.noPermission") : undefined}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
+                      formData.destinationType === 'connected'
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50",
+                      !canSendConnected && "opacity-50 cursor-not-allowed hover:border-border"
+                    )}
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                    {t("movement.destination.connected")}
+                    {canSendConnected && connectedDestinations.length > 0 && (
+                      <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
+                        {connectedDestinations.length}
+                      </Badge>
+                    )}
+                  </button>
                 </div>
+                {!canSendConnected && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("movement.connected.noPermission")}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   {t("movement.transfer.departureUseTransferHint")}
                 </p>
