@@ -322,7 +322,15 @@ export function useHorseMovements(filters: MovementFilters = {}) {
       invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
-      toast.error(error.message || tGlobal('movement.lifecycle.dispatchFailed'));
+      console.error('[dispatch_horse_movement] failed:', error);
+      const msg = error?.message ?? '';
+      if (msg.includes('Permission denied')) {
+        toast.error(tGlobal('movement.toasts.permissionDenied'));
+      } else if (msg.includes('Movement not found') || msg.includes('not in scheduled')) {
+        toast.error(msg);
+      } else {
+        toast.error(tGlobal('movement.lifecycle.dispatchFailedFallback'));
+      }
     },
   });
 
