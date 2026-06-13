@@ -51,10 +51,11 @@ export interface CreatePregnancyCheckData {
 export function usePregnancyChecks(pregnancyId?: string) {
   const [checks, setChecks] = useState<PregnancyCheck[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  const canManage = hasPermission("breeding.manage");
 
   const fetchChecks = useCallback(async () => {
     if (!activeTenant?.tenant?.id || !pregnancyId) {
