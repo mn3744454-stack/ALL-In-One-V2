@@ -30,7 +30,12 @@ interface ConfirmArrivalBranchDialogProps {
   onConfirm: (branchId: string) => Promise<void> | void;
   isProcessing: boolean;
   boardingContractId?: string | null;
+  sourceType?: 'boarding_contract' | 'movement' | null;
 }
+
+export function ConfirmArrivalBranchDialog({
+  open, onOpenChange, onConfirm, isProcessing, boardingContractId, sourceType = 'boarding_contract',
+}: ConfirmArrivalBranchDialogProps) {
 
 export function ConfirmArrivalBranchDialog({
   open, onOpenChange, onConfirm, isProcessing, boardingContractId,
