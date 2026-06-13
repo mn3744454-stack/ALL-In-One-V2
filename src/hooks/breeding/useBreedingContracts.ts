@@ -66,10 +66,11 @@ export interface BreedingContractFilters {
 export function useBreedingContracts(filters?: BreedingContractFilters) {
   const [contracts, setContracts] = useState<BreedingContract[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  const canManage = hasPermission("breeding.manage");
   const tenantId = activeTenant?.tenant?.id;
 
   const fetchContracts = useCallback(async () => {
