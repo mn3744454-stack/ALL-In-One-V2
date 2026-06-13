@@ -33,6 +33,7 @@ import { useI18n } from "@/i18n";
 interface CreatePregnancyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void | Promise<void>;
 }
 
 const EQUINE_GESTATION_DAYS = 340;
@@ -40,6 +41,7 @@ const EQUINE_GESTATION_DAYS = 340;
 export function CreatePregnancyDialog({
   open,
   onOpenChange,
+  onCreated,
 }: CreatePregnancyDialogProps) {
   const { t } = useI18n();
   const { horses } = useHorses();
@@ -80,12 +82,15 @@ export function CreatePregnancyDialog({
 
     setLoading(true);
     try {
-      await createPregnancy({
+      const result = await createPregnancy({
         mare_id: mareId,
         start_date: format(startDate, "yyyy-MM-dd"),
         expected_due_date: expectedDueDate ? format(expectedDueDate, "yyyy-MM-dd") : null,
         notes: notes || null,
       });
+      if (result) {
+        await onCreated?.();
+      }
       resetForm();
       onOpenChange(false);
     } finally {
