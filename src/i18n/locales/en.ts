@@ -1964,6 +1964,7 @@ export const en = {
       scheduled: "Movement scheduled successfully",
       dispatched: "Horse dispatched — housing cleared",
       dispatchFailed: "Failed to dispatch movement",
+      dispatchFailedFallback: "Could not confirm dispatch. Please try again or contact support.",
       confirmDispatch: "Confirm Dispatch",
       confirmDispatchTitle: "Confirm Horse Dispatch",
       confirmDispatchDesc: "This will mark the horse as physically departed. Housing will be cleared and occupancy will close. This action cannot be undone.",

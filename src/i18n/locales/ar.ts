@@ -1982,6 +1982,7 @@ export const ar = {
       scheduled: "تمت جدولة الحركة بنجاح",
       dispatched: "تم إرسال الخيل — تم إخلاء السكن",
       dispatchFailed: "فشل إرسال الحركة",
+      dispatchFailedFallback: "تعذر تأكيد إرسال الخيل. حاول مرة أخرى أو تواصل مع الدعم.",
       confirmDispatch: "تأكيد الإرسال",
       confirmDispatchTitle: "تأكيد إرسال الخيل",
       confirmDispatchDesc: "سيتم تسجيل الخيل كمغادر فعلياً. سيتم إخلاء السكن وإغلاق الإشغال. لا يمكن التراجع عن هذا الإجراء.",
