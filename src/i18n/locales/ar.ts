@@ -1933,6 +1933,8 @@ export const ar = {
     },
     connected: {
       noConnection: "لا يوجد اتصال مقبول مع هذه الجهة",
+      noPermission: "ليست لديك صلاحية إرسال حركات مرتبطة.",
+      noPermissionHint: "اطلب من مسؤول مساحة العمل منحك صلاحية الحركات المرتبطة.",
     },
     incoming: {
       title: "الوصول المتوقع",
