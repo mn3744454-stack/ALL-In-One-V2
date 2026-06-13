@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Plus, Heart, Baby, Syringe, FlaskConical, Stethoscope, FileText } from "lucide-react";
+import { Plus, Heart, Baby, Syringe, FlaskConical, Stethoscope, FileText, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -216,7 +216,16 @@ export default function DashboardBreeding() {
                     {foalingsLoading ? (
                       <div className={getGridClass(gridColumns, viewMode)}>{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
                     ) : foalings.length === 0 ? (
-                      renderEmptyState("breeding.empty.foalings")
+                      <div className="text-center py-12">
+                        <Stethoscope className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
+                        <p className="text-sm text-muted-foreground mb-2">{t("breeding.empty.foalings")}</p>
+                        <p className="text-sm text-muted-foreground/70 max-w-md mx-auto mb-4">{t("breeding.empty.foalingsHelp")}</p>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => handleTabChange('pregnancies')}>
+                          <Baby className="h-4 w-4" />
+                          {t("breeding.empty.goToPregnancies")}
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
                     ) : (
                       <div className={getGridClass(gridColumns, viewMode)}>
                         {foalings.map((foaling) => (
