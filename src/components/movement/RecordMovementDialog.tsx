@@ -1447,7 +1447,7 @@ export function RecordMovementDialog({
           onOpenChange={setShowPartnerRequest}
           onSubmit={handlePartnerRequest}
           isLoading={createConnection.isPending}
-          typeFilter={['stable', 'clinic']}
+          typeFilter={getEligibleTenantTypes('horse_movement_destination')}
         />
       </>
     );
