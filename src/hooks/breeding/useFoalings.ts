@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 
 export interface Foaling {
@@ -80,10 +81,11 @@ export interface FoalingFilters {
 export function useFoalings(filters?: FoalingFilters) {
   const [foalings, setFoalings] = useState<Foaling[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  const canManage = hasPermission("breeding.manage");
 
   const fetchFoalings = useCallback(async () => {
     if (!activeTenant?.tenant?.id) {

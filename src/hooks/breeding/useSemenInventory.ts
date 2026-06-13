@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 import type { SourceMode } from "./useBreedingAttempts";
 
@@ -71,10 +72,11 @@ export function useSemenInventory() {
   const [tanks, setTanks] = useState<SemenTank[]>([]);
   const [batches, setBatches] = useState<SemenBatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  const canManage = hasPermission("breeding.manage");
 
   const fetchTanks = useCallback(async () => {
     if (!activeTenant?.tenant?.id) { setTanks([]); return; }
