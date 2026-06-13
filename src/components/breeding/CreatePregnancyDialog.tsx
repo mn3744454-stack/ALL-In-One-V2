@@ -205,7 +205,7 @@ export function CreatePregnancyDialog({
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" className="flex-1" disabled={loading || !mareId || !startDate}>
+            <Button type="submit" className="flex-1" disabled={loading || !mareId || !startDate || isMareIneligible(mareId)}>
               {loading ? t("common.saving") : t("common.create")}
             </Button>
           </div>
