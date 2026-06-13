@@ -248,7 +248,7 @@ export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage,
           <Separator />
 
           {/* Pregnancy Exams — read-only for closed pregnancies */}
-          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage && isActive} mareId={pregnancy.mare_id} />
+          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage && isActive} mareId={pregnancy.mare_id} onCreated={onExamCreated} />
         </div>
       </SheetContent>
     </Sheet>
