@@ -1951,6 +1951,8 @@ export const en = {
         dirtyDiscardTitle: "Discard changes?",
         dirtyDiscardDesc: "Branch selection will be lost.",
         branchRequired: "Receiving branch is required.",
+        connectedHint: "Choose the branch that will receive this horse.",
+        noActiveBranches: "No active branch found. Add or activate a branch before confirming arrival.",
       },
     },
     lifecycle: {
