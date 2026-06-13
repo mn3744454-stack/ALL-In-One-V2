@@ -34,6 +34,7 @@ interface CreatePregnancyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: () => void | Promise<void>;
+  activeMareIds?: string[];
 }
 
 const EQUINE_GESTATION_DAYS = 340;
