@@ -68,7 +68,7 @@ export function CreateSemenBatchDialog({
   const stallions = useMemo(() => filterEligibleStallions(horses), [horses]);
 
   const resetForm = () => {
-    setStallionId(""); setTankId(""); setCollectionDate(new Date());
+    setStallionId(""); setTankId(TANK_NONE); setCollectionDate(new Date());
     setType("frozen"); setDosesTotal("1"); setDosesAvailable("1");
     setQualityNotes(""); setSourceMode("internal"); setSourceExternalName("");
     setMotilityPercent(""); setConcentration(""); setShowAdvanced(false);
