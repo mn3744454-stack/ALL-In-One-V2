@@ -33,6 +33,7 @@ import { useI18n } from "@/i18n";
 interface CreatePregnancyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void | Promise<void>;
 }
 
 const EQUINE_GESTATION_DAYS = 340;
