@@ -190,7 +190,7 @@ export function CreateSemenBatchDialog({
                 <Select value={tankId} onValueChange={setTankId}>
                   <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
                   <SelectContent className="z-[200]">
-                    <SelectItem value="">—</SelectItem>
+                    <SelectItem value={TANK_NONE}>—</SelectItem>
                     {tanks.map((tank) => (
                       <SelectItem key={tank.id} value={tank.id}>
                         {tank.name} {tank.location && `(${tank.location})`}
