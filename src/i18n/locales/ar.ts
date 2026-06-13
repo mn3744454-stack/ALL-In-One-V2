@@ -4759,6 +4759,8 @@ export const ar = {
       internal: "داخلي",
       connected: "شريك متصل",
       external: "مزود خارجي",
+      connectedUnderActivation: "قيد التفعيل",
+      connectedUnderActivationHelp: "اختيار الشريك المرتبط غير متاح حاليًا. استخدم داخلي أو خارجي الآن.",
     },
     performedBy: "تم بواسطة",
     providerName: "اسم المزود",

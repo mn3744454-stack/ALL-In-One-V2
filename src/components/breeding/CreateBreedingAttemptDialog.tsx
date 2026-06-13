@@ -195,16 +195,26 @@ export function CreateBreedingAttemptDialog({
               {/* Source Mode Selector */}
               <div className="space-y-2">
                 <Label>{t("breeding.source")}</Label>
-                <Select value={sourceMode} onValueChange={(v) => setSourceMode(v as SourceMode)}>
+                <Select value={sourceMode} onValueChange={(v) => { if (v === "connected") return; setSourceMode(v as SourceMode); }}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="z-[200]">
                     <SelectItem value="internal">{t("breeding.sourceMode.internal")}</SelectItem>
-                    <SelectItem value="connected">{t("breeding.sourceMode.connected")}</SelectItem>
+                    <SelectItem value="connected" disabled>
+                      <span className="flex items-center gap-2">
+                        {t("breeding.sourceMode.connected")}
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          {t("breeding.sourceMode.connectedUnderActivation")}
+                        </Badge>
+                      </span>
+                    </SelectItem>
                     <SelectItem value="external">{t("breeding.sourceMode.external")}</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  {t("breeding.sourceMode.connectedUnderActivationHelp")}
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
