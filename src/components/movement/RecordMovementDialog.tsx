@@ -38,6 +38,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
 import { Switch } from "@/components/ui/switch";
 import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar, UserPlus, Clock, Search, PlusCircle, UserCheck } from "lucide-react";
+import { getEligibleTenantTypes } from "@/lib/connections/partnerEligibility";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
