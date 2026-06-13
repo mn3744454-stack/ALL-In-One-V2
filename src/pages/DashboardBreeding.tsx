@@ -324,6 +324,7 @@ export default function DashboardBreeding() {
           open={!!selectedPregnancy}
           onOpenChange={(open) => { if (!open) setSelectedPregnancy(null); }}
           canManage={pregCanManage}
+          onExamCreated={refreshPregnancies}
         />
         <FoalingDetailSheet
           foaling={selectedFoaling}
