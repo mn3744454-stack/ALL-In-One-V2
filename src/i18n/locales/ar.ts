@@ -4775,6 +4775,14 @@ export const ar = {
     addPregnancy: "إضافة سجل حمل",
     addEmbryoTransfer: "إضافة نقل أجنة",
     addSemenBatch: "إضافة دفعة سائل منوي",
+    hasActivePregnancy: "لديها حمل نشط",
+    onlyMaresWithoutActive: "تظهر هنا الأفراس التي لا تملك حملًا نشطًا. لا يمكن إنشاء حمل جديد لفرس لديها حمل نشط بالفعل.",
+    errors: {
+      activePregnancyExists: {
+        title: "تعذر إنشاء سجل حمل",
+        description: "هذه الفرس لديها حمل نشط بالفعل. يرجى إنهاء الحمل الحالي قبل إنشاء حمل جديد.",
+      },
+    },
     pregnancyExams: "فحوصات الحمل",
     addExam: "إضافة فحص",
     noExams: "لا توجد فحوصات حمل مسجلة بعد.",

@@ -52,7 +52,8 @@ export function CreateSemenBatchDialog({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [stallionId, setStallionId] = useState("");
-  const [tankId, setTankId] = useState("");
+  const TANK_NONE = "__none__";
+  const [tankId, setTankId] = useState<string>(TANK_NONE);
   const [collectionDate, setCollectionDate] = useState<Date | undefined>(new Date());
   const [type, setType] = useState<CreateSemenBatchData["type"]>("frozen");
   const [dosesTotal, setDosesTotal] = useState("1");
@@ -67,7 +68,7 @@ export function CreateSemenBatchDialog({
   const stallions = useMemo(() => filterEligibleStallions(horses), [horses]);
 
   const resetForm = () => {
-    setStallionId(""); setTankId(""); setCollectionDate(new Date());
+    setStallionId(""); setTankId(TANK_NONE); setCollectionDate(new Date());
     setType("frozen"); setDosesTotal("1"); setDosesAvailable("1");
     setQualityNotes(""); setSourceMode("internal"); setSourceExternalName("");
     setMotilityPercent(""); setConcentration(""); setShowAdvanced(false);
@@ -86,7 +87,7 @@ export function CreateSemenBatchDialog({
     try {
       const result = await createBatch({
         stallion_id: stallionId,
-        tank_id: tankId || null,
+        tank_id: tankId && tankId !== TANK_NONE ? tankId : null,
         collection_date: format(collectionDate, "yyyy-MM-dd"),
         type,
         doses_total: parseInt(dosesTotal) || 1,
@@ -189,7 +190,7 @@ export function CreateSemenBatchDialog({
                 <Select value={tankId} onValueChange={setTankId}>
                   <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
                   <SelectContent className="z-[200]">
-                    <SelectItem value="">—</SelectItem>
+                    <SelectItem value={TANK_NONE}>—</SelectItem>
                     {tanks.map((tank) => (
                       <SelectItem key={tank.id} value={tank.id}>
                         {tank.name} {tank.location && `(${tank.location})`}

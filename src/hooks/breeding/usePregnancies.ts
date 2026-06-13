@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useI18n } from "@/i18n";
+import { mapPregnancySaveError } from "@/lib/breedingErrorMessages";
 
 export interface Pregnancy {
   id: string;
@@ -73,6 +75,7 @@ export function usePregnancies(filters?: PregnancyFilters) {
   const [loading, setLoading] = useState(true);
   const { activeTenant, activeRole } = useTenant();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
@@ -149,8 +152,13 @@ export function usePregnancies(filters?: PregnancyFilters) {
       fetchPregnancies();
       return newPregnancy;
     } catch (error: any) {
-      console.error("Error creating pregnancy:", error);
-      toast.error(error.message || "Failed to create pregnancy record");
+      const friendly = mapPregnancySaveError(error, t);
+      if (friendly) {
+        toast.error(friendly.title, { description: friendly.description });
+      } else {
+        console.error("Error creating pregnancy:", error);
+        toast.error(error.message || "Failed to create pregnancy record");
+      }
       return null;
     }
   };

@@ -4763,6 +4763,14 @@ export const en = {
     addPregnancy: "Add Pregnancy Record",
     addEmbryoTransfer: "Add Embryo Transfer",
     addSemenBatch: "Add Semen Batch",
+    hasActivePregnancy: "Has active pregnancy",
+    onlyMaresWithoutActive: "Only mares without an active pregnancy can be selected. A mare cannot have more than one active pregnancy at a time.",
+    errors: {
+      activePregnancyExists: {
+        title: "Cannot create pregnancy",
+        description: "This mare already has an active pregnancy. Close or end the existing pregnancy before creating a new one.",
+      },
+    },
     // Pregnancy exams
     pregnancyExams: "Pregnancy Exams",
     addExam: "Add Exam",

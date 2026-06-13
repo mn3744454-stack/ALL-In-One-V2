@@ -34,6 +34,7 @@ interface CreatePregnancyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: () => void | Promise<void>;
+  activeMareIds?: string[];
 }
 
 const EQUINE_GESTATION_DAYS = 340;
@@ -42,6 +43,7 @@ export function CreatePregnancyDialog({
   open,
   onOpenChange,
   onCreated,
+  activeMareIds = [],
 }: CreatePregnancyDialogProps) {
   const { t } = useI18n();
   const { horses } = useHorses();
@@ -54,6 +56,8 @@ export function CreatePregnancyDialog({
   const [notes, setNotes] = useState("");
 
   const mares = filterEligibleMares(horses);
+  const activeMareSet = new Set(activeMareIds);
+  const isMareIneligible = (id: string) => activeMareSet.has(id);
 
   const resetForm = () => {
     setMareId("");
@@ -79,6 +83,7 @@ export function CreatePregnancyDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mareId || !startDate) return;
+    if (isMareIneligible(mareId)) return;
 
     setLoading(true);
     try {
@@ -90,9 +95,9 @@ export function CreatePregnancyDialog({
       });
       if (result) {
         await onCreated?.();
+        resetForm();
+        onOpenChange(false);
       }
-      resetForm();
-      onOpenChange(false);
     } finally {
       setLoading(false);
     }
@@ -113,13 +118,26 @@ export function CreatePregnancyDialog({
                 <SelectValue placeholder={t("breeding.foaling.selectSex")} />
               </SelectTrigger>
               <SelectContent className="z-[200]">
-                {mares.map((mare) => (
-                  <SelectItem key={mare.id} value={mare.id}>
-                    {mare.name}
-                  </SelectItem>
-                ))}
+                {mares.map((mare) => {
+                  const ineligible = isMareIneligible(mare.id);
+                  return (
+                    <SelectItem key={mare.id} value={mare.id} disabled={ineligible}>
+                      <span className="flex items-center gap-2">
+                        <span>{mare.name}</span>
+                        {ineligible && (
+                          <span className="text-[10px] text-muted-foreground">
+                            · {t("breeding.hasActivePregnancy")}
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              {t("breeding.onlyMaresWithoutActive")}
+            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -187,7 +205,7 @@ export function CreatePregnancyDialog({
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" className="flex-1" disabled={loading || !mareId || !startDate}>
+            <Button type="submit" className="flex-1" disabled={loading || !mareId || !startDate || isMareIneligible(mareId)}>
               {loading ? t("common.saving") : t("common.create")}
             </Button>
           </div>
