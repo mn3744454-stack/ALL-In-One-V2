@@ -43,6 +43,7 @@ export function CreatePregnancyDialog({
   open,
   onOpenChange,
   onCreated,
+  activeMareIds = [],
 }: CreatePregnancyDialogProps) {
   const { t } = useI18n();
   const { horses } = useHorses();
