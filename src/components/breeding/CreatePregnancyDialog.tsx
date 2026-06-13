@@ -83,6 +83,7 @@ export function CreatePregnancyDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mareId || !startDate) return;
+    if (isMareIneligible(mareId)) return;
 
     setLoading(true);
     try {
@@ -94,9 +95,9 @@ export function CreatePregnancyDialog({
       });
       if (result) {
         await onCreated?.();
+        resetForm();
+        onOpenChange(false);
       }
-      resetForm();
-      onOpenChange(false);
     } finally {
       setLoading(false);
     }
