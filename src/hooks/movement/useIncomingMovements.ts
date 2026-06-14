@@ -82,7 +82,19 @@ export function useIncomingMovements(statusFilter?: string) {
       invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
-      toast.error(error.message || tGlobal('movement.incoming.confirmFailed'));
+      console.error('[confirm_incoming_movement]', error);
+      const raw = error?.message || '';
+      const isRawDbError =
+        /chk_movement_in/i.test(raw) ||
+        /violates check constraint/i.test(raw) ||
+        /Receiving branch is required/i.test(raw) ||
+        /Receiving branch is invalid/i.test(raw) ||
+        /to_location_id/i.test(raw);
+      if (isRawDbError) {
+        toast.error(tGlobal('movement.incoming.confirmFailedFallback'));
+        return;
+      }
+      toast.error(raw || tGlobal('movement.incoming.confirmFailed'));
     },
   });
 
