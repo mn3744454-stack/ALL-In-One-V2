@@ -21,9 +21,16 @@ import { FacilityCreationForm, FACILITY_CATEGORY, type FacilityFormData } from "
 interface CreateBranchWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Optional callback fired when the branch row is successfully created.
+   * When provided, the wizard treats branch creation as the terminal step:
+   * Step 2 (facilities) is skipped and the wizard closes immediately so the
+   * caller (e.g. ConfirmArrivalBranchDialog) can resume its own flow.
+   */
+  onCreated?: (branchId: string) => void;
 }
 
-export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardProps) {
+export function CreateBranchWizard({ open, onOpenChange, onCreated }: CreateBranchWizardProps) {
   const { t, dir } = useI18n();
   const { createLocation, isCreating } = useLocations();
   const { createArea } = useFacilityAreas();
@@ -130,6 +137,13 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
         address: address.trim() || undefined,
       });
       setCreatedBranchId(newBranch.id);
+      if (onCreated) {
+        // Quick-add bridge: caller wants the branch only. Skip facility
+        // step entirely and close the wizard so the caller's flow resumes.
+        onCreated(newBranch.id);
+        handleClose(false);
+        return;
+      }
       setStep(2);
     } catch (error: any) {
       toast.error(error.message || t('common.error'));

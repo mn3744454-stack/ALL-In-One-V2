@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -16,7 +16,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Plus } from "lucide-react";
+import { toast } from "sonner";
+import { CreateBranchWizard } from "@/components/housing/CreateBranchWizard";
 
 interface Branch {
   id: string;
@@ -39,10 +41,13 @@ export function ConfirmArrivalBranchDialog({
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
+  const queryClient = useQueryClient();
 
   const [selected, setSelected] = useState<string>("");
   const [defaulted, setDefaulted] = useState<string>("");
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [branchWizardOpen, setBranchWizardOpen] = useState(false);
+  const [pendingCreatedBranchId, setPendingCreatedBranchId] = useState<string | null>(null);
 
   const { data: branches = [], isLoading } = useQuery({
     queryKey: ["confirm-arrival-branches", tenantId],
@@ -95,8 +100,22 @@ export function ConfirmArrivalBranchDialog({
       setSelected("");
       setDefaulted("");
       setDiscardOpen(false);
+      setBranchWizardOpen(false);
+      setPendingCreatedBranchId(null);
     }
   }, [open]);
+
+  // After quick-add: once the refetched branch list contains the new branch,
+  // auto-select it. Runs independently of the "compute default" effect above
+  // so a pending selection always wins over preferred / sole defaults.
+  useEffect(() => {
+    if (!pendingCreatedBranchId) return;
+    if (branches.some((b) => b.id === pendingCreatedBranchId)) {
+      setSelected(pendingCreatedBranchId);
+      setDefaulted(pendingCreatedBranchId);
+      setPendingCreatedBranchId(null);
+    }
+  }, [pendingCreatedBranchId, branches]);
 
   const { isDirty } = useDirtyForm({ selected }, open);
   const dirty = isDirty && selected !== defaulted;
@@ -145,6 +164,14 @@ export function ConfirmArrivalBranchDialog({
     await onConfirm(selected);
   };
 
+  const handleBranchCreated = async (branchId: string) => {
+    setPendingCreatedBranchId(branchId);
+    // Refetch the dialog's own branch list so the new branch shows up and the
+    // pendingCreatedBranchId effect can auto-select it.
+    await queryClient.invalidateQueries({ queryKey: ["confirm-arrival-branches", tenantId] });
+    toast.success(t("movement.incoming.confirmArrivalBranch.quickAddSuccess"));
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={requestClose}>
@@ -167,30 +194,64 @@ export function ConfirmArrivalBranchDialog({
 
           <div className="space-y-2 py-2">
             <Label>{t("movement.incoming.confirmArrivalBranch.receivingBranch")}</Label>
-            <Select
-              value={selected}
-              onValueChange={setSelected}
-              disabled={isLoading || isProcessing}
-            >
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={t("movement.incoming.confirmArrivalBranch.selectPlaceholder")}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    <span>{displayName(b)}</span>
-                    {secondaryName(b) && (
-                      <span className="text-muted-foreground ms-2 text-xs">
-                        {secondaryName(b)}
-                      </span>
-                    )}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">{hint}</p>
+
+            {noBranches ? (
+              <div className="rounded-md border border-dashed border-border bg-muted/30 p-3 space-y-2">
+                <p className="text-sm text-foreground">
+                  {t("movement.incoming.confirmArrivalBranch.emptyStateActionable")}
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setBranchWizardOpen(true)}
+                  disabled={isProcessing}
+                  className="gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {t("movement.incoming.confirmArrivalBranch.quickAddCta")}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Select
+                  value={selected}
+                  onValueChange={setSelected}
+                  disabled={isLoading || isProcessing}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t("movement.incoming.confirmArrivalBranch.selectPlaceholder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        <span>{displayName(b)}</span>
+                        {secondaryName(b) && (
+                          <span className="text-muted-foreground ms-2 text-xs">
+                            {secondaryName(b)}
+                          </span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted-foreground flex-1">{hint}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setBranchWizardOpen(true)}
+                    disabled={isProcessing}
+                    className="gap-1.5 text-xs h-7 px-2 shrink-0"
+                  >
+                    <Plus className="h-3 w-3" />
+                    {t("movement.incoming.confirmArrivalBranch.addAnotherBranch")}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
@@ -231,6 +292,12 @@ export function ConfirmArrivalBranchDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CreateBranchWizard
+        open={branchWizardOpen}
+        onOpenChange={setBranchWizardOpen}
+        onCreated={handleBranchCreated}
+      />
     </>
   );
 }
