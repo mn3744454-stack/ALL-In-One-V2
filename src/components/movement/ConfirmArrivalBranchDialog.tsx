@@ -164,6 +164,14 @@ export function ConfirmArrivalBranchDialog({
     await onConfirm(selected);
   };
 
+  const handleBranchCreated = async (branchId: string) => {
+    setPendingCreatedBranchId(branchId);
+    // Refetch the dialog's own branch list so the new branch shows up and the
+    // pendingCreatedBranchId effect can auto-select it.
+    await queryClient.invalidateQueries({ queryKey: ["confirm-arrival-branches", tenantId] });
+    toast.success(t("movement.incoming.confirmArrivalBranch.quickAddSuccess"));
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={requestClose}>
