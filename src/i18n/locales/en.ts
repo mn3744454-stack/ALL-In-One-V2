@@ -1935,6 +1935,7 @@ export const en = {
       confirmDesc: "This will mark the horse as arrived at your facility. You can then proceed with the admission process.",
       confirmed: "Arrival confirmed successfully",
       confirmFailed: "Failed to confirm arrival",
+      confirmFailedFallback: "Could not confirm arrival. Please choose a receiving branch and try again.",
       cancelTitle: "Decline Incoming Horse",
       cancelDesc: "Are you sure you want to decline this incoming horse?",
       cancelled: "Incoming movement declined",
