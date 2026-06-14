@@ -292,6 +292,12 @@ export function ConfirmArrivalBranchDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CreateBranchWizard
+        open={branchWizardOpen}
+        onOpenChange={setBranchWizardOpen}
+        onCreated={handleBranchCreated}
+      />
     </>
   );
 }
