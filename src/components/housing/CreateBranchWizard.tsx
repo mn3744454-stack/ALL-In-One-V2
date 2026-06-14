@@ -21,6 +21,13 @@ import { FacilityCreationForm, FACILITY_CATEGORY, type FacilityFormData } from "
 interface CreateBranchWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Optional callback fired when the branch row is successfully created.
+   * When provided, the wizard treats branch creation as the terminal step:
+   * Step 2 (facilities) is skipped and the wizard closes immediately so the
+   * caller (e.g. ConfirmArrivalBranchDialog) can resume its own flow.
+   */
+  onCreated?: (branchId: string) => void;
 }
 
 export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardProps) {
