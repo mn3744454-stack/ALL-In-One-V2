@@ -30,7 +30,7 @@ interface CreateBranchWizardProps {
   onCreated?: (branchId: string) => void;
 }
 
-export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardProps) {
+export function CreateBranchWizard({ open, onOpenChange, onCreated }: CreateBranchWizardProps) {
   const { t, dir } = useI18n();
   const { createLocation, isCreating } = useLocations();
   const { createArea } = useFacilityAreas();
