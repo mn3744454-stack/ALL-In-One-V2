@@ -100,8 +100,22 @@ export function ConfirmArrivalBranchDialog({
       setSelected("");
       setDefaulted("");
       setDiscardOpen(false);
+      setBranchWizardOpen(false);
+      setPendingCreatedBranchId(null);
     }
   }, [open]);
+
+  // After quick-add: once the refetched branch list contains the new branch,
+  // auto-select it. Runs independently of the "compute default" effect above
+  // so a pending selection always wins over preferred / sole defaults.
+  useEffect(() => {
+    if (!pendingCreatedBranchId) return;
+    if (branches.some((b) => b.id === pendingCreatedBranchId)) {
+      setSelected(pendingCreatedBranchId);
+      setDefaulted(pendingCreatedBranchId);
+      setPendingCreatedBranchId(null);
+    }
+  }, [pendingCreatedBranchId, branches]);
 
   const { isDirty } = useDirtyForm({ selected }, open);
   const dirty = isDirty && selected !== defaulted;
