@@ -137,6 +137,13 @@ export function CreateBranchWizard({ open, onOpenChange, onCreated }: CreateBran
         address: address.trim() || undefined,
       });
       setCreatedBranchId(newBranch.id);
+      if (onCreated) {
+        // Quick-add bridge: caller wants the branch only. Skip facility
+        // step entirely and close the wizard so the caller's flow resumes.
+        onCreated(newBranch.id);
+        handleClose(false);
+        return;
+      }
       setStep(2);
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
