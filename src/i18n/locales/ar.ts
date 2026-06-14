@@ -1972,6 +1972,10 @@ export const ar = {
         branchRequired: "فرع الاستلام مطلوب.",
         connectedHint: "اختر الفرع الذي سيستقبل هذا الخيل.",
         noActiveBranches: "لا يوجد فرع نشط. أضف فرعاً أو فعّل فرعاً قبل تأكيد الوصول.",
+        emptyStateActionable: "لا توجد فروع استلام نشطة. أضف فرعًا للمتابعة في تأكيد الوصول.",
+        quickAddCta: "إضافة فرع جديد",
+        addAnotherBranch: "إضافة فرع آخر",
+        quickAddSuccess: "تم إنشاء الفرع وتحديده.",
       },
     },
     lifecycle: {
