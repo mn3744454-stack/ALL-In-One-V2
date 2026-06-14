@@ -41,10 +41,13 @@ export function ConfirmArrivalBranchDialog({
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
+  const queryClient = useQueryClient();
 
   const [selected, setSelected] = useState<string>("");
   const [defaulted, setDefaulted] = useState<string>("");
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [branchWizardOpen, setBranchWizardOpen] = useState(false);
+  const [pendingCreatedBranchId, setPendingCreatedBranchId] = useState<string | null>(null);
 
   const { data: branches = [], isLoading } = useQuery({
     queryKey: ["confirm-arrival-branches", tenantId],
