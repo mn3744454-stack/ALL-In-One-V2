@@ -194,30 +194,64 @@ export function ConfirmArrivalBranchDialog({
 
           <div className="space-y-2 py-2">
             <Label>{t("movement.incoming.confirmArrivalBranch.receivingBranch")}</Label>
-            <Select
-              value={selected}
-              onValueChange={setSelected}
-              disabled={isLoading || isProcessing}
-            >
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={t("movement.incoming.confirmArrivalBranch.selectPlaceholder")}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    <span>{displayName(b)}</span>
-                    {secondaryName(b) && (
-                      <span className="text-muted-foreground ms-2 text-xs">
-                        {secondaryName(b)}
-                      </span>
-                    )}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">{hint}</p>
+
+            {noBranches ? (
+              <div className="rounded-md border border-dashed border-border bg-muted/30 p-3 space-y-2">
+                <p className="text-sm text-foreground">
+                  {t("movement.incoming.confirmArrivalBranch.emptyStateActionable")}
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setBranchWizardOpen(true)}
+                  disabled={isProcessing}
+                  className="gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {t("movement.incoming.confirmArrivalBranch.quickAddCta")}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Select
+                  value={selected}
+                  onValueChange={setSelected}
+                  disabled={isLoading || isProcessing}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t("movement.incoming.confirmArrivalBranch.selectPlaceholder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        <span>{displayName(b)}</span>
+                        {secondaryName(b) && (
+                          <span className="text-muted-foreground ms-2 text-xs">
+                            {secondaryName(b)}
+                          </span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted-foreground flex-1">{hint}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setBranchWizardOpen(true)}
+                    disabled={isProcessing}
+                    className="gap-1.5 text-xs h-7 px-2 shrink-0"
+                  >
+                    <Plus className="h-3 w-3" />
+                    {t("movement.incoming.confirmArrivalBranch.addAnotherBranch")}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
