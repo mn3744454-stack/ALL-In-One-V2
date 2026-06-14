@@ -1954,6 +1954,10 @@ export const en = {
         branchRequired: "Receiving branch is required.",
         connectedHint: "Choose the branch that will receive this horse.",
         noActiveBranches: "No active branch found. Add or activate a branch before confirming arrival.",
+        emptyStateActionable: "No active receiving branches are available. Add a branch to continue confirming arrival.",
+        quickAddCta: "Add new branch",
+        addAnotherBranch: "Add another branch",
+        quickAddSuccess: "Branch created and selected.",
       },
     },
     lifecycle: {
