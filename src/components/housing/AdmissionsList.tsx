@@ -31,6 +31,23 @@ import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinancialsBatch";
 // (formatBoardingAmount not used here; price formatting handled by formatBoardingRate)
 
+/**
+ * Phase 1.e.f.7.a — Resolve horse identity for display only.
+ * Prefers the canonical joined `horse` row; falls back to snapshot fields
+ * persisted on the admission for connected B2B incoming admissions where
+ * the canonical horses row is owned by the sender tenant.
+ */
+function getAdmissionHorseDisplay(a: BoardingAdmission): { name: string | null; nameAr: string | null; avatarUrl: string | null } {
+  if (a.horse?.name || a.horse?.name_ar) {
+    return { name: a.horse?.name ?? null, nameAr: a.horse?.name_ar ?? null, avatarUrl: a.horse?.avatar_url ?? null };
+  }
+  if (a.horse_name_snapshot || a.horse_name_ar_snapshot) {
+    return { name: a.horse_name_snapshot, nameAr: a.horse_name_ar_snapshot, avatarUrl: a.horse_avatar_url_snapshot };
+  }
+  return { name: null, nameAr: null, avatarUrl: null };
+}
+
+
 
 type AdmissionSubFilter =
   | 'all'
@@ -407,13 +424,19 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                 return (
                   <TableRow key={admission.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAdmissionId(admission.id)}>
                     <TableCell className="text-start">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-7 w-7">
-                          <AvatarImage src={admission.horse?.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs">{admission.horse?.name?.charAt(0) || '?'}</AvatarFallback>
-                        </Avatar>
-                        <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
-                      </div>
+                      {(() => {
+                        const hd = getAdmissionHorseDisplay(admission);
+                        const initial = (hd.name || hd.nameAr || '?').charAt(0);
+                        return (
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-7 w-7">
+                              <AvatarImage src={hd.avatarUrl || undefined} />
+                              <AvatarFallback className="text-xs">{initial}</AvatarFallback>
+                            </Avatar>
+                            <BilingualName name={hd.name} nameAr={hd.nameAr} primaryClassName="text-sm" />
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-start text-muted-foreground text-sm">
                       {(admission.client?.name || admission.client?.name_ar)
@@ -520,16 +543,20 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
       onClick={onClick}
     >
       <CardContent className="p-4">
+        {(() => {
+          const hd = getAdmissionHorseDisplay(admission);
+          const initial = (hd.name || hd.nameAr || '?').charAt(0);
+          return (
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 shrink-0 mt-0.5">
-            <AvatarImage src={admission.horse?.avatar_url || undefined} />
+            <AvatarImage src={hd.avatarUrl || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary text-sm">
-              {admission.horse?.name?.charAt(0) || '?'}
+              {initial}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="font-semibold" />
+              <BilingualName name={hd.name} nameAr={hd.nameAr} primaryClassName="font-semibold" />
               {getStatusBadge(admission.status, t)}
               {admission.reason && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
@@ -606,6 +633,8 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
             </div>
           </div>
         </div>
+          );
+        })()}
       </CardContent>
     </Card>
   );
