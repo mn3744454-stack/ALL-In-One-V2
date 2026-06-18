@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   DialogDescription,
   DialogFooter,
@@ -17,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, AlertCircle, Building2 } from "lucide-react";
+import { Loader2, AlertCircle, Building2, Plus, ExternalLink } from "lucide-react";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import { useI18n } from "@/i18n";
@@ -32,6 +33,9 @@ import { displayLocationName } from "@/lib/displayHelpers";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
 import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
+import { CreateFacilityDialog, FACILITY_CATEGORY } from "./CreateFacilityDialog";
+import { AddUnitsDialog } from "./AddUnitsDialog";
+import type { FacilityArea } from "@/hooks/housing/useFacilityAreas";
 
 interface PlaceInUnitDialogProps {
   open: boolean;
