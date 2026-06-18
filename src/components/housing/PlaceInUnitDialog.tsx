@@ -188,6 +188,61 @@ export function PlaceInUnitDialog({
     [activeUnits, effectiveBranchId]
   );
 
+  // Phase 1.e.f.7.b.2 — facilities in this branch that can actually hold housing
+  // units (excludes open_area / activity / storage categories so Quick Add does
+  // not produce another dead-end).
+  const housingFacilitiesInBranch = useMemo(
+    () => filteredAreas.filter((a) => FACILITY_CATEGORY[a.facility_type] === "housing"),
+    [filteredAreas]
+  );
+
+  // Default the Add Units target to the first housing facility in the branch,
+  // or follow the user's explicit pick.
+  const effectiveQuickAddFacility: FacilityArea | null = useMemo(() => {
+    if (quickAddTargetFacilityId) {
+      return housingFacilitiesInBranch.find((f) => f.id === quickAddTargetFacilityId) ?? null;
+    }
+    return housingFacilitiesInBranch[0] ?? null;
+  }, [housingFacilitiesInBranch, quickAddTargetFacilityId]);
+
+  const existingUnitCountForTarget = useMemo(() => {
+    if (!effectiveQuickAddFacility) return 0;
+    return activeUnits.filter((u) => u.area_id === effectiveQuickAddFacility.id).length;
+  }, [activeUnits, effectiveQuickAddFacility]);
+
+  // Phase 1.e.f.7.b.2 — auto-select newly created area/unit after Quick Add.
+  // Diff current ids against the pre-creation snapshot; if exactly one new
+  // eligible row exists, select it. Never auto-confirm placement.
+  useEffect(() => {
+    if (!preCreateAreaIdsRef.current) return;
+    if (areaId) return; // user already chose something
+    const prev = preCreateAreaIdsRef.current;
+    const newAreas = housingFacilitiesInBranch.filter((a) => !prev.has(a.id));
+    if (newAreas.length === 1) {
+      setAreaId(newAreas[0].id);
+      preCreateAreaIdsRef.current = null;
+    }
+  }, [housingFacilitiesInBranch, areaId]);
+
+  useEffect(() => {
+    if (!preCreateUnitIdsRef.current) return;
+    if (!areaId || unitId) return;
+    const prev = preCreateUnitIdsRef.current;
+    const newAvailableUnits = activeUnits.filter(
+      (u) =>
+        u.area_id === areaId &&
+        u.status !== "maintenance" &&
+        u.status !== "out_of_service" &&
+        (u.current_occupants ?? 0) < u.capacity &&
+        !prev.has(u.id)
+    );
+    if (newAvailableUnits.length === 1) {
+      setUnitId(newAvailableUnits[0].id);
+      preCreateUnitIdsRef.current = null;
+    }
+  }, [activeUnits, areaId, unitId]);
+
+
   const selectedUnit = unitsForArea.find((u) => u.id === unitId);
   const isUnitFull =
     !!selectedUnit && (selectedUnit.current_occupants ?? 0) >= selectedUnit.capacity;
