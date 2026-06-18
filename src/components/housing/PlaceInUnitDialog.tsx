@@ -515,6 +515,28 @@ export function PlaceInUnitDialog({
           </Button>
         </DialogFooter>
     </SafeFormDialog>
+
+    {/* Phase 1.e.f.7.b.2 — Quick Add nested dialogs. Sibling-rendered so that
+        canceling them does NOT close PlaceInUnitDialog. SafeFormDialog
+        already blocks outside-click close and gates discard on dirty state. */}
+    {quickAddFacilityOpen && (
+      <CreateFacilityDialog
+        open={quickAddFacilityOpen}
+        onOpenChange={setQuickAddFacilityOpen}
+        lockedBranchId={effectiveBranchId}
+        effectiveBranchId={effectiveBranchId}
+      />
+    )}
+    {quickAddUnitsOpen && effectiveQuickAddFacility && (
+      <AddUnitsDialog
+        open={quickAddUnitsOpen}
+        onOpenChange={setQuickAddUnitsOpen}
+        facility={effectiveQuickAddFacility}
+        existingUnitCount={existingUnitCountForTarget}
+      />
+    )}
+    </>
   );
 }
+
 
