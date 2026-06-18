@@ -174,6 +174,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         results = results.filter((a: BoardingAdmission) =>
           a.horse?.name?.toLowerCase().includes(s) ||
           a.horse?.name_ar?.toLowerCase().includes(s) ||
+          a.horse_name_snapshot?.toLowerCase().includes(s) ||
+          a.horse_name_ar_snapshot?.toLowerCase().includes(s) ||
           a.client?.name?.toLowerCase().includes(s) ||
           a.client?.name_ar?.toLowerCase().includes(s)
         );
