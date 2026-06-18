@@ -239,10 +239,10 @@ export function PlaceInUnitDialog({
         {/* Horse + branch context */}
         <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            {horse && (
+            {displayIdentity && (displayIdentity.name || displayIdentity.name_ar) && (
               <BilingualName
-                name={horse.name}
-                nameAr={horse.name_ar}
+                name={displayIdentity.name}
+                nameAr={displayIdentity.name_ar}
                 primaryClassName="font-medium text-sm"
                 secondaryClassName="text-xs"
               />
