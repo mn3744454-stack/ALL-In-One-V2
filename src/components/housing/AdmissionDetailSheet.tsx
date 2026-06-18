@@ -286,18 +286,25 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={admission.horse?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {admission.horse?.name?.charAt(0) || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <BilingualName
-                        name={admission.horse?.name}
-                        nameAr={admission.horse?.name_ar}
-                        primaryClassName="font-semibold"
-                      />
+                    {(() => {
+                      const hd = getAdmissionHorseDisplay(admission);
+                      return (
+                        <>
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={hd.avatarUrl || undefined} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {hd.name?.charAt(0) || hd.nameAr?.charAt(0) || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <BilingualName
+                              name={hd.name}
+                              nameAr={hd.nameAr}
+                              primaryClassName="font-semibold"
+                            />
+                          </>
+                      );
+                    })()}
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <StatusBadge status={admission.status} t={t} />
                         {admission.reason && (
