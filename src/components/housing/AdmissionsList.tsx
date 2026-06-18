@@ -544,15 +544,20 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10 shrink-0 mt-0.5">
-            <AvatarImage src={admission.horse?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary text-sm">
-              {admission.horse?.name?.charAt(0) || '?'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0 space-y-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="font-semibold" />
+          {(() => {
+            const hd = getAdmissionHorseDisplay(admission);
+            const initial = (hd.name || hd.nameAr || '?').charAt(0);
+            return (
+              <>
+                <Avatar className="h-10 w-10 shrink-0 mt-0.5">
+                  <AvatarImage src={hd.avatarUrl || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    {initial}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <BilingualName name={hd.name} nameAr={hd.nameAr} primaryClassName="font-semibold" />
               {getStatusBadge(admission.status, t)}
               {admission.reason && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
