@@ -20,6 +20,17 @@ export interface UnitOccupant {
     name_ar: string | null;
     avatar_url: string | null;
   };
+  /**
+   * Phase 1.e.f.7.b.1 — attached active admission carrying snapshot
+   * identity fields, used as a display fallback when the canonical
+   * `horse` join is blocked by recipient RLS for connected B2B horses.
+   */
+  activeAdmission?: {
+    id: string;
+    horse_name_snapshot: string | null;
+    horse_name_ar_snapshot: string | null;
+    horse_avatar_url_snapshot: string | null;
+  } | null;
 }
 
 export function useUnitOccupants(unitId?: string) {
@@ -51,7 +62,36 @@ export function useUnitOccupants(unitId?: string) {
         .order('since', { ascending: false });
 
       if (error) throw error;
-      return data as UnitOccupant[];
+      const rows = (data || []) as UnitOccupant[];
+
+      // Phase 1.e.f.7.b.1 — attach active admission snapshot per occupant
+      // (single batched query, no N+1). Matches by (tenant, unit, horse,
+      // status='active'). Falls back to null when no admission row exists.
+      const horseIds = rows.map(r => r.horse_id);
+      if (horseIds.length > 0) {
+        const { data: admissions } = await supabase
+          .from('boarding_admissions')
+          .select('id, horse_id, horse_name_snapshot, horse_name_ar_snapshot, horse_avatar_url_snapshot')
+          .eq('tenant_id', tenantId)
+          .eq('unit_id', unitId)
+          .eq('status', 'active')
+          .in('horse_id', horseIds);
+
+        const byHorse = new Map<string, NonNullable<UnitOccupant['activeAdmission']>>();
+        for (const a of (admissions || [])) {
+          byHorse.set(a.horse_id, {
+            id: a.id,
+            horse_name_snapshot: a.horse_name_snapshot ?? null,
+            horse_name_ar_snapshot: a.horse_name_ar_snapshot ?? null,
+            horse_avatar_url_snapshot: a.horse_avatar_url_snapshot ?? null,
+          });
+        }
+        for (const r of rows) {
+          r.activeAdmission = byHorse.get(r.horse_id) ?? null;
+        }
+      }
+
+      return rows;
     },
     enabled: !!tenantId && !!unitId,
   });

@@ -24,6 +24,17 @@ export interface InlineOccupant {
     name_ar: string | null;
     avatar_url: string | null;
   } | null;
+  /**
+   * Phase 1.e.f.7.b.1 — admission snapshot identity fallback used when the
+   * canonical `horse` join is blocked by recipient RLS (connected B2B
+   * incoming admissions). See `getOccupantDisplay`.
+   */
+  activeAdmission?: {
+    id: string;
+    horse_name_snapshot: string | null;
+    horse_name_ar_snapshot: string | null;
+    horse_avatar_url_snapshot: string | null;
+  } | null;
 }
 
 export interface FacilityWithUnits {
@@ -72,6 +83,36 @@ export function useInlineFacilityUnits(facilityIds: string[]) {
 
         if (occErr) throw occErr;
         occupants = (occ || []) as unknown as InlineOccupant[];
+
+        // Phase 1.e.f.7.b.1 — attach active admission snapshot identity per
+        // (unit, horse) so connected B2B occupants render their name on the
+        // unit cards. Single batched query keyed off the unit_ids we just
+        // loaded; no N+1.
+        if (occupants.length > 0) {
+          const horseIds = Array.from(new Set(occupants.map(o => o.horse_id)));
+          const { data: admissions } = await supabase
+            .from('boarding_admissions')
+            .select('id, horse_id, unit_id, horse_name_snapshot, horse_name_ar_snapshot, horse_avatar_url_snapshot')
+            .eq('tenant_id', tenantId)
+            .in('unit_id', unitIds)
+            .in('horse_id', horseIds)
+            .eq('status', 'active');
+
+          const key = (uid: string, hid: string) => `${uid}::${hid}`;
+          const admMap = new Map<string, NonNullable<InlineOccupant['activeAdmission']>>();
+          for (const a of (admissions || [])) {
+            if (!a.unit_id) continue;
+            admMap.set(key(a.unit_id, a.horse_id), {
+              id: a.id,
+              horse_name_snapshot: a.horse_name_snapshot ?? null,
+              horse_name_ar_snapshot: a.horse_name_ar_snapshot ?? null,
+              horse_avatar_url_snapshot: a.horse_avatar_url_snapshot ?? null,
+            });
+          }
+          for (const o of occupants) {
+            o.activeAdmission = admMap.get(key(o.unit_id, o.horse_id)) ?? null;
+          }
+        }
       }
 
       // Group by facility
