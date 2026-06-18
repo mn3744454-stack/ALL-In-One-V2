@@ -3,6 +3,7 @@ import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { Wrench, Ban, ShieldAlert, Warehouse } from "lucide-react";
 import type { InlineUnit, InlineOccupant } from "@/hooks/housing/useInlineFacilityUnits";
+import { getOccupantDisplay } from "@/lib/housing/occupantDisplay";
 
 interface UnitCellProps {
   unit: InlineUnit;
@@ -30,8 +31,11 @@ export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProp
   const isIsolation = unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay';
   const isStorage = unit.unit_type === 'storage';
 
-  // Get horse for single-occupancy display
-  const horse = currentOccupants[0]?.horse;
+  // Get resolved identity for single-occupancy display (canonical horse
+  // join → admission snapshot fallback → neutral). Phase 1.e.f.7.b.1.
+  const primaryOccupant = currentOccupants[0];
+  const display = primaryOccupant ? getOccupantDisplay(primaryOccupant) : null;
+  const hasIdentity = !!(display && (display.name || display.nameAr));
 
   // Status color: maintenance=slate, out_of_service=red, green=vacant, primary=occupied, amber=full
   const borderColor = isOutOfService
@@ -108,11 +112,11 @@ export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProp
           <span className="text-sm font-semibold text-foreground leading-tight mt-1">
             {currentOccupants.length}/{unit.capacity}
           </span>
-        ) : horse ? (
+        ) : hasIdentity ? (
           <div className="mt-1 truncate">
             <BilingualName
-              name={horse.name}
-              nameAr={horse.name_ar}
+              name={display!.name || ''}
+              nameAr={display!.nameAr}
               primaryClassName="text-sm font-medium leading-tight"
               secondaryClassName="text-[10px]"
               inline
