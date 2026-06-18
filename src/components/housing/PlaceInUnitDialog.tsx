@@ -424,8 +424,9 @@ export function PlaceInUnitDialog({
               </Link>
             </Button>
           </div>
-
+        ) : (
           <div className="space-y-3">
+
             {/* Area selector */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground">
