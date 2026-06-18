@@ -53,6 +53,7 @@ import {
   Box, HelpCircle
 } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
+import { getOccupantDisplay } from "@/lib/housing/occupantDisplay";
 
 // Room function types available for reclassification
 const ROOM_FUNCTION_OPTIONS = ['stall', 'storage', 'isolation_room'] as const;
@@ -570,9 +571,12 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                 ) : (
                   <div className="space-y-3">
                     {occupants.map((occupant) => {
-                      const horseName = language === 'ar' && occupant.horse?.name_ar
-                        ? occupant.horse.name_ar
-                        : occupant.horse?.name || '—';
+                      // Phase 1.e.f.7.b.1 — resolve identity via shared helper:
+                      // canonical horse → admission snapshot fallback → neutral.
+                      const od = getOccupantDisplay(occupant);
+                      const horseName = language === 'ar' && od.nameAr
+                        ? od.nameAr
+                        : od.name || od.nameAr || '—';
                       const admissionInfo = occupantAdmissions?.[occupant.horse_id];
                       const isOrphan = !admissionInfo;
 
@@ -587,15 +591,15 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10">
-                                <AvatarImage src={occupant.horse?.avatar_url || ''} />
+                                <AvatarImage src={od.avatarUrl || ''} />
                                 <AvatarFallback>
-                                  {occupant.horse?.name?.[0]?.toUpperCase() || 'H'}
+                                  {od.initial}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <BilingualName
-                                  name={occupant.horse?.name || '—'}
-                                  nameAr={occupant.horse?.name_ar}
+                                  name={od.name || od.nameAr || '—'}
+                                  nameAr={od.nameAr}
                                   primaryClassName="text-sm font-medium"
                                   secondaryClassName="text-xs"
                                   inline
