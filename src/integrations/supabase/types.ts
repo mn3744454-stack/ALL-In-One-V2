@@ -230,7 +230,10 @@ export type Database = {
           emergency_contact: string | null
           emergency_contacts: Json
           expected_departure: string | null
+          horse_avatar_url_snapshot: string | null
           horse_id: string
+          horse_name_ar_snapshot: string | null
+          horse_name_snapshot: string | null
           id: string
           is_demo: boolean
           monthly_rate: number | null
@@ -263,7 +266,10 @@ export type Database = {
           emergency_contact?: string | null
           emergency_contacts?: Json
           expected_departure?: string | null
+          horse_avatar_url_snapshot?: string | null
           horse_id: string
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
           id?: string
           is_demo?: boolean
           monthly_rate?: number | null
@@ -296,7 +302,10 @@ export type Database = {
           emergency_contact?: string | null
           emergency_contacts?: Json
           expected_departure?: string | null
+          horse_avatar_url_snapshot?: string | null
           horse_id?: string
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
           id?: string
           is_demo?: boolean
           monthly_rate?: number | null
