@@ -30,6 +30,8 @@ import { useLocations } from "@/hooks/movement/useLocations";
 import { useInternalMove } from "@/hooks/housing/useInternalMove";
 import { displayLocationName } from "@/lib/displayHelpers";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
+import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 
 interface PlaceInUnitDialogProps {
   open: boolean;
@@ -43,6 +45,14 @@ interface PlaceInUnitDialogProps {
   } | null;
   /** The branch the horse is currently at (= horses.current_location_id). */
   branchId: string | null | undefined;
+  /**
+   * Phase 1.e.f.7.b — Optional existing admission context. When provided
+   * (e.g. row-level Needs Placement CTA), the dialog uses this admission as
+   * the source of truth and skips the horse-id active-admission lookup.
+   * Required for connected B2B recipient admissions where the canonical
+   * horses row is not visible to the recipient tenant via RLS.
+   */
+  admission?: BoardingAdmission | null;
   onSuccess?: () => void;
 }
 
@@ -56,18 +66,28 @@ export function PlaceInUnitDialog({
   onOpenChange,
   horse,
   branchId,
+  admission: providedAdmission,
   onSuccess,
 }: PlaceInUnitDialogProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const { activeLocations } = useLocations();
-  const { activeAreas, isLoading: areasLoading } = useFacilityAreas(branchId || undefined);
-  const { activeUnits, isLoading: unitsLoading } = useHousingUnits(branchId || undefined);
+  // Phase 1.e.f.7.b — when a full admission is provided, prefer its branch_id
+  // (recipient context). Falls back to the legacy branchId prop for callers
+  // that still pass horse-only.
+  const effectiveBranchId = providedAdmission?.branch_id ?? branchId ?? undefined;
+  const { activeAreas, isLoading: areasLoading } = useFacilityAreas(effectiveBranchId || undefined);
+  const { activeUnits, isLoading: unitsLoading } = useHousingUnits(effectiveBranchId || undefined);
   const { moveHorse, isMoving } = useInternalMove();
 
   const [areaId, setAreaId] = useState<string>("");
   const [unitId, setUnitId] = useState<string>("");
+
+  // Phase 1.e.f.7.b — admission identity. Prefer the provided admission
+  // object; otherwise fall back to a horse-id lookup (legacy horse-centric
+  // callers).
+  const horseIdForLookup = providedAdmission?.horse_id ?? horse?.id ?? null;
 
   // Reset on open / horse change.
   useEffect(() => {
@@ -75,16 +95,17 @@ export function PlaceInUnitDialog({
       setAreaId("");
       setUnitId("");
     }
-  }, [open, horse?.id]);
+  }, [open, horseIdForLookup, providedAdmission?.id]);
 
-  // Resolve the horse's active admission. Required for useInternalMove.
-  const { data: admission, isLoading: admissionLoading } = useQuery({
+  // Resolve the horse's active admission only when no admission was provided.
+  // Required for useInternalMove on legacy horse-only callers.
+  const { data: fetchedAdmission, isLoading: admissionLoading } = useQuery({
     queryKey: ["place-in-unit-active-admission", tenantId, horse?.id],
-    enabled: open && !!tenantId && !!horse?.id,
+    enabled: open && !providedAdmission && !!tenantId && !!horse?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("boarding_admissions")
-        .select("id, branch_id, area_id, unit_id, status")
+        .select("id, branch_id, area_id, unit_id, status, horse_id")
         .eq("tenant_id", tenantId!)
         .eq("horse_id", horse!.id)
         .in("status", ["active", "checkout_pending"])
@@ -96,35 +117,61 @@ export function PlaceInUnitDialog({
     },
   });
 
-  const branch = activeLocations.find((l) => l.id === branchId);
+  // Normalized admission used by the rest of the dialog. Provided admission
+  // wins over the fetched fallback.
+  const admission = providedAdmission
+    ? {
+        id: providedAdmission.id,
+        branch_id: providedAdmission.branch_id,
+        horse_id: providedAdmission.horse_id,
+      }
+    : fetchedAdmission;
+
+  // Resolve display identity: canonical horse prop, or admission snapshot
+  // fallback (Phase 1.e.f.7.a). Connected B2B recipient admissions have no
+  // visible canonical horse row, so snapshot is the only label available.
+  const displayIdentity = providedAdmission
+    ? (() => {
+        const d = getAdmissionHorseDisplay(providedAdmission);
+        return {
+          name: horse?.name ?? d.name ?? "",
+          name_ar: horse?.name_ar ?? d.nameAr ?? null,
+          avatar_url: horse?.avatar_url ?? d.avatarUrl ?? null,
+        };
+      })()
+    : horse
+      ? { name: horse.name, name_ar: horse.name_ar, avatar_url: horse.avatar_url ?? null }
+      : null;
+
+  const branch = activeLocations.find((l) => l.id === effectiveBranchId);
 
   const filteredAreas = useMemo(
-    () => activeAreas.filter((a) => a.branch_id === branchId),
-    [activeAreas, branchId]
+    () => activeAreas.filter((a) => a.branch_id === effectiveBranchId),
+    [activeAreas, effectiveBranchId]
   );
 
   const unitsForArea = useMemo(
     () =>
       activeUnits.filter(
         (u) =>
-          u.branch_id === branchId &&
+          u.branch_id === effectiveBranchId &&
           u.area_id === areaId &&
           u.status !== "maintenance" &&
           u.status !== "out_of_service"
       ),
-    [activeUnits, branchId, areaId]
+    [activeUnits, effectiveBranchId, areaId]
   );
 
   const totalUnitsInBranch = useMemo(
     () =>
       activeUnits.filter(
         (u) =>
-          u.branch_id === branchId &&
+          u.branch_id === effectiveBranchId &&
           u.status !== "maintenance" &&
           u.status !== "out_of_service" &&
           (u.current_occupants ?? 0) < u.capacity
       ).length,
-    [activeUnits, branchId]
+    [activeUnits, effectiveBranchId]
   );
 
   const selectedUnit = unitsForArea.find((u) => u.id === unitId);
@@ -132,9 +179,8 @@ export function PlaceInUnitDialog({
     !!selectedUnit && (selectedUnit.current_occupants ?? 0) >= selectedUnit.capacity;
 
   const canConfirm =
-    !!horse &&
-    !!branchId &&
     !!admission &&
+    !!effectiveBranchId &&
     !!areaId &&
     !!unitId &&
     !isUnitFull &&
@@ -144,20 +190,21 @@ export function PlaceInUnitDialog({
   const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
 
   const handleConfirm = async () => {
-    if (!horse || !branchId || !admission || !areaId || !unitId) return;
+    if (!admission || !effectiveBranchId || !areaId || !unitId) return;
     try {
       await moveHorse({
-        horseId: horse.id,
+        horseId: admission.horse_id,
         admissionId: admission.id,
         fromUnitId: null,
         fromAreaId: null,
         toUnitId: unitId,
         toAreaId: areaId,
-        toBranchId: branchId,
+        toBranchId: effectiveBranchId,
       });
       // Clear baseline so the post-success close does not trigger discard confirm.
       resetBaseline({ areaId: "", unitId: "" });
       onSuccess?.();
+
       onOpenChange(false);
     } catch {
       /* error toast handled inside useInternalMove */
@@ -192,10 +239,10 @@ export function PlaceInUnitDialog({
         {/* Horse + branch context */}
         <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            {horse && (
+            {displayIdentity && (displayIdentity.name || displayIdentity.name_ar) && (
               <BilingualName
-                name={horse.name}
-                nameAr={horse.name_ar}
+                name={displayIdentity.name}
+                nameAr={displayIdentity.name_ar}
                 primaryClassName="font-medium text-sm"
                 secondaryClassName="text-xs"
               />
