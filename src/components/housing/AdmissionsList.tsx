@@ -424,13 +424,19 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                 return (
                   <TableRow key={admission.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAdmissionId(admission.id)}>
                     <TableCell className="text-start">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-7 w-7">
-                          <AvatarImage src={admission.horse?.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs">{admission.horse?.name?.charAt(0) || '?'}</AvatarFallback>
-                        </Avatar>
-                        <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
-                      </div>
+                      {(() => {
+                        const hd = getAdmissionHorseDisplay(admission);
+                        const initial = (hd.name || hd.nameAr || '?').charAt(0);
+                        return (
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-7 w-7">
+                              <AvatarImage src={hd.avatarUrl || undefined} />
+                              <AvatarFallback className="text-xs">{initial}</AvatarFallback>
+                            </Avatar>
+                            <BilingualName name={hd.name} nameAr={hd.nameAr} primaryClassName="text-sm" />
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-start text-muted-foreground text-sm">
                       {(admission.client?.name || admission.client?.name_ar)
