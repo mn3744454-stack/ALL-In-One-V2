@@ -342,13 +342,89 @@ export function PlaceInUnitDialog({
             </AlertDescription>
           </Alert>
         ) : totalUnitsInBranch === 0 ? (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {t("housing.branchScope.placeInUnitNoUnits")}
-            </AlertDescription>
-          </Alert>
-        ) : (
+          /* Phase 1.e.f.7.b.2 — Quick Add continuity empty state. Branches on
+             whether the current branch has any housing facility yet. */
+          <div className="space-y-3">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {housingFacilitiesInBranch.length === 0
+                  ? t("housing.branchScope.placeInUnitNoFacility")
+                  : t("housing.branchScope.placeInUnitNoUnitsInFacility")}
+              </AlertDescription>
+            </Alert>
+
+            {housingFacilitiesInBranch.length === 0 ? (
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  preCreateAreaIdsRef.current = new Set(housingFacilitiesInBranch.map((a) => a.id));
+                  preCreateUnitIdsRef.current = new Set(activeUnits.map((u) => u.id));
+                  setQuickAddFacilityOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4 me-1.5" />
+                {t("housing.branchScope.placeInUnitAddFacility")}
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                {housingFacilitiesInBranch.length > 1 && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      {t("housing.branchScope.placeInUnitPickFacility")}
+                    </label>
+                    <Select
+                      value={effectiveQuickAddFacility?.id ?? ""}
+                      onValueChange={setQuickAddTargetFacilityId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {housingFacilitiesInBranch.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            <BilingualName
+                              name={f.name}
+                              nameAr={f.name_ar}
+                              inline
+                              primaryClassName="text-sm"
+                              secondaryClassName="text-xs"
+                            />
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  className="w-full"
+                  disabled={!effectiveQuickAddFacility}
+                  onClick={() => {
+                    preCreateUnitIdsRef.current = new Set(activeUnits.map((u) => u.id));
+                    setQuickAddUnitsOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 me-1.5" />
+                  {t("housing.branchScope.placeInUnitAddUnits")}
+                </Button>
+              </div>
+            )}
+
+            <Button asChild variant="ghost" size="sm" className="w-full text-xs">
+              <Link
+                to={`/dashboard/housing?tab=facilities${
+                  effectiveBranchId ? `&branch=${effectiveBranchId}` : ""
+                }`}
+                onClick={() => handleOpenChange(false)}
+              >
+                <ExternalLink className="h-3.5 w-3.5 me-1.5" />
+                {t("housing.branchScope.placeInUnitOpenFacilities")}
+              </Link>
+            </Button>
+          </div>
+
           <div className="space-y-3">
             {/* Area selector */}
             <div className="space-y-1.5">
