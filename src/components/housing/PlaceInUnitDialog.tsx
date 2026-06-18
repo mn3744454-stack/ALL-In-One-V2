@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   DialogDescription,
   DialogFooter,
@@ -17,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, AlertCircle, Building2 } from "lucide-react";
+import { Loader2, AlertCircle, Building2, Plus, ExternalLink } from "lucide-react";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import { useI18n } from "@/i18n";
@@ -32,6 +33,9 @@ import { displayLocationName } from "@/lib/displayHelpers";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
 import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
+import { CreateFacilityDialog, FACILITY_CATEGORY } from "./CreateFacilityDialog";
+import { AddUnitsDialog } from "./AddUnitsDialog";
+import type { FacilityArea } from "@/hooks/housing/useFacilityAreas";
 
 interface PlaceInUnitDialogProps {
   open: boolean;
@@ -83,6 +87,16 @@ export function PlaceInUnitDialog({
 
   const [areaId, setAreaId] = useState<string>("");
   const [unitId, setUnitId] = useState<string>("");
+
+  // Phase 1.e.f.7.b.2 — Quick Add nested dialog state. Lets the user create a
+  // facility or units inline without leaving the placement flow.
+  const [quickAddFacilityOpen, setQuickAddFacilityOpen] = useState(false);
+  const [quickAddUnitsOpen, setQuickAddUnitsOpen] = useState(false);
+  const [quickAddTargetFacilityId, setQuickAddTargetFacilityId] = useState<string>("");
+  // Pre-creation snapshots of facility/unit ids — diffed after invalidation to
+  // detect a newly created area/unit and auto-select it when unambiguous.
+  const preCreateAreaIdsRef = useRef<Set<string> | null>(null);
+  const preCreateUnitIdsRef = useRef<Set<string> | null>(null);
 
   // Phase 1.e.f.7.b — admission identity. Prefer the provided admission
   // object; otherwise fall back to a horse-id lookup (legacy horse-centric
@@ -174,6 +188,61 @@ export function PlaceInUnitDialog({
     [activeUnits, effectiveBranchId]
   );
 
+  // Phase 1.e.f.7.b.2 — facilities in this branch that can actually hold housing
+  // units (excludes open_area / activity / storage categories so Quick Add does
+  // not produce another dead-end).
+  const housingFacilitiesInBranch = useMemo(
+    () => filteredAreas.filter((a) => FACILITY_CATEGORY[a.facility_type] === "housing"),
+    [filteredAreas]
+  );
+
+  // Default the Add Units target to the first housing facility in the branch,
+  // or follow the user's explicit pick.
+  const effectiveQuickAddFacility: FacilityArea | null = useMemo(() => {
+    if (quickAddTargetFacilityId) {
+      return housingFacilitiesInBranch.find((f) => f.id === quickAddTargetFacilityId) ?? null;
+    }
+    return housingFacilitiesInBranch[0] ?? null;
+  }, [housingFacilitiesInBranch, quickAddTargetFacilityId]);
+
+  const existingUnitCountForTarget = useMemo(() => {
+    if (!effectiveQuickAddFacility) return 0;
+    return activeUnits.filter((u) => u.area_id === effectiveQuickAddFacility.id).length;
+  }, [activeUnits, effectiveQuickAddFacility]);
+
+  // Phase 1.e.f.7.b.2 — auto-select newly created area/unit after Quick Add.
+  // Diff current ids against the pre-creation snapshot; if exactly one new
+  // eligible row exists, select it. Never auto-confirm placement.
+  useEffect(() => {
+    if (!preCreateAreaIdsRef.current) return;
+    if (areaId) return; // user already chose something
+    const prev = preCreateAreaIdsRef.current;
+    const newAreas = housingFacilitiesInBranch.filter((a) => !prev.has(a.id));
+    if (newAreas.length === 1) {
+      setAreaId(newAreas[0].id);
+      preCreateAreaIdsRef.current = null;
+    }
+  }, [housingFacilitiesInBranch, areaId]);
+
+  useEffect(() => {
+    if (!preCreateUnitIdsRef.current) return;
+    if (!areaId || unitId) return;
+    const prev = preCreateUnitIdsRef.current;
+    const newAvailableUnits = activeUnits.filter(
+      (u) =>
+        u.area_id === areaId &&
+        u.status !== "maintenance" &&
+        u.status !== "out_of_service" &&
+        (u.current_occupants ?? 0) < u.capacity &&
+        !prev.has(u.id)
+    );
+    if (newAvailableUnits.length === 1) {
+      setUnitId(newAvailableUnits[0].id);
+      preCreateUnitIdsRef.current = null;
+    }
+  }, [activeUnits, areaId, unitId]);
+
+
   const selectedUnit = unitsForArea.find((u) => u.id === unitId);
   const isUnitFull =
     !!selectedUnit && (selectedUnit.current_occupants ?? 0) >= selectedUnit.capacity;
@@ -222,6 +291,7 @@ export function PlaceInUnitDialog({
     : "—";
 
   return (
+    <>
     <SafeFormDialog
       open={open}
       onOpenChange={handleOpenChange}
@@ -273,14 +343,91 @@ export function PlaceInUnitDialog({
             </AlertDescription>
           </Alert>
         ) : totalUnitsInBranch === 0 ? (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {t("housing.branchScope.placeInUnitNoUnits")}
-            </AlertDescription>
-          </Alert>
+          /* Phase 1.e.f.7.b.2 — Quick Add continuity empty state. Branches on
+             whether the current branch has any housing facility yet. */
+          <div className="space-y-3">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {housingFacilitiesInBranch.length === 0
+                  ? t("housing.branchScope.placeInUnitNoFacility")
+                  : t("housing.branchScope.placeInUnitNoUnitsInFacility")}
+              </AlertDescription>
+            </Alert>
+
+            {housingFacilitiesInBranch.length === 0 ? (
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  preCreateAreaIdsRef.current = new Set(housingFacilitiesInBranch.map((a) => a.id));
+                  preCreateUnitIdsRef.current = new Set(activeUnits.map((u) => u.id));
+                  setQuickAddFacilityOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4 me-1.5" />
+                {t("housing.branchScope.placeInUnitAddFacility")}
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                {housingFacilitiesInBranch.length > 1 && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      {t("housing.branchScope.placeInUnitPickFacility")}
+                    </label>
+                    <Select
+                      value={effectiveQuickAddFacility?.id ?? ""}
+                      onValueChange={setQuickAddTargetFacilityId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {housingFacilitiesInBranch.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            <BilingualName
+                              name={f.name}
+                              nameAr={f.name_ar}
+                              inline
+                              primaryClassName="text-sm"
+                              secondaryClassName="text-xs"
+                            />
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  className="w-full"
+                  disabled={!effectiveQuickAddFacility}
+                  onClick={() => {
+                    preCreateUnitIdsRef.current = new Set(activeUnits.map((u) => u.id));
+                    setQuickAddUnitsOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 me-1.5" />
+                  {t("housing.branchScope.placeInUnitAddUnits")}
+                </Button>
+              </div>
+            )}
+
+            <Button asChild variant="ghost" size="sm" className="w-full text-xs">
+              <Link
+                to={`/dashboard/housing?tab=facilities${
+                  effectiveBranchId ? `&branch=${effectiveBranchId}` : ""
+                }`}
+                onClick={() => handleOpenChange(false)}
+              >
+                <ExternalLink className="h-3.5 w-3.5 me-1.5" />
+                {t("housing.branchScope.placeInUnitOpenFacilities")}
+              </Link>
+            </Button>
+          </div>
         ) : (
           <div className="space-y-3">
+
             {/* Area selector */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground">
@@ -369,6 +516,28 @@ export function PlaceInUnitDialog({
           </Button>
         </DialogFooter>
     </SafeFormDialog>
+
+    {/* Phase 1.e.f.7.b.2 — Quick Add nested dialogs. Sibling-rendered so that
+        canceling them does NOT close PlaceInUnitDialog. SafeFormDialog
+        already blocks outside-click close and gates discard on dirty state. */}
+    {quickAddFacilityOpen && (
+      <CreateFacilityDialog
+        open={quickAddFacilityOpen}
+        onOpenChange={setQuickAddFacilityOpen}
+        lockedBranchId={effectiveBranchId}
+        effectiveBranchId={effectiveBranchId}
+      />
+    )}
+    {quickAddUnitsOpen && effectiveQuickAddFacility && (
+      <AddUnitsDialog
+        open={quickAddUnitsOpen}
+        onOpenChange={setQuickAddUnitsOpen}
+        facility={effectiveQuickAddFacility}
+        existingUnitCount={existingUnitCountForTarget}
+      />
+    )}
+    </>
   );
 }
+
 
