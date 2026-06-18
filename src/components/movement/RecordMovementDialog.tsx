@@ -1368,7 +1368,7 @@ export function RecordMovementDialog({
                     <Calendar className="h-3.5 w-3.5 text-amber-500" />
                     {t("movement.lifecycle.scheduledDateTime")}
                   </span>
-                  <span className="font-medium">{new Date(scheduledAt).toLocaleString()}</span>
+                  <span className="font-medium">{formatStandardDateTime(scheduledAt)}</span>
                 </div>
               )}
 
