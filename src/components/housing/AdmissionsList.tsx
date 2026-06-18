@@ -505,6 +505,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       <PlaceInUnitDialog
         open={!!placeAdmission}
         onOpenChange={(open) => { if (!open) setPlaceAdmission(null); }}
+        admission={placeAdmission}
         horse={placeAdmission?.horse ? {
           id: placeAdmission.horse.id,
           name: placeAdmission.horse.name,
