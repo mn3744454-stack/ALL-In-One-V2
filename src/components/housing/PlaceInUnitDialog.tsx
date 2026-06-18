@@ -88,6 +88,16 @@ export function PlaceInUnitDialog({
   const [areaId, setAreaId] = useState<string>("");
   const [unitId, setUnitId] = useState<string>("");
 
+  // Phase 1.e.f.7.b.2 — Quick Add nested dialog state. Lets the user create a
+  // facility or units inline without leaving the placement flow.
+  const [quickAddFacilityOpen, setQuickAddFacilityOpen] = useState(false);
+  const [quickAddUnitsOpen, setQuickAddUnitsOpen] = useState(false);
+  const [quickAddTargetFacilityId, setQuickAddTargetFacilityId] = useState<string>("");
+  // Pre-creation snapshots of facility/unit ids — diffed after invalidation to
+  // detect a newly created area/unit and auto-select it when unambiguous.
+  const preCreateAreaIdsRef = useRef<Set<string> | null>(null);
+  const preCreateUnitIdsRef = useRef<Set<string> | null>(null);
+
   // Phase 1.e.f.7.b — admission identity. Prefer the provided admission
   // object; otherwise fall back to a horse-id lookup (legacy horse-centric
   // callers).
