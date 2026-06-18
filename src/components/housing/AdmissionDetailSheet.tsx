@@ -976,6 +976,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
         <PlaceInUnitDialog
           open={placeInUnitOpen}
           onOpenChange={setPlaceInUnitOpen}
+          admission={admission}
           horse={admission.horse ? {
             id: admission.horse.id,
             name: admission.horse.name,
