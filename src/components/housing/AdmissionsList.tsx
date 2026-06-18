@@ -633,6 +633,8 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
             </div>
           </div>
         </div>
+          );
+        })()}
       </CardContent>
     </Card>
   );
