@@ -30,6 +30,8 @@ import { useLocations } from "@/hooks/movement/useLocations";
 import { useInternalMove } from "@/hooks/housing/useInternalMove";
 import { displayLocationName } from "@/lib/displayHelpers";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
+import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 
 interface PlaceInUnitDialogProps {
   open: boolean;
@@ -43,6 +45,14 @@ interface PlaceInUnitDialogProps {
   } | null;
   /** The branch the horse is currently at (= horses.current_location_id). */
   branchId: string | null | undefined;
+  /**
+   * Phase 1.e.f.7.b — Optional existing admission context. When provided
+   * (e.g. row-level Needs Placement CTA), the dialog uses this admission as
+   * the source of truth and skips the horse-id active-admission lookup.
+   * Required for connected B2B recipient admissions where the canonical
+   * horses row is not visible to the recipient tenant via RLS.
+   */
+  admission?: BoardingAdmission | null;
   onSuccess?: () => void;
 }
 
