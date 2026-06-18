@@ -50,6 +50,14 @@ export interface BoardingAdmission {
   balance_cleared: boolean;
   checkin_movement_id: string | null;
   checkout_movement_id: string | null;
+  /**
+   * Phase 1.e.f.7.a — Display fallback only for connected B2B incoming admissions
+   * where the canonical horses row is owned by the sender tenant and not visible
+   * to the recipient. Never use as canonical identity.
+   */
+  horse_name_snapshot: string | null;
+  horse_name_ar_snapshot: string | null;
+  horse_avatar_url_snapshot: string | null;
   admission_checks: Record<string, any>;
   is_demo: boolean;
   created_at: string;
