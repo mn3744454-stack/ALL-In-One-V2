@@ -31,21 +31,7 @@ import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinancialsBatch";
 // (formatBoardingAmount not used here; price formatting handled by formatBoardingRate)
 
-/**
- * Phase 1.e.f.7.a — Resolve horse identity for display only.
- * Prefers the canonical joined `horse` row; falls back to snapshot fields
- * persisted on the admission for connected B2B incoming admissions where
- * the canonical horses row is owned by the sender tenant.
- */
-function getAdmissionHorseDisplay(a: BoardingAdmission): { name: string | null; nameAr: string | null; avatarUrl: string | null } {
-  if (a.horse?.name || a.horse?.name_ar) {
-    return { name: a.horse?.name ?? null, nameAr: a.horse?.name_ar ?? null, avatarUrl: a.horse?.avatar_url ?? null };
-  }
-  if (a.horse_name_snapshot || a.horse_name_ar_snapshot) {
-    return { name: a.horse_name_snapshot, nameAr: a.horse_name_ar_snapshot, avatarUrl: a.horse_avatar_url_snapshot };
-  }
-  return { name: null, nameAr: null, avatarUrl: null };
-}
+import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
 
 
 
