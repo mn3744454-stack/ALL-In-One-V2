@@ -4076,6 +4076,10 @@ export const en = {
     addHorse: "Add Horse",
     noHorses: "No horses found",
     addFirstHorse: "Add your first horse to get started",
+    owner: {
+      unassigned: "Unassigned",
+      plus: "+ {count}",
+    },
     tabs: {
       all: "All",
       inside: "In Stable",
