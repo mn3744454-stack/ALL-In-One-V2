@@ -37,6 +37,16 @@ interface Horse {
   father_name?: string | null;
   /** PostgREST embed: horse_ownership(count) — may be number or [{count}] */
   owners_count?: number | { count: number }[] | { count: number } | null;
+  /**
+   * Phase 1.e.f.7.c: actual ownership rows for the list owner column.
+   * Detail surfaces continue to use `useHorseOwnership` directly.
+   */
+  owners?: Array<{
+    is_primary: boolean | null;
+    ownership_percentage: number | null;
+    created_at: string | null;
+    owner: { id: string; name: string | null; name_ar: string | null } | null;
+  }> | null;
   created_at: string;
   updated_at: string;
 }
@@ -86,7 +96,13 @@ export const useHorses = (filters?: HorseFilters) => {
           *,
           breed_data:horse_breeds!breed_id(name, name_ar),
           color_data:horse_colors!color_id(name, name_ar),
-          owners_count:horse_ownership(count)
+          owners_count:horse_ownership(count),
+          owners:horse_ownership(
+            is_primary,
+            ownership_percentage,
+            created_at,
+            owner:horse_owners(id, name, name_ar)
+          )
         `)
         .eq("tenant_id", tenantId)
         .order("name");
