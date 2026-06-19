@@ -4274,6 +4274,8 @@ export const en = {
         nameAr: "Name (Arabic)",
       },
       owner: {
+        unassigned: "Unassigned",
+        plus: "+ {count}",
         title: "Add New Owner",
         name: "Name",
         nameEn: "Name (English)",

@@ -14,6 +14,7 @@ import { BilingualName } from "@/components/ui/BilingualName";
 import { HorseLifecycleChip } from "./HorseLifecycleChip";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
+import { getOwnerDisplay, type OwnerRow } from "@/lib/horses/ownerDisplay";
 
 interface Horse {
   id: string;
@@ -32,7 +33,7 @@ interface Horse {
   breed_data?: { name: string | null; name_ar: string | null } | null;
   color_data?: { name: string | null; name_ar: string | null } | null;
   branch_data?: { name: string } | null;
-  primary_owner?: { name: string } | null;
+  owners?: OwnerRow[] | null;
   _hasOffspring?: boolean;
   _isBreedingActive?: boolean;
 }
@@ -103,7 +104,8 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false, life
     horse.color ||
     null;
   const branchName = horse.branch_data?.name;
-  const ownerName = horse.primary_owner?.name;
+  const ownerDisplay = getOwnerDisplay(horse.owners, { isRTL: rtl, t });
+  const ownerName = ownerDisplay.count > 0 ? ownerDisplay.label : null;
 
   // Compact mode for list view
   if (compact) {
