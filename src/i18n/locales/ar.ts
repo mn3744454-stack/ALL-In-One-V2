@@ -4094,6 +4094,10 @@ export const ar = {
     addHorse: "إضافة خيل",
     noHorses: "لا توجد خيول",
     addFirstHorse: "أضف أول خيل للبدء",
+    owner: {
+      unassigned: "غير معين",
+      plus: "+ {count}",
+    },
     tabs: {
       all: "الكل",
       inside: "داخل الإسطبل",
