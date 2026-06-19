@@ -19,6 +19,7 @@ import {
   getHorseTypeBadgeProps,
   type AgeParts 
 } from "@/lib/horseClassification";
+import { getOwnerDisplay, type OwnerRow } from "@/lib/horses/ownerDisplay";
 
 interface Horse {
   id: string;
@@ -37,7 +38,7 @@ interface Horse {
   breed_data?: { name: string | null; name_ar: string | null } | null;
   color_data?: { name: string | null; name_ar: string | null } | null;
   branch_data?: { name: string } | null;
-  primary_owner?: { name: string } | null;
+  owners?: OwnerRow[] | null;
 }
 
 interface HorsesTableProps {
@@ -147,7 +148,7 @@ export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTab
             const typeLabel = isRTL ? typeBadgeProps.labelAr : typeBadgeProps.label;
             const hasBreedJoin = !!(horse.breed_data && (horse.breed_data.name || horse.breed_data.name_ar));
             const hasColorJoin = !!(horse.color_data && (horse.color_data.name || horse.color_data.name_ar));
-            const ownerName = horse.primary_owner?.name || "-";
+            const ownerName = getOwnerDisplay(horse.owners, { isRTL, t }).label;
 
             return (
               <TableRow 
