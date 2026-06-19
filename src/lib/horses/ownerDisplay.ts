@@ -38,8 +38,11 @@ export interface OwnerDisplay {
 
 export interface OwnerDisplayOptions {
   isRTL: boolean;
-  /** i18n translator. Must support {count} interpolation for `horses.owner.plus`. */
-  t: (key: string, vars?: Record<string, string | number>) => string;
+  /**
+   * i18n translator. The project's `t` does not interpolate, so this helper
+   * performs the `{count}` substitution itself for `horses.owner.plus`.
+   */
+  t: (key: string) => string;
 }
 
 function pickName(
@@ -94,8 +97,9 @@ export function getOwnerDisplay(
   }
 
   const extra = valid.length - 1;
+  const plusLabel = t("horses.owner.plus").replace("{count}", String(extra));
   return {
-    label: `${primaryName} ${t("horses.owner.plus", { count: extra })}`,
+    label: `${primaryName} ${plusLabel}`,
     count: valid.length,
     primaryOwner: primary.owner ?? undefined,
   };
