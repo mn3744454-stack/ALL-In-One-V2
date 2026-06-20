@@ -32,6 +32,7 @@ import { displayServiceName } from "@/lib/displayHelpers";
 import { PlanIncludedServicesDisplay } from "@/components/services/PlanIncludedServicesDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus, Users, X } from "lucide-react";
 import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
