@@ -28,6 +28,7 @@ import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
 import { PackageOpen, MapPin } from "lucide-react";
 import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
+import { CompletePricingDialog } from "./CompletePricingDialog";
 import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinancialsBatch";
 // (formatBoardingAmount not used here; price formatting handled by formatBoardingRate)
 
@@ -238,10 +239,16 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   // B2.3d-UI-S1 — Assign Unit dialog wiring. Reuses PlaceInUnitDialog
   // (SafeFormDialog + useDirtyForm) — no new dialog is introduced.
   const [placeAdmission, setPlaceAdmission] = useState<BoardingAdmission | null>(null);
+  const [pricingAdmission, setPricingAdmission] = useState<BoardingAdmission | null>(null);
   const canAssignUnit = hasPermission('boarding.admission.create');
+  const canCompletePricing = hasPermission('boarding.admission.update') || hasPermission('boarding.admission.create');
   const openAssignUnit = (admission: BoardingAdmission) => {
     if (!canAssignUnit) return;
     setPlaceAdmission(admission);
+  };
+  const openCompletePricing = (admission: BoardingAdmission) => {
+    if (!canCompletePricing) return;
+    setPricingAdmission(admission);
   };
 
   return (
@@ -464,6 +471,16 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                             </Badge>
                           )}
                         </span>
+                      ) : (admission.status === 'active' || admission.status === 'checkout_pending') && canCompletePricing ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs gap-1 text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                          onClick={(e) => { e.stopPropagation(); openCompletePricing(admission); }}
+                        >
+                          <CreditCard className="h-3 w-3" />
+                          {t('housing.admissions.completePricing.cta')}
+                        </Button>
                       ) : (
                         <span className="text-amber-500 text-xs italic">{t('housing.admissions.price.notSet')}</span>
                       )}
@@ -482,6 +499,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               admission={admission}
               onClick={() => setSelectedAdmissionId(admission.id)}
               onAssignUnit={canAssignUnit ? openAssignUnit : undefined}
+              onCompletePricing={canCompletePricing ? openCompletePricing : undefined}
               t={t}
               lang={lang}
             />
@@ -514,11 +532,16 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         } : null}
         branchId={placeAdmission?.branch_id}
       />
+      <CompletePricingDialog
+        open={!!pricingAdmission}
+        onOpenChange={(open) => { if (!open) setPricingAdmission(null); }}
+        admission={pricingAdmission}
+      />
     </div>
   );
 }
 
-function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admission: BoardingAdmission; onClick: () => void; onAssignUnit?: (admission: BoardingAdmission) => void; t: (key: string) => string; lang: string }) {
+function AdmissionCard({ admission, onClick, onAssignUnit, onCompletePricing, t, lang }: { admission: BoardingAdmission; onClick: () => void; onAssignUnit?: (admission: BoardingAdmission) => void; onCompletePricing?: (admission: BoardingAdmission) => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
   const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
   const eff = getEffectivePrice(admission);
@@ -614,6 +637,16 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
                     </Badge>
                   )}
                 </span>
+              ) : (admission.status === 'active' || admission.status === 'checkout_pending') && onCompletePricing ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 px-2 text-[11px] gap-1 text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                  onClick={(e) => { e.stopPropagation(); onCompletePricing(admission); }}
+                >
+                  <CreditCard className="h-3 w-3" />
+                  {t('housing.admissions.completePricing.cta')}
+                </Button>
               ) : (
                 <span className="text-amber-500 text-[10px] italic">{t('housing.admissions.price.notSet')}</span>
               )}
