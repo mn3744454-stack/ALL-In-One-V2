@@ -144,6 +144,60 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     return u.branch_id === form.branchId;
   });
 
+  // ── Phase 1.e.f.7.g.2 — Eligibility data ──
+  // Batched: fetch all active-like admissions + active occupants for this
+  // tenant once, then compute per-horse eligibility via the shared contract.
+  const candidateHorseIds = useMemo(() => horses.map(h => h.id), [horses]);
+  const { data: eligibilityRaw } = useQuery({
+    queryKey: ['admission-wizard-eligibility', tenantId, candidateHorseIds.length, open],
+    enabled: !!tenantId && open && candidateHorseIds.length > 0,
+    staleTime: 15_000,
+    queryFn: async () => {
+      const [admRes, occRes] = await Promise.all([
+        supabase
+          .from('boarding_admissions')
+          .select('horse_id, status')
+          .eq('tenant_id', tenantId!)
+          .in('horse_id', candidateHorseIds)
+          .in('status', ACTIVE_LIKE_ADMISSION_STATUSES as unknown as string[]),
+        supabase
+          .from('housing_unit_occupants')
+          .select('horse_id, until')
+          .eq('tenant_id', tenantId!)
+          .in('horse_id', candidateHorseIds)
+          .is('until', null),
+      ]);
+      if (admRes.error) throw admRes.error;
+      if (occRes.error) throw occRes.error;
+      return {
+        admissions: (admRes.data || []) as Array<{ horse_id: string; status: string }>,
+        occupants: (occRes.data || []) as Array<{ horse_id: string; until: string | null }>,
+      };
+    },
+  });
+
+  const eligibilityByHorseId = useMemo(() => {
+    const admByHorse = groupByHorseId(eligibilityRaw?.admissions);
+    const occByHorse = groupByHorseId(eligibilityRaw?.occupants);
+    const map = new Map<string, HorseAdmissionEligibility>();
+    horses.forEach(h => {
+      map.set(
+        h.id,
+        getHorseAdmissionEligibility({
+          horse: { id: h.id, status: h.status as string | null },
+          admissions: admByHorse.get(h.id) ?? [],
+          occupants: occByHorse.get(h.id) ?? [],
+        })
+      );
+    });
+    return map;
+  }, [eligibilityRaw, horses]);
+
+  const selectedHorseEligibility = form.horseId
+    ? eligibilityByHorseId.get(form.horseId)
+    : undefined;
+
+
   // Auto-clear a stale selected unit if it leaves the filtered scope or
   // became full while the wizard was open (locked preselect is preserved).
   useEffect(() => {
