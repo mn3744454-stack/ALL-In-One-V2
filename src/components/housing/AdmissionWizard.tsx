@@ -140,7 +140,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   // became full while the wizard was open (locked preselect is preserved).
   useEffect(() => {
     if (!form.unitId) return;
-    if (isLocked && preselectedUnitId === form.unitId) return;
+    if (!!preselectedBranchId && preselectedUnitId === form.unitId) return;
     const selected = units.find(u => u.id === form.unitId);
     if (!selected) return;
     const inScope = filteredUnits.some(u => u.id === selected.id);
