@@ -42,6 +42,14 @@ import { useClients } from "@/hooks/useClients";
 import { useEmployees } from "@/hooks/hr/useEmployees";
 import { ASSIGNMENT_ROLES } from "@/hooks/hr/useHorseAssignments";
 import { QuickCreateEmployeeDialog, type QuickCreatedEmployee } from "@/components/hr/QuickCreateEmployeeDialog";
+import { useQuery } from "@tanstack/react-query";
+import {
+  ACTIVE_LIKE_ADMISSION_STATUSES,
+  getHorseAdmissionEligibility,
+  groupByHorseId,
+  ineligibilityI18nKey,
+  type HorseAdmissionEligibility,
+} from "@/lib/housing/eligibility";
 
 interface AdmissionWizardProps {
   open: boolean;
@@ -136,6 +144,60 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     return u.branch_id === form.branchId;
   });
 
+  // ── Phase 1.e.f.7.g.2 — Eligibility data ──
+  // Batched: fetch all active-like admissions + active occupants for this
+  // tenant once, then compute per-horse eligibility via the shared contract.
+  const candidateHorseIds = useMemo(() => horses.map(h => h.id), [horses]);
+  const { data: eligibilityRaw } = useQuery({
+    queryKey: ['admission-wizard-eligibility', tenantId, candidateHorseIds.length, open],
+    enabled: !!tenantId && open && candidateHorseIds.length > 0,
+    staleTime: 15_000,
+    queryFn: async () => {
+      const [admRes, occRes] = await Promise.all([
+        supabase
+          .from('boarding_admissions')
+          .select('horse_id, status')
+          .eq('tenant_id', tenantId!)
+          .in('horse_id', candidateHorseIds)
+          .in('status', ACTIVE_LIKE_ADMISSION_STATUSES as unknown as string[]),
+        supabase
+          .from('housing_unit_occupants')
+          .select('horse_id, until')
+          .eq('tenant_id', tenantId!)
+          .in('horse_id', candidateHorseIds)
+          .is('until', null),
+      ]);
+      if (admRes.error) throw admRes.error;
+      if (occRes.error) throw occRes.error;
+      return {
+        admissions: (admRes.data || []) as Array<{ horse_id: string; status: string }>,
+        occupants: (occRes.data || []) as Array<{ horse_id: string; until: string | null }>,
+      };
+    },
+  });
+
+  const eligibilityByHorseId = useMemo(() => {
+    const admByHorse = groupByHorseId(eligibilityRaw?.admissions);
+    const occByHorse = groupByHorseId(eligibilityRaw?.occupants);
+    const map = new Map<string, HorseAdmissionEligibility>();
+    horses.forEach(h => {
+      map.set(
+        h.id,
+        getHorseAdmissionEligibility({
+          horse: { id: h.id, status: h.status as string | null },
+          admissions: admByHorse.get(h.id) ?? [],
+          occupants: occByHorse.get(h.id) ?? [],
+        })
+      );
+    });
+    return map;
+  }, [eligibilityRaw, horses]);
+
+  const selectedHorseEligibility = form.horseId
+    ? eligibilityByHorseId.get(form.horseId)
+    : undefined;
+
+
   // Auto-clear a stale selected unit if it leaves the filtered scope or
   // became full while the wizard was open (locked preselect is preserved).
   useEffect(() => {
@@ -200,6 +262,16 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
 
   const handleSubmit = async () => {
     if (!form.horseId || !form.branchId) return;
+
+    // Phase 1.e.f.7.g.2 — Eligibility guard. Block duplicate admissions for
+    // horses that already have an active-like admission or active occupancy.
+    const elig = eligibilityByHorseId.get(form.horseId);
+    if (elig && !elig.isEligibleForNewAdmission) {
+      toast.error(t('housing.admissions.wizard.horseIneligibleToast'));
+      return;
+    }
+
+
 
     // Defensive frontend guard: backend RPC enforces single-occupancy, but
     // catch full units here for a clean inline error instead of an RPC toast.
@@ -305,32 +377,55 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
               </div>
             ) : (
               <div className="grid gap-2">
-                {activeHorses.map(horse => (
-                  <button
-                    key={horse.id}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, horseId: horse.id }))}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
-                      form.horseId === horse.id
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "border-border hover:bg-muted/50"
-                    )}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={horse.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                        {horse.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
-                    </div>
-                    {form.horseId === horse.id && <Check className="h-4 w-4 text-primary shrink-0" />}
-                  </button>
-                ))}
+                {activeHorses.map(horse => {
+                  const elig = eligibilityByHorseId.get(horse.id);
+                  const isIneligible = !!elig && !elig.isEligibleForNewAdmission;
+                  // Preserve preselect path: never block a locked preselected horse from rendering,
+                  // but the submit guard still blocks proceed if ineligible.
+                  const reasonKey = elig ? ineligibilityI18nKey(elig.reasonKey) : null;
+                  const isSelected = form.horseId === horse.id;
+                  return (
+                    <button
+                      key={horse.id}
+                      type="button"
+                      disabled={isIneligible && !isSelected}
+                      aria-disabled={isIneligible}
+                      onClick={() => {
+                        if (isIneligible) {
+                          toast.error(t('housing.admissions.wizard.horseIneligibleToast'));
+                          return;
+                        }
+                        setForm(f => ({ ...f, horseId: horse.id }));
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
+                        isSelected
+                          ? "border-primary bg-primary/5 ring-1 ring-primary"
+                          : "border-border hover:bg-muted/50",
+                        isIneligible && "opacity-60 cursor-not-allowed hover:bg-transparent"
+                      )}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={horse.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                          {horse.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
+                      </div>
+                      {isIneligible && reasonKey && (
+                        <Badge variant="secondary" className="shrink-0 text-[10px]">
+                          {t(reasonKey)}
+                        </Badge>
+                      )}
+                      {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  );
+                })}
               </div>
             )}
+
             {/* Always-visible add-new CTA when horses exist */}
             {activeHorses.length > 0 && (
               <Button
