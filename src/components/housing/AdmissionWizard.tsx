@@ -436,11 +436,27 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 <Select value={form.unitId} onValueChange={v => setForm(f => ({ ...f, unitId: v }))} disabled={isLocked && !!preselectedUnitId}>
                   <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectUnit')} /></SelectTrigger>
                   <SelectContent>
-                    {filteredUnits.filter(u => u.is_active).map(u => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.code}{u.name ? ` - ${u.name}` : ''}
-                      </SelectItem>
-                    ))}
+                    {filteredUnits.filter(u => u.is_active).map(u => {
+                      const occ = u.current_occupants ?? 0;
+                      const cap = u.capacity ?? 1;
+                      const full = occ >= cap;
+                      return (
+                        <SelectItem key={u.id} value={u.id} disabled={full}>
+                          <span className="flex items-center gap-2">
+                            <span className="text-sm">{u.code}</span>
+                            {u.name && u.name !== u.code && (
+                              <span className="text-xs text-muted-foreground">· {u.name}</span>
+                            )}
+                            <Badge
+                              variant={full ? "destructive" : "secondary"}
+                              className="text-[10px] px-1.5 py-0"
+                            >
+                              {full ? t('housing.admissions.wizard.unitFull') : `${occ}/${cap}`}
+                            </Badge>
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
