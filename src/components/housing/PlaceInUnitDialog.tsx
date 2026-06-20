@@ -264,8 +264,13 @@ export function PlaceInUnitDialog({
       await moveHorse({
         horseId: admission.horse_id,
         admissionId: admission.id,
-        fromUnitId: null,
-        fromAreaId: null,
+        // Phase 1.e.f.7.e.1 — pass real from-unit/from-area when the
+        // admission already has one so unit-to-unit moves record an
+        // accurate movement row. Initial placement (admission has no
+        // unit yet) still passes null on both, preserving the legacy
+        // first-placement path.
+        fromUnitId: (admission as any)?.unit_id ?? null,
+        fromAreaId: (admission as any)?.area_id ?? null,
         toUnitId: unitId,
         toAreaId: areaId,
         toBranchId: effectiveBranchId,
