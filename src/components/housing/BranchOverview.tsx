@@ -151,6 +151,65 @@ export function BranchOverview({ onNavigateToTab, selectedBranchId }: BranchOver
         />
       )}
 
+      {/* Tenant-wide Unassigned Needs Admission (Phase 1.e.f.7.f.3) */}
+      {lifecycleFilter === 'active' && unassignedNeedsAdmission.length > 0 && (
+        <Card className="border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10">
+          <CardContent className="p-3 sm:p-4 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+              <PackageOpen className="h-3.5 w-3.5 text-orange-600" />
+              {t('housing.branchScope.needsAdmission')}
+              <Badge variant="secondary" className="text-[10px] font-normal">
+                {t('housing.branchScope.unassignedGroup')}
+              </Badge>
+              <Badge variant="secondary" className="text-[10px] font-normal ms-auto">
+                {unassignedNeedsAdmission.length}
+              </Badge>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              {t('housing.branchScope.unassignedGroupHelper')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {unassignedNeedsAdmission.map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center gap-2 rounded-md border bg-background/60 px-2 py-1.5"
+                >
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={h.avatar_url || undefined} />
+                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                      {h.name?.[0]?.toUpperCase() || "H"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <BilingualName
+                    name={h.name}
+                    nameAr={h.name_ar}
+                    inline
+                    primaryClassName="text-xs font-medium"
+                    secondaryClassName="text-[10px]"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs px-2 ms-auto"
+                    onClick={() => setAdmitHorse({ id: h.id, name: h.name, name_ar: h.name_ar })}
+                  >
+                    {t('housing.branchScope.startAdmission')}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <AdmissionWizard
+        open={!!admitHorse}
+        onOpenChange={(open) => { if (!open) setAdmitHorse(null); }}
+        preselectedHorseId={admitHorse?.id}
+      />
+
+
+
       {filteredBranches.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
