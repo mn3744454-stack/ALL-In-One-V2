@@ -377,32 +377,55 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
               </div>
             ) : (
               <div className="grid gap-2">
-                {activeHorses.map(horse => (
-                  <button
-                    key={horse.id}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, horseId: horse.id }))}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
-                      form.horseId === horse.id
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "border-border hover:bg-muted/50"
-                    )}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={horse.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                        {horse.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
-                    </div>
-                    {form.horseId === horse.id && <Check className="h-4 w-4 text-primary shrink-0" />}
-                  </button>
-                ))}
+                {activeHorses.map(horse => {
+                  const elig = eligibilityByHorseId.get(horse.id);
+                  const isIneligible = !!elig && !elig.isEligibleForNewAdmission;
+                  // Preserve preselect path: never block a locked preselected horse from rendering,
+                  // but the submit guard still blocks proceed if ineligible.
+                  const reasonKey = elig ? ineligibilityI18nKey(elig.reasonKey) : null;
+                  const isSelected = form.horseId === horse.id;
+                  return (
+                    <button
+                      key={horse.id}
+                      type="button"
+                      disabled={isIneligible && !isSelected}
+                      aria-disabled={isIneligible}
+                      onClick={() => {
+                        if (isIneligible) {
+                          toast.error(t('housing.admissions.wizard.horseIneligibleToast'));
+                          return;
+                        }
+                        setForm(f => ({ ...f, horseId: horse.id }));
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
+                        isSelected
+                          ? "border-primary bg-primary/5 ring-1 ring-primary"
+                          : "border-border hover:bg-muted/50",
+                        isIneligible && "opacity-60 cursor-not-allowed hover:bg-transparent"
+                      )}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={horse.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                          {horse.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
+                      </div>
+                      {isIneligible && reasonKey && (
+                        <Badge variant="secondary" className="shrink-0 text-[10px]">
+                          {t(reasonKey)}
+                        </Badge>
+                      )}
+                      {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  );
+                })}
               </div>
             )}
+
             {/* Always-visible add-new CTA when horses exist */}
             {activeHorses.length > 0 && (
               <Button
