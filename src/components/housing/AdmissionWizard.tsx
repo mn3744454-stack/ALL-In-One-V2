@@ -263,6 +263,16 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const handleSubmit = async () => {
     if (!form.horseId || !form.branchId) return;
 
+    // Phase 1.e.f.7.g.2 — Eligibility guard. Block duplicate admissions for
+    // horses that already have an active-like admission or active occupancy.
+    const elig = eligibilityByHorseId.get(form.horseId);
+    if (elig && !elig.isEligibleForNewAdmission) {
+      toast.error(t('housing.admissions.wizard.horseIneligibleToast'));
+      return;
+    }
+
+
+
     // Defensive frontend guard: backend RPC enforces single-occupancy, but
     // catch full units here for a clean inline error instead of an RPC toast.
     if (form.unitId) {
