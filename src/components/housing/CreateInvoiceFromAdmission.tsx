@@ -27,6 +27,7 @@ import { useQuery } from "@tanstack/react-query";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
+import { CompletePricingDialog } from "./CompletePricingDialog";
 import { toast } from "sonner";
 import { differenceInDays, format, startOfMonth, endOfMonth, parseISO, isWithinInterval, areIntervalsOverlapping } from "date-fns";
 import { computeStayDays, computeAccruedCost } from "@/lib/boardingUtils";
@@ -203,6 +204,10 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${periodDays} ${t("housing.admissions.detail.days")})`
   );
   const [loading, setLoading] = useState(false);
+  const [completePricingOpen, setCompletePricingOpen] = useState(false);
+
+  // Phase 1.e.f.7.d.1 — soft guard against zero-price invoices
+  const noPriceGuard = !admission.daily_rate && !admission.monthly_rate;
 
   // Dirty tracking — only user-editable fields, primitives only
   const dirtySnapshot = useMemo(
@@ -455,6 +460,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const fullyBilled = remainingBillable <= 0 && billedPeriods.length > 0;
 
   return (
+    <>
     <SafeFormDialog
       open={open}
       onOpenChange={handleOpenChange}
@@ -466,6 +472,27 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 pe-1">
+          {/* Phase 1.e.f.7.d.1 — soft guard against zero-price invoices */}
+          {noPriceGuard && (
+            <div className="rounded-md border border-amber-300 bg-amber-50/70 dark:bg-amber-950/30 p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-2">
+                <p className="text-sm text-amber-800 dark:text-amber-300">
+                  {t("housing.admissions.billing.noPriceGuard")}
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 dark:text-amber-300"
+                  onClick={() => setCompletePricingOpen(true)}
+                >
+                  {t("housing.admissions.billing.noPriceGuardAction")}
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Already-billed periods summary */}
           {billedPeriods.length > 0 && (
             <div className="rounded-md border border-border bg-muted/50 p-3 space-y-2">
@@ -636,10 +663,16 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
         <div className="shrink-0 flex justify-end gap-2 pt-4 border-t border-border">
           <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading || isCreating}>{t("common.cancel")}</Button>
-          <Button onClick={handleSubmit} disabled={loading || isCreating || !!overlapWarning}>
+          <Button onClick={handleSubmit} disabled={loading || isCreating || !!overlapWarning || noPriceGuard}>
             {loading ? t("common.loading") : t("housing.admissions.billing.createInvoice")}
           </Button>
         </div>
     </SafeFormDialog>
+    <CompletePricingDialog
+      open={completePricingOpen}
+      onOpenChange={setCompletePricingOpen}
+      admission={admission}
+    />
+    </>
   );
 }

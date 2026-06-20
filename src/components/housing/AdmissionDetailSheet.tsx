@@ -41,6 +41,7 @@ import { CareNotesList } from "./CareNotesList";
 import { CreateInvoiceFromAdmission } from "./CreateInvoiceFromAdmission";
 import { AssignClientDialog } from "./AssignClientDialog";
 import { SetBoardingPriceDialog } from "./SetBoardingPriceDialog";
+import { CompletePricingDialog } from "./CompletePricingDialog";
 import { EmergencyContactDialog } from "./EmergencyContactDialog";
 import { useHorseAssignments } from "@/hooks/hr/useHorseAssignments";
 import { AddAssignmentDialog } from "@/components/hr/AddAssignmentDialog";
@@ -85,6 +86,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const [setPriceOpen, setSetPriceOpen] = useState(false);
   const [emergencyContactOpen, setEmergencyContactOpen] = useState(false);
   const [placeInUnitOpen, setPlaceInUnitOpen] = useState(false);
+  const [completePricingOpen, setCompletePricingOpen] = useState(false);
 
   // Phase C: assigned team for this admission's horse
   const { assignments: horseAssignments } = useHorseAssignments(admission?.horse_id || '');
@@ -405,6 +407,28 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   </CardContent>
                 </Card>
               )}
+
+              {/* Phase 1.e.f.7.d.1 — Needs Price banner */}
+              {(admission.status === 'active' || admission.status === 'checkout_pending') &&
+                !admission.daily_rate && !admission.monthly_rate && canUpdate && (
+                  <Card className="border-amber-300 bg-amber-50/60 dark:bg-amber-950/20">
+                    <CardContent className="p-3 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
+                        <CreditCard className="h-4 w-4 shrink-0" />
+                        <span>{t('housing.admissions.completePricing.bannerMessage')}</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs shrink-0 border-amber-300 text-amber-800 hover:bg-amber-100 dark:text-amber-300"
+                        onClick={() => setCompletePricingOpen(true)}
+                      >
+                        {t('housing.admissions.completePricing.cta')}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
 
               {/* Phase C: Assigned Team summary */}
               <Card>
@@ -984,6 +1008,14 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
             avatar_url: admission.horse.avatar_url ?? null,
           } : null}
           branchId={admission.branch_id}
+        />
+      )}
+
+      {admission && (
+        <CompletePricingDialog
+          open={completePricingOpen}
+          onOpenChange={setCompletePricingOpen}
+          admission={admission}
         />
       )}
 
