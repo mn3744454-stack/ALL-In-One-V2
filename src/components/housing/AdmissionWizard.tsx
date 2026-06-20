@@ -136,6 +136,22 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     return u.branch_id === form.branchId;
   });
 
+  // Auto-clear a stale selected unit if it leaves the filtered scope or
+  // became full while the wizard was open (locked preselect is preserved).
+  useEffect(() => {
+    if (!form.unitId) return;
+    if (isLocked && preselectedUnitId === form.unitId) return;
+    const selected = units.find(u => u.id === form.unitId);
+    if (!selected) return;
+    const inScope = filteredUnits.some(u => u.id === selected.id);
+    const occ = selected.current_occupants ?? 0;
+    const cap = selected.capacity ?? 1;
+    if (!inScope || occ >= cap || !selected.is_active) {
+      setForm(f => ({ ...f, unitId: '' }));
+    }
+  }, [form.unitId, form.areaId, form.branchId, units, filteredUnits, isLocked, preselectedUnitId]);
+
+
   // When plan is selected, prefill rate fields
   const handlePlanSelect = (planId: string) => {
     setForm(f => {
