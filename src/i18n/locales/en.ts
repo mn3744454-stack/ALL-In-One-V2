@@ -3015,6 +3015,8 @@ export const en = {
         selectArea: "Select section",
         unit: "Unit / Stall (optional)",
         selectUnit: "Select unit",
+        unitFull: "Full",
+        unitFullToast: "This unit is already full. Please choose another unit.",
         dailyRate: "Daily Rate",
         monthlyRate: "Monthly Rate",
         billingCycle: "Billing Cycle",

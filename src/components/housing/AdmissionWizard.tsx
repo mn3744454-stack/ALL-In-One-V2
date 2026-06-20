@@ -32,6 +32,7 @@ import { displayServiceName } from "@/lib/displayHelpers";
 import { PlanIncludedServicesDisplay } from "@/components/services/PlanIncludedServicesDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus, Users, X } from "lucide-react";
 import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
@@ -135,6 +136,22 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     return u.branch_id === form.branchId;
   });
 
+  // Auto-clear a stale selected unit if it leaves the filtered scope or
+  // became full while the wizard was open (locked preselect is preserved).
+  useEffect(() => {
+    if (!form.unitId) return;
+    if (!!preselectedBranchId && preselectedUnitId === form.unitId) return;
+    const selected = units.find(u => u.id === form.unitId);
+    if (!selected) return;
+    const inScope = filteredUnits.some(u => u.id === selected.id);
+    const occ = selected.current_occupants ?? 0;
+    const cap = selected.capacity ?? 1;
+    if (!inScope || occ >= cap || !selected.is_active) {
+      setForm(f => ({ ...f, unitId: '' }));
+    }
+  }, [form.unitId, form.areaId, form.branchId, units, filteredUnits, preselectedBranchId, preselectedUnitId]);
+
+
   // When plan is selected, prefill rate fields
   const handlePlanSelect = (planId: string) => {
     setForm(f => {
@@ -183,6 +200,20 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
 
   const handleSubmit = async () => {
     if (!form.horseId || !form.branchId) return;
+
+    // Defensive frontend guard: backend RPC enforces single-occupancy, but
+    // catch full units here for a clean inline error instead of an RPC toast.
+    if (form.unitId) {
+      const selected = units.find(u => u.id === form.unitId);
+      if (selected) {
+        const occ = selected.current_occupants ?? 0;
+        const cap = selected.capacity ?? 1;
+        if (occ >= cap) {
+          toast.error(t('housing.admissions.wizard.unitFullToast'));
+          return;
+        }
+      }
+    }
 
     try {
       const data: CreateAdmissionData = {
@@ -421,11 +452,27 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 <Select value={form.unitId} onValueChange={v => setForm(f => ({ ...f, unitId: v }))} disabled={isLocked && !!preselectedUnitId}>
                   <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectUnit')} /></SelectTrigger>
                   <SelectContent>
-                    {filteredUnits.filter(u => u.is_active).map(u => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.code}{u.name ? ` - ${u.name}` : ''}
-                      </SelectItem>
-                    ))}
+                    {filteredUnits.filter(u => u.is_active).map(u => {
+                      const occ = u.current_occupants ?? 0;
+                      const cap = u.capacity ?? 1;
+                      const full = occ >= cap;
+                      return (
+                        <SelectItem key={u.id} value={u.id} disabled={full}>
+                          <span className="flex items-center gap-2">
+                            <span className="text-sm">{u.code}</span>
+                            {u.name && u.name !== u.code && (
+                              <span className="text-xs text-muted-foreground">· {u.name}</span>
+                            )}
+                            <Badge
+                              variant={full ? "destructive" : "secondary"}
+                              className="text-[10px] px-1.5 py-0"
+                            >
+                              {full ? t('housing.admissions.wizard.unitFull') : `${occ}/${cap}`}
+                            </Badge>
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
