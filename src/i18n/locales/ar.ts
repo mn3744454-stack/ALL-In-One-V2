@@ -3033,6 +3033,8 @@ export const ar = {
         selectArea: "اختر القسم",
         unit: "الوحدة / البوكس (اختياري)",
         selectUnit: "اختر الوحدة",
+        unitFull: "ممتلئ",
+        unitFullToast: "هذه الوحدة ممتلئة بالفعل. اختر وحدة أخرى.",
         dailyRate: "السعر اليومي",
         monthlyRate: "السعر الشهري",
         billingCycle: "دورة الفوترة",
