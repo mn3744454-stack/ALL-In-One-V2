@@ -2319,6 +2319,8 @@ export const en = {
       needsAdmission: "Open Admission Required",
       needsPlacementHelper: "Admission is open, but no housing unit has been assigned yet.",
       needsAdmissionHelper: "This horse is at the branch but has no active admission record.",
+      unassignedGroup: "Unassigned",
+      unassignedGroupHelper: "Local horses with no branch and no active admission. Start an admission to place them.",
       noNeedsPlacement: "No horses need stall assignment",
       noNeedsAdmission: "No horses need an open admission",
       placeInUnit: "Assign Housing Unit",

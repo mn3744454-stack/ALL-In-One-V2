@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Heart, DoorOpen, ChevronDown, BarChart3, Plus } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Heart, DoorOpen, ChevronDown, BarChart3, Plus, PackageOpen } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +15,8 @@ import { CreateBranchWizard } from "./CreateBranchWizard";
 import { LifecycleFilterChips, type LifecycleFilter } from "./LifecycleFilterChips";
 import { LifecycleStateBadge } from "./LifecycleActionMenu";
 import { useLocations } from "@/hooks/movement/useLocations";
+import { useUnassignedNeedsAdmission } from "@/hooks/housing/useBranchAttentionHorses";
+import { AdmissionWizard } from "./AdmissionWizard";
 
 interface BranchOverviewProps {
   onNavigateToTab?: (tab: string) => void;
@@ -103,6 +107,12 @@ export function BranchOverview({ onNavigateToTab, selectedBranchId }: BranchOver
     setExpandedBranchId(prev => prev === branchId ? null : branchId);
   };
 
+  // Phase 1.e.f.7.f.3 — tenant-wide Unassigned Needs Admission bucket.
+  const { unassignedNeedsAdmission } = useUnassignedNeedsAdmission();
+  const [admitHorse, setAdmitHorse] = useState<
+    null | { id: string; name: string; name_ar: string | null }
+  >(null);
+
   if (allBranches.length === 0 && lifecycleFilter === 'active') {
     return (
       <Card>
@@ -140,6 +150,65 @@ export function BranchOverview({ onNavigateToTab, selectedBranchId }: BranchOver
           context="branches"
         />
       )}
+
+      {/* Tenant-wide Unassigned Needs Admission (Phase 1.e.f.7.f.3) */}
+      {lifecycleFilter === 'active' && unassignedNeedsAdmission.length > 0 && (
+        <Card className="border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10">
+          <CardContent className="p-3 sm:p-4 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+              <PackageOpen className="h-3.5 w-3.5 text-orange-600" />
+              {t('housing.branchScope.needsAdmission')}
+              <Badge variant="secondary" className="text-[10px] font-normal">
+                {t('housing.branchScope.unassignedGroup')}
+              </Badge>
+              <Badge variant="secondary" className="text-[10px] font-normal ms-auto">
+                {unassignedNeedsAdmission.length}
+              </Badge>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              {t('housing.branchScope.unassignedGroupHelper')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {unassignedNeedsAdmission.map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center gap-2 rounded-md border bg-background/60 px-2 py-1.5"
+                >
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={h.avatar_url || undefined} />
+                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                      {h.name?.[0]?.toUpperCase() || "H"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <BilingualName
+                    name={h.name}
+                    nameAr={h.name_ar}
+                    inline
+                    primaryClassName="text-xs font-medium"
+                    secondaryClassName="text-[10px]"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs px-2 ms-auto"
+                    onClick={() => setAdmitHorse({ id: h.id, name: h.name, name_ar: h.name_ar })}
+                  >
+                    {t('housing.branchScope.startAdmission')}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <AdmissionWizard
+        open={!!admitHorse}
+        onOpenChange={(open) => { if (!open) setAdmitHorse(null); }}
+        preselectedHorseId={admitHorse?.id}
+      />
+
+
 
       {filteredBranches.length === 0 ? (
         <Card>
