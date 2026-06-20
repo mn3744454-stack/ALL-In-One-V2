@@ -42,6 +42,14 @@ import { useClients } from "@/hooks/useClients";
 import { useEmployees } from "@/hooks/hr/useEmployees";
 import { ASSIGNMENT_ROLES } from "@/hooks/hr/useHorseAssignments";
 import { QuickCreateEmployeeDialog, type QuickCreatedEmployee } from "@/components/hr/QuickCreateEmployeeDialog";
+import { useQuery } from "@tanstack/react-query";
+import {
+  ACTIVE_LIKE_ADMISSION_STATUSES,
+  getHorseAdmissionEligibility,
+  groupByHorseId,
+  ineligibilityI18nKey,
+  type HorseAdmissionEligibility,
+} from "@/lib/housing/eligibility";
 
 interface AdmissionWizardProps {
   open: boolean;
