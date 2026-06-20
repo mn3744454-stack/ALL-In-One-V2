@@ -107,6 +107,12 @@ export function BranchOverview({ onNavigateToTab, selectedBranchId }: BranchOver
     setExpandedBranchId(prev => prev === branchId ? null : branchId);
   };
 
+  // Phase 1.e.f.7.f.3 — tenant-wide Unassigned Needs Admission bucket.
+  const { unassignedNeedsAdmission } = useUnassignedNeedsAdmission();
+  const [admitHorse, setAdmitHorse] = useState<
+    null | { id: string; name: string; name_ar: string | null }
+  >(null);
+
   if (allBranches.length === 0 && lifecycleFilter === 'active') {
     return (
       <Card>
