@@ -185,6 +185,20 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const handleSubmit = async () => {
     if (!form.horseId || !form.branchId) return;
 
+    // Defensive frontend guard: backend RPC enforces single-occupancy, but
+    // catch full units here for a clean inline error instead of an RPC toast.
+    if (form.unitId) {
+      const selected = units.find(u => u.id === form.unitId);
+      if (selected) {
+        const occ = selected.current_occupants ?? 0;
+        const cap = selected.capacity ?? 1;
+        if (occ >= cap) {
+          toast.error(t('housing.admissions.wizard.unitFullToast'));
+          return;
+        }
+      }
+    }
+
     try {
       const data: CreateAdmissionData = {
         horse_id: form.horseId,
