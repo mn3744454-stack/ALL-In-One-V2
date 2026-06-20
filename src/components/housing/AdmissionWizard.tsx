@@ -149,7 +149,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     if (!inScope || occ >= cap || !selected.is_active) {
       setForm(f => ({ ...f, unitId: '' }));
     }
-  }, [form.unitId, form.areaId, form.branchId, units, filteredUnits, isLocked, preselectedUnitId]);
+  }, [form.unitId, form.areaId, form.branchId, units, filteredUnits, preselectedBranchId, preselectedUnitId]);
 
 
   // When plan is selected, prefill rate fields
