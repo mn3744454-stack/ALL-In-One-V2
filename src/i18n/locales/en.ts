@@ -3073,6 +3073,8 @@ export const en = {
         overlapBlock: "Cannot create invoice — selected period overlaps with an already-billed period",
         fullMonth: "full month",
         segmentsBreakdown: "Billing breakdown",
+        noPriceGuard: "Set pricing before creating an invoice. This admission has no rate.",
+        noPriceGuardAction: "Complete pricing",
       },
       checkout: {
         initiateTitle: "Initiate Checkout",
