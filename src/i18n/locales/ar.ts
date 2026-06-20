@@ -3091,6 +3091,8 @@ export const ar = {
         overlapBlock: "لا يمكن إنشاء الفاتورة — الفترة المحددة تتداخل مع فترة مفوترة مسبقاً",
         fullMonth: "شهر كامل",
         segmentsBreakdown: "تفصيل فترات الفوترة",
+        noPriceGuard: "حدد التسعير أولاً قبل إنشاء الفاتورة. لا يوجد سعر لهذا الإيواء.",
+        noPriceGuardAction: "إكمال التسعير",
       },
       checkout: {
         initiateTitle: "بدء الإخراج",
