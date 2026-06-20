@@ -7,12 +7,15 @@ export interface UnitHistoryEntry {
   horse_id: string;
   since: string;
   until: string;
+  horse_name_snapshot: string | null;
+  horse_name_ar_snapshot: string | null;
+  horse_avatar_url_snapshot: string | null;
   horse?: {
     id: string;
     name: string;
     name_ar: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 export function useUnitHistory(unitId?: string) {
@@ -28,6 +31,7 @@ export function useUnitHistory(unitId?: string) {
         .from('housing_unit_occupants')
         .select(`
           id, horse_id, since, until,
+          horse_name_snapshot, horse_name_ar_snapshot, horse_avatar_url_snapshot,
           horse:horses(id, name, name_ar, avatar_url)
         `)
         .eq('tenant_id', tenantId)
@@ -37,7 +41,7 @@ export function useUnitHistory(unitId?: string) {
         .limit(20);
 
       if (error) throw error;
-      return data as UnitHistoryEntry[];
+      return (data ?? []) as unknown as UnitHistoryEntry[];
     },
     enabled: !!tenantId && !!unitId,
   });

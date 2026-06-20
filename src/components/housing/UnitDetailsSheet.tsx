@@ -717,15 +717,16 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                 ) : (
                   <div className="space-y-2">
                     {history.map((entry) => {
-                      const hName = language === 'ar' && entry.horse?.name_ar
-                        ? entry.horse.name_ar
-                        : entry.horse?.name || '—';
+                      const od = getOccupantDisplay(entry);
+                      const hName = language === 'ar'
+                        ? (od.nameAr || od.name || '—')
+                        : (od.name || od.nameAr || '—');
                       return (
                         <div key={entry.id} className="flex items-center gap-3 p-2 rounded-md border bg-card/50">
                           <Avatar className="w-7 h-7">
-                            <AvatarImage src={entry.horse?.avatar_url || ''} />
+                            <AvatarImage src={od.avatarUrl || ''} />
                             <AvatarFallback className="text-[10px]">
-                              {entry.horse?.name?.[0]?.toUpperCase() || 'H'}
+                              {od.initial}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">

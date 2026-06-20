@@ -4876,7 +4876,10 @@ export type Database = {
       housing_unit_occupants: {
         Row: {
           created_at: string | null
+          horse_avatar_url_snapshot: string | null
           horse_id: string
+          horse_name_ar_snapshot: string | null
+          horse_name_snapshot: string | null
           id: string
           is_demo: boolean | null
           since: string | null
@@ -4886,7 +4889,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          horse_avatar_url_snapshot?: string | null
           horse_id: string
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
           id?: string
           is_demo?: boolean | null
           since?: string | null
@@ -4896,7 +4902,10 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          horse_avatar_url_snapshot?: string | null
           horse_id?: string
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
           id?: string
           is_demo?: boolean | null
           since?: string | null

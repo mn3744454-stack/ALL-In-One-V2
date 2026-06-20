@@ -21,6 +21,11 @@ export interface OccupantLike {
     name_ar?: string | null;
     avatar_url?: string | null;
   } | null;
+  /** Durable per-occupancy snapshot (Phase 1.e.f.7.e.3). */
+  horse_name_snapshot?: string | null;
+  horse_name_ar_snapshot?: string | null;
+  horse_avatar_url_snapshot?: string | null;
+  /** Transitional fallback for current occupants merged from boarding_admissions. */
   activeAdmission?: {
     id?: string;
     horse_name_snapshot?: string | null;
@@ -59,8 +64,21 @@ export function getOccupantDisplay(occupant: OccupantLike): OccupantDisplay {
     };
   }
 
-  // 2. Admission snapshot fallback — delegate to the shared helper so we
-  //    keep a single source of truth with AdmissionsList / AdmissionDetailSheet.
+  // 2. Durable per-occupancy snapshot — written on insert, backfilled for
+  //    historical rows. Survives RLS-blocked canonical horses (connected
+  //    B2B) and admission deletion.
+  if (occupant.horse_name_snapshot || occupant.horse_name_ar_snapshot) {
+    const name = occupant.horse_name_snapshot ?? null;
+    const nameAr = occupant.horse_name_ar_snapshot ?? null;
+    return {
+      name,
+      nameAr,
+      avatarUrl: occupant.horse_avatar_url_snapshot ?? null,
+      initial: pickInitial(name, nameAr),
+    };
+  }
+
+  // 3. Transitional admission snapshot fallback (current occupants merge).
   if (occupant.activeAdmission) {
     const snap = getAdmissionHorseDisplay({
       horse: null as any,
@@ -78,6 +96,6 @@ export function getOccupantDisplay(occupant: OccupantLike): OccupantDisplay {
     }
   }
 
-  // 3. Neutral fallback (preserves legacy `—` / `H` behavior).
+  // 4. Neutral fallback (preserves legacy `—` / `H` behavior).
   return { name: null, nameAr: null, avatarUrl: null, initial: NEUTRAL_INITIAL };
 }
