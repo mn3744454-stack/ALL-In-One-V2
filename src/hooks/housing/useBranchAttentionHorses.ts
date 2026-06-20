@@ -157,3 +157,104 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
     error: query.error,
   };
 }
+
+/**
+ * Phase 1.e.f.7.f.3 — Tenant-wide "Unassigned" Needs Admission bucket.
+ *
+ * Restores visibility for local same-tenant horses that have no
+ * `current_location_id` (no branch) and no active admission. Frontend-only;
+ * does not modify `vw_horse_lifecycle_state` (whose `needs_admission` predicate
+ * intentionally excludes null-location horses to suppress B2B/owner-side
+ * noise). Strict `horses.tenant_id = currentTenant` filter ensures connected/
+ * B2B horses (owned by a different tenant) are never included.
+ */
+export interface UnassignedNeedsAdmissionHorse {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  avatar_url: string | null;
+}
+
+const EXCLUDED_HORSE_STATUSES = [
+  "archived",
+  "sold",
+  "deceased",
+  "transferred",
+  "inactive",
+] as const;
+
+const ACTIVE_LIKE_ADMISSION_STATUSES = ["draft", "active", "checkout_pending"] as const;
+
+export function useUnassignedNeedsAdmission() {
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
+
+  const query = useQuery({
+    queryKey: ["unassigned-needs-admission", tenantId],
+    enabled: !!tenantId,
+    staleTime: 30_000,
+    queryFn: async (): Promise<UnassignedNeedsAdmissionHorse[]> => {
+      if (!tenantId) return [];
+
+      // Candidate local horses: tenant-owned, active-ish, no branch.
+      const { data: horses, error: hErr } = await supabase
+        .from("horses")
+        .select("id, name, name_ar, avatar_url, status")
+        .eq("tenant_id", tenantId)
+        .is("current_location_id", null);
+      if (hErr) throw hErr;
+
+      const candidates = (horses || []).filter(
+        (h: any) =>
+          !EXCLUDED_HORSE_STATUSES.includes(
+            (h.status ?? "").toString().toLowerCase() as (typeof EXCLUDED_HORSE_STATUSES)[number]
+          )
+      );
+      if (candidates.length === 0) return [];
+
+      const candidateIds = candidates.map((h: any) => h.id);
+
+      // Exclude any horse with an active-like admission in this tenant.
+      const { data: admissions, error: aErr } = await supabase
+        .from("boarding_admissions")
+        .select("horse_id")
+        .eq("tenant_id", tenantId)
+        .in("horse_id", candidateIds)
+        .in("status", ACTIVE_LIKE_ADMISSION_STATUSES as unknown as string[]);
+      if (aErr) throw aErr;
+      const admittedHorseIds = new Set(
+        (admissions || []).map((a: any) => a.horse_id).filter(Boolean)
+      );
+
+      // Exclude any horse with an active occupancy row (defensive — should be
+      // implied by the admission check, but cheap to verify).
+      const { data: occupants, error: oErr } = await supabase
+        .from("housing_unit_occupants")
+        .select("horse_id")
+        .eq("tenant_id", tenantId)
+        .in("horse_id", candidateIds)
+        .is("until", null);
+      if (oErr) throw oErr;
+      const housedHorseIds = new Set(
+        (occupants || []).map((o: any) => o.horse_id).filter(Boolean)
+      );
+
+      return candidates
+        .filter(
+          (h: any) => !admittedHorseIds.has(h.id) && !housedHorseIds.has(h.id)
+        )
+        .map((h: any) => ({
+          id: h.id,
+          name: h.name,
+          name_ar: h.name_ar ?? null,
+          avatar_url: h.avatar_url ?? null,
+        }));
+    },
+  });
+
+  return {
+    unassignedNeedsAdmission: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error,
+  };
+}

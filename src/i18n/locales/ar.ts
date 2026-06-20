@@ -2337,6 +2337,8 @@ export const ar = {
       needsAdmission: "يحتاج فتح ملف إيواء",
       needsPlacementHelper: "ملف الإيواء مفتوح لكن لم يتم تعيين وحدة سكن للخيل بعد.",
       needsAdmissionHelper: "الخيل موجود في الفرع لكن بدون ملف إيواء نشط.",
+      unassignedGroup: "غير مُخصَّص لفرع",
+      unassignedGroupHelper: "خيول محلية بدون فرع وبدون ملف إيواء نشط. ابدأ الإيواء لتسكينها.",
       noNeedsPlacement: "لا توجد خيل تحتاج تعيين وحدة سكن",
       noNeedsAdmission: "لا توجد خيل تحتاج فتح ملف إيواء",
       placeInUnit: "تعيين وحدة سكن",
