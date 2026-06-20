@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Heart, DoorOpen, ChevronDown, BarChart3, Plus } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Heart, DoorOpen, ChevronDown, BarChart3, Plus, PackageOpen } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +15,8 @@ import { CreateBranchWizard } from "./CreateBranchWizard";
 import { LifecycleFilterChips, type LifecycleFilter } from "./LifecycleFilterChips";
 import { LifecycleStateBadge } from "./LifecycleActionMenu";
 import { useLocations } from "@/hooks/movement/useLocations";
+import { useUnassignedNeedsAdmission } from "@/hooks/housing/useBranchAttentionHorses";
+import { AdmissionWizard } from "./AdmissionWizard";
 
 interface BranchOverviewProps {
   onNavigateToTab?: (tab: string) => void;
