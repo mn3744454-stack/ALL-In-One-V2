@@ -133,14 +133,24 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
         });
       });
 
-      // Needs Admission preserved: lifecycle-driven, branch-scoped, tenant-owned.
+      // Needs Admission: lifecycle-driven, branch-scoped, tenant-owned.
+      // Phase 1.e.f.7.g.3 — defensively cross-check against the shared
+      // eligibility contract so historical-only / departed / transferred-away
+      // horses are never surfaced as branch Needs Admission even if a stale
+      // view row ever disagreed.
       const needsAdmission: BranchAttentionHorse[] = [];
       (horses || []).forEach((h: any) => {
         const lc = stateByHorse.get(h.id);
         if (!lc) return;
         if (!lc.needs_admission) return;
-        // Do not duplicate a horse already shown in Needs Placement.
         if (seenPlacement.has(h.id)) return;
+        const eligibility = getHorseAdmissionEligibility({
+          horse: { id: h.id, status: (h as any).status ?? null },
+          admissions: [],
+          occupants: [],
+          lifecycle: lc,
+        });
+        if (!eligibility.isEligibleForNewAdmission) return;
         needsAdmission.push({
           id: h.id,
           name: h.name,
