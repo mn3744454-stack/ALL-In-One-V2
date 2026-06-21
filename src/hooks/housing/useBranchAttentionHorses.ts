@@ -2,6 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { HORSE_LIFECYCLE_SELECT, type HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import {
+  getHorseAdmissionEligibility,
+  groupByHorseId,
+} from "@/lib/housing/eligibility";
 
 /**
  * B2.3d-UI-S1 — Cross-tenant Needs Placement correction.
@@ -59,7 +63,7 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
       // remains a deferred residual.
       const { data: horses, error: horsesErr } = await supabase
         .from("horses")
-        .select("id, name, name_ar, avatar_url, current_location_id")
+        .select("id, name, name_ar, avatar_url, current_location_id, status")
         .eq("tenant_id", tenantId)
         .eq("current_location_id", branchId);
       if (horsesErr) throw horsesErr;
@@ -129,14 +133,24 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
         });
       });
 
-      // Needs Admission preserved: lifecycle-driven, branch-scoped, tenant-owned.
+      // Needs Admission: lifecycle-driven, branch-scoped, tenant-owned.
+      // Phase 1.e.f.7.g.3 — defensively cross-check against the shared
+      // eligibility contract so historical-only / departed / transferred-away
+      // horses are never surfaced as branch Needs Admission even if a stale
+      // view row ever disagreed.
       const needsAdmission: BranchAttentionHorse[] = [];
       (horses || []).forEach((h: any) => {
         const lc = stateByHorse.get(h.id);
         if (!lc) return;
         if (!lc.needs_admission) return;
-        // Do not duplicate a horse already shown in Needs Placement.
         if (seenPlacement.has(h.id)) return;
+        const eligibility = getHorseAdmissionEligibility({
+          horse: { id: h.id, status: (h as any).status ?? null },
+          admissions: [],
+          occupants: [],
+          lifecycle: lc,
+        });
+        if (!eligibility.isEligibleForNewAdmission) return;
         needsAdmission.push({
           id: h.id,
           name: h.name,
@@ -160,13 +174,15 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
 
 /**
  * Phase 1.e.f.7.f.3 — Tenant-wide "Unassigned" Needs Admission bucket.
+ * Phase 1.e.f.7.g.3 — Now driven by the shared Housing eligibility contract
+ * (src/lib/housing/eligibility.ts) so historical-only / departed /
+ * transferred-away horses are filtered out of this readiness surface.
  *
  * Restores visibility for local same-tenant horses that have no
- * `current_location_id` (no branch) and no active admission. Frontend-only;
- * does not modify `vw_horse_lifecycle_state` (whose `needs_admission` predicate
- * intentionally excludes null-location horses to suppress B2B/owner-side
- * noise). Strict `horses.tenant_id = currentTenant` filter ensures connected/
- * B2B horses (owned by a different tenant) are never included.
+ * `current_location_id` (no branch) and are eligible for a new admission.
+ * Frontend-only; does not modify `vw_horse_lifecycle_state`.
+ * Strict `horses.tenant_id = currentTenant` filter ensures connected/B2B
+ * horses (owned by a different tenant) are never included.
  */
 export interface UnassignedNeedsAdmissionHorse {
   id: string;
@@ -174,16 +190,6 @@ export interface UnassignedNeedsAdmissionHorse {
   name_ar: string | null;
   avatar_url: string | null;
 }
-
-const EXCLUDED_HORSE_STATUSES = [
-  "archived",
-  "sold",
-  "deceased",
-  "transferred",
-  "inactive",
-] as const;
-
-const ACTIVE_LIKE_ADMISSION_STATUSES = ["draft", "active", "checkout_pending"] as const;
 
 export function useUnassignedNeedsAdmission() {
   const { activeTenant } = useTenant();
@@ -196,54 +202,60 @@ export function useUnassignedNeedsAdmission() {
     queryFn: async (): Promise<UnassignedNeedsAdmissionHorse[]> => {
       if (!tenantId) return [];
 
-      // Candidate local horses: tenant-owned, active-ish, no branch.
+      // Candidate local horses: tenant-owned, no branch.
       const { data: horses, error: hErr } = await supabase
         .from("horses")
         .select("id, name, name_ar, avatar_url, status")
         .eq("tenant_id", tenantId)
         .is("current_location_id", null);
       if (hErr) throw hErr;
+      if (!horses || horses.length === 0) return [];
 
-      const candidates = (horses || []).filter(
-        (h: any) =>
-          !EXCLUDED_HORSE_STATUSES.includes(
-            (h.status ?? "").toString().toLowerCase() as (typeof EXCLUDED_HORSE_STATUSES)[number]
-          )
+      const candidateIds = horses.map((h: any) => h.id);
+
+      // Batch the same eligibility inputs the AdmissionWizard uses.
+      const [admissionsRes, occupantsRes, lifecycleRes] = await Promise.all([
+        supabase
+          .from("boarding_admissions")
+          .select("horse_id, status")
+          .eq("tenant_id", tenantId)
+          .in("horse_id", candidateIds),
+        supabase
+          .from("housing_unit_occupants")
+          .select("horse_id, until")
+          .eq("tenant_id", tenantId)
+          .in("horse_id", candidateIds),
+        supabase
+          .from("vw_horse_lifecycle_state" as any)
+          .select(HORSE_LIFECYCLE_SELECT)
+          .in("horse_id", candidateIds),
+      ]);
+      if (admissionsRes.error) throw admissionsRes.error;
+      if (occupantsRes.error) throw occupantsRes.error;
+      if (lifecycleRes.error) throw lifecycleRes.error;
+
+      const admissionsByHorse = groupByHorseId(
+        (admissionsRes.data as Array<{ horse_id: string; status: string }>) ?? []
       );
-      if (candidates.length === 0) return [];
-
-      const candidateIds = candidates.map((h: any) => h.id);
-
-      // Exclude any horse with an active-like admission in this tenant.
-      const { data: admissions, error: aErr } = await supabase
-        .from("boarding_admissions")
-        .select("horse_id")
-        .eq("tenant_id", tenantId)
-        .in("horse_id", candidateIds)
-        .in("status", ACTIVE_LIKE_ADMISSION_STATUSES as unknown as string[]);
-      if (aErr) throw aErr;
-      const admittedHorseIds = new Set(
-        (admissions || []).map((a: any) => a.horse_id).filter(Boolean)
+      const occupantsByHorse = groupByHorseId(
+        (occupantsRes.data as Array<{ horse_id: string; until: string | null }>) ?? []
+      );
+      const lifecycleByHorse = new Map<string, HorseLifecycleState>();
+      ((lifecycleRes.data as unknown as HorseLifecycleState[]) || []).forEach((s) =>
+        lifecycleByHorse.set(s.horse_id, s)
       );
 
-      // Exclude any horse with an active occupancy row (defensive — should be
-      // implied by the admission check, but cheap to verify).
-      const { data: occupants, error: oErr } = await supabase
-        .from("housing_unit_occupants")
-        .select("horse_id")
-        .eq("tenant_id", tenantId)
-        .in("horse_id", candidateIds)
-        .is("until", null);
-      if (oErr) throw oErr;
-      const housedHorseIds = new Set(
-        (occupants || []).map((o: any) => o.horse_id).filter(Boolean)
-      );
-
-      return candidates
-        .filter(
-          (h: any) => !admittedHorseIds.has(h.id) && !housedHorseIds.has(h.id)
-        )
-        .map((h: any) => ({
+      return (horses as any[])
+        .filter((h) => {
+          const eligibility = getHorseAdmissionEligibility({
+            horse: { id: h.id, status: h.status ?? null },
+            admissions: admissionsByHorse.get(h.id) ?? [],
+            occupants: occupantsByHorse.get(h.id) ?? [],
+            lifecycle: lifecycleByHorse.get(h.id) ?? null,
+          });
+          return eligibility.isEligibleForNewAdmission;
+        })
+        .map((h) => ({
           id: h.id,
           name: h.name,
           name_ar: h.name_ar ?? null,
