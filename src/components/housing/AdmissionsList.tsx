@@ -25,7 +25,7 @@ import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
-import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
+import { useBranchAttentionHorses, useUnassignedNeedsAdmission } from "@/hooks/housing/useBranchAttentionHorses";
 import { PackageOpen, MapPin } from "lucide-react";
 import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 import { CompletePricingDialog } from "./CompletePricingDialog";
