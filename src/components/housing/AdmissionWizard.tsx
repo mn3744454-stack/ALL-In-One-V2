@@ -48,8 +48,11 @@ import {
   getHorseAdmissionEligibility,
   groupByHorseId,
   ineligibilityI18nKey,
+  requiresReturnMovement,
   type HorseAdmissionEligibility,
+  type MinimalLifecycleState,
 } from "@/lib/housing/eligibility";
+import { HORSE_LIFECYCLE_SELECT } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface AdmissionWizardProps {
   open: boolean;
@@ -153,7 +156,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     enabled: !!tenantId && open && candidateHorseIds.length > 0,
     staleTime: 15_000,
     queryFn: async () => {
-      const [admRes, occRes] = await Promise.all([
+      const [admRes, occRes, lifecycleRes] = await Promise.all([
         supabase
           .from('boarding_admissions')
           .select('horse_id, status')
@@ -166,12 +169,22 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           .eq('tenant_id', tenantId!)
           .in('horse_id', candidateHorseIds)
           .is('until', null),
+        // Phase 1.e.f.7.g.7 — lifecycle signal for historical-only / departed
+        // / transferred-away horses. Tenant scoping is enforced by RLS on the
+        // view; we additionally filter by horse ids batched in this wizard.
+        (supabase as any)
+          .from('vw_horse_lifecycle_state')
+          .select(HORSE_LIFECYCLE_SELECT)
+          .in('horse_id', candidateHorseIds),
       ]);
       if (admRes.error) throw admRes.error;
       if (occRes.error) throw occRes.error;
+      // Lifecycle errors are non-fatal: fall back to legacy eligibility.
+      const lifecycleRows = lifecycleRes.error ? [] : (lifecycleRes.data || []);
       return {
         admissions: (admRes.data || []) as Array<{ horse_id: string; status: string }>,
         occupants: (occRes.data || []) as Array<{ horse_id: string; until: string | null }>,
+        lifecycle: lifecycleRows as Array<{ horse_id: string } & MinimalLifecycleState>,
       };
     },
   });
@@ -179,6 +192,10 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const eligibilityByHorseId = useMemo(() => {
     const admByHorse = groupByHorseId(eligibilityRaw?.admissions);
     const occByHorse = groupByHorseId(eligibilityRaw?.occupants);
+    const lifecycleByHorse = new Map<string, MinimalLifecycleState>();
+    (eligibilityRaw?.lifecycle ?? []).forEach((row) => {
+      if (row?.horse_id) lifecycleByHorse.set(row.horse_id, row);
+    });
     const map = new Map<string, HorseAdmissionEligibility>();
     horses.forEach(h => {
       map.set(
@@ -187,6 +204,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           horse: { id: h.id, status: h.status as string | null },
           admissions: admByHorse.get(h.id) ?? [],
           occupants: occByHorse.get(h.id) ?? [],
+          lifecycle: lifecycleByHorse.get(h.id) ?? null,
         })
       );
     });
@@ -267,7 +285,10 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     // horses that already have an active-like admission or active occupancy.
     const elig = eligibilityByHorseId.get(form.horseId);
     if (elig && !elig.isEligibleForNewAdmission) {
-      toast.error(t('housing.admissions.wizard.horseIneligibleToast'));
+      const toastKey = requiresReturnMovement(elig.reasonKey)
+        ? 'housing.admissions.wizard.horseDepartedToast'
+        : 'housing.admissions.wizard.horseIneligibleToast';
+      toast.error(t(toastKey));
       return;
     }
 
@@ -392,7 +413,10 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                       aria-disabled={isIneligible}
                       onClick={() => {
                         if (isIneligible) {
-                          toast.error(t('housing.admissions.wizard.horseIneligibleToast'));
+                          const toastKey = elig && requiresReturnMovement(elig.reasonKey)
+                            ? 'housing.admissions.wizard.horseDepartedToast'
+                            : 'housing.admissions.wizard.horseIneligibleToast';
+                          toast.error(t(toastKey));
                           return;
                         }
                         setForm(f => ({ ...f, horseId: horse.id }));
