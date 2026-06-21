@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   DialogHeader,
   DialogTitle,
@@ -47,7 +47,7 @@ import {
   ACTIVE_LIKE_ADMISSION_STATUSES,
   getHorseAdmissionEligibility,
   groupByHorseId,
-  ineligibilityI18nKey,
+  
   requiresReturnMovement,
   type HorseAdmissionEligibility,
   type MinimalLifecycleState,
@@ -215,6 +215,29 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     ? eligibilityByHorseId.get(form.horseId)
     : undefined;
 
+  // Phase 1.e.f.7.g.8 — If a preselected horse turns out to be ineligible
+  // (historical-only/departed/transferred-away/already-housed/active
+  // admission/excluded), do not auto-advance the wizard. Clear the
+  // selection, return the user to the horse step, and surface the reason.
+  const preselectGuardRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !preselectedHorseId) return;
+    if (preselectGuardRef.current === preselectedHorseId) return;
+    const elig = eligibilityByHorseId.get(preselectedHorseId);
+    if (!elig) return; // wait for eligibility data
+    preselectGuardRef.current = preselectedHorseId;
+    if (!elig.isEligibleForNewAdmission) {
+      const toastKey = requiresReturnMovement(elig.reasonKey)
+        ? 'housing.admissions.wizard.horseDepartedToast'
+        : 'housing.admissions.wizard.horseIneligibleToast';
+      toast.error(t(toastKey));
+      setForm(f => ({ ...f, horseId: '' }));
+      setStep('horse');
+    }
+  }, [open, preselectedHorseId, eligibilityByHorseId, t]);
+
+
+
 
   // Auto-clear a stale selected unit if it leaves the filtered scope or
   // became full while the wizard was open (locked preselect is preserved).
@@ -377,15 +400,33 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const renderStep = () => {
     switch (step) {
       case 'horse': {
+        // Phase 1.e.f.7.g.8 — Candidate visibility: show only eligible horses.
+        // Historical-only / departed / transferred-away / already-housed /
+        // active-admission / excluded-status horses are hidden from the list
+        // entirely. They remain visible in historical surfaces only.
         const activeHorses = horses.filter(h => h.status === 'active' || h.status === 'intake_draft');
+        const eligibleHorses = activeHorses.filter(h => {
+          const elig = eligibilityByHorseId.get(h.id);
+          // While eligibility is still loading for this horse, hide it to
+          // avoid flashing historical-only horses as selectable.
+          if (!elig) return !eligibilityRaw ? true : false;
+          return elig.isEligibleForNewAdmission;
+        });
+        const showEmpty = eligibleHorses.length === 0 && !form.horseId;
         return (
           <div className="space-y-3">
             <Label>{t('housing.admissions.wizard.selectHorse')} *</Label>
-            {activeHorses.length === 0 && !form.horseId ? (
+            {showEmpty ? (
               <div className="flex flex-col items-center gap-2 py-8 text-center border rounded-lg border-dashed">
                 <Heart className="w-8 h-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">{t('housing.quickCreate.noHorsesYet')}</p>
-                <p className="text-xs text-muted-foreground">{t('housing.quickCreate.noHorsesDesc')}</p>
+                <p className="text-sm text-muted-foreground">
+                  {activeHorses.length === 0
+                    ? t('housing.quickCreate.noHorsesYet')
+                    : t('housing.admissions.wizard.noEligibleHorses')}
+                </p>
+                {activeHorses.length === 0 && (
+                  <p className="text-xs text-muted-foreground">{t('housing.quickCreate.noHorsesDesc')}</p>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -398,35 +439,18 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
               </div>
             ) : (
               <div className="grid gap-2">
-                {activeHorses.map(horse => {
-                  const elig = eligibilityByHorseId.get(horse.id);
-                  const isIneligible = !!elig && !elig.isEligibleForNewAdmission;
-                  // Preserve preselect path: never block a locked preselected horse from rendering,
-                  // but the submit guard still blocks proceed if ineligible.
-                  const reasonKey = elig ? ineligibilityI18nKey(elig.reasonKey) : null;
+                {eligibleHorses.map(horse => {
                   const isSelected = form.horseId === horse.id;
                   return (
                     <button
                       key={horse.id}
                       type="button"
-                      disabled={isIneligible && !isSelected}
-                      aria-disabled={isIneligible}
-                      onClick={() => {
-                        if (isIneligible) {
-                          const toastKey = elig && requiresReturnMovement(elig.reasonKey)
-                            ? 'housing.admissions.wizard.horseDepartedToast'
-                            : 'housing.admissions.wizard.horseIneligibleToast';
-                          toast.error(t(toastKey));
-                          return;
-                        }
-                        setForm(f => ({ ...f, horseId: horse.id }));
-                      }}
+                      onClick={() => setForm(f => ({ ...f, horseId: horse.id }))}
                       className={cn(
                         "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
                         isSelected
                           ? "border-primary bg-primary/5 ring-1 ring-primary"
                           : "border-border hover:bg-muted/50",
-                        isIneligible && "opacity-60 cursor-not-allowed hover:bg-transparent"
                       )}
                     >
                       <Avatar className="h-8 w-8">
@@ -438,11 +462,6 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                       <div className="flex-1 min-w-0">
                         <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
                       </div>
-                      {isIneligible && reasonKey && (
-                        <Badge variant="secondary" className="shrink-0 text-[10px]">
-                          {t(reasonKey)}
-                        </Badge>
-                      )}
                       {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
                     </button>
                   );
@@ -465,6 +484,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           </div>
         );
       }
+
       case 'client':
         return (
           <div className="space-y-3">

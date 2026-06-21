@@ -3027,6 +3027,7 @@ export const en = {
         ineligibleTransferredAway: "Transferred away",
         ineligibleHistoricalOnly: "Historical only",
         horseDepartedToast: "A new admission cannot be created for this horse here because it has departed from this stable. It must return through a new incoming or transfer movement first.",
+        noEligibleHorses: "No horses are currently available for a new admission.",
         dailyRate: "Daily Rate",
         monthlyRate: "Monthly Rate",
         billingCycle: "Billing Cycle",
