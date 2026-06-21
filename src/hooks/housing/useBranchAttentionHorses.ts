@@ -63,7 +63,7 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
       // remains a deferred residual.
       const { data: horses, error: horsesErr } = await supabase
         .from("horses")
-        .select("id, name, name_ar, avatar_url, current_location_id")
+        .select("id, name, name_ar, avatar_url, current_location_id, status")
         .eq("tenant_id", tenantId)
         .eq("current_location_id", branchId);
       if (horsesErr) throw horsesErr;
