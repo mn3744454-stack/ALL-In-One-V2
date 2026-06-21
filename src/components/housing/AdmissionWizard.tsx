@@ -47,7 +47,7 @@ import {
   ACTIVE_LIKE_ADMISSION_STATUSES,
   getHorseAdmissionEligibility,
   groupByHorseId,
-  
+  ineligibilityI18nKey,
   requiresReturnMovement,
   type HorseAdmissionEligibility,
   type MinimalLifecycleState,
