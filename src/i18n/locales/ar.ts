@@ -3045,6 +3045,7 @@ export const ar = {
         ineligibleTransferredAway: "تم نقله إلى جهة أخرى",
         ineligibleHistoricalOnly: "سجل تاريخي فقط",
         horseDepartedToast: "لا يمكن إنشاء إيواء جديد لهذا الخيل هنا لأنه خرج من هذا الإسطبل. يجب أن يعود عبر حركة وصول أو نقل جديدة أولاً.",
+        noEligibleHorses: "لا توجد خيول متاحة لإيواء جديد حالياً.",
         dailyRate: "السعر اليومي",
         monthlyRate: "السعر الشهري",
         billingCycle: "دورة الفوترة",
