@@ -275,6 +275,9 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         </div>
       </div>
 
+      {/* Phase 1.e.f.7.g.3 — Tenant-wide Unassigned Needs Admission readiness */}
+      {!branchId && <UnassignedNeedsAdmissionSection />}
+
       {/* Pass 2-D — Needs Admission visibility (branch-scoped, read-only) */}
       <NeedsAdmissionSection branchId={branchId} />
 
