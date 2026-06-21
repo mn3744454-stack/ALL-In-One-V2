@@ -215,6 +215,29 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     ? eligibilityByHorseId.get(form.horseId)
     : undefined;
 
+  // Phase 1.e.f.7.g.8 — If a preselected horse turns out to be ineligible
+  // (historical-only/departed/transferred-away/already-housed/active
+  // admission/excluded), do not auto-advance the wizard. Clear the
+  // selection, return the user to the horse step, and surface the reason.
+  const preselectGuardRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !preselectedHorseId) return;
+    if (preselectGuardRef.current === preselectedHorseId) return;
+    const elig = eligibilityByHorseId.get(preselectedHorseId);
+    if (!elig) return; // wait for eligibility data
+    preselectGuardRef.current = preselectedHorseId;
+    if (!elig.isEligibleForNewAdmission) {
+      const toastKey = requiresReturnMovement(elig.reasonKey)
+        ? 'housing.admissions.wizard.horseDepartedToast'
+        : 'housing.admissions.wizard.horseIneligibleToast';
+      toast.error(t(toastKey));
+      setForm(f => ({ ...f, horseId: '' }));
+      setStep('horse');
+    }
+  }, [open, preselectedHorseId, eligibilityByHorseId, t]);
+
+
+
 
   // Auto-clear a stale selected unit if it leaves the filtered scope or
   // became full while the wizard was open (locked preselect is preserved).
