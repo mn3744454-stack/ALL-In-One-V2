@@ -2,6 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { HORSE_LIFECYCLE_SELECT, type HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import {
+  getHorseAdmissionEligibility,
+  groupByHorseId,
+} from "@/lib/housing/eligibility";
 
 /**
  * B2.3d-UI-S1 — Cross-tenant Needs Placement correction.
