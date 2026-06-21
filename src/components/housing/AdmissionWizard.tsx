@@ -400,19 +400,23 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const renderStep = () => {
     switch (step) {
       case 'horse': {
-        // Phase 1.e.f.7.g.8 — Candidate visibility: show only eligible horses.
-        // Historical-only / departed / transferred-away / already-housed /
-        // active-admission / excluded-status horses are hidden from the list
-        // entirely. They remain visible in historical surfaces only.
+        // Phase 1.e.f.7.g.9 — Operational candidate visibility:
+        //   - Visible & selectable: eligible (reasonKey === null)
+        //   - Visible but disabled: 'active_admission' / 'already_housed'
+        //     (operationally relevant horses already under an active stay —
+        //     showing them disabled prevents duplicate admission)
+        //   - Hidden entirely: departed/transferred/historical-only/excluded
+        //     (archive-class — must not appear in a New Admission picker)
         const activeHorses = horses.filter(h => h.status === 'active' || h.status === 'intake_draft');
-        const eligibleHorses = activeHorses.filter(h => {
+        const displayedHorses = activeHorses.filter(h => {
           const elig = eligibilityByHorseId.get(h.id);
           // While eligibility is still loading for this horse, hide it to
           // avoid flashing historical-only horses as selectable.
           if (!elig) return !eligibilityRaw ? true : false;
-          return elig.isEligibleForNewAdmission;
+          if (elig.isEligibleForNewAdmission) return true;
+          return elig.reasonKey === 'active_admission' || elig.reasonKey === 'already_housed';
         });
-        const showEmpty = eligibleHorses.length === 0 && !form.horseId;
+        const showEmpty = displayedHorses.length === 0 && !form.horseId;
         return (
           <div className="space-y-3">
             <Label>{t('housing.admissions.wizard.selectHorse')} *</Label>
@@ -439,18 +443,27 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
               </div>
             ) : (
               <div className="grid gap-2">
-                {eligibleHorses.map(horse => {
+                {displayedHorses.map(horse => {
                   const isSelected = form.horseId === horse.id;
+                  const elig = eligibilityByHorseId.get(horse.id);
+                  const isDisabled = !!elig && !elig.isEligibleForNewAdmission;
+                  const reasonI18n = elig ? ineligibilityI18nKey(elig.reasonKey) : null;
                   return (
                     <button
                       key={horse.id}
                       type="button"
-                      onClick={() => setForm(f => ({ ...f, horseId: horse.id }))}
+                      disabled={isDisabled}
+                      aria-disabled={isDisabled}
+                      onClick={() => {
+                        if (isDisabled) return;
+                        setForm(f => ({ ...f, horseId: horse.id }));
+                      }}
                       className={cn(
                         "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
                         isSelected
                           ? "border-primary bg-primary/5 ring-1 ring-primary"
                           : "border-border hover:bg-muted/50",
+                        isDisabled && "opacity-50 cursor-not-allowed hover:bg-transparent",
                       )}
                     >
                       <Avatar className="h-8 w-8">
@@ -462,7 +475,12 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                       <div className="flex-1 min-w-0">
                         <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
                       </div>
-                      {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                      {isDisabled && reasonI18n && (
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {t(reasonI18n)}
+                        </Badge>
+                      )}
+                      {isSelected && !isDisabled && <Check className="h-4 w-4 text-primary shrink-0" />}
                     </button>
                   );
                 })}
@@ -484,6 +502,8 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           </div>
         );
       }
+
+
 
       case 'client':
         return (
