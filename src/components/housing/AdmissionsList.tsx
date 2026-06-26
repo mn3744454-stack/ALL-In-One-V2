@@ -33,6 +33,8 @@ import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinanci
 // (formatBoardingAmount not used here; price formatting handled by formatBoardingRate)
 
 import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
+import { getOwnerDisplay } from "@/lib/horses/ownerDisplay";
+import { useAdmissionsOwners } from "@/hooks/housing/useAdmissionsOwners";
 
 
 
