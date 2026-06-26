@@ -87,7 +87,43 @@ export const HorsesList = ({
   const [operationalTab, setOperationalTab] = useState<OperationalTab>(
     stableMode ? 'current' : 'all'
   );
+  // Phase 1.e.f.7.g.4.3.2.1 — Local sub-filter (stable mode only)
+  const [localSubFilter, setLocalSubFilter] = useState<'all' | 'noLocation'>('all');
   const [incompleteModalOpen, setIncompleteModalOpen] = useState(false);
+
+
+  // Batch lifecycle for ALL local horses (stable mode) so the No Location
+  // sub-filter count is accurate before search/filter is applied. Owner mode
+  // continues to use the smaller filteredHorses footprint below.
+  const lifecycleInputIds = useMemo(
+    () => (stableMode ? horses.map(h => h.id) : []),
+    [stableMode, horses]
+  );
+  const { statesByHorseId: stableStatesByHorseId } = useHorseLifecycleStates(lifecycleInputIds);
+
+  // Phase 1.e.f.7.g.4.3.2.1 — No Location subset within Local.
+  // Start from legacy `outside` (active + no current_location_id), then refine
+  // using lifecycle data to exclude horses that are currently hosted in this
+  // tenant, hosted elsewhere (where visible), departed, transferred away,
+  // or historical-only. RLS may hide open admissions in unconnected tenants
+  // — residual over-count documented in the phase report.
+  const noLocationLocalHorses = useMemo(() => {
+    if (!stableMode) return [] as Horse[];
+    return horses.filter(h => {
+      if (h.status !== 'active') return false;
+      if (h.current_location_id) return false;
+      if (h.housing_unit_id) return false;
+      const ls = stableStatesByHorseId.get(h.id);
+      if (!ls) return true; // no lifecycle row => never moved/admitted
+      if (ls.is_departed) return false;
+      if (ls.is_housed) return false;
+      const openStatus = ls.open_admission_status;
+      if (openStatus === 'active' || openStatus === 'checkout_pending') return false;
+      const lastSub = ls.latest_completed_movement_subtype;
+      if (lastSub === 'checkout_departure') return false;
+      return true;
+    });
+  }, [stableMode, horses, stableStatesByHorseId]);
 
   // Operational buckets (registry-derived; used by owner-mode and stable Local tab)
   const horseBuckets = useMemo(() => {
@@ -102,11 +138,14 @@ export const HorsesList = ({
     switch (operationalTab) {
       case 'inside': return horseBuckets.inside;
       case 'outside': return horseBuckets.outside;
-      // stable-mode "local" tab = registry truth, all locally-registered horses
-      case 'local': return horseBuckets.all;
+      // stable-mode "local" tab: registry truth, optionally narrowed by sub-filter
+      case 'local':
+        return stableMode && localSubFilter === 'noLocation'
+          ? noLocationLocalHorses
+          : horseBuckets.all;
       default: return horseBuckets.all;
     }
-  }, [operationalTab, horseBuckets]);
+  }, [operationalTab, horseBuckets, stableMode, localSubFilter, noLocationLocalHorses]);
 
   const filteredHorses = useMemo(() => {
     return baseHorses.filter((horse) => {
@@ -146,8 +185,15 @@ export const HorsesList = ({
     [stableHistoricalRows, filters.search]
   );
 
-  // Batch lifecycle states for visible horses (registry tabs only)
-  const { statesByHorseId } = useHorseLifecycleStates(filteredHorses.map(h => h.id));
+  // Per-card lifecycle map used by row rendering. In stable mode this is the
+  // already-loaded full map; in owner/default mode keep the small per-filter
+  // fetch to avoid unnecessary breadth.
+  const ownerFilteredIds = useMemo(
+    () => (stableMode ? [] : filteredHorses.map(h => h.id)),
+    [stableMode, filteredHorses]
+  );
+  const { statesByHorseId: ownerStatesByHorseId } = useHorseLifecycleStates(ownerFilteredIds);
+  const statesByHorseId = stableMode ? stableStatesByHorseId : ownerStatesByHorseId;
 
   const handleWizardSuccess = () => {
     setWizardOpen(false);
@@ -275,6 +321,43 @@ export const HorsesList = ({
           </button>
         )}
       </div>
+
+      {/* Phase 1.e.f.7.g.4.3.2.1 — Local sub-filter chips (stable mode, Local tab) */}
+      {stableMode && operationalTab === 'local' && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {([
+            { key: 'all' as const, label: t('horses.tabs.localAll'), count: horseBuckets.all.length },
+            { key: 'noLocation' as const, label: t('horses.tabs.noLocationSub'), count: noLocationLocalHorses.length },
+          ]).map(({ key, label, count }) => {
+            const isActive = localSubFilter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setLocalSubFilter(key)}
+                className={
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors " +
+                  (isActive
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground")
+                }
+              >
+                {label}
+                <span
+                  className={
+                    "min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold " +
+                    (isActive
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-muted text-muted-foreground")
+                  }
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filters */}
       <HorseFilters filters={filters} onChange={setFilters} />
