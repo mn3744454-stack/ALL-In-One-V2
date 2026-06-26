@@ -47,6 +47,7 @@ import { useHorseAssignments } from "@/hooks/hr/useHorseAssignments";
 import { AddAssignmentDialog } from "@/components/hr/AddAssignmentDialog";
 import { Users } from "lucide-react";
 import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 interface AdmissionDetailSheetProps {
   admissionId: string | null;

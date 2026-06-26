@@ -36,6 +36,7 @@ import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 import { CreateFacilityDialog, FACILITY_CATEGORY } from "./CreateFacilityDialog";
 import { AddUnitsDialog } from "./AddUnitsDialog";
 import type { FacilityArea } from "@/hooks/housing/useFacilityAreas";
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 interface PlaceInUnitDialogProps {
   open: boolean;
