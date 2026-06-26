@@ -47,6 +47,8 @@ import { useHorseAssignments } from "@/hooks/hr/useHorseAssignments";
 import { AddAssignmentDialog } from "@/components/hr/AddAssignmentDialog";
 import { Users } from "lucide-react";
 import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
+import { getOwnerDisplay } from "@/lib/horses/ownerDisplay";
+import { useAdmissionsOwners } from "@/hooks/housing/useAdmissionsOwners";
 import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 interface AdmissionDetailSheetProps {
@@ -76,6 +78,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { data: admission, isLoading } = useSingleAdmission(admissionId);
   const { data: history = [] } = useAdmissionStatusHistory(admissionId);
   const { updateAdmission } = useBoardingAdmissions();
+  // Phase 1.e.f.7.g.4.3.1 — Owner label (legal owner, distinct from Client/payer).
+  const ownerHorseIds = useMemo(() => admission?.horse_id ? [admission.horse_id] : [], [admission?.horse_id]);
+  const { data: ownersByHorseId } = useAdmissionsOwners(ownerHorseIds);
+  const ownerLabel = useMemo(() => {
+    const rows = admission?.horse_id ? (ownersByHorseId?.get(admission.horse_id) ?? []) : [];
+    return getOwnerDisplay(rows, { isRTL: dir === 'rtl', t }).label;
+  }, [admission?.horse_id, ownersByHorseId, dir, t]);
   const { units } = useHousingUnits();
   const { areas } = useFacilityAreas();
   const { plans } = useStableServicePlans();
@@ -502,6 +511,12 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               {/* Details — with inline editing */}
               <Card>
                 <CardContent className="p-4 space-y-3">
+                  {/* Owner — legal/registry owner, distinct from Client (payer). */}
+                  <DetailRow
+                    icon={User}
+                    label={t('housing.admissions.detail.owner')}
+                    value={<span className="font-medium text-sm">{ownerLabel}</span>}
+                  />
                   {/* Client — opens AssignClientDialog */}
                   <EditableDetailRow
                     icon={User}

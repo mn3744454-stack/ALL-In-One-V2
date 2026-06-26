@@ -2920,6 +2920,7 @@ export const ar = {
       assignUnit: "تسكين الخيل",
       table: {
         horse: "الخيل",
+        owner: "المالك",
         client: "العميل",
         branch: "الفرع",
         unit: "الوحدة",
@@ -2964,6 +2965,7 @@ export const ar = {
       },
       detail: {
         title: "تفاصيل الإيواء",
+        owner: "المالك",
         client: "العميل",
         branch: "الفرع",
         area: "القسم",
@@ -4137,6 +4139,9 @@ export const ar = {
       incomplete: "ملف غير مكتمل",
       outside: "بدون موقع",
       hosted: "مستضافة",
+      current: "داخل الإسطبل",
+      local: "محلية",
+      historical: "سابقة",
     },
     notFound: "الخيل غير موجود",
     horseDeleted: "تم حذف الخيل",

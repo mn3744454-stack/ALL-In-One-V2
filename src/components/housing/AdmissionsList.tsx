@@ -33,6 +33,8 @@ import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinanci
 // (formatBoardingAmount not used here; price formatting handled by formatBoardingRate)
 
 import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
+import { getOwnerDisplay } from "@/lib/horses/ownerDisplay";
+import { useAdmissionsOwners } from "@/hooks/housing/useAdmissionsOwners";
 
 
 
@@ -147,6 +149,17 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     branchId ? allAdmissions.filter(a => a.branch_id === branchId) : allAdmissions,
     [allAdmissions, branchId]
   );
+
+  // Phase 1.e.f.7.g.4.3.1 — batched ownership enrichment (Owner ≠ Client).
+  const ownerHorseIds = useMemo(
+    () => Array.from(new Set(branchFiltered.map(a => a.horse_id).filter(Boolean))),
+    [branchFiltered]
+  );
+  const { data: ownersByHorseId } = useAdmissionsOwners(ownerHorseIds);
+  const renderOwnerLabel = (horseId: string) => {
+    const rows = ownersByHorseId?.get(horseId) ?? [];
+    return getOwnerDisplay(rows, { isRTL, t }).label;
+  };
 
   // Active/checkout-pending admission ids drive both the financial chips and
   // the per-row financial truth lookup. B2-F1-DISPLAY-TRUTH.
@@ -400,6 +413,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
             <TableHeader>
               <TableRow className="bg-muted/80">
                 <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.horse')}</TableHead>
+                <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.owner')}</TableHead>
                 <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.client')}</TableHead>
                 <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.branch')}</TableHead>
                 <TableHead className="text-center font-bold text-sm">{t('housing.admissions.table.unit')}</TableHead>
@@ -433,6 +447,9 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                           </div>
                         );
                       })()}
+                    </TableCell>
+                    <TableCell className="text-start text-muted-foreground text-sm">
+                      <span className="text-sm font-normal">{renderOwnerLabel(admission.horse_id)}</span>
                     </TableCell>
                     <TableCell className="text-start text-muted-foreground text-sm">
                       {(admission.client?.name || admission.client?.name_ar)
@@ -500,6 +517,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
             <AdmissionCard
               key={admission.id}
               admission={admission}
+              ownerLabel={renderOwnerLabel(admission.horse_id)}
               onClick={() => setSelectedAdmissionId(admission.id)}
               onAssignUnit={canAssignUnit ? openAssignUnit : undefined}
               onCompletePricing={canCompletePricing ? openCompletePricing : undefined}
@@ -544,7 +562,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   );
 }
 
-function AdmissionCard({ admission, onClick, onAssignUnit, onCompletePricing, t, lang }: { admission: BoardingAdmission; onClick: () => void; onAssignUnit?: (admission: BoardingAdmission) => void; onCompletePricing?: (admission: BoardingAdmission) => void; t: (key: string) => string; lang: string }) {
+function AdmissionCard({ admission, ownerLabel, onClick, onAssignUnit, onCompletePricing, t, lang }: { admission: BoardingAdmission; ownerLabel: string; onClick: () => void; onAssignUnit?: (admission: BoardingAdmission) => void; onCompletePricing?: (admission: BoardingAdmission) => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
   const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
   const eff = getEffectivePrice(admission);
@@ -584,11 +602,25 @@ function AdmissionCard({ admission, onClick, onAssignUnit, onCompletePricing, t,
               )}
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-              {(admission.client?.name || admission.client?.name_ar) && (
-                <span className="flex items-center gap-1">
-                  <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
-                </span>
-              )}
+              {(() => {
+                const clientName = admission.client?.name || admission.client?.name_ar || null;
+                const showOwner = ownerLabel && ownerLabel !== clientName;
+                return (
+                  <>
+                    {showOwner && (
+                      <span className="flex items-center gap-1">
+                        <span className="text-[10px] uppercase tracking-wide text-foreground/50">{t('housing.admissions.table.owner')}:</span>
+                        <span className="text-xs font-medium text-foreground/70">{ownerLabel}</span>
+                      </span>
+                    )}
+                    {(admission.client?.name || admission.client?.name_ar) && (
+                      <span className="flex items-center gap-1">
+                        <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
               {admission.branch && (
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3 w-3" />

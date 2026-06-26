@@ -72,6 +72,7 @@ const DashboardHorses = () => {
             onRefresh={refresh}
             onHorseClick={(horse) => navigate(`/dashboard/horses/${horse.id}`)}
             ownerMode={isHorseOwnerTenant}
+            stableMode={!isHorseOwnerTenant}
           />
         )}
       </div>

@@ -2902,6 +2902,7 @@ export const en = {
       assignUnit: "Assign Unit",
       table: {
         horse: "Horse",
+        owner: "Owner",
         client: "Client",
         branch: "Branch",
         unit: "Unit",
@@ -2946,6 +2947,7 @@ export const en = {
       },
       detail: {
         title: "Admission Detail",
+        owner: "Owner",
         client: "Client",
         branch: "Branch",
         area: "Section",
@@ -4119,6 +4121,9 @@ export const en = {
       incomplete: "Incomplete Profile",
       outside: "No Location",
       hosted: "Hosted",
+      current: "Current",
+      local: "Local",
+      historical: "Historical",
     },
     notFound: "Horse not found",
     horseDeleted: "Horse deleted",
