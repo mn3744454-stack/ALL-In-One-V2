@@ -2965,6 +2965,7 @@ export const ar = {
       },
       detail: {
         title: "تفاصيل الإيواء",
+        owner: "المالك",
         client: "العميل",
         branch: "الفرع",
         area: "القسم",
