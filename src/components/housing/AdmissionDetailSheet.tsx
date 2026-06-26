@@ -47,6 +47,7 @@ import { useHorseAssignments } from "@/hooks/hr/useHorseAssignments";
 import { AddAssignmentDialog } from "@/components/hr/AddAssignmentDialog";
 import { Users } from "lucide-react";
 import { getAdmissionHorseDisplay } from "@/lib/housing/admissionDisplay";
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 interface AdmissionDetailSheetProps {
   admissionId: string | null;
@@ -146,7 +147,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   // PlaceInUnitDialog → useInternalMove → record_horse_movement_with_housing.
   // Direct field edits are only safe on draft admissions.
   const isActivePlacement =
-    !!admission && ['active', 'checkout_pending'].includes(admission.status);
+    !!admission && (OPERATIONAL_OPEN_ADMISSION_STATUSES as readonly string[]).includes(admission.status);
   const isDraftAdmission = !!admission && admission.status === 'draft';
 
   // Related movements query

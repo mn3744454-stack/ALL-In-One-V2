@@ -22,6 +22,22 @@ export const ACTIVE_LIKE_ADMISSION_STATUSES = [
 ] as const;
 export type ActiveLikeAdmissionStatus = (typeof ACTIVE_LIKE_ADMISSION_STATUSES)[number];
 
+/**
+ * Operationally open admissions — admissions that represent a real,
+ * in-progress stay. Used by sibling queries that look up "the current open
+ * admission for this horse / unit / branch" and by transition guards.
+ *
+ * Intentionally EXCLUDES `draft`: drafts are not yet open stays.
+ * Do NOT confuse with ACTIVE_LIKE_ADMISSION_STATUSES, which DOES include
+ * `draft` because drafts still block creating another new admission.
+ */
+export const OPERATIONAL_OPEN_ADMISSION_STATUSES = [
+  "active",
+  "checkout_pending",
+] as const;
+export type OperationalOpenAdmissionStatus =
+  (typeof OPERATIONAL_OPEN_ADMISSION_STATUSES)[number];
+
 /** Horse statuses that disqualify a horse from any new admission. */
 export const EXCLUDED_NEW_ADMISSION_HORSE_STATUSES = [
   "archived",

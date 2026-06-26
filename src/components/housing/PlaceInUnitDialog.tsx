@@ -36,6 +36,7 @@ import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 import { CreateFacilityDialog, FACILITY_CATEGORY } from "./CreateFacilityDialog";
 import { AddUnitsDialog } from "./AddUnitsDialog";
 import type { FacilityArea } from "@/hooks/housing/useFacilityAreas";
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 interface PlaceInUnitDialogProps {
   open: boolean;
@@ -122,7 +123,7 @@ export function PlaceInUnitDialog({
         .select("id, branch_id, area_id, unit_id, status, horse_id")
         .eq("tenant_id", tenantId!)
         .eq("horse_id", horse!.id)
-        .in("status", ["active", "checkout_pending"])
+        .in("status", OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[])
         .order("admitted_at", { ascending: false })
         .limit(1)
         .maybeSingle();

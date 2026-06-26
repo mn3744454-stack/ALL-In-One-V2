@@ -5,6 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { computeAdmissionChecks, type AdmissionChecks } from './admissionChecks';
 import { useHousingInvalidation } from './useHousingInvalidation';
+import {
+  ACTIVE_LIKE_ADMISSION_STATUSES,
+  OPERATIONAL_OPEN_ADMISSION_STATUSES,
+} from '@/lib/housing/eligibility';
 
 export type AdmissionStatus = 'draft' | 'active' | 'checkout_pending' | 'checked_out' | 'cancelled';
 
@@ -199,7 +203,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         .select('id')
         .eq('tenant_id', tenantId)
         .eq('horse_id', data.horse_id)
-        .in('status', ['active', 'draft', 'checkout_pending'])
+        .in('status', ACTIVE_LIKE_ADMISSION_STATUSES as unknown as string[])
         .limit(1);
 
       if (existing && existing.length > 0) {
@@ -499,7 +503,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       // → record_horse_movement_with_housing). A direct UPDATE here bypasses
       // housing_unit_occupants, horse_movements, and the horse location
       // cache — causing admission truth to diverge from physical occupancy.
-      if (['active', 'checkout_pending'].includes(current.status)) {
+      if ((OPERATIONAL_OPEN_ADMISSION_STATUSES as readonly string[]).includes(current.status)) {
         const placementFields = ['unit_id', 'area_id', 'branch_id'] as const;
         const attempted = placementFields.filter((f) =>
           Object.prototype.hasOwnProperty.call(updates, f)

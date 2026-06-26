@@ -10,6 +10,7 @@ import { ClipboardCheck, Calendar, DoorOpen, User, Building2, FileText, ChevronR
 import { formatStandardDate, displayClientName, displayLocationName } from '@/lib/displayHelpers';
 import { Link } from 'react-router-dom';
 import { useHorseCareNotes } from '@/hooks/housing/useHorseCareNotes';
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from '@/lib/housing/eligibility';
 
 const fromTable = (table: string) => (supabase as any).from(table);
 
@@ -36,7 +37,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
         `)
         .eq('tenant_id', tenantId)
         .eq('horse_id', horseId)
-        .in('status', ['active', 'checkout_pending'])
+        .in('status', OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[])
         .order('admitted_at', { ascending: false })
         .limit(1)
         .maybeSingle();
