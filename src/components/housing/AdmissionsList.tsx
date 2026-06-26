@@ -517,6 +517,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
             <AdmissionCard
               key={admission.id}
               admission={admission}
+              ownerLabel={renderOwnerLabel(admission.horse_id)}
               onClick={() => setSelectedAdmissionId(admission.id)}
               onAssignUnit={canAssignUnit ? openAssignUnit : undefined}
               onCompletePricing={canCompletePricing ? openCompletePricing : undefined}
