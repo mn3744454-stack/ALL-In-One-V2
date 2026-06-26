@@ -413,6 +413,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
             <TableHeader>
               <TableRow className="bg-muted/80">
                 <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.horse')}</TableHead>
+                <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.owner')}</TableHead>
                 <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.client')}</TableHead>
                 <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.branch')}</TableHead>
                 <TableHead className="text-center font-bold text-sm">{t('housing.admissions.table.unit')}</TableHead>
