@@ -2920,6 +2920,7 @@ export const ar = {
       assignUnit: "تسكين الخيل",
       table: {
         horse: "الخيل",
+        owner: "المالك",
         client: "العميل",
         branch: "الفرع",
         unit: "الوحدة",
