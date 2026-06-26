@@ -150,6 +150,17 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     [allAdmissions, branchId]
   );
 
+  // Phase 1.e.f.7.g.4.3.1 — batched ownership enrichment (Owner ≠ Client).
+  const ownerHorseIds = useMemo(
+    () => Array.from(new Set(branchFiltered.map(a => a.horse_id).filter(Boolean))),
+    [branchFiltered]
+  );
+  const { data: ownersByHorseId } = useAdmissionsOwners(ownerHorseIds);
+  const renderOwnerLabel = (horseId: string) => {
+    const rows = ownersByHorseId?.get(horseId) ?? [];
+    return getOwnerDisplay(rows, { isRTL, t }).label;
+  };
+
   // Active/checkout-pending admission ids drive both the financial chips and
   // the per-row financial truth lookup. B2-F1-DISPLAY-TRUTH.
   const { activeTenant } = useTenant();
