@@ -91,13 +91,6 @@ export const HorsesList = ({
   const [localSubFilter, setLocalSubFilter] = useState<'all' | 'noLocation'>('all');
   const [incompleteModalOpen, setIncompleteModalOpen] = useState(false);
 
-  // Operational buckets (registry-derived; used by owner-mode and stable Local tab)
-  const horseBuckets = useMemo(() => {
-    const inside = horses.filter(h => h.status === 'active' && h.current_location_id);
-    const incomplete = horses.filter(h => h.status === 'active' && isHorseIncomplete(h));
-    const outside = horses.filter(h => h.status === 'active' && !h.current_location_id);
-    return { all: horses, inside, incomplete, outside };
-  }, [horses]);
 
   // Batch lifecycle for ALL local horses (stable mode) so the No Location
   // sub-filter count is accurate before search/filter is applied. Owner mode
