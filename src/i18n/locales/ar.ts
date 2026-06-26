@@ -4142,6 +4142,8 @@ export const ar = {
       current: "داخل الإسطبل",
       local: "محلية",
       historical: "سابقة",
+      localAll: "الكل المحلي",
+      noLocationSub: "بدون موقع",
     },
     notFound: "الخيل غير موجود",
     horseDeleted: "تم حذف الخيل",
