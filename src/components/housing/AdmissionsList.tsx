@@ -602,11 +602,25 @@ function AdmissionCard({ admission, ownerLabel, onClick, onAssignUnit, onComplet
               )}
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-              {(admission.client?.name || admission.client?.name_ar) && (
-                <span className="flex items-center gap-1">
-                  <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
-                </span>
-              )}
+              {(() => {
+                const clientName = admission.client?.name || admission.client?.name_ar || null;
+                const showOwner = ownerLabel && ownerLabel !== clientName;
+                return (
+                  <>
+                    {showOwner && (
+                      <span className="flex items-center gap-1">
+                        <span className="text-[10px] uppercase tracking-wide text-foreground/50">{t('housing.admissions.table.owner')}:</span>
+                        <span className="text-xs font-medium text-foreground/70">{ownerLabel}</span>
+                      </span>
+                    )}
+                    {(admission.client?.name || admission.client?.name_ar) && (
+                      <span className="flex items-center gap-1">
+                        <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
               {admission.branch && (
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3 w-3" />
