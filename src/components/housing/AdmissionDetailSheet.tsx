@@ -78,6 +78,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { data: admission, isLoading } = useSingleAdmission(admissionId);
   const { data: history = [] } = useAdmissionStatusHistory(admissionId);
   const { updateAdmission } = useBoardingAdmissions();
+  // Phase 1.e.f.7.g.4.3.1 — Owner label (legal owner, distinct from Client/payer).
+  const ownerHorseIds = useMemo(() => admission?.horse_id ? [admission.horse_id] : [], [admission?.horse_id]);
+  const { data: ownersByHorseId } = useAdmissionsOwners(ownerHorseIds);
+  const ownerLabel = useMemo(() => {
+    const rows = admission?.horse_id ? (ownersByHorseId?.get(admission.horse_id) ?? []) : [];
+    return getOwnerDisplay(rows, { isRTL: dir === 'rtl', t }).label;
+  }, [admission?.horse_id, ownersByHorseId, dir, t]);
   const { units } = useHousingUnits();
   const { areas } = useFacilityAreas();
   const { plans } = useStableServicePlans();
