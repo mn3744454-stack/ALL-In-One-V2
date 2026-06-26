@@ -511,6 +511,12 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               {/* Details — with inline editing */}
               <Card>
                 <CardContent className="p-4 space-y-3">
+                  {/* Owner — legal/registry owner, distinct from Client (payer). */}
+                  <DetailRow
+                    icon={User}
+                    label={t('housing.admissions.detail.owner')}
+                    value={<span className="font-medium text-sm">{ownerLabel}</span>}
+                  />
                   {/* Client — opens AssignClientDialog */}
                   <EditableDetailRow
                     icon={User}
