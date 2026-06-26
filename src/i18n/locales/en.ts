@@ -4124,6 +4124,8 @@ export const en = {
       current: "Current",
       local: "Local",
       historical: "Historical",
+      localAll: "All Local",
+      noLocationSub: "No Location",
     },
     notFound: "Horse not found",
     horseDeleted: "Horse deleted",
