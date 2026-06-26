@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
+import { ACTIVE_LIKE_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 import type { MovementType } from "./useHorseMovements";
 
 /**
@@ -30,7 +31,7 @@ export function useEligibleHorses(
         .from("boarding_admissions")
         .select("horse_id")
         .eq("tenant_id", tenantId)
-        .in("status", ["active", "draft", "checkout_pending"]);
+        .in("status", ACTIVE_LIKE_ADMISSION_STATUSES as unknown as string[]);
       if (error) return [];
       return (data || []).map((r: any) => r.horse_id as string);
     },

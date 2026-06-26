@@ -5,6 +5,7 @@ import { HORSE_LIFECYCLE_SELECT, type HorseLifecycleState } from "@/hooks/moveme
 import {
   getHorseAdmissionEligibility,
   groupByHorseId,
+  OPERATIONAL_OPEN_ADMISSION_STATUSES,
 } from "@/lib/housing/eligibility";
 
 /**
@@ -55,7 +56,7 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
         .eq("tenant_id", tenantId)
         .eq("branch_id", branchId)
         .is("unit_id", null)
-        .in("status", ["active", "checkout_pending"]);
+        .in("status", OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[]);
       if (paErr) throw paErr;
 
       // ── Needs Admission: preserved prior behavior (tenant-owned horses at
