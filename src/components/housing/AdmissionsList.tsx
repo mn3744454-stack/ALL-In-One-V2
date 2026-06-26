@@ -449,6 +449,9 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                       })()}
                     </TableCell>
                     <TableCell className="text-start text-muted-foreground text-sm">
+                      <span className="text-sm font-normal">{renderOwnerLabel(admission.horse_id)}</span>
+                    </TableCell>
+                    <TableCell className="text-start text-muted-foreground text-sm">
                       {(admission.client?.name || admission.client?.name_ar)
                         ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-sm font-normal" />
                         : '—'}
