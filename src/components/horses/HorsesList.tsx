@@ -87,6 +87,8 @@ export const HorsesList = ({
   const [operationalTab, setOperationalTab] = useState<OperationalTab>(
     stableMode ? 'current' : 'all'
   );
+  // Phase 1.e.f.7.g.4.3.2.1 — Local sub-filter (stable mode only)
+  const [localSubFilter, setLocalSubFilter] = useState<'all' | 'noLocation'>('all');
   const [incompleteModalOpen, setIncompleteModalOpen] = useState(false);
 
   // Operational buckets (registry-derived; used by owner-mode and stable Local tab)
