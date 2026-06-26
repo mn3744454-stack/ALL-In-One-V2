@@ -322,6 +322,43 @@ export const HorsesList = ({
         )}
       </div>
 
+      {/* Phase 1.e.f.7.g.4.3.2.1 — Local sub-filter chips (stable mode, Local tab) */}
+      {stableMode && operationalTab === 'local' && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {([
+            { key: 'all' as const, label: t('horses.tabs.localAll'), count: horseBuckets.all.length },
+            { key: 'noLocation' as const, label: t('horses.tabs.noLocationSub'), count: noLocationLocalHorses.length },
+          ]).map(({ key, label, count }) => {
+            const isActive = localSubFilter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setLocalSubFilter(key)}
+                className={
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors " +
+                  (isActive
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground")
+                }
+              >
+                {label}
+                <span
+                  className={
+                    "min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold " +
+                    (isActive
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-muted text-muted-foreground")
+                  }
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Filters */}
       <HorseFilters filters={filters} onChange={setFilters} />
 
