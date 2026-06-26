@@ -2947,6 +2947,7 @@ export const en = {
       },
       detail: {
         title: "Admission Detail",
+        owner: "Owner",
         client: "Client",
         branch: "Branch",
         area: "Section",
