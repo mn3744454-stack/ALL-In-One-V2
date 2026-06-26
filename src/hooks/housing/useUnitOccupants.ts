@@ -4,6 +4,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 import { useHousingInvalidation } from './useHousingInvalidation';
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from '@/lib/housing/eligibility';
 
 export interface UnitOccupant {
   id: string;
@@ -74,7 +75,7 @@ export function useUnitOccupants(unitId?: string) {
           .select('id, horse_id, horse_name_snapshot, horse_name_ar_snapshot, horse_avatar_url_snapshot')
           .eq('tenant_id', tenantId)
           .eq('unit_id', unitId)
-          .eq('status', 'active')
+          .in('status', OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[])
           .in('horse_id', horseIds);
 
         const byHorse = new Map<string, NonNullable<UnitOccupant['activeAdmission']>>();
@@ -112,7 +113,7 @@ export function useUnitOccupants(unitId?: string) {
         .select('id')
         .eq('tenant_id', tenantId)
         .eq('horse_id', horseId)
-        .eq('status', 'active')
+        .in('status', OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[])
         .maybeSingle();
 
       if (admErr) throw admErr;
