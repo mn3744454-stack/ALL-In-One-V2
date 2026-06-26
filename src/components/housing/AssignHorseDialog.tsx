@@ -40,6 +40,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { Check, AlertCircle, Loader2, MapPin, ArrowRightLeft, Info, Plus } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 interface AssignHorseDialogProps {
   unit: HousingUnit | null;
@@ -149,7 +150,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
         .select('id, branch_id, area_id, unit_id, status, branch:branches(name)')
         .eq('tenant_id', tenantId)
         .eq('horse_id', selectedHorseId)
-        .eq('status', 'active')
+        .in('status', OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[])
         .maybeSingle();
 
       if (error) throw error;

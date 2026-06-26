@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 import { getOccupantDisplay } from "@/lib/housing/occupantDisplay";
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 // Room function types available for reclassification
 const ROOM_FUNCTION_OPTIONS = ['stall', 'storage', 'isolation_room'] as const;
@@ -128,7 +129,7 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
         .from('boarding_admissions')
         .select('id, horse_id, status, client:clients(name, name_ar), monthly_rate, daily_rate, rate_currency, admitted_at')
         .eq('tenant_id', tenantId)
-        .eq('status', 'active')
+        .in('status', OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[])
         .in('horse_id', occupantHorseIds);
       if (error) return {};
       const map: Record<string, { id: string; clientName?: string; clientNameAr?: string; monthlyRate?: number | null; dailyRate?: number | null; currency?: string; admittedAt?: string }> = {};

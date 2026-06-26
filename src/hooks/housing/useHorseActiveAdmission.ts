@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from '@/lib/housing/eligibility';
 
 /**
  * Fetches the active boarding admission for a given horse.
@@ -20,7 +21,7 @@ export function useHorseActiveAdmission(horseId: string | null) {
         .select('id, client_id, horse_id, status')
         .eq('tenant_id', tenantId)
         .eq('horse_id', horseId)
-        .eq('status', 'active')
+        .in('status', OPERATIONAL_OPEN_ADMISSION_STATUSES as unknown as string[])
         .maybeSingle();
 
       if (error) throw error;
