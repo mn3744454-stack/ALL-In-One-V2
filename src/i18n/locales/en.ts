@@ -2902,6 +2902,7 @@ export const en = {
       assignUnit: "Assign Unit",
       table: {
         horse: "Horse",
+        owner: "Owner",
         client: "Client",
         branch: "Branch",
         unit: "Unit",
