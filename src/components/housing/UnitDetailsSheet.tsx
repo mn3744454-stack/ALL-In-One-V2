@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 import { getOccupantDisplay } from "@/lib/housing/occupantDisplay";
+import { OPERATIONAL_OPEN_ADMISSION_STATUSES } from "@/lib/housing/eligibility";
 
 // Room function types available for reclassification
 const ROOM_FUNCTION_OPTIONS = ['stall', 'storage', 'isolation_room'] as const;
