@@ -165,10 +165,26 @@ const HorseProfile = () => {
     }
   };
 
-  if (loading) {
+  if (loading || accessLoading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Phase 1.e.f.8.1.3 — fail closed: when the backend access RPC says
+  // no_access, we must NOT render any horse identity from the legacy
+  // useHorseFile fallback (name, owner, location, etc.).
+  if (accessMode === "no_access") {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center" dir={dir}>
+        <div className="text-center max-w-md px-4">
+          <h2 className="font-display text-xl font-semibold text-navy mb-2">
+            {t('horses.notFound')}
+          </h2>
+          <Button onClick={() => navigate("/dashboard/horses")}>{t('common.back')}</Button>
+        </div>
       </div>
     );
   }
