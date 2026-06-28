@@ -55,6 +55,8 @@ import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useHorseFile } from "@/hooks/useHorseFile";
+import { useHorseFileAccess } from "@/hooks/useHorseFileAccess";
+import { HorseAccessBadge } from "@/components/horses/HorseAccessBadge";
 import { displayLocationName } from "@/lib/displayHelpers";
 
 interface Horse {
@@ -103,6 +105,22 @@ const HorseProfile = () => {
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id ?? activeTenant?.tenant_id ?? null;
   const { horse, loading, refresh: refreshHorse } = useHorseFile(id);
+  // Phase 1.e.f.8.1.3 — access envelope is the backend source of truth.
+  // Frontend MUST NOT compute the mode itself.
+  const { access, loading: accessLoading } = useHorseFileAccess(id, tenantId);
+  const accessMode = access?.mode ?? null;
+  // Edit/Delete remain legacy current-host behavior. Allowed only when the
+  // backend reports owner_authority or current_host_operational. All other
+  // modes (previous_host_historical, provider_scoped, invited_owner_read,
+  // shared_link_read, public_read, owner_bridge_not_provisioned, no_access)
+  // hide these global actions until Horse Profile Edit Governance phase.
+  const canUseLegacyWriteActions =
+    accessMode === "owner_authority" ||
+    accessMode === "current_host_operational" ||
+    // Tolerate transient loading: keep legacy behavior visible until access
+    // resolves to avoid breaking current same-tenant workflows. The no-access
+    // branch below still blocks identity rendering before we get here.
+    accessMode === null;
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
@@ -147,10 +165,26 @@ const HorseProfile = () => {
     }
   };
 
-  if (loading) {
+  if (loading || accessLoading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Phase 1.e.f.8.1.3 — fail closed: when the backend access RPC says
+  // no_access, we must NOT render any horse identity from the legacy
+  // useHorseFile fallback (name, owner, location, etc.).
+  if (accessMode === "no_access") {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center" dir={dir}>
+        <div className="text-center max-w-md px-4">
+          <h2 className="font-display text-xl font-semibold text-navy mb-2">
+            {t('horses.notFound')}
+          </h2>
+          <Button onClick={() => navigate("/dashboard/horses")}>{t('common.back')}</Button>
+        </div>
       </div>
     );
   }
@@ -204,25 +238,30 @@ const HorseProfile = () => {
             <span className="hidden sm:inline">{t('horses.backToHorses')}</span>
           </Button>
           
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
-              onClick={() => setShowEditWizard(true)}
-            >
-              <Pencil className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('common.edit')}</span>
-            </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Trash2 className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('common.delete')}</span>
-            </Button>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+            {accessMode && <HorseAccessBadge mode={accessMode} snapshotOnly={access?.snapshot_only} />}
+            {canUseLegacyWriteActions && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
+                  onClick={() => setShowEditWizard(true)}
+                >
+                  <Pencil className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('common.edit')}</span>
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('common.delete')}</span>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
