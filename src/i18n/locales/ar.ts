@@ -4547,6 +4547,12 @@ export const ar = {
       owner: "المالك",
       incompleteTitle: "ملف غير مكتمل",
       completeProfile: "إكمال الملف",
+      tabs: {
+        overview: "ملخص",
+        housingMovement: "الإيواء والحركة",
+        pedigreeBreeding: "النسب والتناسل",
+        more: "المزيد",
+      },
     },
     mediaGallery: {
       zoomIn: "تكبير",
