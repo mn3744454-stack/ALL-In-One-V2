@@ -119,6 +119,8 @@ const HorseProfile = () => {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
+  // Phase 1.e.f.8.1.4.a — tab shell state is local-only (no URL/deep-link).
+  const [activeTab, setActiveTab] = useState<string>("overview");
   const { state: lifecycleState, status: opStatus } = useHorseLifecycleState(id);
 
   const handleEditSuccess = () => {
