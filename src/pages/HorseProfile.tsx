@@ -238,25 +238,30 @@ const HorseProfile = () => {
             <span className="hidden sm:inline">{t('horses.backToHorses')}</span>
           </Button>
           
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
-              onClick={() => setShowEditWizard(true)}
-            >
-              <Pencil className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('common.edit')}</span>
-            </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Trash2 className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('common.delete')}</span>
-            </Button>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+            {accessMode && <HorseAccessBadge mode={accessMode} snapshotOnly={access?.snapshot_only} />}
+            {canUseLegacyWriteActions && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
+                  onClick={() => setShowEditWizard(true)}
+                >
+                  <Pencil className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('common.edit')}</span>
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('common.delete')}</span>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
