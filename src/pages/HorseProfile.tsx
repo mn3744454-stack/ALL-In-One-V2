@@ -117,6 +117,24 @@ const HorseProfile = () => {
   const canUseLegacyWriteActions =
     accessMode === "owner_authority" ||
     accessMode === "current_host_operational";
+
+  // Phase 1.e.f.8.1.4.b — Projection Header-only Slice.
+  // Only enable the projection RPC once the access envelope has confirmed a
+  // usable, non no_access mode. The hook itself fails closed; we additionally
+  // gate it here so a denied access shell never triggers a projection call.
+  const accessConfirmedForProjection =
+    !accessLoading &&
+    !accessError &&
+    !!access &&
+    !!accessMode &&
+    accessMode !== "no_access";
+  const {
+    projection,
+    loading: projectionLoading,
+    unavailable: projectionUnavailable,
+  } = useHorseFileProjection(id, tenantId, {
+    enabled: accessConfirmedForProjection,
+  });
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
