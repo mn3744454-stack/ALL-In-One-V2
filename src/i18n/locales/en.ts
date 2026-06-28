@@ -4529,6 +4529,12 @@ export const en = {
       owner: "Owner",
       incompleteTitle: "Incomplete Profile",
       completeProfile: "Complete Profile",
+      tabs: {
+        overview: "Overview",
+        housingMovement: "Housing & Movement",
+        pedigreeBreeding: "Pedigree & Breeding",
+        more: "More",
+      },
     },
     mediaGallery: {
       zoomIn: "Zoom In",
