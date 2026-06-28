@@ -4170,13 +4170,232 @@ export type Database = {
           },
         ]
       }
+      horse_owner_access_grants: {
+        Row: {
+          access_level: string
+          created_at: string
+          created_by_user_id: string | null
+          expires_at: string | null
+          grantee_owner_tenant_id: string | null
+          grantee_user_id: string | null
+          horse_id: string | null
+          id: string
+          invite_id: string | null
+          owner_id: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by_user_id: string | null
+          source_tenant_id: string
+          starts_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          expires_at?: string | null
+          grantee_owner_tenant_id?: string | null
+          grantee_user_id?: string | null
+          horse_id?: string | null
+          id?: string
+          invite_id?: string | null
+          owner_id: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by_user_id?: string | null
+          source_tenant_id: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          expires_at?: string | null
+          grantee_owner_tenant_id?: string | null
+          grantee_user_id?: string | null
+          horse_id?: string | null
+          id?: string
+          invite_id?: string | null
+          owner_id?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by_user_id?: string | null
+          source_tenant_id?: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_owner_access_grants_grantee_owner_tenant_id_fkey"
+            columns: ["grantee_owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_access_grants_grantee_owner_tenant_id_fkey"
+            columns: ["grantee_owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_access_grants_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_access_grants_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
+            foreignKeyName: "horse_owner_access_grants_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owner_invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_access_grants_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_access_grants_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_access_grants_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_owner_invites: {
+        Row: {
+          accepted_at: string | null
+          contact_email: string | null
+          contact_hash: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by_user_id: string | null
+          expires_at: string | null
+          id: string
+          invited_owner_tenant_id: string | null
+          invited_user_id: string | null
+          owner_id: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by_user_id: string | null
+          source_tenant_id: string
+          status: string
+          token_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          contact_email?: string | null
+          contact_hash?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_owner_tenant_id?: string | null
+          invited_user_id?: string | null
+          owner_id: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by_user_id?: string | null
+          source_tenant_id: string
+          status?: string
+          token_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          contact_email?: string | null
+          contact_hash?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_owner_tenant_id?: string | null
+          invited_user_id?: string | null
+          owner_id?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by_user_id?: string | null
+          source_tenant_id?: string
+          status?: string
+          token_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_owner_invites_invited_owner_tenant_id_fkey"
+            columns: ["invited_owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_invites_invited_owner_tenant_id_fkey"
+            columns: ["invited_owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_invites_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_invites_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owner_invites_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horse_owners: {
         Row: {
+          claim_status: string | null
+          claimed_by_user_id: string | null
           created_at: string
           email: string | null
           id: string
           name: string
           name_ar: string | null
+          owner_tenant_id: string | null
           owner_type: string
           phone: string | null
           phones: Json
@@ -4186,13 +4405,17 @@ export type Database = {
           representative_phones: Json
           representative_title: string | null
           tenant_id: string
+          verification_level: string | null
         }
         Insert: {
+          claim_status?: string | null
+          claimed_by_user_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
           name: string
           name_ar?: string | null
+          owner_tenant_id?: string | null
           owner_type?: string
           phone?: string | null
           phones?: Json
@@ -4202,13 +4425,17 @@ export type Database = {
           representative_phones?: Json
           representative_title?: string | null
           tenant_id: string
+          verification_level?: string | null
         }
         Update: {
+          claim_status?: string | null
+          claimed_by_user_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
           name?: string
           name_ar?: string | null
+          owner_tenant_id?: string | null
           owner_type?: string
           phone?: string | null
           phones?: Json
@@ -4218,8 +4445,23 @@ export type Database = {
           representative_phones?: Json
           representative_title?: string | null
           tenant_id?: string
+          verification_level?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "horse_owners_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owners_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "horse_owners_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -8400,6 +8642,268 @@ export type Database = {
           {
             foreignKeyName: "notifications_tenant_id_fkey"
             columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owner_claim_events: {
+        Row: {
+          claim_request_id: string
+          created_at: string
+          event_actor_type: string | null
+          event_by_user_id: string | null
+          event_payload: Json | null
+          event_type: string
+          id: string
+          owner_id: string | null
+          source_tenant_id: string
+        }
+        Insert: {
+          claim_request_id: string
+          created_at?: string
+          event_actor_type?: string | null
+          event_by_user_id?: string | null
+          event_payload?: Json | null
+          event_type: string
+          id?: string
+          owner_id?: string | null
+          source_tenant_id: string
+        }
+        Update: {
+          claim_request_id?: string
+          created_at?: string
+          event_actor_type?: string | null
+          event_by_user_id?: string | null
+          event_payload?: Json | null
+          event_type?: string
+          id?: string
+          owner_id?: string | null
+          source_tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_claim_events_claim_request_id_fkey"
+            columns: ["claim_request_id"]
+            isOneToOne: false
+            referencedRelation: "owner_claim_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_claim_events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_claim_events_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_claim_events_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owner_claim_requests: {
+        Row: {
+          claimant_owner_tenant_id: string | null
+          claimant_user_id: string
+          created_at: string
+          id: string
+          internal_match_evidence: Json | null
+          match_level: string
+          owner_id: string
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by_user_id: string | null
+          safe_match_summary: Json | null
+          source_tenant_id: string
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          claimant_owner_tenant_id?: string | null
+          claimant_user_id: string
+          created_at?: string
+          id?: string
+          internal_match_evidence?: Json | null
+          match_level?: string
+          owner_id: string
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          safe_match_summary?: Json | null
+          source_tenant_id: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          claimant_owner_tenant_id?: string | null
+          claimant_user_id?: string
+          created_at?: string
+          id?: string
+          internal_match_evidence?: Json | null
+          match_level?: string
+          owner_id?: string
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by_user_id?: string | null
+          safe_match_summary?: Json | null
+          source_tenant_id?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_claim_requests_claimant_owner_tenant_id_fkey"
+            columns: ["claimant_owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_claim_requests_claimant_owner_tenant_id_fkey"
+            columns: ["claimant_owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_claim_requests_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_claim_requests_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_claim_requests_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owner_delegations: {
+        Row: {
+          created_at: string
+          delegate_tenant_id: string | null
+          delegate_user_id: string | null
+          delegation_scope: Json
+          delegator_user_id: string | null
+          expires_at: string | null
+          horse_id: string | null
+          id: string
+          owner_id: string
+          owner_tenant_id: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by_user_id: string | null
+          starts_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delegate_tenant_id?: string | null
+          delegate_user_id?: string | null
+          delegation_scope?: Json
+          delegator_user_id?: string | null
+          expires_at?: string | null
+          horse_id?: string | null
+          id?: string
+          owner_id: string
+          owner_tenant_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by_user_id?: string | null
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delegate_tenant_id?: string | null
+          delegate_user_id?: string | null
+          delegation_scope?: Json
+          delegator_user_id?: string | null
+          expires_at?: string | null
+          horse_id?: string | null
+          id?: string
+          owner_id?: string
+          owner_tenant_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by_user_id?: string | null
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_delegations_delegate_tenant_id_fkey"
+            columns: ["delegate_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_delegations_delegate_tenant_id_fkey"
+            columns: ["delegate_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_delegations_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_delegations_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
+            foreignKeyName: "owner_delegations_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_delegations_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_delegations_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
