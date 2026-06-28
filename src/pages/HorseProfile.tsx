@@ -57,6 +57,7 @@ import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useHorseFile } from "@/hooks/useHorseFile";
 import { useHorseFileAccess } from "@/hooks/useHorseFileAccess";
+import { useHorseFileProjection } from "@/hooks/useHorseFileProjection";
 import { HorseAccessBadge } from "@/components/horses/HorseAccessBadge";
 import { displayLocationName } from "@/lib/displayHelpers";
 
