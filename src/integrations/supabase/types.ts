@@ -12257,6 +12257,15 @@ export type Database = {
       }
     }
     Functions: {
+      _field: {
+        Args: {
+          _editable: boolean
+          _reason?: string
+          _source: string
+          _value: Json
+        }
+        Returns: Json
+      }
       _get_app_setting: { Args: { p_key: string }; Returns: string }
       _notify_tenant_members:
         | {
@@ -12284,6 +12293,37 @@ export type Database = {
             }
             Returns: undefined
           }
+      _resolve_horse_access_mode: {
+        Args: { _horse_id: string; _viewer: Json }
+        Returns: Json
+      }
+      _resolve_host_scope: {
+        Args: { _horse_id: string; _viewer: Json }
+        Returns: Json
+      }
+      _resolve_owner_authority: {
+        Args: { _horse_id: string; _viewer: Json }
+        Returns: Json
+      }
+      _resolve_previous_host_scope: {
+        Args: { _horse_id: string; _viewer: Json }
+        Returns: Json
+      }
+      _resolve_provider_scope: {
+        Args: { _horse_id: string; _viewer: Json }
+        Returns: Json
+      }
+      _resolve_share_link_scope: { Args: { _token: string }; Returns: Json }
+      _section_permission: {
+        Args: {
+          _editable: boolean
+          _reason?: string
+          _snapshot_only: boolean
+          _visible: boolean
+        }
+        Returns: Json
+      }
+      _section_perms_for_mode: { Args: { _mode: string }; Returns: Json }
       _service_request_initial_fulfillment: {
         Args: { _request_type: string }
         Returns: string
@@ -12638,6 +12678,10 @@ export type Database = {
         Args: { _horse_id: string; _use_alias?: boolean }
         Returns: string
       }
+      get_horse_file_access: {
+        Args: { p_active_tenant_id: string; p_horse_id: string }
+        Returns: Json
+      }
       get_horse_share_view: { Args: { _token: string }; Returns: Json }
       get_lab_request_threads: {
         Args: never
@@ -12800,6 +12844,18 @@ export type Database = {
           suppress_self_actions: boolean
           tenant_id: string
         }[]
+      }
+      get_unified_horse_file_projection: {
+        Args: {
+          p_active_tenant_id: string
+          p_horse_id: string
+          p_include_tabs?: string[]
+        }
+        Returns: Json
+      }
+      get_unified_horse_file_projection_by_share_token: {
+        Args: { p_include_tabs?: string[]; p_token: string }
+        Returns: Json
       }
       has_internal_capability: {
         Args: { _category: string; _tenant_id: string }
