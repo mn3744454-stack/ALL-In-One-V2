@@ -105,6 +105,22 @@ const HorseProfile = () => {
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id ?? activeTenant?.tenant_id ?? null;
   const { horse, loading, refresh: refreshHorse } = useHorseFile(id);
+  // Phase 1.e.f.8.1.3 — access envelope is the backend source of truth.
+  // Frontend MUST NOT compute the mode itself.
+  const { access, loading: accessLoading } = useHorseFileAccess(id, tenantId);
+  const accessMode = access?.mode ?? null;
+  // Edit/Delete remain legacy current-host behavior. Allowed only when the
+  // backend reports owner_authority or current_host_operational. All other
+  // modes (previous_host_historical, provider_scoped, invited_owner_read,
+  // shared_link_read, public_read, owner_bridge_not_provisioned, no_access)
+  // hide these global actions until Horse Profile Edit Governance phase.
+  const canUseLegacyWriteActions =
+    accessMode === "owner_authority" ||
+    accessMode === "current_host_operational" ||
+    // Tolerate transient loading: keep legacy behavior visible until access
+    // resolves to avoid breaking current same-tenant workflows. The no-access
+    // branch below still blocks identity rendering before we get here.
+    accessMode === null;
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
