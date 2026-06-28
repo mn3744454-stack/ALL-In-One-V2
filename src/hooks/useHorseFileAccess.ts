@@ -129,6 +129,7 @@ export function useHorseFileAccess(
   return {
     access: query.data ?? null,
     loading: query.isLoading,
+    isError: query.isError,
     error: query.error as Error | null,
     // Fail-closed default for any consumer that wants a non-null envelope.
     safeAccess: query.data ?? (query.isLoading ? null : SAFE_NO_ACCESS),

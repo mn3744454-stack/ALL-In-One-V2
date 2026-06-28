@@ -107,20 +107,14 @@ const HorseProfile = () => {
   const { horse, loading, refresh: refreshHorse } = useHorseFile(id);
   // Phase 1.e.f.8.1.3 — access envelope is the backend source of truth.
   // Frontend MUST NOT compute the mode itself.
-  const { access, loading: accessLoading } = useHorseFileAccess(id, tenantId);
+  const { access, loading: accessLoading, isError: accessError } = useHorseFileAccess(id, tenantId);
   const accessMode = access?.mode ?? null;
-  // Edit/Delete remain legacy current-host behavior. Allowed only when the
-  // backend reports owner_authority or current_host_operational. All other
-  // modes (previous_host_historical, provider_scoped, invited_owner_read,
-  // shared_link_read, public_read, owner_bridge_not_provisioned, no_access)
-  // hide these global actions until Horse Profile Edit Governance phase.
+  // Phase 1.e.f.8.1.3.r1.correction — fail closed.
+  // Edit/Delete are allowed only for explicitly confirmed write-capable modes.
+  // null/undefined/unknown/error access after load must NOT enable writes.
   const canUseLegacyWriteActions =
     accessMode === "owner_authority" ||
-    accessMode === "current_host_operational" ||
-    // Tolerate transient loading: keep legacy behavior visible until access
-    // resolves to avoid breaking current same-tenant workflows. The no-access
-    // branch below still blocks identity rendering before we get here.
-    accessMode === null;
+    accessMode === "current_host_operational";
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
@@ -173,10 +167,13 @@ const HorseProfile = () => {
     );
   }
 
-  // Phase 1.e.f.8.1.3 — fail closed: when the backend access RPC says
-  // no_access, we must NOT render any horse identity from the legacy
-  // useHorseFile fallback (name, owner, location, etc.).
-  if (accessMode === "no_access") {
+  // Phase 1.e.f.8.1.3.r1.correction — fail closed after load.
+  // If the access RPC errored, returned no envelope, returned no mode, or
+  // explicitly said no_access, render an isolated safe shell with NO
+  // identity (no name, owner, location, tenant, stable, admission).
+  const accessUnconfirmedOrDenied =
+    accessError || !access || !accessMode || accessMode === "no_access";
+  if (accessUnconfirmedOrDenied) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center" dir={dir}>
         <div className="text-center max-w-md px-4">
@@ -188,6 +185,7 @@ const HorseProfile = () => {
       </div>
     );
   }
+
 
   if (!horse) {
     return (
