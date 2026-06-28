@@ -55,6 +55,8 @@ import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useHorseFile } from "@/hooks/useHorseFile";
+import { useHorseFileAccess } from "@/hooks/useHorseFileAccess";
+import { HorseAccessBadge } from "@/components/horses/HorseAccessBadge";
 import { displayLocationName } from "@/lib/displayHelpers";
 
 interface Horse {
