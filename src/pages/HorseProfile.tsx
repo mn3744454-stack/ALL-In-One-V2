@@ -377,13 +377,20 @@ const HorseProfile = () => {
                       )}
                     </div>
 
-                    <BilingualName
-                      name={horse.name}
-                      nameAr={horse.name_ar}
-                      primaryClassName="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground"
-                      secondaryClassName="text-base sm:text-lg"
-                      className="mb-3"
-                    />
+                    <div className="flex items-center justify-center sm:justify-start gap-2 mb-3 flex-wrap">
+                      <BilingualName
+                        name={heroName}
+                        nameAr={heroNameAr}
+                        primaryClassName="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground"
+                        secondaryClassName="text-base sm:text-lg"
+                      />
+                      {heroNameIsSnapshot && (
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs font-normal shrink-0">
+                          {t('horses.projection.source.snapshot')}
+                        </Badge>
+                      )}
+                    </div>
+
 
                     <p className="text-sm sm:text-base text-muted-foreground mb-4">
                       {breedName}
