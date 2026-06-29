@@ -57,6 +57,7 @@ import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useHorseFile } from "@/hooks/useHorseFile";
 import { useHorseFileAccess } from "@/hooks/useHorseFileAccess";
+import { useHorseFileProjection } from "@/hooks/useHorseFileProjection";
 import { HorseAccessBadge } from "@/components/horses/HorseAccessBadge";
 import { displayLocationName } from "@/lib/displayHelpers";
 
@@ -116,6 +117,24 @@ const HorseProfile = () => {
   const canUseLegacyWriteActions =
     accessMode === "owner_authority" ||
     accessMode === "current_host_operational";
+
+  // Phase 1.e.f.8.1.4.b — Projection Header-only Slice.
+  // Only enable the projection RPC once the access envelope has confirmed a
+  // usable, non no_access mode. The hook itself fails closed; we additionally
+  // gate it here so a denied access shell never triggers a projection call.
+  const accessConfirmedForProjection =
+    !accessLoading &&
+    !accessError &&
+    !!access &&
+    !!accessMode &&
+    accessMode !== "no_access";
+  const {
+    projection,
+    loading: projectionLoading,
+    unavailable: projectionUnavailable,
+  } = useHorseFileProjection(id, tenantId, {
+    enabled: accessConfirmedForProjection,
+  });
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
@@ -162,7 +181,7 @@ const HorseProfile = () => {
     }
   };
 
-  if (loading || accessLoading) {
+  if (loading || accessLoading || (accessConfirmedForProjection && projectionLoading)) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
@@ -189,6 +208,24 @@ const HorseProfile = () => {
     );
   }
 
+  // Phase 1.e.f.8.1.4.b — projection-driven hero must fail closed.
+  // Once access is confirmed, the hero/header is driven exclusively by the
+  // projection RPC. If projection errors / is null / is malformed / returns
+  // access.mode = no_access, render the same generic safe shell. We do NOT
+  // fall back to legacy identity (horse.name etc.) for projection-driven
+  // header fields.
+  if (projectionUnavailable || !projection) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center" dir={dir}>
+        <div className="text-center max-w-md px-4">
+          <h2 className="font-display text-xl font-semibold text-navy mb-2">
+            {t('horses.notFound')}
+          </h2>
+          <Button onClick={() => navigate("/dashboard/horses")}>{t('common.back')}</Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!horse) {
     return (
@@ -200,6 +237,15 @@ const HorseProfile = () => {
       </div>
     );
   }
+
+  // Projection-driven hero values. Falsy values stay empty — we do not
+  // substitute legacy data here.
+  const heroName = projection.header.name.value ?? "";
+  const heroNameAr = projection.header.name_ar.value;
+  const heroNameIsSnapshot =
+    projection.header.name.source === "snapshot" ||
+    projection.header.name_ar.source === "snapshot";
+
 
   const ageParts = getCurrentAgeParts({
     gender: horse.gender,
@@ -331,13 +377,20 @@ const HorseProfile = () => {
                       )}
                     </div>
 
-                    <BilingualName
-                      name={horse.name}
-                      nameAr={horse.name_ar}
-                      primaryClassName="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground"
-                      secondaryClassName="text-base sm:text-lg"
-                      className="mb-3"
-                    />
+                    <div className="flex items-center justify-center sm:justify-start gap-2 mb-3 flex-wrap">
+                      <BilingualName
+                        name={heroName}
+                        nameAr={heroNameAr}
+                        primaryClassName="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground"
+                        secondaryClassName="text-base sm:text-lg"
+                      />
+                      {heroNameIsSnapshot && (
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs font-normal shrink-0">
+                          {t('horses.projection.source.snapshot')}
+                        </Badge>
+                      )}
+                    </div>
+
 
                     <p className="text-sm sm:text-base text-muted-foreground mb-4">
                       {breedName}

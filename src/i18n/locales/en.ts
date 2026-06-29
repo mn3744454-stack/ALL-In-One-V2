@@ -4535,6 +4535,16 @@ export const en = {
         pedigreeBreeding: "Pedigree & Breeding",
         more: "More",
       },
+      projection: {
+        source: {
+          snapshot: "Snapshot",
+          redacted: "Redacted",
+        },
+        reason: {
+          owner_only: "Owner only",
+          deferred: "Deferred",
+        },
+      },
     },
     mediaGallery: {
       zoomIn: "Zoom In",

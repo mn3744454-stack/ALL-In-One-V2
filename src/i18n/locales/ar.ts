@@ -4553,6 +4553,16 @@ export const ar = {
         pedigreeBreeding: "النسب والتناسل",
         more: "المزيد",
       },
+      projection: {
+        source: {
+          snapshot: "لقطة محفوظة",
+          redacted: "محجوب",
+        },
+        reason: {
+          owner_only: "للمالك فقط",
+          deferred: "مؤجل",
+        },
+      },
     },
     mediaGallery: {
       zoomIn: "تكبير",
