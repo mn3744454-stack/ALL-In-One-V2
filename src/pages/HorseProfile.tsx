@@ -208,6 +208,24 @@ const HorseProfile = () => {
     );
   }
 
+  // Phase 1.e.f.8.1.4.b — projection-driven hero must fail closed.
+  // Once access is confirmed, the hero/header is driven exclusively by the
+  // projection RPC. If projection errors / is null / is malformed / returns
+  // access.mode = no_access, render the same generic safe shell. We do NOT
+  // fall back to legacy identity (horse.name etc.) for projection-driven
+  // header fields.
+  if (projectionUnavailable || !projection) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center" dir={dir}>
+        <div className="text-center max-w-md px-4">
+          <h2 className="font-display text-xl font-semibold text-navy mb-2">
+            {t('horses.notFound')}
+          </h2>
+          <Button onClick={() => navigate("/dashboard/horses")}>{t('common.back')}</Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!horse) {
     return (
@@ -219,6 +237,15 @@ const HorseProfile = () => {
       </div>
     );
   }
+
+  // Projection-driven hero values. Falsy values stay empty — we do not
+  // substitute legacy data here.
+  const heroName = projection.header.name.value ?? "";
+  const heroNameAr = projection.header.name_ar.value;
+  const heroNameIsSnapshot =
+    projection.header.name.source === "snapshot" ||
+    projection.header.name_ar.source === "snapshot";
+
 
   const ageParts = getCurrentAgeParts({
     gender: horse.gender,
