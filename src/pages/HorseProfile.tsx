@@ -558,27 +558,12 @@ const HorseProfile = () => {
         onSuccess={handleEditSuccess}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('horses.deleteConfirm.title').replace('{{name}}', horse.name)}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('horses.deleteConfirm.description')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? t('horses.deleteConfirm.deleting') : t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/*
+        Phase 1.e.f.8.1.4.d.1.a — Delete Confirmation Dialog removed.
+        Hard delete is permanently retired in favour of a future RPC-governed
+        archive / removal / deceased / retired model.
+      */}
+
     </div>
   );
 };
