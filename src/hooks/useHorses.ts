@@ -179,18 +179,17 @@ export const useHorses = (filters?: HorseFilters) => {
     return { data: data as Horse | null, error };
   };
 
-  const deleteHorse = async (id: string) => {
-    const { error } = await supabase.from("horses").delete().eq("id", id);
-    if (!error) await invalidateHorses();
-    return { error };
-  };
+  // Phase 1.e.f.8.1.4.d.1.a — `deleteHorse` removed.
+  // Direct hard-delete of `public.horses` is permanently retired in favour of
+  // a future RPC-governed archive / removal / deceased / retired model. No
+  // consumers of this helper existed at removal time.
 
   return {
     horses,
     loading: query.isLoading,
     createHorse,
     updateHorse,
-    deleteHorse,
     refresh: invalidateHorses,
   };
 };
+
