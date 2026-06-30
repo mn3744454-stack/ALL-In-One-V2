@@ -253,12 +253,11 @@ const HorseProfile = () => {
             {accessMode && <HorseAccessBadge mode={accessMode} snapshotOnly={access?.snapshot_only} />}
             {/*
               Phase 1.e.f.8.1.4.c — Hide Delete + Owner-only Global Edit.
-              - Global Edit: owner_authority only.
-              - Global Delete: hidden for ALL modes (deferred until backend
-                archive/removal governance exists). The delete handler /
-                AlertDialog remain in the file as unreachable, guarded code
-                (defense-in-depth); see handleDelete().
+              Phase 1.e.f.8.1.4.d.1.a — Legacy hard-delete handler + AlertDialog
+              removed entirely. Delete remains hidden for ALL access modes
+              until an RPC-governed archive / removal model lands.
             */}
+
             {canUseGlobalEdit && (
               <Button
                 variant="outline"
