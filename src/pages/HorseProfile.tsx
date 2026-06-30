@@ -7,28 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { 
   ChevronLeft, 
   Heart, 
   Pencil, 
-  Trash2, 
   MapPin, 
   Clock, 
   Ruler,
   FileText
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { mapHorseDeleteError } from "@/lib/horseErrorMessages";
+
 import { 
   getCurrentAgeParts, 
   formatCurrentAge, 
@@ -136,8 +124,6 @@ const HorseProfile = () => {
   } = useHorseFileProjection(id, tenantId, {
     enabled: accessConfirmedForProjection,
   });
-  const [deleting, setDeleting] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
   // Phase 1.e.f.8.1.4.a — tab shell state is local-only (no URL/deep-link).
   const [activeTab, setActiveTab] = useState<string>("overview");
@@ -152,40 +138,12 @@ const HorseProfile = () => {
     }
   };
 
-  const handleDelete = async () => {
-    // Phase 1.e.f.8.1.4.c — Defense-in-depth guard.
-    // The Delete UI is hidden for ALL modes in this phase. This early return
-    // ensures the handler cannot mutate the canonical horse row even if it
-    // were somehow re-exposed without re-evaluating governance.
-    if (accessMode !== "owner_authority") return;
-    if (!horse) return;
-    
-    setDeleting(true);
-    try {
-      const { error } = await supabase
-        .from("horses")
-        .delete()
-        .eq("id", horse.id);
+  // Phase 1.e.f.8.1.4.d.1.a — Delete Handler Removal.
+  // The legacy hard-delete handler (direct supabase.from("horses").delete())
+  // and its AlertDialog were removed. Delete remains hidden in the UI for
+  // ALL access modes. A safe archive / removal / deceased / retired model is
+  // future work (Phase 1.e.f.8.1.4.d.2+) and will be RPC-governed.
 
-      if (error) throw error;
-
-      toast({
-        title: t('horses.horseDeleted'),
-        description: t('horses.horseDeletedDesc').replace('{{name}}', horse.name),
-      });
-      navigate("/dashboard/horses");
-    } catch (error: any) {
-      const friendly = mapHorseDeleteError(error, t);
-      toast({
-        title: friendly.title,
-        description: friendly.description,
-        variant: "destructive",
-      });
-    } finally {
-      setDeleting(false);
-      setShowDeleteDialog(false);
-    }
-  };
 
   if (loading || accessLoading || (accessConfirmedForProjection && projectionLoading)) {
     return (
@@ -295,12 +253,11 @@ const HorseProfile = () => {
             {accessMode && <HorseAccessBadge mode={accessMode} snapshotOnly={access?.snapshot_only} />}
             {/*
               Phase 1.e.f.8.1.4.c — Hide Delete + Owner-only Global Edit.
-              - Global Edit: owner_authority only.
-              - Global Delete: hidden for ALL modes (deferred until backend
-                archive/removal governance exists). The delete handler /
-                AlertDialog remain in the file as unreachable, guarded code
-                (defense-in-depth); see handleDelete().
+              Phase 1.e.f.8.1.4.d.1.a — Legacy hard-delete handler + AlertDialog
+              removed entirely. Delete remains hidden for ALL access modes
+              until an RPC-governed archive / removal model lands.
             */}
+
             {canUseGlobalEdit && (
               <Button
                 variant="outline"
@@ -600,27 +557,12 @@ const HorseProfile = () => {
         onSuccess={handleEditSuccess}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('horses.deleteConfirm.title').replace('{{name}}', horse.name)}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('horses.deleteConfirm.description')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? t('horses.deleteConfirm.deleting') : t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/*
+        Phase 1.e.f.8.1.4.d.1.a — Delete Confirmation Dialog removed.
+        Hard delete is permanently retired in favour of a future RPC-governed
+        archive / removal / deceased / retired model.
+      */}
+
     </div>
   );
 };
