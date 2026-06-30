@@ -111,12 +111,13 @@ const HorseProfile = () => {
   // Frontend MUST NOT compute the mode itself.
   const { access, loading: accessLoading, isError: accessError } = useHorseFileAccess(id, tenantId);
   const accessMode = access?.mode ?? null;
-  // Phase 1.e.f.8.1.3.r1.correction — fail closed.
-  // Edit/Delete are allowed only for explicitly confirmed write-capable modes.
-  // null/undefined/unknown/error access after load must NOT enable writes.
-  const canUseLegacyWriteActions =
-    accessMode === "owner_authority" ||
-    accessMode === "current_host_operational";
+  // Phase 1.e.f.8.1.4.c — Edit Governance Correction.
+  // Global Edit is now restricted to owner_authority only.
+  // Global Delete is hidden for ALL modes (including owner_authority) until a
+  // backend archive/removal governance contract exists. current_host_operational
+  // no longer receives global canonical-identity Edit or Delete; operational
+  // section-level actions are deferred to Phase 1.e.f.8.1.4.e.
+  const canUseGlobalEdit = accessMode === "owner_authority";
 
   // Phase 1.e.f.8.1.4.b — Projection Header-only Slice.
   // Only enable the projection RPC once the access envelope has confirmed a
@@ -152,6 +153,11 @@ const HorseProfile = () => {
   };
 
   const handleDelete = async () => {
+    // Phase 1.e.f.8.1.4.c — Defense-in-depth guard.
+    // The Delete UI is hidden for ALL modes in this phase. This early return
+    // ensures the handler cannot mutate the canonical horse row even if it
+    // were somehow re-exposed without re-evaluating governance.
+    if (accessMode !== "owner_authority") return;
     if (!horse) return;
     
     setDeleting(true);
@@ -287,27 +293,24 @@ const HorseProfile = () => {
           
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
             {accessMode && <HorseAccessBadge mode={accessMode} snapshotOnly={access?.snapshot_only} />}
-            {canUseLegacyWriteActions && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
-                  onClick={() => setShowEditWizard(true)}
-                >
-                  <Pencil className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('common.edit')}</span>
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('common.delete')}</span>
-                </Button>
-              </>
+            {/*
+              Phase 1.e.f.8.1.4.c — Hide Delete + Owner-only Global Edit.
+              - Global Edit: owner_authority only.
+              - Global Delete: hidden for ALL modes (deferred until backend
+                archive/removal governance exists). The delete handler /
+                AlertDialog remain in the file as unreachable, guarded code
+                (defense-in-depth); see handleDelete().
+            */}
+            {canUseGlobalEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
+                onClick={() => setShowEditWizard(true)}
+              >
+                <Pencil className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('common.edit')}</span>
+              </Button>
             )}
           </div>
         </div>
