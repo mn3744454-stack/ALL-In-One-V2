@@ -65,28 +65,86 @@ const KNOWN_MODES: ReadonlySet<HorseAccessMode> = new Set<HorseAccessMode>([
 ]);
 
 function adapt(raw: unknown): HorseAccessEnvelope {
+  // Phase 1.e.f.8.1.4.c.r1.v1.correction — Access RPC Envelope Adapter.
+  //
+  // The public RPC `get_horse_file_access` returns a NESTED envelope:
+  //   { horse_id, access: { mode, reason_code, snapshot_only, badges, ... },
+  //     section_perms, action_perms }
+  //
+  // Earlier iterations of this adapter expected a FLAT envelope
+  // (`{ mode, ... }`) and therefore mis-read every nested success as
+  // `no_access`, which made HorseProfile render "الخيل غير موجود" for
+  // perfectly valid owner_authority responses (e.g. Yousif / Hakona /
+  // Drama after the same-Horse-Owner-tenant backend correction).
+  //
+  // This adapter now:
+  //  - prefers `raw.access` when it is a non-null object (canonical shape);
+  //  - falls back to a flat `raw` only when `raw.mode` is present (kept
+  //    for backwards safety with any legacy/test code);
+  //  - pulls `section_perms` / `action_perms` from the OUTER envelope when
+  //    nested (that's where the RPC actually puts them) and from `raw`
+  //    when flat;
+  //  - validates `mode` against the known mode set; any unknown / missing
+  //    value collapses to a fail-closed `no_access` envelope. No frontend
+  //    role / name / tenant-type inference is performed — the backend
+  //    remains the only source of authority.
   if (!raw || typeof raw !== "object") return SAFE_NO_ACCESS;
-  const r = raw as Record<string, unknown>;
-  const modeRaw = typeof r.mode === "string" ? r.mode : "no_access";
+  const outer = raw as Record<string, unknown>;
+
+  const nested =
+    outer.access && typeof outer.access === "object"
+      ? (outer.access as Record<string, unknown>)
+      : null;
+
+  // Pick the envelope that actually carries `mode`.
+  let envelope: Record<string, unknown> | null = null;
+  if (nested && typeof nested.mode === "string") {
+    envelope = nested;
+  } else if (typeof outer.mode === "string") {
+    envelope = outer;
+  } else {
+    return SAFE_NO_ACCESS;
+  }
+
+  const modeRaw = typeof envelope.mode === "string" ? envelope.mode : "no_access";
   const mode: HorseAccessMode = KNOWN_MODES.has(modeRaw as HorseAccessMode)
     ? (modeRaw as HorseAccessMode)
     : "no_access";
+
+  // section_perms / action_perms live on the OUTER envelope when the RPC
+  // returns the nested shape. When the legacy flat shape is in use they
+  // sit alongside `mode`. Either way prefer outer first, then envelope.
+  const sectionPermsSource =
+    outer.section_perms && typeof outer.section_perms === "object"
+      ? (outer.section_perms as Record<string, unknown>)
+      : envelope.section_perms && typeof envelope.section_perms === "object"
+        ? (envelope.section_perms as Record<string, unknown>)
+        : {};
+
+  const actionPermsSource =
+    outer.action_perms && typeof outer.action_perms === "object"
+      ? (outer.action_perms as Record<string, unknown>)
+      : envelope.action_perms && typeof envelope.action_perms === "object"
+        ? (envelope.action_perms as Record<string, unknown>)
+        : {};
+
   return {
     mode,
-    reason_code: typeof r.reason_code === "string" ? r.reason_code : null,
-    viewer_user_id: typeof r.viewer_user_id === "string" ? r.viewer_user_id : null,
-    viewer_tenant_id: typeof r.viewer_tenant_id === "string" ? r.viewer_tenant_id : null,
-    snapshot_only: r.snapshot_only === true,
-    badges: Array.isArray(r.badges) ? (r.badges as string[]) : [],
-    warnings: Array.isArray(r.warnings) ? (r.warnings as string[]) : [],
-    section_perms:
-      r.section_perms && typeof r.section_perms === "object"
-        ? (r.section_perms as Record<string, unknown>)
-        : {},
-    action_perms:
-      r.action_perms && typeof r.action_perms === "object"
-        ? (r.action_perms as Record<string, unknown>)
-        : {},
+    reason_code:
+      typeof envelope.reason_code === "string" ? envelope.reason_code : null,
+    viewer_user_id:
+      typeof envelope.viewer_user_id === "string" ? envelope.viewer_user_id : null,
+    viewer_tenant_id:
+      typeof envelope.viewer_tenant_id === "string"
+        ? envelope.viewer_tenant_id
+        : null,
+    snapshot_only: envelope.snapshot_only === true,
+    badges: Array.isArray(envelope.badges) ? (envelope.badges as string[]) : [],
+    warnings: Array.isArray(envelope.warnings)
+      ? (envelope.warnings as string[])
+      : [],
+    section_perms: sectionPermsSource,
+    action_perms: actionPermsSource,
   };
 }
 
