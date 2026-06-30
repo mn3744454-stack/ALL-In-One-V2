@@ -153,6 +153,11 @@ const HorseProfile = () => {
   };
 
   const handleDelete = async () => {
+    // Phase 1.e.f.8.1.4.c — Defense-in-depth guard.
+    // The Delete UI is hidden for ALL modes in this phase. This early return
+    // ensures the handler cannot mutate the canonical horse row even if it
+    // were somehow re-exposed without re-evaluating governance.
+    if (accessMode !== "owner_authority") return;
     if (!horse) return;
     
     setDeleting(true);
