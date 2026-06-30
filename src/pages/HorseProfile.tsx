@@ -111,12 +111,13 @@ const HorseProfile = () => {
   // Frontend MUST NOT compute the mode itself.
   const { access, loading: accessLoading, isError: accessError } = useHorseFileAccess(id, tenantId);
   const accessMode = access?.mode ?? null;
-  // Phase 1.e.f.8.1.3.r1.correction — fail closed.
-  // Edit/Delete are allowed only for explicitly confirmed write-capable modes.
-  // null/undefined/unknown/error access after load must NOT enable writes.
-  const canUseLegacyWriteActions =
-    accessMode === "owner_authority" ||
-    accessMode === "current_host_operational";
+  // Phase 1.e.f.8.1.4.c — Edit Governance Correction.
+  // Global Edit is now restricted to owner_authority only.
+  // Global Delete is hidden for ALL modes (including owner_authority) until a
+  // backend archive/removal governance contract exists. current_host_operational
+  // no longer receives global canonical-identity Edit or Delete; operational
+  // section-level actions are deferred to Phase 1.e.f.8.1.4.e.
+  const canUseGlobalEdit = accessMode === "owner_authority";
 
   // Phase 1.e.f.8.1.4.b — Projection Header-only Slice.
   // Only enable the projection RPC once the access envelope has confirmed a
