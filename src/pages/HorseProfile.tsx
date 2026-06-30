@@ -124,8 +124,6 @@ const HorseProfile = () => {
   } = useHorseFileProjection(id, tenantId, {
     enabled: accessConfirmedForProjection,
   });
-  const [deleting, setDeleting] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
   // Phase 1.e.f.8.1.4.a — tab shell state is local-only (no URL/deep-link).
   const [activeTab, setActiveTab] = useState<string>("overview");
@@ -140,40 +138,12 @@ const HorseProfile = () => {
     }
   };
 
-  const handleDelete = async () => {
-    // Phase 1.e.f.8.1.4.c — Defense-in-depth guard.
-    // The Delete UI is hidden for ALL modes in this phase. This early return
-    // ensures the handler cannot mutate the canonical horse row even if it
-    // were somehow re-exposed without re-evaluating governance.
-    if (accessMode !== "owner_authority") return;
-    if (!horse) return;
-    
-    setDeleting(true);
-    try {
-      const { error } = await supabase
-        .from("horses")
-        .delete()
-        .eq("id", horse.id);
+  // Phase 1.e.f.8.1.4.d.1.a — Delete Handler Removal.
+  // The legacy hard-delete handler (direct supabase.from("horses").delete())
+  // and its AlertDialog were removed. Delete remains hidden in the UI for
+  // ALL access modes. A safe archive / removal / deceased / retired model is
+  // future work (Phase 1.e.f.8.1.4.d.2+) and will be RPC-governed.
 
-      if (error) throw error;
-
-      toast({
-        title: t('horses.horseDeleted'),
-        description: t('horses.horseDeletedDesc').replace('{{name}}', horse.name),
-      });
-      navigate("/dashboard/horses");
-    } catch (error: any) {
-      const friendly = mapHorseDeleteError(error, t);
-      toast({
-        title: friendly.title,
-        description: friendly.description,
-        variant: "destructive",
-      });
-    } finally {
-      setDeleting(false);
-      setShowDeleteDialog(false);
-    }
-  };
 
   if (loading || accessLoading || (accessConfirmedForProjection && projectionLoading)) {
     return (
