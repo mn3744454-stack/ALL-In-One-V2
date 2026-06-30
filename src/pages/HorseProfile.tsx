@@ -7,28 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { 
   ChevronLeft, 
   Heart, 
   Pencil, 
-  Trash2, 
   MapPin, 
   Clock, 
   Ruler,
   FileText
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { mapHorseDeleteError } from "@/lib/horseErrorMessages";
+
 import { 
   getCurrentAgeParts, 
   formatCurrentAge, 
