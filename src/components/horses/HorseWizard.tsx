@@ -262,7 +262,9 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const { t } = useI18n();
   const queryClient = useQueryClient();
 
-  const [currentStep, setCurrentStep] = useState(mode === "edit" ? 1 : 0); // Skip registration for edit
+  // Edit mode: registration step is filtered out entirely, so index 0 is the
+  // first identity step ("basic"). Create mode starts at the registration step.
+  const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<HorseWizardData>(initialData);
   const [saving, setSaving] = useState(false);
   const [attemptedAdvance, setAttemptedAdvance] = useState(false);
