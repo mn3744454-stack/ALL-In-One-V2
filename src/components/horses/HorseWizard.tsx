@@ -282,10 +282,10 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const prevStepRef = useRef<number>(currentStep);
   
   // Translated steps
-  const STEPS = useMemo(() => 
-    STEP_KEYS.map(step => ({ id: step.id, title: t(step.titleKey) })),
-    [t]
-  );
+  const STEPS = useMemo(() => {
+    const stepKeys = getStepKeys(mode);
+    return stepKeys.map((step) => ({ id: step.id, title: t(step.titleKey) }));
+  }, [t, mode]);
 
   // Pre-fill data when in edit mode, regenerate temp UUID when wizard opens fresh in create mode
   useEffect(() => {
