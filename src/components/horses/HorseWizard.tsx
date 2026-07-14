@@ -31,7 +31,7 @@ import { StepPedigree } from "./wizard/StepPedigree";
 import { StepOwnership } from "./wizard/StepOwnership";
 import { StepMedia } from "./wizard/StepMedia";
 
-const STEP_KEYS = [
+const ALL_STEP_KEYS = [
   { id: "registration", titleKey: "horses.wizard.steps.registration" },
   { id: "basic", titleKey: "horses.wizard.steps.basic" },
   { id: "details", titleKey: "horses.wizard.steps.details" },
@@ -40,6 +40,16 @@ const STEP_KEYS = [
   { id: "ownership", titleKey: "horses.wizard.steps.ownership" },
   { id: "media", titleKey: "horses.wizard.steps.media" },
 ];
+
+// Phase 1.e.f.8.1.4.d.3.fix — HorseWizard edit mode is restricted to the
+// steps whose fields are actually persisted by update_horse_identity.
+// Non-identity concerns (pedigree, ownership, media) are hidden in edit
+// mode and will be managed from their own future dedicated sections.
+const EDIT_STEP_IDS = new Set(["basic", "details", "physical"]);
+const getStepKeys = (mode: "create" | "edit") =>
+  mode === "edit"
+    ? ALL_STEP_KEYS.filter((s) => EDIT_STEP_IDS.has(s.id))
+    : ALL_STEP_KEYS;
 
 export interface HorseWizardData {
   // Registration check
