@@ -294,23 +294,16 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
     const loadEditData = async () => {
       if (mode === "edit" && existingHorse && open) {
         const wizardData = mapHorseToWizardData(existingHorse);
-        
-        // Load current ownership
-        const { data: ownershipData } = await supabase
-          .from("horse_ownership" as any)
-          .select(`*, owner:horse_owners(id, name, name_ar)`)
-          .eq("horse_id", existingHorse.id);
-        
-        if (ownershipData && ownershipData.length > 0) {
-          wizardData.owners = ownershipData.map((o: any) => ({
-            owner_id: o.owner_id,
-            percentage: Number(o.ownership_percentage),
-            is_primary: o.is_primary,
-          }));
-        }
-        
+
+        // Phase 1.e.f.8.1.4.d.3.fix — do NOT load ownership records in edit
+        // mode. Ownership is not editable through update_horse_identity and
+        // the Ownership step is hidden in edit mode. Leaving owners empty
+        // also prevents the ownership write path (delete + reinsert) from
+        // running below, so identity edits never mutate horse_ownership.
+        wizardData.owners = [];
+
         setData(wizardData);
-        setCurrentStep(1); // Skip registration step
+        setCurrentStep(0); // First edit-mode step ("basic")
         scrollPositionsRef.current.clear();
         visitedStepsRef.current.clear();
       } else if (mode === "create" && open) {
