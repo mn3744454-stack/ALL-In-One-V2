@@ -574,15 +574,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
           : [];
 
       if (mode === "create" && validOwners.length > 0) {
-        // For edit mode, delete old ownership first
-        if (mode === "edit" && existingHorse?.id) {
-          await supabase
-            .from("horse_ownership" as any)
-            .delete()
-            .eq("horse_id", horseId);
-        }
-
-        // Insert new ownership records
+        // Insert new ownership records (create mode only).
         const ownershipRecords = validOwners.map((o) => ({
           horse_id: horseId,
           owner_id: o.owner_id,
