@@ -564,11 +564,16 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         }
       }
 
-      // Handle ownership records (for both create and edit)
-      // Filter out owners with empty owner_id
-      const validOwners = data.owners.filter(o => o.owner_id && o.owner_id.trim() !== "");
-      
-      if (validOwners.length > 0) {
+      // Handle ownership records — CREATE MODE ONLY.
+      // Phase 1.e.f.8.1.4.d.3.fix — identity edit must never mutate
+      // horse_ownership. Ownership transfer/management is deferred to the
+      // pinned Horse Sale / Ownership Transfer Governance Track.
+      const validOwners =
+        mode === "create"
+          ? data.owners.filter((o) => o.owner_id && o.owner_id.trim() !== "")
+          : [];
+
+      if (mode === "create" && validOwners.length > 0) {
         // For edit mode, delete old ownership first
         if (mode === "edit" && existingHorse?.id) {
           await supabase
