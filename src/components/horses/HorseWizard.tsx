@@ -250,6 +250,8 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const isMobile = useIsMobile();
   const { activeTenant } = useTenant();
   const { t } = useI18n();
+  const queryClient = useQueryClient();
+
   const [currentStep, setCurrentStep] = useState(mode === "edit" ? 1 : 0); // Skip registration for edit
   const [data, setData] = useState<HorseWizardData>(initialData);
   const [saving, setSaving] = useState(false);
