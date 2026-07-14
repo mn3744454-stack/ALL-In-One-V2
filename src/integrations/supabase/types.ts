@@ -12257,6 +12257,10 @@ export type Database = {
       }
     }
     Functions: {
+      _active_tenant_context: {
+        Args: { p_active_tenant_id: string }
+        Returns: Json
+      }
       _field: {
         Args: {
           _editable: boolean
@@ -12295,6 +12299,14 @@ export type Database = {
           }
       _resolve_horse_access_mode: {
         Args: { _horse_id: string; _viewer: Json }
+        Returns: Json
+      }
+      _resolve_horse_write_authority: {
+        Args: {
+          p_action_key?: string
+          p_active_tenant_id: string
+          p_horse_id: string
+        }
         Returns: Json
       }
       _resolve_host_scope: {
@@ -13114,6 +13126,14 @@ export type Database = {
       }
       update_horse_color: {
         Args: { p_id: string; p_name: string; p_name_ar: string }
+        Returns: Json
+      }
+      update_horse_identity: {
+        Args: {
+          p_active_tenant_id: string
+          p_horse_id: string
+          p_payload: Json
+        }
         Returns: Json
       }
       update_service_request_fulfillment: {
