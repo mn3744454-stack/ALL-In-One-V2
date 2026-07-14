@@ -4449,7 +4449,32 @@ export const en = {
         title: "UELN already exists",
         description: "Another horse is already registered with this UELN. Please verify the number or review the existing horse record.",
       },
+      noWriteAuthority: {
+        title: "You cannot edit this horse's identity",
+        description: "Only the current verified owner (or an authorized workspace) can edit this horse's identity from this account.",
+      },
+      ambiguousAuthority: {
+        title: "Owner authority needs verification",
+        description: "This horse's ownership authority is not clearly resolved yet. Please verify the owner before editing.",
+      },
+      unsupportedField: {
+        title: "This field cannot be edited here",
+        description: "One of the submitted fields is not part of horse identity edit. Please remove it and try again.",
+      },
+      invalidField: {
+        title: "Please check the highlighted value",
+        description: "One of the values is invalid. Please review and try again.",
+      },
+      emptyPayload: {
+        title: "No changes to save",
+        description: "There are no changes to save yet.",
+      },
+      malformedPayload: {
+        title: "Invalid save request",
+        description: "The save request was not formatted correctly. Please try again.",
+      },
     },
+
     toast: {
       created: {
         title: "Horse created",

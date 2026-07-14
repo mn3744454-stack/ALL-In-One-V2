@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DialogHeader,
   DialogTitle,
@@ -19,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import { mapHorseSaveError } from "@/lib/horseErrorMessages";
+
 
 // Step components
 import { StepRegistration } from "./wizard/StepRegistration";
@@ -248,6 +250,8 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const isMobile = useIsMobile();
   const { activeTenant } = useTenant();
   const { t } = useI18n();
+  const queryClient = useQueryClient();
+
   const [currentStep, setCurrentStep] = useState(mode === "edit" ? 1 : 0); // Skip registration for edit
   const [data, setData] = useState<HorseWizardData>(initialData);
   const [saving, setSaving] = useState(false);
@@ -455,16 +459,70 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       let horseId: string;
 
       if (mode === "edit" && existingHorse?.id) {
-        // Update existing horse
-        const { error: horseError } = await supabase
-          .from("horses")
-          .update(horsePayload)
-          .eq("id", existingHorse.id);
+        // Phase 1.e.f.8.1.4.d.3.execution — Horse identity edits are
+        // now written through the SECURITY DEFINER RPC
+        // `update_horse_identity(p_horse_id, p_active_tenant_id, p_payload)`
+        // instead of a direct `public.horses` UPDATE. The RPC enforces
+        // write-specific owner authority resolution and a strict
+        // identity allowlist. Fields NOT in that allowlist (height,
+        // weight, free-text breed/color, birth_at, age_category,
+        // is_pregnant, pregnancy_months, breeding_role, pedigree,
+        // media, ownership, operational location/status) are
+        // intentionally NOT sent here and must be edited via their
+        // dedicated future flows (Measurements History, Foal Color
+        // Lifecycle, Pedigree editor, Media manager, Ownership
+        // Transfer Governance).
+        const identityPayload: Record<string, unknown> = {
+          name: data.name,
+          name_ar: data.name_ar || null,
+          gender: data.gender,
+          birth_date: data.birth_date || null,
+          breed_id: data.breed_id || null,
+          color_id: data.color_id || null,
+          is_pony: data.is_pony,
+          is_gelded: data.is_gelded,
+          microchip_number: data.microchip_number || null,
+          passport_number: data.passport_number || null,
+          ueln: data.ueln || null,
+          mane_marks: data.mane_marks || null,
+          body_marks: data.body_marks || null,
+          legs_marks: data.legs_marks || null,
+          distinctive_marks_notes: data.distinctive_marks_notes || null,
+        };
 
-        if (horseError) throw horseError;
+        const { data: rpcResp, error: rpcError } = await supabase.rpc(
+          "update_horse_identity",
+          {
+            p_horse_id: existingHorse.id,
+            p_active_tenant_id: activeTenant.tenant_id,
+            p_payload: identityPayload as any,
+          },
+        );
+
+        if (rpcError) throw rpcError;
+        const resp = (rpcResp ?? {}) as {
+          success?: boolean;
+          reason_code?: string;
+          error_code?: string;
+          field?: string;
+        };
+        if (!resp.success) {
+          const err = new Error(
+            resp.reason_code || resp.error_code || "identity_update_failed",
+          ) as Error & {
+            reason_code?: string;
+            error_code?: string;
+            field?: string;
+          };
+          err.reason_code = resp.reason_code;
+          err.error_code = resp.error_code;
+          err.field = resp.field;
+          throw err;
+        }
+
         horseId = existingHorse.id;
-
         // Final success toast fires below after ownership handling.
+
       } else {
         // Insert new horse.
         // Phase B: stamp owner_tenant_id when the active workspace is a
@@ -546,11 +604,20 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       });
 
 
+      // Phase 1.e.f.8.1.4.d.3.execution — invalidate horse caches so
+      // list/projection/profile surfaces re-read after RPC identity save.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["horses", activeTenant.tenant_id] }),
+        queryClient.invalidateQueries({ queryKey: ["horse", activeTenant.tenant_id, horseId] }),
+        queryClient.invalidateQueries({ queryKey: ["horse-file-access", horseId] }),
+      ]);
+
       // Reset and close
       setData(initialData);
       setCurrentStep(0);
       onOpenChange(false);
       onSuccess?.();
+
     } catch (error: any) {
       const friendly = mapHorseSaveError(error, t);
       toast({

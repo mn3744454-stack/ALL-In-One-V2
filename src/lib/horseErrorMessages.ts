@@ -44,6 +44,68 @@ function isDuplicateKey(error: unknown): boolean {
 export function mapHorseSaveError(error: unknown, t: Translator): FriendlyError {
   console.error("[horses] raw error", error);
 
+  // Phase 1.e.f.8.1.4.d.3.execution — update_horse_identity RPC reason_code
+  // mapping. The wizard's edit branch throws Error objects with a
+  // `reason_code` property when the RPC returns `{ success:false }`.
+  const reasonCode =
+    (error && typeof error === "object" && (error as any).reason_code) ||
+    (error && typeof error === "object" && (error as any).error_code) ||
+    null;
+
+  switch (reasonCode) {
+    case "no_write_authority":
+    case "no_current_owner_authority":
+    case "member_role_not_owner":
+    case "not_current_owner":
+    case "former_owner":
+      return {
+        title: t("horses.errors.noWriteAuthority.title"),
+        description: t("horses.errors.noWriteAuthority.description"),
+      };
+    case "multiple_active_members_ambiguous":
+    case "ambiguous_authority":
+      return {
+        title: t("horses.errors.ambiguousAuthority.title"),
+        description: t("horses.errors.ambiguousAuthority.description"),
+      };
+    case "duplicate_microchip":
+      return {
+        title: t("horses.errors.microchipDuplicate.title"),
+        description: t("horses.errors.microchipDuplicate.description"),
+      };
+    case "duplicate_passport":
+      return {
+        title: t("horses.errors.passportDuplicate.title"),
+        description: t("horses.errors.passportDuplicate.description"),
+      };
+    case "blocked_field":
+    case "unsupported_field":
+      return {
+        title: t("horses.errors.unsupportedField.title"),
+        description: t("horses.errors.unsupportedField.description"),
+      };
+    case "invalid_field_value":
+      return {
+        title: t("horses.errors.invalidField.title"),
+        description: t("horses.errors.invalidField.description"),
+      };
+    case "empty_payload":
+      return {
+        title: t("horses.errors.emptyPayload.title"),
+        description: t("horses.errors.emptyPayload.description"),
+      };
+    case "malformed_payload":
+      return {
+        title: t("horses.errors.malformedPayload.title"),
+        description: t("horses.errors.malformedPayload.description"),
+      };
+    case "internal_error":
+      return {
+        title: t("horses.errors.saveFailed.title"),
+        description: t("horses.errors.saveFailed.description"),
+      };
+  }
+
   if (isDuplicateKey(error)) {
     const text = extractText(error);
     if (text.includes("uq_horses_tenant_passport")) {
@@ -71,6 +133,7 @@ export function mapHorseSaveError(error: unknown, t: Translator): FriendlyError 
     description: t("horses.errors.saveFailed.description"),
   };
 }
+
 
 /**
  * Friendly delete-failure payload. Never exposes raw DB text.
