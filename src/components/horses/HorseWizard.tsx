@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DialogHeader,
   DialogTitle,
@@ -19,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import { mapHorseSaveError } from "@/lib/horseErrorMessages";
+
 
 // Step components
 import { StepRegistration } from "./wizard/StepRegistration";
