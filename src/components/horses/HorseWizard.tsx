@@ -31,7 +31,7 @@ import { StepPedigree } from "./wizard/StepPedigree";
 import { StepOwnership } from "./wizard/StepOwnership";
 import { StepMedia } from "./wizard/StepMedia";
 
-const STEP_KEYS = [
+const ALL_STEP_KEYS = [
   { id: "registration", titleKey: "horses.wizard.steps.registration" },
   { id: "basic", titleKey: "horses.wizard.steps.basic" },
   { id: "details", titleKey: "horses.wizard.steps.details" },
@@ -40,6 +40,16 @@ const STEP_KEYS = [
   { id: "ownership", titleKey: "horses.wizard.steps.ownership" },
   { id: "media", titleKey: "horses.wizard.steps.media" },
 ];
+
+// Phase 1.e.f.8.1.4.d.3.fix — HorseWizard edit mode is restricted to the
+// steps whose fields are actually persisted by update_horse_identity.
+// Non-identity concerns (pedigree, ownership, media) are hidden in edit
+// mode and will be managed from their own future dedicated sections.
+const EDIT_STEP_IDS = new Set(["basic", "details", "physical"]);
+const getStepKeys = (mode: "create" | "edit") =>
+  mode === "edit"
+    ? ALL_STEP_KEYS.filter((s) => EDIT_STEP_IDS.has(s.id))
+    : ALL_STEP_KEYS;
 
 export interface HorseWizardData {
   // Registration check
@@ -252,7 +262,9 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const { t } = useI18n();
   const queryClient = useQueryClient();
 
-  const [currentStep, setCurrentStep] = useState(mode === "edit" ? 1 : 0); // Skip registration for edit
+  // Edit mode: registration step is filtered out entirely, so index 0 is the
+  // first identity step ("basic"). Create mode starts at the registration step.
+  const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<HorseWizardData>(initialData);
   const [saving, setSaving] = useState(false);
   const [attemptedAdvance, setAttemptedAdvance] = useState(false);
@@ -272,33 +284,26 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const prevStepRef = useRef<number>(currentStep);
   
   // Translated steps
-  const STEPS = useMemo(() => 
-    STEP_KEYS.map(step => ({ id: step.id, title: t(step.titleKey) })),
-    [t]
-  );
+  const STEPS = useMemo(() => {
+    const stepKeys = getStepKeys(mode);
+    return stepKeys.map((step) => ({ id: step.id, title: t(step.titleKey) }));
+  }, [t, mode]);
 
   // Pre-fill data when in edit mode, regenerate temp UUID when wizard opens fresh in create mode
   useEffect(() => {
     const loadEditData = async () => {
       if (mode === "edit" && existingHorse && open) {
         const wizardData = mapHorseToWizardData(existingHorse);
-        
-        // Load current ownership
-        const { data: ownershipData } = await supabase
-          .from("horse_ownership" as any)
-          .select(`*, owner:horse_owners(id, name, name_ar)`)
-          .eq("horse_id", existingHorse.id);
-        
-        if (ownershipData && ownershipData.length > 0) {
-          wizardData.owners = ownershipData.map((o: any) => ({
-            owner_id: o.owner_id,
-            percentage: Number(o.ownership_percentage),
-            is_primary: o.is_primary,
-          }));
-        }
-        
+
+        // Phase 1.e.f.8.1.4.d.3.fix — do NOT load ownership records in edit
+        // mode. Ownership is not editable through update_horse_identity and
+        // the Ownership step is hidden in edit mode. Leaving owners empty
+        // also prevents the ownership write path (delete + reinsert) from
+        // running below, so identity edits never mutate horse_ownership.
+        wizardData.owners = [];
+
         setData(wizardData);
-        setCurrentStep(1); // Skip registration step
+        setCurrentStep(0); // First edit-mode step ("basic")
         scrollPositionsRef.current.clear();
         visitedStepsRef.current.clear();
       } else if (mode === "create" && open) {
@@ -559,20 +564,17 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         }
       }
 
-      // Handle ownership records (for both create and edit)
-      // Filter out owners with empty owner_id
-      const validOwners = data.owners.filter(o => o.owner_id && o.owner_id.trim() !== "");
-      
-      if (validOwners.length > 0) {
-        // For edit mode, delete old ownership first
-        if (mode === "edit" && existingHorse?.id) {
-          await supabase
-            .from("horse_ownership" as any)
-            .delete()
-            .eq("horse_id", horseId);
-        }
+      // Handle ownership records — CREATE MODE ONLY.
+      // Phase 1.e.f.8.1.4.d.3.fix — identity edit must never mutate
+      // horse_ownership. Ownership transfer/management is deferred to the
+      // pinned Horse Sale / Ownership Transfer Governance Track.
+      const validOwners =
+        mode === "create"
+          ? data.owners.filter((o) => o.owner_id && o.owner_id.trim() !== "")
+          : [];
 
-        // Insert new ownership records
+      if (mode === "create" && validOwners.length > 0) {
+        // Insert new ownership records (create mode only).
         const ownershipRecords = validOwners.map((o) => ({
           horse_id: horseId,
           owner_id: o.owner_id,
@@ -649,7 +651,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       case "details":
         return <StepDetails data={data} onChange={updateData} />;
       case "physical":
-        return <StepPhysical data={data} onChange={updateData} />;
+        return <StepPhysical data={data} onChange={updateData} mode={mode} />;
       case "pedigree":
         return <StepPedigree data={data} onChange={updateData} />;
       case "ownership":
