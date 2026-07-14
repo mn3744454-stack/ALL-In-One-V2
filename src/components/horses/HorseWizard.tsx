@@ -604,11 +604,20 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       });
 
 
+      // Phase 1.e.f.8.1.4.d.3.execution — invalidate horse caches so
+      // list/projection/profile surfaces re-read after RPC identity save.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["horses", activeTenant.tenant_id] }),
+        queryClient.invalidateQueries({ queryKey: ["horse", activeTenant.tenant_id, horseId] }),
+        queryClient.invalidateQueries({ queryKey: ["horse-file-access", horseId] }),
+      ]);
+
       // Reset and close
       setData(initialData);
       setCurrentStep(0);
       onOpenChange(false);
       onSuccess?.();
+
     } catch (error: any) {
       const friendly = mapHorseSaveError(error, t);
       toast({
