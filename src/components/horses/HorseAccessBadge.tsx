@@ -8,6 +8,13 @@ import type { HorseAccessMode } from "@/hooks/useHorseFileAccess";
 
 interface Props {
   mode: HorseAccessMode;
+  /**
+   * Retained for backwards compatibility with callers passing
+   * `access.snapshot_only`. Phase 1.e.f.8.1.4.d.3.fix.1.pre.r1.fix.qa1.execution:
+   * we no longer append a raw English "· snapshot" suffix, which was leaking
+   * an internal technical term into the Arabic UI. Snapshot semantics are
+   * an internal projection concept and are not user-facing here.
+   */
   snapshotOnly?: boolean;
 }
 
@@ -41,7 +48,7 @@ const EN: Record<HorseAccessMode, string> = {
   no_access: "No Access",
 };
 
-export function HorseAccessBadge({ mode, snapshotOnly }: Props) {
+export function HorseAccessBadge({ mode }: Props) {
   const { lang } = useI18n();
   const label = (lang === "ar" ? AR : EN)[mode] ?? mode;
   const variant: "default" | "secondary" | "outline" | "destructive" =
@@ -55,7 +62,6 @@ export function HorseAccessBadge({ mode, snapshotOnly }: Props) {
   return (
     <Badge variant={variant} className="text-xs">
       {label}
-      {snapshotOnly && mode !== "no_access" ? " · snapshot" : ""}
     </Badge>
   );
 }

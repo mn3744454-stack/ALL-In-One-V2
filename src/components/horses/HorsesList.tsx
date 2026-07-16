@@ -126,9 +126,31 @@ export const HorsesList = ({
   }, [stableMode, horses, stableStatesByHorseId]);
 
   // Operational buckets (registry-derived; used by owner-mode and stable Local tab)
+  //
+  // Phase 1.e.f.8.1.4.d.3.fix.1.pre.r1.fix.qa1.execution — the incomplete
+  // bucket must be actionable-status-aware, not active-only. Horses created
+  // via Contextual Quick Add (mare/stallion selectors, breeding entry
+  // points) land with status `intake_draft` and a `local_tenant_horse`
+  // access mode. Their Horse Profile completeness card correctly reports
+  // "0/8" but they were previously excluded from the My Horses incomplete
+  // count and the "ملف غير مكتمل" modal because of an `=== 'active'`
+  // filter, breaking count↔list cohesion. Widening this bucket to
+  // actionable statuses (active + intake_draft) restores cohesion without
+  // pulling in archived / deleted / non-actionable records, and without
+  // touching any RLS, access resolver, ownership, or completeness
+  // predicate. `isHorseIncomplete` and `getCompletenessChecks` remain the
+  // single shared source of truth.
+  const INCOMPLETE_PROFILE_STATUSES: ReadonlySet<string> = new Set([
+    'active',
+    'intake_draft',
+  ]);
   const horseBuckets = useMemo(() => {
     const inside = horses.filter(h => h.status === 'active' && h.current_location_id);
-    const incomplete = horses.filter(h => h.status === 'active' && isHorseIncomplete(h));
+    const incomplete = horses.filter(
+      h =>
+        INCOMPLETE_PROFILE_STATUSES.has(h.status ?? '') &&
+        isHorseIncomplete(h),
+    );
     const outside = horses.filter(h => h.status === 'active' && !h.current_location_id);
     return { all: horses, inside, incomplete, outside };
   }, [horses]);
