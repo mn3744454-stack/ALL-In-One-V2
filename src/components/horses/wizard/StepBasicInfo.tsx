@@ -91,13 +91,14 @@ export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfo
 
   // Auto-select age_category from DOB when user hasn't explicitly chosen
   useEffect(() => {
+    if (isEdit) return; // Edit mode: age_category not persisted by update_horse_identity
     if (!userExplicitlyChoseAge && data.birth_date && data.gender) {
       const recommended = getRecommendedAgeCategory({ gender: data.gender, birth_date: data.birth_date });
       if (recommended && data.age_category !== recommended) {
         onChange({ age_category: recommended });
       }
     }
-  }, [data.birth_date, data.gender, userExplicitlyChoseAge]);
+  }, [data.birth_date, data.gender, userExplicitlyChoseAge, isEdit]);
 
   // Extract time from birth_at for the time input
   const birthTime = useMemo(() => {
