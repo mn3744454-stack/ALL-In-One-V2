@@ -35,10 +35,19 @@ interface StepBasicInfoProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
   mode?: "create" | "edit";
+  /**
+   * Phase 1.e.f.8.1.4.d.3.fix.1.r1 — Birth Date first-time-only rule.
+   * When editing a horse that already has a DOB stored, birth_date must be
+   * read-only in the wizard. Corrections belong to the future Birth Date
+   * Correction Governance Track. Passed through from HorseWizard so a
+   * mid-session edit to the field state cannot bypass the lock.
+   */
+  originalBirthDate?: string | null;
 }
 
-export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfoProps) => {
+export const StepBasicInfo = ({ data, onChange, mode = "create", originalBirthDate = null }: StepBasicInfoProps) => {
   const isEdit = mode === "edit";
+  const birthDateLocked = isEdit && !!originalBirthDate;
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
   const [geldingConfirmOpen, setGeldingConfirmOpen] = useState(false);
