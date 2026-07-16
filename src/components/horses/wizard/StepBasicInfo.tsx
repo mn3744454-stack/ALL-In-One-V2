@@ -235,13 +235,16 @@ export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfo
     setBroodmareConfirmOpen(false);
   };
 
-  // Determine conditional visibility — gated by explicit age-stage selection
-  const isAdultMale = data.gender === 'male' && data.age_category === 'horse';
-  const isAdultFemale = data.gender === 'female' && data.age_category === 'mare';
+  // Determine conditional visibility — gated by explicit age-stage selection in create mode.
+  // In edit mode, age_category is not persisted by update_horse_identity, so we gate
+  // by gender only for fields that ARE persisted (is_gelded, is_pony) and hide
+  // non-persisted reproductive fields (breeding_role, is_pregnant, pregnancy_months) entirely.
+  const isAdultMale = data.gender === 'male' && (isEdit || data.age_category === 'horse');
+  const isAdultFemale = data.gender === 'female' && (isEdit || data.age_category === 'mare');
   const showGelding = isAdultMale;
-  const showStallion = isAdultMale && !data.is_gelded;
-  const showBroodmare = isAdultFemale;
-  const showPregnancy = isAdultFemale && data.breeding_role === 'broodmare';
+  const showStallion = !isEdit && isAdultMale && !data.is_gelded;
+  const showBroodmare = !isEdit && isAdultFemale;
+  const showPregnancy = !isEdit && isAdultFemale && data.breeding_role === 'broodmare';
   const showPony = isAdultMale || isAdultFemale;
 
   return (
