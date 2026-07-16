@@ -291,8 +291,9 @@ export const StepBasicInfo = ({ data, onChange, mode = "create", originalBirthDa
           <Select 
             value={data.gender || "__neutral__"} 
             onValueChange={handleGenderChange}
+            disabled={isEdit}
            >
-            <SelectTrigger>
+            <SelectTrigger className={isEdit ? "opacity-70 cursor-not-allowed" : undefined}>
               <SelectValue placeholder={t('horses.wizard.selectGender')} />
             </SelectTrigger>
             <SelectContent>
@@ -303,6 +304,13 @@ export const StepBasicInfo = ({ data, onChange, mode = "create", originalBirthDa
               <SelectItem value="female">{isRTL ? 'أنثى' : 'Female'}</SelectItem>
             </SelectContent>
           </Select>
+          {isEdit && (
+            <p className="text-xs text-muted-foreground">
+              {isRTL
+                ? 'تغيير الجنس لا يتم من تعديل الهوية العادي. يمكن طلب تصحيح الجنس من مسار مخصص لاحقًا.'
+                : 'Gender cannot be changed from normal identity editing. A dedicated gender correction flow will handle this later.'}
+            </p>
+          )}
         </div>
 
         {/* Age-Stage Selector — create mode only (age_category not persisted by update_horse_identity) */}
