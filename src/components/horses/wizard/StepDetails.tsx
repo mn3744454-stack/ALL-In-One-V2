@@ -13,9 +13,11 @@ import { cn } from "@/lib/utils";
 interface StepDetailsProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
+  mode?: "create" | "edit";
 }
 
-export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
+export const StepDetails = ({ data, onChange, mode = "create" }: StepDetailsProps) => {
+  const isEdit = mode === "edit";
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
   const { colors, breeds, createBreed, createColor, deleteBreed, deleteColor, updateBreed, updateColor } = useHorseMasterData();
