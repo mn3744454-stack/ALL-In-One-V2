@@ -206,9 +206,8 @@ const HorseProfile = () => {
   // substitute legacy data here.
   const heroName = projection.header.name.value ?? "";
   const heroNameAr = projection.header.name_ar.value;
-  const heroNameIsSnapshot =
-    projection.header.name.source === "snapshot" ||
-    projection.header.name_ar.source === "snapshot";
+  // Snapshot-vs-canonical source is an internal projection concept and is
+  // no longer surfaced next to the hero name (see qa1.execution notes below).
 
 
   const ageParts = getCurrentAgeParts({
