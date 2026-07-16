@@ -51,13 +51,26 @@ export function mapHorseSaveError(error: unknown, t: Translator): FriendlyError 
     (error && typeof error === "object" && (error as any).reason_code) ||
     (error && typeof error === "object" && (error as any).error_code) ||
     null;
+  const field =
+    error && typeof error === "object" ? (error as any).field : undefined;
 
   switch (reasonCode) {
+    case "host_operational_denied_for_identity":
+      return {
+        title: t("horses.errors.hostIdentityDenied.title"),
+        description: t("horses.errors.hostIdentityDenied.description"),
+      };
+    case "owner_tenant_mismatch":
+    case "ownership_transfer_completed_to_new_owner":
+    case "former_owner":
+      return {
+        title: t("horses.errors.ownershipTransferred.title"),
+        description: t("horses.errors.ownershipTransferred.description"),
+      };
     case "no_write_authority":
     case "no_current_owner_authority":
     case "member_role_not_owner":
     case "not_current_owner":
-    case "former_owner":
       return {
         title: t("horses.errors.noWriteAuthority.title"),
         description: t("horses.errors.noWriteAuthority.description"),
@@ -67,6 +80,38 @@ export function mapHorseSaveError(error: unknown, t: Translator): FriendlyError 
       return {
         title: t("horses.errors.ambiguousAuthority.title"),
         description: t("horses.errors.ambiguousAuthority.description"),
+      };
+    case "restricted_identity_field":
+      // Phase 1.e.f.8.1.4.d.3.fix.1.r1 — governance-restricted identity fields.
+      // Map to field-specific messages so users are pointed to the correct
+      // future correction workflow rather than a generic save failure.
+      if (field === "gender") {
+        return {
+          title: t("horses.errors.genderLocked.title"),
+          description: t("horses.errors.genderLocked.description"),
+        };
+      }
+      if (field === "breed_id") {
+        return {
+          title: t("horses.errors.breedLocked.title"),
+          description: t("horses.errors.breedLocked.description"),
+        };
+      }
+      if (field === "birth_date") {
+        return {
+          title: t("horses.errors.birthDateLocked.title"),
+          description: t("horses.errors.birthDateLocked.description"),
+        };
+      }
+      if (field === "birth_at") {
+        return {
+          title: t("horses.errors.birthTimeLocked.title"),
+          description: t("horses.errors.birthTimeLocked.description"),
+        };
+      }
+      return {
+        title: t("horses.errors.restrictedField.title"),
+        description: t("horses.errors.restrictedField.description"),
       };
     case "duplicate_microchip":
       return {

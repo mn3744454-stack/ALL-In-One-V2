@@ -4473,6 +4473,37 @@ export const en = {
         title: "Invalid save request",
         description: "The save request was not formatted correctly. Please try again.",
       },
+      // Phase 1.e.f.8.1.4.d.3.fix.1.r1 — Critical Identity Field Edit
+      // Governance Correction. Field-specific messages that point users
+      // to future correction workflows instead of a generic save failure.
+      hostIdentityDenied: {
+        title: "Identity edit not permitted",
+        description: "You do not have permission to edit this horse's identity data. This horse is hosted under your account, but identity edits require owner authority.",
+      },
+      ownershipTransferred: {
+        title: "Ownership transferred",
+        description: "You are no longer the owner of this horse. Ownership has been transferred to another owner.",
+      },
+      genderLocked: {
+        title: "Sex is not editable here",
+        description: "Gender cannot be changed from normal identity editing. Use the gender correction flow when available.",
+      },
+      breedLocked: {
+        title: "Breed is not editable here",
+        description: "Breed cannot be changed from normal identity editing. Breed changes require a dedicated correction flow.",
+      },
+      birthDateLocked: {
+        title: "Date of birth is locked",
+        description: "Date of birth cannot be changed from this flow after it has been set. A dedicated birth-date correction flow will handle this later.",
+      },
+      birthTimeLocked: {
+        title: "Birth time is not editable here",
+        description: "Birth time cannot be edited from identity editing. It will be managed together with the future birth-date correction flow.",
+      },
+      restrictedField: {
+        title: "This field cannot be changed here",
+        description: "This field cannot be changed from normal identity editing.",
+      },
     },
 
     toast: {

@@ -35,10 +35,19 @@ interface StepBasicInfoProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
   mode?: "create" | "edit";
+  /**
+   * Phase 1.e.f.8.1.4.d.3.fix.1.r1 — Birth Date first-time-only rule.
+   * When editing a horse that already has a DOB stored, birth_date must be
+   * read-only in the wizard. Corrections belong to the future Birth Date
+   * Correction Governance Track. Passed through from HorseWizard so a
+   * mid-session edit to the field state cannot bypass the lock.
+   */
+  originalBirthDate?: string | null;
 }
 
-export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfoProps) => {
+export const StepBasicInfo = ({ data, onChange, mode = "create", originalBirthDate = null }: StepBasicInfoProps) => {
   const isEdit = mode === "edit";
+  const birthDateLocked = isEdit && !!originalBirthDate;
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
   const [geldingConfirmOpen, setGeldingConfirmOpen] = useState(false);
@@ -282,8 +291,9 @@ export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfo
           <Select 
             value={data.gender || "__neutral__"} 
             onValueChange={handleGenderChange}
+            disabled={isEdit}
            >
-            <SelectTrigger>
+            <SelectTrigger className={isEdit ? "opacity-70 cursor-not-allowed" : undefined}>
               <SelectValue placeholder={t('horses.wizard.selectGender')} />
             </SelectTrigger>
             <SelectContent>
@@ -294,6 +304,13 @@ export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfo
               <SelectItem value="female">{isRTL ? 'أنثى' : 'Female'}</SelectItem>
             </SelectContent>
           </Select>
+          {isEdit && (
+            <p className="text-xs text-muted-foreground">
+              {isRTL
+                ? 'تغيير الجنس لا يتم من تعديل الهوية العادي. يمكن طلب تصحيح الجنس من مسار مخصص لاحقًا.'
+                : 'Gender cannot be changed from normal identity editing. A dedicated gender correction flow will handle this later.'}
+            </p>
+          )}
         </div>
 
         {/* Age-Stage Selector — create mode only (age_category not persisted by update_horse_identity) */}
@@ -358,23 +375,42 @@ export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfo
               id="birth_date" 
               type="date" 
               value={data.birth_date} 
-              onChange={(e) => handleBirthDateChange(e.target.value)} 
+              onChange={(e) => { if (!birthDateLocked) handleBirthDateChange(e.target.value); }}
+              disabled={birthDateLocked}
+              readOnly={birthDateLocked}
+              className={birthDateLocked ? "opacity-70 cursor-not-allowed" : undefined}
             />
+            {isEdit && (
+              <p className="text-xs text-muted-foreground">
+                {birthDateLocked
+                  ? (isRTL
+                      ? 'تم تسجيل تاريخ الميلاد مسبقًا. تصحيحه بعد تسجيله يحتاج مسار تصحيح مخصص.'
+                      : 'Date of birth has been set. Changing it after it is set requires a dedicated correction flow.')
+                  : (isRTL
+                      ? 'يمكن إكمال تاريخ الميلاد الآن إذا كان غير مسجل.'
+                      : 'You can complete the date of birth now if it is missing.')}
+              </p>
+            )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="birth_time" className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              {isRTL ? 'وقت الميلاد (اختياري)' : 'Birth Time (Optional)'}
-            </Label>
-            <Input 
-              id="birth_time" 
-              type="time" 
-              value={birthTime} 
-              onChange={(e) => handleTimeChange(e.target.value)}
-              disabled={!data.birth_date}
-              placeholder="HH:MM"
-            />
-          </div>
+          {/* Phase 1.e.f.8.1.4.d.3.fix.1.r1 — birth_at (Birth Time) is
+              governance-restricted in edit mode and hidden entirely; the
+              backend RPC also rejects it. Create mode is unchanged. */}
+          {!isEdit && (
+            <div className="space-y-2">
+              <Label htmlFor="birth_time" className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {isRTL ? 'وقت الميلاد (اختياري)' : 'Birth Time (Optional)'}
+              </Label>
+              <Input 
+                id="birth_time" 
+                type="time" 
+                value={birthTime} 
+                onChange={(e) => handleTimeChange(e.target.value)}
+                disabled={!data.birth_date}
+                placeholder="HH:MM"
+              />
+            </div>
+          )}
         </div>
 
         {/* Recommendation Banner */}

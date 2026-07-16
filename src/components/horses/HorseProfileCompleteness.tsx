@@ -12,9 +12,17 @@ import {
 interface Props {
   horse: CompletenessHorse;
   onEdit: () => void;
+  /**
+   * Phase 1.e.f.8.1.4.d.3.fix.1.r1 — Complete Profile is a governance-gated
+   * action. Only viewers with owner_authority may open the identity wizard
+   * to fill missing fields. current_host_operational and other non-owner
+   * modes see the completeness diagnostic but no action button. Default
+   * `true` preserves legacy callers.
+   */
+  canEdit?: boolean;
 }
 
-export function HorseProfileCompleteness({ horse, onEdit }: Props) {
+export function HorseProfileCompleteness({ horse, onEdit, canEdit = true }: Props) {
   const { t } = useI18n();
 
   const checks = getCompletenessChecks(horse);
@@ -47,10 +55,12 @@ export function HorseProfileCompleteness({ horse, onEdit }: Props) {
             </div>
           ))}
         </div>
-        <Button variant="outline" size="sm" className="w-full gap-1.5 mt-2" onClick={onEdit}>
-          <Pencil className="h-3.5 w-3.5" />
-          {t("horses.profile.completeProfile")}
-        </Button>
+        {canEdit && (
+          <Button variant="outline" size="sm" className="w-full gap-1.5 mt-2" onClick={onEdit}>
+            <Pencil className="h-3.5 w-3.5" />
+            {t("horses.profile.completeProfile")}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

@@ -13,9 +13,11 @@ import { cn } from "@/lib/utils";
 interface StepDetailsProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
+  mode?: "create" | "edit";
 }
 
-export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
+export const StepDetails = ({ data, onChange, mode = "create" }: StepDetailsProps) => {
+  const isEdit = mode === "edit";
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
   const { colors, breeds, createBreed, createColor, deleteBreed, deleteColor, updateBreed, updateColor } = useHorseMasterData();
@@ -38,19 +40,34 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
             <Label>{t('horses.wizard.breed')}</Label>
             <button
               type="button"
-              onClick={() => setBreedPickerOpen(true)}
+              onClick={() => { if (!isEdit) setBreedPickerOpen(true); }}
+              disabled={isEdit}
+              aria-disabled={isEdit}
               className={cn(
-                "w-full min-h-10 px-3 py-2 rounded-md border bg-background text-sm flex items-center justify-between gap-2",
-                "hover:bg-muted/40 transition-colors text-start"
+                "w-full min-h-10 px-3 py-2 rounded-md border bg-background text-sm flex items-center justify-between gap-2 text-start",
+                isEdit
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-muted/40 transition-colors"
               )}
             >
               {selectedBreed ? (
                 <BilingualName name={selectedBreed.name} nameAr={selectedBreed.name_ar} inline primaryClassName="text-sm" />
               ) : (
-                <span className="text-muted-foreground">{t('horses.wizard.chooseBreed')}</span>
+                <span className="text-muted-foreground">
+                  {isEdit
+                    ? (isRTL ? 'غير محدد' : 'Not set')
+                    : t('horses.wizard.chooseBreed')}
+                </span>
               )}
               <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
             </button>
+            {isEdit && (
+              <p className="text-xs text-muted-foreground">
+                {isRTL
+                  ? 'تعديل السلالة يحتاج مسار تصحيح مخصص، ولا يتم من تعديل الهوية العادي.'
+                  : 'Breed changes require a dedicated correction flow and are not handled from normal identity editing.'}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>{t('horses.wizard.color')}</Label>
