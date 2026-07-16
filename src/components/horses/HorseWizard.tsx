@@ -477,12 +477,18 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         // dedicated future flows (Measurements History, Foal Color
         // Lifecycle, Pedigree editor, Media manager, Ownership
         // Transfer Governance).
+        // Phase 1.e.f.8.1.4.d.3.fix.1.r1 — Critical Identity Field Edit
+        // Governance Correction. gender / breed_id / birth_at are
+        // governance-restricted and MUST NOT be included in the normal
+        // identity payload; the RPC also rejects them defensively.
+        // Correction of these fields is deferred to dedicated correction
+        // workflows (Gender / Breed / Birth Date Correction Governance
+        // Tracks). birth_date is included ONLY when the existing horse has
+        // no DOB yet (first-time completion); once set, editing is locked
+        // and belongs to the Birth Date Correction Governance Track.
         const identityPayload: Record<string, unknown> = {
           name: data.name,
           name_ar: data.name_ar || null,
-          gender: data.gender,
-          birth_date: data.birth_date || null,
-          breed_id: data.breed_id || null,
           color_id: data.color_id || null,
           is_pony: data.is_pony,
           is_gelded: data.is_gelded,
@@ -494,6 +500,9 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
           legs_marks: data.legs_marks || null,
           distinctive_marks_notes: data.distinctive_marks_notes || null,
         };
+        if (!existingHorse.birth_date && data.birth_date) {
+          identityPayload.birth_date = data.birth_date;
+        }
 
         const { data: rpcResp, error: rpcError } = await supabase.rpc(
           "update_horse_identity",
