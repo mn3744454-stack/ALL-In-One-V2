@@ -19,6 +19,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type HorseAccessMode =
   | "owner_authority"
+  | "co_owner_authority"
+  | "delegated_identity"
   | "current_host_operational"
   | "previous_host_historical"
   | "provider_scoped"
@@ -26,6 +28,7 @@ export type HorseAccessMode =
   | "shared_link_read"
   | "public_read"
   | "owner_bridge_not_provisioned"
+  | "local_tenant_horse"
   | "no_access";
 
 export interface HorseAccessEnvelope {
@@ -54,6 +57,8 @@ const SAFE_NO_ACCESS: HorseAccessEnvelope = {
 
 const KNOWN_MODES: ReadonlySet<HorseAccessMode> = new Set<HorseAccessMode>([
   "owner_authority",
+  "co_owner_authority",
+  "delegated_identity",
   "current_host_operational",
   "previous_host_historical",
   "provider_scoped",
@@ -61,6 +66,7 @@ const KNOWN_MODES: ReadonlySet<HorseAccessMode> = new Set<HorseAccessMode>([
   "shared_link_read",
   "public_read",
   "owner_bridge_not_provisioned",
+  "local_tenant_horse",
   "no_access",
 ]);
 

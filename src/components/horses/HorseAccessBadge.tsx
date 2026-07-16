@@ -13,6 +13,8 @@ interface Props {
 
 const AR: Record<HorseAccessMode, string> = {
   owner_authority: "مالك الخيل",
+  co_owner_authority: "مالك مشارك",
+  delegated_identity: "تفويض مالك",
   current_host_operational: "مضيف حالي",
   previous_host_historical: "مضيف سابق — للقراءة فقط",
   provider_scoped: "مزود خدمة",
@@ -20,11 +22,14 @@ const AR: Record<HorseAccessMode, string> = {
   shared_link_read: "رابط مشاركة — للقراءة",
   public_read: "عرض عام",
   owner_bridge_not_provisioned: "صلاحية المالك غير مفعّلة",
+  local_tenant_horse: "سجل محلي",
   no_access: "بدون صلاحية",
 };
 
 const EN: Record<HorseAccessMode, string> = {
   owner_authority: "Owner",
+  co_owner_authority: "Co-Owner",
+  delegated_identity: "Delegated",
   current_host_operational: "Current Host",
   previous_host_historical: "Previous Host — Read Only",
   provider_scoped: "Provider Scope",
@@ -32,6 +37,7 @@ const EN: Record<HorseAccessMode, string> = {
   shared_link_read: "Shared Link — Read",
   public_read: "Public View",
   owner_bridge_not_provisioned: "Owner Bridge Pending",
+  local_tenant_horse: "Local Record",
   no_access: "No Access",
 };
 
