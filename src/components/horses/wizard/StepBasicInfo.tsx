@@ -476,6 +476,15 @@ export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfo
           {isRTL ? 'الحالة التناسلية وتصنيف الحجم' : 'Status & Designation'}
         </h3>
 
+        {isEdit && (
+          <p className="text-xs text-muted-foreground">
+            {isRTL
+              ? 'يُدار التصنيف التناسلي (فحل/رمكة) وحالة الحمل من سجلات التناسل، وليس من تعديل هوية الخيل.'
+              : 'Reproductive designation (stallion/broodmare) and pregnancy status are managed from breeding records, not from identity editing.'}
+          </p>
+        )}
+
+
         {/* Gelding Toggle — Male only */}
         {showGelding && (
           <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
