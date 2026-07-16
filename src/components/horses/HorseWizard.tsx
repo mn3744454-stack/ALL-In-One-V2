@@ -647,7 +647,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       case "registration":
         return <StepRegistration data={data} onChange={updateData} />;
       case "basic":
-        return <StepBasicInfo data={data} onChange={updateData} />;
+        return <StepBasicInfo data={data} onChange={updateData} mode={mode} />;
       case "details":
         return <StepDetails data={data} onChange={updateData} />;
       case "physical":

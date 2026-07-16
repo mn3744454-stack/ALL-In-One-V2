@@ -34,9 +34,11 @@ import {
 interface StepBasicInfoProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
+  mode?: "create" | "edit";
 }
 
-export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
+export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfoProps) => {
+  const isEdit = mode === "edit";
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
   const [geldingConfirmOpen, setGeldingConfirmOpen] = useState(false);
@@ -89,13 +91,14 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
 
   // Auto-select age_category from DOB when user hasn't explicitly chosen
   useEffect(() => {
+    if (isEdit) return; // Edit mode: age_category not persisted by update_horse_identity
     if (!userExplicitlyChoseAge && data.birth_date && data.gender) {
       const recommended = getRecommendedAgeCategory({ gender: data.gender, birth_date: data.birth_date });
       if (recommended && data.age_category !== recommended) {
         onChange({ age_category: recommended });
       }
     }
-  }, [data.birth_date, data.gender, userExplicitlyChoseAge]);
+  }, [data.birth_date, data.gender, userExplicitlyChoseAge, isEdit]);
 
   // Extract time from birth_at for the time input
   const birthTime = useMemo(() => {
@@ -232,13 +235,16 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
     setBroodmareConfirmOpen(false);
   };
 
-  // Determine conditional visibility — gated by explicit age-stage selection
-  const isAdultMale = data.gender === 'male' && data.age_category === 'horse';
-  const isAdultFemale = data.gender === 'female' && data.age_category === 'mare';
+  // Determine conditional visibility — gated by explicit age-stage selection in create mode.
+  // In edit mode, age_category is not persisted by update_horse_identity, so we gate
+  // by gender only for fields that ARE persisted (is_gelded, is_pony) and hide
+  // non-persisted reproductive fields (breeding_role, is_pregnant, pregnancy_months) entirely.
+  const isAdultMale = data.gender === 'male' && (isEdit || data.age_category === 'horse');
+  const isAdultFemale = data.gender === 'female' && (isEdit || data.age_category === 'mare');
   const showGelding = isAdultMale;
-  const showStallion = isAdultMale && !data.is_gelded;
-  const showBroodmare = isAdultFemale;
-  const showPregnancy = isAdultFemale && data.breeding_role === 'broodmare';
+  const showStallion = !isEdit && isAdultMale && !data.is_gelded;
+  const showBroodmare = !isEdit && isAdultFemale;
+  const showPregnancy = !isEdit && isAdultFemale && data.breeding_role === 'broodmare';
   const showPony = isAdultMale || isAdultFemale;
 
   return (
@@ -290,8 +296,8 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
           </Select>
         </div>
 
-        {/* Age-Stage Selector — appears after sex */}
-        {data.gender && (
+        {/* Age-Stage Selector — create mode only (age_category not persisted by update_horse_identity) */}
+        {!isEdit && data.gender && (
           <div className="space-y-2">
             <Label>{isRTL ? 'المرحلة العمرية' : 'Age Stage'} *</Label>
             <ToggleGroup
@@ -469,6 +475,15 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           {isRTL ? 'الحالة التناسلية وتصنيف الحجم' : 'Status & Designation'}
         </h3>
+
+        {isEdit && (
+          <p className="text-xs text-muted-foreground">
+            {isRTL
+              ? 'يُدار التصنيف التناسلي (فحل/رمكة) وحالة الحمل من سجلات التناسل، وليس من تعديل هوية الخيل.'
+              : 'Reproductive designation (stallion/broodmare) and pregnancy status are managed from breeding records, not from identity editing.'}
+          </p>
+        )}
+
 
         {/* Gelding Toggle — Male only */}
         {showGelding && (
