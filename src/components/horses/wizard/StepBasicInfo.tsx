@@ -34,9 +34,11 @@ import {
 interface StepBasicInfoProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
+  mode?: "create" | "edit";
 }
 
-export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
+export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfoProps) => {
+  const isEdit = mode === "edit";
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
   const [geldingConfirmOpen, setGeldingConfirmOpen] = useState(false);
