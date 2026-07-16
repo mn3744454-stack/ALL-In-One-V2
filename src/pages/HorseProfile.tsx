@@ -206,9 +206,8 @@ const HorseProfile = () => {
   // substitute legacy data here.
   const heroName = projection.header.name.value ?? "";
   const heroNameAr = projection.header.name_ar.value;
-  const heroNameIsSnapshot =
-    projection.header.name.source === "snapshot" ||
-    projection.header.name_ar.source === "snapshot";
+  // Snapshot-vs-canonical source is an internal projection concept and is
+  // no longer surfaced next to the hero name (see qa1.execution notes below).
 
 
   const ageParts = getCurrentAgeParts({
@@ -344,11 +343,16 @@ const HorseProfile = () => {
                         primaryClassName="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground"
                         secondaryClassName="text-base sm:text-lg"
                       />
-                      {heroNameIsSnapshot && (
-                        <Badge variant="secondary" className="text-[10px] sm:text-xs font-normal shrink-0">
-                          {t('horses.projection.source.snapshot')}
-                        </Badge>
-                      )}
+                      {/*
+                        Phase 1.e.f.8.1.4.d.3.fix.1.pre.r1.fix.qa1.execution —
+                        the previous "snapshot" source chip referenced an
+                        untranslated i18n key (`horses.projection.source.snapshot`)
+                        which leaked as raw path text in Arabic UI, and paired
+                        awkwardly with `local_tenant_horse` records ("سجل محلي ·
+                        snapshot"). Snapshot vs canonical is an internal
+                        projection concept; access authority is already surfaced
+                        by the HorseAccessBadge in the header row above.
+                      */}
                     </div>
 
 
