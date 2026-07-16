@@ -381,7 +381,7 @@ const HorseProfile = () => {
             </Card>
 
             {/* Profile Completeness Warning */}
-            <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} />
+            <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} canEdit={canUseGlobalEdit} />
 
             {/* Active Admission Card */}
             <HorseAdmissionCard horseId={horse.id} />
