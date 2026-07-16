@@ -296,8 +296,8 @@ export const StepBasicInfo = ({ data, onChange, mode = "create" }: StepBasicInfo
           </Select>
         </div>
 
-        {/* Age-Stage Selector — appears after sex */}
-        {data.gender && (
+        {/* Age-Stage Selector — create mode only (age_category not persisted by update_horse_identity) */}
+        {!isEdit && data.gender && (
           <div className="space-y-2">
             <Label>{isRTL ? 'المرحلة العمرية' : 'Age Stage'} *</Label>
             <ToggleGroup
