@@ -40,6 +40,7 @@ import { useHorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
+import { LocalRecordCompletionDialog } from "@/components/horses/LocalRecordCompletionDialog";
 import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
@@ -125,6 +126,13 @@ const HorseProfile = () => {
     enabled: accessConfirmedForProjection,
   });
   const [showEditWizard, setShowEditWizard] = useState(false);
+  const [showLocalCompletionDialog, setShowLocalCompletionDialog] = useState(false);
+  // Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — Local Record Custodial capability
+  // read exclusively from the backend access envelope. No frontend inference.
+  const capabilities = access?.capabilities ?? null;
+  const canCompleteLocalRecord = capabilities?.can_complete_local_record === true;
+  const localRecordEditableFields =
+    capabilities?.local_record_completion_editable_fields ?? [];
   // Phase 1.e.f.8.1.4.a — tab shell state is local-only (no URL/deep-link).
   const [activeTab, setActiveTab] = useState<string>("overview");
   const { state: lifecycleState, status: opStatus } = useHorseLifecycleState(id);
@@ -381,7 +389,13 @@ const HorseProfile = () => {
             </Card>
 
             {/* Profile Completeness Warning */}
-            <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} canEdit={canUseGlobalEdit} />
+            <HorseProfileCompleteness
+              horse={horse}
+              onEdit={() => setShowEditWizard(true)}
+              canEdit={canUseGlobalEdit}
+              canCompleteLocalRecord={canCompleteLocalRecord}
+              onCompleteLocalRecord={() => setShowLocalCompletionDialog(true)}
+            />
 
             {/* Active Admission Card */}
             <HorseAdmissionCard horseId={horse.id} />
@@ -560,6 +574,26 @@ const HorseProfile = () => {
         existingHorse={horse as HorseData}
         onSuccess={handleEditSuccess}
       />
+
+      {/*
+        Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — Local Record Custodial
+        Completion dialog. Only mounted when the backend capability envelope
+        reports `can_complete_local_record` and the active tenant is known.
+        Never touches ownership, tenant assignment, gender or breed.
+      */}
+      {horse && tenantId && (
+        <LocalRecordCompletionDialog
+          open={showLocalCompletionDialog}
+          onOpenChange={setShowLocalCompletionDialog}
+          horseId={horse.id}
+          tenantId={tenantId}
+          editableFields={localRecordEditableFields}
+          onCompleted={() => {
+            refreshHorse();
+          }}
+        />
+      )}
+
 
       {/*
         Phase 1.e.f.8.1.4.d.1.a — Delete Confirmation Dialog removed.

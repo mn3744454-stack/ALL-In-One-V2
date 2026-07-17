@@ -20,9 +20,24 @@ interface Props {
    * `true` preserves legacy callers.
    */
   canEdit?: boolean;
+  /**
+   * Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — Local Record Custodial
+   * Completion. When the backend reports `can_complete_local_record`
+   * the completeness card renders a dedicated "Complete local record"
+   * button that opens the local completion dialog. This button is
+   * independent of `canEdit` (which gates the general identity wizard).
+   */
+  canCompleteLocalRecord?: boolean;
+  onCompleteLocalRecord?: () => void;
 }
 
-export function HorseProfileCompleteness({ horse, onEdit, canEdit = true }: Props) {
+export function HorseProfileCompleteness({
+  horse,
+  onEdit,
+  canEdit = true,
+  canCompleteLocalRecord = false,
+  onCompleteLocalRecord,
+}: Props) {
   const { t } = useI18n();
 
   const checks = getCompletenessChecks(horse);
@@ -59,6 +74,17 @@ export function HorseProfileCompleteness({ horse, onEdit, canEdit = true }: Prop
           <Button variant="outline" size="sm" className="w-full gap-1.5 mt-2" onClick={onEdit}>
             <Pencil className="h-3.5 w-3.5" />
             {t("horses.profile.completeProfile")}
+          </Button>
+        )}
+        {!canEdit && canCompleteLocalRecord && onCompleteLocalRecord && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full gap-1.5 mt-2"
+            onClick={onCompleteLocalRecord}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {t("horses.localRecord.dialog.title")}
           </Button>
         )}
       </CardContent>
