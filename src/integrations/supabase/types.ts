@@ -4877,6 +4877,10 @@ export type Database = {
           name_ar: string | null
           notes: string | null
           owner_tenant_id: string | null
+          owner_truth_review_reason: string | null
+          owner_truth_review_required: boolean
+          owner_truth_review_set_at: string | null
+          owner_truth_review_set_by: string | null
           passport_number: string | null
           paternal_grandfather: string | null
           paternal_grandmother: string | null
@@ -4932,6 +4936,10 @@ export type Database = {
           name_ar?: string | null
           notes?: string | null
           owner_tenant_id?: string | null
+          owner_truth_review_reason?: string | null
+          owner_truth_review_required?: boolean
+          owner_truth_review_set_at?: string | null
+          owner_truth_review_set_by?: string | null
           passport_number?: string | null
           paternal_grandfather?: string | null
           paternal_grandmother?: string | null
@@ -4987,6 +4995,10 @@ export type Database = {
           name_ar?: string | null
           notes?: string | null
           owner_tenant_id?: string | null
+          owner_truth_review_reason?: string | null
+          owner_truth_review_required?: boolean
+          owner_truth_review_set_at?: string | null
+          owner_truth_review_set_by?: string | null
           passport_number?: string | null
           paternal_grandfather?: string | null
           paternal_grandmother?: string | null
@@ -12271,6 +12283,10 @@ export type Database = {
         Returns: Json
       }
       _get_app_setting: { Args: { p_key: string }; Returns: string }
+      _lock_horse_authority_scope: {
+        Args: { p_horse_id: string }
+        Returns: undefined
+      }
       _notify_tenant_members:
         | {
             Args: {
@@ -12297,6 +12313,10 @@ export type Database = {
             }
             Returns: undefined
           }
+      _provision_stable_local_record_permissions: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       _resolve_horse_access_mode: {
         Args: { _horse_id: string; _viewer: Json }
         Returns: Json
@@ -12311,6 +12331,10 @@ export type Database = {
       }
       _resolve_host_scope: {
         Args: { _horse_id: string; _viewer: Json }
+        Returns: Json
+      }
+      _resolve_local_record_completion_authority: {
+        Args: { p_active_tenant_id: string; p_horse_id: string }
         Returns: Json
       }
       _resolve_owner_authority: {
@@ -12469,6 +12493,14 @@ export type Database = {
           p_movement_id: string
           p_notes?: string
           p_override_reason?: string
+        }
+        Returns: Json
+      }
+      complete_local_horse_record: {
+        Args: {
+          p_active_tenant_id: string
+          p_horse_id: string
+          p_payload: Json
         }
         Returns: Json
       }
