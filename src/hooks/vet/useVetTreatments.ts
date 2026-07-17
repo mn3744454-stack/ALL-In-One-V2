@@ -172,7 +172,7 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
       return treatment;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments.tenant(tenantId) });
       toast.success("Treatment created successfully");
     },
     onError: (error: Error) => {
@@ -195,7 +195,7 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments.tenant(tenantId) });
       toast.success("Treatment updated successfully");
     },
     onError: (error: Error) => {
@@ -216,7 +216,7 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments.tenant(tenantId) });
       toast.success("Treatment deleted successfully");
     },
     onError: (error: Error) => {
@@ -256,7 +256,7 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
   };
 
   const refresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments.tenant(tenantId) });
   }, [queryClient, tenantId]);
 
   return {
