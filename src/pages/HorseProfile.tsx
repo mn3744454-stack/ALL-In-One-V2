@@ -389,7 +389,13 @@ const HorseProfile = () => {
             </Card>
 
             {/* Profile Completeness Warning */}
-            <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} canEdit={canUseGlobalEdit} />
+            <HorseProfileCompleteness
+              horse={horse}
+              onEdit={() => setShowEditWizard(true)}
+              canEdit={canUseGlobalEdit}
+              canCompleteLocalRecord={canCompleteLocalRecord}
+              onCompleteLocalRecord={() => setShowLocalCompletionDialog(true)}
+            />
 
             {/* Active Admission Card */}
             <HorseAdmissionCard horseId={horse.id} />
