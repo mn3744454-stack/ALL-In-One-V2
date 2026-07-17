@@ -77,9 +77,19 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
+  // Normalize filters to a stable, serializable shape so cache identity is
+  // deterministic and undefined/null/'all' values collapse to the same key.
+  const normalizedFilters: Record<string, unknown> = {
+    horse_id: filters.horse_id || null,
+    status: filters.status && filters.status !== 'all' ? filters.status : null,
+    category: filters.category && filters.category !== 'all' ? filters.category : null,
+    priority: filters.priority && filters.priority !== 'all' ? filters.priority : null,
+    search: filters.search || null,
+  };
+
   // Use React Query for fetching treatments
   const { data: treatments = [], isLoading: loading } = useQuery({
-    queryKey: queryKeys.vetTreatments(tenantId),
+    queryKey: queryKeys.vetTreatments.list(tenantId, normalizedFilters),
     queryFn: async () => {
       let query = supabase
         .from("vet_treatments")
@@ -113,11 +123,19 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
       const { data, error } = await query;
 
       if (error) throw error;
-      return (data || []) as VetTreatment[];
+      const rows = (data || []) as VetTreatment[];
+      // Defense-in-depth: if a horse filter is active, drop any row whose
+      // server-returned horse_id does not match. Prevents any residual
+      // cross-horse display if a cached response were ever mismatched.
+      if (filters.horse_id) {
+        return rows.filter(r => r.horse_id === filters.horse_id);
+      }
+      return rows;
     },
     enabled: !!tenantId,
-    placeholderData: [], // Prevent flash from previous tenant data
+    placeholderData: [], // Prevent flash from previous tenant/horse data
   });
+
 
   // Create mutation
   const createMutation = useMutation({
