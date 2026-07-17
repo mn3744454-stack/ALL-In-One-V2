@@ -89,7 +89,7 @@ export function LocalRecordCompletionDialog({
     let cancelled = false;
     (async () => {
       const { data } = await supabase
-        .from("horse_colors")
+        .from("horse_colors" as any)
         .select("id,name,name_ar")
         .eq("tenant_id", tenantId)
         .order("name");
