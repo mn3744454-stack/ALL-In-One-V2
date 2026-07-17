@@ -55,6 +55,66 @@ export function mapHorseSaveError(error: unknown, t: Translator): FriendlyError 
     error && typeof error === "object" ? (error as any).field : undefined;
 
   switch (reasonCode) {
+    // Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — Local Record Custodial
+    // Completion RPC reason codes.
+    case "local_record_permission_denied":
+    case "local_record_membership_inactive":
+    case "local_record_not_stable_tenant":
+    case "local_record_authentication_required":
+      return {
+        title: t("horses.errors.localRecordPermissionDenied.title"),
+        description: t("horses.errors.localRecordPermissionDenied.description"),
+      };
+    case "local_record_owner_tenant_exists":
+    case "local_record_current_owner_exists":
+      return {
+        title: t("horses.errors.localRecordOwnerExists.title"),
+        description: t("horses.errors.localRecordOwnerExists.description"),
+      };
+    case "owner_truth_review_required":
+      return {
+        title: t("horses.errors.localRecordReviewRequired.title"),
+        description: t("horses.errors.localRecordReviewRequired.description"),
+      };
+    case "local_record_not_in_active_tenant":
+    case "local_record_tenant_not_found":
+    case "local_record_active_tenant_required":
+    case "local_record_horse_not_found":
+      return {
+        title: t("horses.errors.localRecordNotInTenant.title"),
+        description: t("horses.errors.localRecordNotInTenant.description"),
+      };
+    case "local_record_status_denied":
+      return {
+        title: t("horses.errors.localRecordStatusDenied.title"),
+        description: t("horses.errors.localRecordStatusDenied.description"),
+      };
+    case "local_record_field_restricted":
+      return {
+        title: t("horses.errors.localRecordFieldRestricted.title"),
+        description: t("horses.errors.localRecordFieldRestricted.description"),
+      };
+    case "local_record_field_not_missing":
+      return {
+        title: t("horses.errors.localRecordFieldNotMissing.title"),
+        description: t("horses.errors.localRecordFieldNotMissing.description"),
+      };
+    case "local_record_birth_date_already_set":
+      return {
+        title: t("horses.errors.localRecordBirthDateAlreadySet.title"),
+        description: t("horses.errors.localRecordBirthDateAlreadySet.description"),
+      };
+    case "local_record_no_safe_missing_fields":
+      return {
+        title: t("horses.errors.localRecordNoSafeFields.title"),
+        description: t("horses.errors.localRecordNoSafeFields.description"),
+      };
+    case "local_record_completion_not_available":
+    case "local_record_payload_invalid":
+      return {
+        title: t("horses.errors.localRecordCompletionUnavailable.title"),
+        description: t("horses.errors.localRecordCompletionUnavailable.description"),
+      };
     case "host_operational_denied_for_identity":
       return {
         title: t("horses.errors.hostIdentityDenied.title"),
