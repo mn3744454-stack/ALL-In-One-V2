@@ -126,6 +126,13 @@ const HorseProfile = () => {
     enabled: accessConfirmedForProjection,
   });
   const [showEditWizard, setShowEditWizard] = useState(false);
+  const [showLocalCompletionDialog, setShowLocalCompletionDialog] = useState(false);
+  // Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — Local Record Custodial capability
+  // read exclusively from the backend access envelope. No frontend inference.
+  const capabilities = access?.capabilities ?? null;
+  const canCompleteLocalRecord = capabilities?.can_complete_local_record === true;
+  const localRecordEditableFields =
+    capabilities?.local_record_completion_editable_fields ?? [];
   // Phase 1.e.f.8.1.4.a — tab shell state is local-only (no URL/deep-link).
   const [activeTab, setActiveTab] = useState<string>("overview");
   const { state: lifecycleState, status: opStatus } = useHorseLifecycleState(id);
