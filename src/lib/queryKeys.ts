@@ -56,7 +56,17 @@ export const queryKeys = {
     ['hr-assignments', tenantId, horseId] as const,
   
   // Vet
-  vetTreatments: (tenantId?: string) => ['vet-treatments', tenantId] as const,
+  vetTreatments: {
+    root: ['vet-treatments'] as const,
+    tenant: (tenantId?: string) => ['vet-treatments', tenantId] as const,
+    lists: (tenantId?: string) => ['vet-treatments', tenantId, 'list'] as const,
+    list: (tenantId?: string, filters?: Record<string, unknown>) =>
+      ['vet-treatments', tenantId, 'list', stableStringify(filters)] as const,
+    horse: (tenantId?: string, horseId?: string) =>
+      ['vet-treatments', tenantId, 'horse', horseId] as const,
+    detail: (tenantId?: string, treatmentId?: string) =>
+      ['vet-treatments', tenantId, 'detail', treatmentId] as const,
+  },
   vetVisits: (tenantId?: string) => ['vet-visits', tenantId] as const,
   vetFollowups: (tenantId?: string) => ['vet-followups', tenantId] as const,
   vaccinations: (tenantId?: string) => ['vaccinations', tenantId] as const,

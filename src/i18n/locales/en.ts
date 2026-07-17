@@ -3253,6 +3253,7 @@ export const en = {
     },
     emptyMessages: {
       treatments: "No treatments yet. Create your first treatment to get started.",
+      horseTreatments: "No treatment records for this horse.",
       vaccinations: "No vaccinations scheduled",
       visits: "No visits scheduled. Schedule a vet visit to get started.",
       followups: "No follow-ups scheduled",
