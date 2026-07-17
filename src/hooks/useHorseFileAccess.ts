@@ -148,6 +148,28 @@ function adapt(raw: unknown): HorseAccessEnvelope {
         ? (envelope.action_perms as Record<string, unknown>)
         : {};
 
+  // Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — capabilities envelope
+  // exposes local-record-completion authority to the UI. Missing or
+  // malformed values collapse to a fail-closed default (no ability, no
+  // editable fields).
+  const capsSource =
+    outer.capabilities && typeof outer.capabilities === "object"
+      ? (outer.capabilities as Record<string, unknown>)
+      : {};
+  const editableFieldsRaw = capsSource.local_record_completion_editable_fields;
+  const capabilities: HorseFileCapabilities = {
+    can_complete_local_record: capsSource.can_complete_local_record === true,
+    local_record_completion_reason:
+      typeof capsSource.local_record_completion_reason === "string"
+        ? (capsSource.local_record_completion_reason as string)
+        : null,
+    local_record_completion_editable_fields: Array.isArray(editableFieldsRaw)
+      ? (editableFieldsRaw as unknown[]).filter(
+          (v): v is string => typeof v === "string",
+        )
+      : [],
+  };
+
   return {
     mode,
     reason_code:
@@ -165,6 +187,7 @@ function adapt(raw: unknown): HorseAccessEnvelope {
       : [],
     section_perms: sectionPermsSource,
     action_perms: actionPermsSource,
+    capabilities,
   };
 }
 
