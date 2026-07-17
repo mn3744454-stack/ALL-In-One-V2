@@ -4208,6 +4208,8 @@ export const ar = {
       male: "ذكر",
       female: "أنثى",
       birthDate: "تاريخ الميلاد",
+      registrationNumber: "رقم التسجيل",
+      avatarUrl: "رابط الصورة",
       breed: "السلالة",
       selectBreed: "اختر السلالة",
       chooseBreed: "اختر السلالة",
