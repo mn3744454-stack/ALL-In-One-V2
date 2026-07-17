@@ -4507,6 +4507,62 @@ export const en = {
         title: "This field cannot be changed here",
         description: "This field cannot be changed from normal identity editing.",
       },
+      // Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — Local Record Custodial
+      // Completion error mapping. These messages are shown to Stable staff
+      // when the custodial completion RPC rejects a write.
+      localRecordPermissionDenied: {
+        title: "You cannot complete this record",
+        description: "You do not have permission to complete this local horse record. Ask a workspace owner or manager to complete it.",
+      },
+      localRecordOwnerExists: {
+        title: "Owner information already exists",
+        description: "This horse already has owner information, so it cannot be completed as a local record. Ownership changes require the owner authority workflow.",
+      },
+      localRecordReviewRequired: {
+        title: "Owner-truth review required",
+        description: "This record needs an owner-truth review before local completion is available again.",
+      },
+      localRecordNotInTenant: {
+        title: "Not part of this workspace",
+        description: "This horse is not part of the active workspace and cannot be completed here.",
+      },
+      localRecordStatusDenied: {
+        title: "Record is not eligible",
+        description: "This record is archived, retired, transferred out or otherwise not eligible for local completion.",
+      },
+      localRecordFieldRestricted: {
+        title: "This field cannot be completed here",
+        description: "Sensitive identity fields such as sex, breed or reproductive role cannot be edited from local completion.",
+      },
+      localRecordFieldNotMissing: {
+        title: "This field is already filled",
+        description: "This field is no longer missing on the record and cannot be overwritten from local completion.",
+      },
+      localRecordBirthDateAlreadySet: {
+        title: "Date of birth is already recorded",
+        description: "Date of birth is already set on this horse. It cannot be changed from local completion.",
+      },
+      localRecordNoSafeFields: {
+        title: "Nothing to complete",
+        description: "There are no safe missing fields to complete on this record.",
+      },
+      localRecordCompletionUnavailable: {
+        title: "Local completion is not available",
+        description: "This record cannot be completed locally right now.",
+      },
+    },
+
+    localRecord: {
+      dialog: {
+        title: "Complete local record",
+        description: "Fill in the missing safe fields for this Stable-local horse record. Sensitive identity fields (sex, breed, reproductive role) are handled by dedicated workflows.",
+        submit: "Save",
+        nothingMissing: "There are no safe missing fields to complete on this record.",
+      },
+      completed: {
+        title: "Record updated",
+        description: "The local horse record has been updated.",
+      },
     },
 
     toast: {
