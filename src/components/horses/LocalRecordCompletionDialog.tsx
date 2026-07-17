@@ -161,31 +161,31 @@ export function LocalRecordCompletionDialog({
   const labelFor = (f: string): string => {
     switch (f) {
       case "name":
-        return t("horses.form.name");
+        return t("horses.wizard.name");
       case "name_ar":
-        return t("horses.form.nameAr");
+        return t("horses.wizard.nameAr");
       case "birth_date":
-        return t("horses.form.birthDate");
+        return t("horses.wizard.birthDate");
       case "color_id":
         return t("horses.profile.color");
       case "registration_number":
-        return t("horses.form.registrationNumber");
+        return t("horses.wizard.registrationNumber");
       case "microchip_number":
-        return t("horses.profile.microchip");
+        return t("horses.wizard.microchip");
       case "passport_number":
-        return t("horses.profile.passport");
+        return t("horses.wizard.passport");
       case "ueln":
-        return t("horses.profile.ueln");
+        return t("horses.wizard.ueln");
       case "avatar_url":
-        return t("horses.form.avatarUrl");
+        return t("horses.wizard.avatarUrl");
       case "mane_marks":
-        return t("horses.form.maneMarks");
+        return t("horses.wizard.maneMarks");
       case "body_marks":
-        return t("horses.form.bodyMarks");
+        return t("horses.wizard.bodyMarks");
       case "legs_marks":
-        return t("horses.form.legsMarks");
+        return t("horses.wizard.legsMarks");
       case "distinctive_marks_notes":
-        return t("horses.form.distinctiveMarks");
+        return t("horses.wizard.distinctiveMarks");
       default:
         return f;
     }
