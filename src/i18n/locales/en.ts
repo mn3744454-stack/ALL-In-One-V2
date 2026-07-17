@@ -4190,6 +4190,8 @@ export const en = {
       male: "Male",
       female: "Female",
       birthDate: "Birth Date",
+      registrationNumber: "Registration Number",
+      avatarUrl: "Photo URL",
       breed: "Breed",
       selectBreed: "Select breed",
       chooseBreed: "Choose breed",
