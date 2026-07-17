@@ -41,7 +41,20 @@ export interface HorseAccessEnvelope {
   warnings: string[];
   section_perms: Record<string, unknown>;
   action_perms: Record<string, unknown>;
+  capabilities: HorseFileCapabilities;
 }
+
+export interface HorseFileCapabilities {
+  can_complete_local_record: boolean;
+  local_record_completion_reason: string | null;
+  local_record_completion_editable_fields: string[];
+}
+
+const SAFE_CAPABILITIES: HorseFileCapabilities = {
+  can_complete_local_record: false,
+  local_record_completion_reason: "frontend_fallback",
+  local_record_completion_editable_fields: [],
+};
 
 const SAFE_NO_ACCESS: HorseAccessEnvelope = {
   mode: "no_access",
@@ -53,6 +66,7 @@ const SAFE_NO_ACCESS: HorseAccessEnvelope = {
   warnings: [],
   section_perms: {},
   action_perms: {},
+  capabilities: SAFE_CAPABILITIES,
 };
 
 const KNOWN_MODES: ReadonlySet<HorseAccessMode> = new Set<HorseAccessMode>([
