@@ -576,6 +576,26 @@ const HorseProfile = () => {
       />
 
       {/*
+        Phase 1.e.f.8.1.4.d.3.fix.1.r1.qa1.local — Local Record Custodial
+        Completion dialog. Only mounted when the backend capability envelope
+        reports `can_complete_local_record` and the active tenant is known.
+        Never touches ownership, tenant assignment, gender or breed.
+      */}
+      {horse && tenantId && (
+        <LocalRecordCompletionDialog
+          open={showLocalCompletionDialog}
+          onOpenChange={setShowLocalCompletionDialog}
+          horseId={horse.id}
+          tenantId={tenantId}
+          editableFields={localRecordEditableFields}
+          onCompleted={() => {
+            refreshHorse();
+          }}
+        />
+      )}
+
+
+      {/*
         Phase 1.e.f.8.1.4.d.1.a — Delete Confirmation Dialog removed.
         Hard delete is permanently retired in favour of a future RPC-governed
         archive / removal / deceased / retired model.
