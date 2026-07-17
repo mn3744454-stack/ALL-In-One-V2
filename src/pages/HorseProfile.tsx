@@ -40,6 +40,7 @@ import { useHorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
+import { LocalRecordCompletionDialog } from "@/components/horses/LocalRecordCompletionDialog";
 import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
