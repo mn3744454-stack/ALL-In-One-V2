@@ -38,11 +38,14 @@ import { useLabServiceTemplates, type UpsertServiceTemplateInput } from "@/hooks
 import { usePermissions } from "@/hooks/usePermissions";
 import type { LabService, CreateLabServiceInput } from "@/hooks/laboratory/useLabServices";
 
+import { ServiceCategorySelect } from "@/components/finance/ServiceCategorySelect";
+
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   name_ar: z.string().optional(),
   code: z.string().optional(),
-  category: z.string().optional(),
+  // 2QA-C — category is now a shared tenant_service_categories id (nullable).
+  category_id: z.string().uuid().nullable().optional(),
   description: z.string().optional(),
   sample_type: z.string().optional(),
   turnaround_hours: z.coerce.number().int().positive().nullable().optional(),
