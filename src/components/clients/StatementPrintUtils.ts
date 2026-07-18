@@ -138,12 +138,18 @@ export function printStatement(data: StatementPrintData) {
       const descHtml = desc.includes(" | ")
         ? desc.split(" | ").map((part, i) => i === 0 ? `<strong>${escapeHtml(part)}</strong>` : `<span style="color:#666;font-size:12px">${escapeHtml(part)}</span>`).join("<br>")
         : escapeHtml(desc);
+      // 2QA-A · Finding 1 — Surface semantic classification as an inline pill
+      // for non-standard entries (cancellation, reversal, adjustment).
+      const sem = classifyLedgerEntry(e);
+      const semPill = sem.class === "invoice" || sem.class === "payment"
+        ? ""
+        : `<div class="sem-pill sem-${sem.class}">${escapeHtml(semanticClassLabel(sem.class, !!data.isRTL))}</div>`;
       return `
     <tr>
       <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${escapeHtml(formatDateForPrint(e.date))}</td>
-      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"};vertical-align:top">${descHtml}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.debit > 0 ? escapeHtml(formatCurrency(e.debit)) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.credit > 0 ? escapeHtml(formatCurrency(e.credit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"};vertical-align:top">${descHtml}${semPill}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top;color:#b91c1c" dir="ltr">${e.debit > 0 ? escapeHtml(formatCurrency(e.debit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top;color:#047857" dir="ltr">${e.credit > 0 ? escapeHtml(formatCurrency(e.credit)) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600;vertical-align:top" dir="ltr">${escapeHtml(formatCurrency(e.balance))}</td>
     </tr>`;
     })
