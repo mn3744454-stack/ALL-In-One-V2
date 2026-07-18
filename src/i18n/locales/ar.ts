@@ -5461,6 +5461,7 @@ export const ar = {
       scopedInvoices: "إجمالي الفواتير ضمن النطاق",
       scopedPaid: "إجمالي المسدد ضمن النطاق",
       scopedOutstanding: "إجمالي المستحق ضمن النطاق",
+      scopedCreditBalance: "رصيد دائن ضمن النطاق",
       customerTotalInvoices: "إجمالي فواتير العميل",
       customerTotalOutstanding: "إجمالي مستحقات العميل",
       creditBalance: "رصيد دائن",
