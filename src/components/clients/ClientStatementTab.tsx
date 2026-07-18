@@ -320,17 +320,38 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   const canViewStatement = isOwner || hasPermission("clients.statement.view");
   const canExport = isOwner || hasPermission("clients.statement.export");
 
+  // Slice 2B — URL persistence for scope config so statements are shareable.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialFromUrl = useMemo<Partial<StatementScopeConfig> & { hasParams: boolean }>(() => {
+    const df = searchParams.get("df");
+    const dt = searchParams.get("dt");
+    const mode = searchParams.get("mode");
+    const horses = searchParams.get("horses");
+    const cats = searchParams.get("cats");
+    const hasParams = !!(df || dt || mode || horses || cats);
+    return {
+      dateFrom: df || undefined,
+      dateTo: dt || undefined,
+      mode: (mode === "horses" ? "horses" : mode === "all" ? "all" : undefined) as any,
+      selectedHorseIds: horses ? horses.split(",").filter(Boolean) : undefined,
+      categoryKeys: cats ? cats.split(",").filter(Boolean) : undefined,
+      hasParams,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // read once on mount
+
   // Scope selector state
-  const [scopeOpen, setScopeOpen] = useState(true);
+  const [scopeOpen, setScopeOpen] = useState(!initialFromUrl.hasParams);
   const [scopeConfig, setScopeConfig] = useState<StatementScopeConfig>({
-    dateFrom: format(subMonths(new Date(), 3), "yyyy-MM-dd"),
-    dateTo: format(new Date(), "yyyy-MM-dd"),
-    mode: "all",
-    selectedHorseIds: [],
-    domainFilter: "all",
-    categoryKeys: [],
+    dateFrom: initialFromUrl.dateFrom || format(subMonths(new Date(), 3), "yyyy-MM-dd"),
+    dateTo: initialFromUrl.dateTo || format(new Date(), "yyyy-MM-dd"),
+    mode: initialFromUrl.mode || "all",
+    selectedHorseIds: initialFromUrl.selectedHorseIds || [],
+    domainFilter: "all", // Deprecated in Slice 2B — filtering now uses categoryKeys
+    categoryKeys: initialFromUrl.categoryKeys || [],
   });
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(initialFromUrl.hasParams);
+
 
   // Client-wide total invoices (all invoice debits across all time)
   const [clientWideTotalInvoices, setClientWideTotalInvoices] = useState<number>(0);
