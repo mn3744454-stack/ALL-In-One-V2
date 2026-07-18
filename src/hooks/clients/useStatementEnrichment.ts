@@ -346,6 +346,32 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
           itemsSummary = `${allItemNames.slice(0, 3).join(", ")} (+${allItemNames.length - 3})`;
         }
 
+        // Slice 2B — Derive snapshot-based category identity from line items.
+        // Uses category_key + category_name(_ar)_snapshot so renames and
+        // archives never change what a historical statement row displays.
+        const categoryKeysSet = new Set<string>();
+        const categoryDisplayMap = new Map<string, { name: string; nameAr: string | null }>();
+        let hasUncategorizedItem = false;
+        for (const item of items) {
+          if (item.category_key) {
+            categoryKeysSet.add(item.category_key);
+            if (!categoryDisplayMap.has(item.category_key)) {
+              categoryDisplayMap.set(item.category_key, {
+                name: item.category_name_snapshot || item.category_key,
+                nameAr: item.category_name_ar_snapshot,
+              });
+            }
+          } else {
+            hasUncategorizedItem = true;
+          }
+        }
+        const categoryKeys = Array.from(categoryKeysSet).sort();
+        const categoryDisplay = categoryKeys.map((k) => ({
+          key: k,
+          name: categoryDisplayMap.get(k)?.name || k,
+          nameAr: categoryDisplayMap.get(k)?.nameAr ?? null,
+        }));
+
         result.set(entry.id, {
           invoiceNumber: invoiceNumber || undefined,
           paymentMethod: entry.payment_method || undefined,
@@ -353,6 +379,9 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
           itemsSummary,
           isMultiHorse: horses.length > 1,
           directDomain,
+          categoryKeys,
+          categoryDisplay,
+          hasUncategorizedItem,
           boardingSegments: boardingSegments.length > 0 ? boardingSegments : undefined,
         });
       }
