@@ -929,7 +929,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         horses={clientHorses}
         initialConfig={scopeConfig}
         onGenerate={handleGenerate}
+        historicalCategoryKeys={historicalCategoryKeys}
+        hasUncategorizedItems={hasUncategorizedItems}
+        firstActivityDate={firstActivityDate}
       />
+
 
       {!hasGenerated ? (
         <Card>
