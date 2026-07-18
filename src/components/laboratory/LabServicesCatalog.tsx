@@ -212,10 +212,14 @@ export function LabServicesCatalog() {
               <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              {service.category_id && categoryMap.has(service.category_id) && (
+              {service.category_id && categoryMap.has(service.category_id) ? (
                 <Badge variant="secondary" className="text-xs">
                   <Tag className="w-3 h-3 mr-1" />
                   {displayCategoryName(categoryMap.get(service.category_id)!, lang === "ar" ? "ar" : "en")}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-xs border-dashed text-muted-foreground" title={t("finance.categories.unmappedFull")}>
+                  {t("finance.categories.unmapped")}
                 </Badge>
               )}
               {service.sample_type && <Badge variant="outline" className="text-xs">{service.sample_type}</Badge>}
@@ -266,7 +270,7 @@ export function LabServicesCatalog() {
                 <BilingualName name={service.name} nameAr={service.name_ar} />
               </TableCell>
               <TableCell><span className="font-mono text-xs">{service.code || "—"}</span></TableCell>
-              <TableCell>{service.category_id && categoryMap.has(service.category_id) ? displayCategoryName(categoryMap.get(service.category_id)!, lang === "ar" ? "ar" : "en") : "—"}</TableCell>
+              <TableCell>{service.category_id && categoryMap.has(service.category_id) ? displayCategoryName(categoryMap.get(service.category_id)!, lang === "ar" ? "ar" : "en") : (<Badge variant="outline" className="text-xs border-dashed text-muted-foreground" title={t("finance.categories.unmappedFull")}>{t("finance.categories.unmapped")}</Badge>)}</TableCell>
               <TableCell>{service.price != null ? `${service.price} ${service.currency || ""}` : "—"}</TableCell>
               <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                 <Switch
