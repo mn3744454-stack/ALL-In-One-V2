@@ -325,16 +325,21 @@ export function CategoryMultiSelect({
             <div className="flex-1 min-h-0">{body}</div>
           </SheetContent>
         </Sheet>
+        <ServiceCategoryManagerDialog open={managerOpen} onOpenChange={setManagerOpen} />
       </>
     );
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent align="start" className="w-[380px] p-0">
-        {body}
-      </PopoverContent>
-    </Popover>
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+        <PopoverContent align="start" className="w-[380px] p-0">
+          {body}
+        </PopoverContent>
+      </Popover>
+      <ServiceCategoryManagerDialog open={managerOpen} onOpenChange={setManagerOpen} />
+    </>
   );
 }
+
