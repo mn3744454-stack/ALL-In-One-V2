@@ -55,7 +55,10 @@ const CANCELLATION_MARKER_RE =
  * falls back to a conservative description signal. Never guesses cancellation
  * for a plain payment row and never guesses payment for a plain adjustment row.
  */
-export function classifyLedgerEntry(entry: StatementEntry): ClassifiedEntry {
+export function classifyLedgerEntry(
+  entry: StatementEntry,
+  ctx?: { scopedPostedInvoiceRefIds?: Set<string> }
+): ClassifiedEntry {
   const type = entry.entry_type;
   const refType = (entry.reference_type || "").toLowerCase();
   const desc = entry.description || "";
@@ -71,7 +74,6 @@ export function classifyLedgerEntry(entry: StatementEntry): ClassifiedEntry {
     if (isPositive) semanticClass = "posted_invoice_debit";
     else if (isNegative) semanticClass = "invoice_debit_reversal";
   } else if (type === "payment") {
-    // Cancellation reversals miscategorised as `payment` (defensive):
     if (explicitCancellationRef || (looksLikeCancellationText && isNegative && !entry.payment_method)) {
       semanticClass = "invoice_cancellation";
     } else if (isNegative) {
@@ -80,8 +82,6 @@ export function classifyLedgerEntry(entry: StatementEntry): ClassifiedEntry {
       semanticClass = "payment_refund";
     }
   } else if (type === "credit") {
-    // A `credit` row is either a formal credit note issued to the customer
-    // (negative amount → reduces balance) or a rare reverse.
     semanticClass = "credit_note";
   } else if (type === "adjustment") {
     if (explicitCancellationRef || (looksLikeCancellationText && isNegative)) {
@@ -98,28 +98,57 @@ export function classifyLedgerEntry(entry: StatementEntry): ClassifiedEntry {
     semanticClass === "invoice_reversal" ||
     semanticClass === "invoice_debit_reversal";
 
+  // 2QA-A · Finding 1 (patch) — orphan cancellation detection.
+  // A cancellation/reversal is "orphan" when its paired posted-invoice debit
+  // is not present in the currently-scoped entry set. Its monetary effect
+  // MUST be neutralized to prevent a false credit balance (e.g. the invoice
+  // debit was posted in March but excluded by an April date scope, while the
+  // April cancellation credit remains).
+  let isOrphanCancellation = false;
+  if (
+    isCancellationOrReversal &&
+    ctx?.scopedPostedInvoiceRefIds &&
+    entry.reference_id
+  ) {
+    isOrphanCancellation = !ctx.scopedPostedInvoiceRefIds.has(entry.reference_id);
+  }
+
   return {
     entry,
     semanticClass,
     isRealPayment: semanticClass === "real_payment",
     isPostedInvoiceDebit: semanticClass === "posted_invoice_debit",
     isCancellationOrReversal,
+    isOrphanCancellation,
   };
 }
 
 export interface StatementFinancialSummary {
-  /** Sum of real posted invoice debits — excludes cancelled/reversed invoice rows. */
   totalInvoices: number;
-  /** Sum of real customer payments — excludes cancellation/reversal adjustments and credit notes. */
   totalPaid: number;
-  /** Sum of every classified row's net monetary effect (debit − credit). Can be negative. */
   rawBalance: number;
-  /** max(0, rawBalance). Never negative. */
   outstanding: number;
-  /** |min(0, rawBalance)|. Populated only when a genuine credit balance exists. */
   creditBalance: number;
-  /** Counts by class for evidence / debugging (not rendered by default). */
   counts: Record<LedgerSemanticClass, number>;
+  /** Reference_ids of cancellation/reversal rows that were neutralized. */
+  neutralizedRowIds: string[];
+}
+
+/**
+ * Batch-classify a set of entries with orphan-cancellation detection applied
+ * relative to the same set. Callers rendering the ledger table can reuse this
+ * to skip neutralized rows in the running balance.
+ */
+export function classifyEntries(entries: StatementEntry[]): ClassifiedEntry[] {
+  const scopedPostedInvoiceRefIds = new Set<string>();
+  // First pass: collect reference_ids of posted invoice debits in the set.
+  for (const e of entries) {
+    if (e.entry_type === "invoice" && e.debit > 0 && e.reference_id) {
+      scopedPostedInvoiceRefIds.add(e.reference_id);
+    }
+  }
+  // Second pass: classify with the scoped context.
+  return entries.map((e) => classifyLedgerEntry(e, { scopedPostedInvoiceRefIds }));
 }
 
 export function summarizeStatement(entries: StatementEntry[]): StatementFinancialSummary {
@@ -135,24 +164,27 @@ export function summarizeStatement(entries: StatementEntry[]): StatementFinancia
     unresolved_legacy: 0,
   };
 
+  const classified = classifyEntries(entries);
+  const neutralizedRowIds: string[] = [];
   let totalInvoices = 0;
   let totalPaid = 0;
   let rawBalance = 0;
 
-  for (const entry of entries) {
-    const c = classifyLedgerEntry(entry);
+  for (const c of classified) {
     counts[c.semanticClass] += 1;
-    // rawBalance always uses the row's real signed effect — this naturally
-    // nets a posted invoice against its cancellation adjustment without any
-    // double reversal.
-    rawBalance += entry.debit - entry.credit;
-    if (c.isPostedInvoiceDebit) totalInvoices += entry.debit;
-    if (c.isRealPayment) totalPaid += entry.credit;
+    if (c.isOrphanCancellation) {
+      neutralizedRowIds.push(c.entry.id);
+      // Skip monetary effect entirely.
+      continue;
+    }
+    rawBalance += c.entry.debit - c.entry.credit;
+    if (c.isPostedInvoiceDebit) totalInvoices += c.entry.debit;
+    if (c.isRealPayment) totalPaid += c.entry.credit;
   }
 
   const outstanding = Math.max(0, rawBalance);
   const creditBalance = Math.abs(Math.min(0, rawBalance));
-  return { totalInvoices, totalPaid, rawBalance, outstanding, creditBalance, counts };
+  return { totalInvoices, totalPaid, rawBalance, outstanding, creditBalance, counts, neutralizedRowIds };
 }
 
 /**
