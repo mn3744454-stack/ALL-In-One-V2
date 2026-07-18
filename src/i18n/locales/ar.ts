@@ -3688,6 +3688,7 @@ export const ar = {
       manage: "إدارة التصنيفات",
       unmapped: "غير مربوط",
       unmappedFull: "التصنيف غير مربوط",
+      unavailable: "التصنيف غير متاح",
     },
     categorization: {
       income: "إيرادات (دخل)",

@@ -211,20 +211,50 @@ export function useLabServices() {
   };
 }
 
+/**
+ * 2QA-C — Cross-tenant Lab catalog row.
+ * Category identity comes exclusively from the shared
+ * tenant_service_categories join (`category_*`). Legacy `lab_services.category`
+ * text is intentionally NOT returned by the RPC anymore — it is kept in the
+ * table only for historical compatibility.
+ */
+export interface LabCatalogViewerService {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  code: string | null;
+  description: string | null;
+  sample_type: string | null;
+  turnaround_hours: number | null;
+  price: number | null;
+  currency: string | null;
+  is_active: boolean;
+  // Shared category identity (same-tenant join). All null when unmapped.
+  category_id: string | null;
+  category_key: string | null;
+  category_name: string | null;
+  category_name_ar: string | null;
+  category_is_active: boolean | null;
+}
+
 // Hook for viewing a lab's catalog (cross-tenant via RPC)
-export function useLabCatalogViewer(labTenantId: string | null, search = "", category: string | null = null) {
+export function useLabCatalogViewer(
+  labTenantId: string | null,
+  search = "",
+  categoryId: string | null = null,
+) {
   return useQuery({
-    queryKey: ["lab-catalog", labTenantId, search, category],
+    queryKey: ["lab-catalog", labTenantId, search, categoryId],
     queryFn: async () => {
-      if (!labTenantId) return [];
-      const { data, error } = await supabase.rpc("get_lab_services_for_viewer", {
+      if (!labTenantId) return [] as LabCatalogViewerService[];
+      const { data, error } = await supabase.rpc("get_lab_services_for_viewer" as any, {
         _lab_tenant_id: labTenantId,
         _only_active: true,
         _search: search,
-        _category: category,
+        _category_id: categoryId,
       });
       if (error) throw error;
-      return (data ?? []) as Omit<LabService, "tenant_id" | "created_at" | "updated_at">[];
+      return (data ?? []) as unknown as LabCatalogViewerService[];
     },
     enabled: !!labTenantId,
   });

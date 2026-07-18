@@ -15,17 +15,44 @@ interface Props {
   selectedIds?: string[];
 }
 
+/**
+ * 2QA-C Cross-Tenant Closure — this cross-tenant catalog surface renders
+ * live category identity from the shared tenant_service_categories join
+ * returned by `get_lab_services_for_viewer`. Legacy free-text category
+ * (`lab_services.category`) is intentionally NOT read here, so a legacy
+ * value such as "ميم" can never appear as a live category label.
+ */
 export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selectable, selectedIds = [] }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
 
-  const { data: services, isLoading, isError } = useLabCatalogViewer(labTenantId, search, categoryFilter);
+  const { data: services, isLoading, isError } = useLabCatalogViewer(labTenantId, search, categoryId);
 
+  // Distinct shared categories present in the current result set.
   const categories = useMemo(() => {
-    const cats = new Set((services ?? []).map(s => s.category).filter(Boolean) as string[]);
-    return Array.from(cats).sort();
-  }, [services]);
+    const map = new Map<string, { id: string; name: string; name_ar: string | null }>();
+    for (const s of services ?? []) {
+      if (s.category_id && !map.has(s.category_id)) {
+        map.set(s.category_id, {
+          id: s.category_id,
+          name: s.category_name || "",
+          name_ar: s.category_name_ar || null,
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      const an = (isAr ? a.name_ar || a.name : a.name || a.name_ar || "").trim();
+      const bn = (isAr ? b.name_ar || b.name : b.name || b.name_ar || "").trim();
+      return an.localeCompare(bn);
+    });
+  }, [services, isAr]);
+
+  const hasUnmapped = useMemo(
+    () => (services ?? []).some((s) => !s.category_id),
+    [services],
+  );
 
   const handleToggleService = (serviceId: string) => {
     if (!onSelectServices) return;
@@ -78,7 +105,7 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
           <FlaskConical className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
           <h3 className="font-semibold mb-2">{t("laboratory.catalog.noServicesAvailable")}</h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            {labName 
+            {labName
               ? t("laboratory.catalog.noServicesForLab").replace("{{lab}}", labName)
               : t("laboratory.catalog.noServicesDesc")}
           </p>
@@ -86,6 +113,8 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
       </Card>
     );
   }
+
+  const UNMAPPED_FILTER = "__unmapped__";
 
   return (
     <div className="space-y-4">
@@ -104,25 +133,37 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
             className="pl-9"
           />
         </div>
-        {categories.length > 0 && (
+        {(categories.length > 0 || hasUnmapped) && (
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             <Badge
-              variant={categoryFilter === null ? "default" : "outline"}
+              variant={categoryId === null ? "default" : "outline"}
               className="cursor-pointer shrink-0"
-              onClick={() => setCategoryFilter(null)}
+              onClick={() => setCategoryId(null)}
             >
               {t("common.all")}
             </Badge>
-            {categories.map(cat => (
+            {categories.map(cat => {
+              const label = (isAr ? cat.name_ar || cat.name : cat.name || cat.name_ar || "").trim();
+              return (
+                <Badge
+                  key={cat.id}
+                  variant={categoryId === cat.id ? "default" : "outline"}
+                  className="cursor-pointer shrink-0"
+                  onClick={() => setCategoryId(cat.id === categoryId ? null : cat.id)}
+                >
+                  {label || t("finance.categories.unavailable")}
+                </Badge>
+              );
+            })}
+            {hasUnmapped && (
               <Badge
-                key={cat}
-                variant={categoryFilter === cat ? "default" : "outline"}
-                className="cursor-pointer shrink-0"
-                onClick={() => setCategoryFilter(cat === categoryFilter ? null : cat)}
+                variant="outline"
+                className="cursor-pointer shrink-0 border-dashed text-muted-foreground"
+                title={t("finance.categories.unmappedFull")}
               >
-                {cat}
+                {t("finance.categories.unmapped")}
               </Badge>
-            ))}
+            )}
           </div>
         )}
       </div>
@@ -131,6 +172,17 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
       <div className="space-y-3">
         {servicesList.map(service => {
           const isSelected = selectedIds.includes(service.id);
+
+          const hasLinked = !!service.category_id;
+          const primary = (isAr
+            ? service.category_name_ar || service.category_name
+            : service.category_name || service.category_name_ar || ""
+          )?.trim() || "";
+          const secondary = (isAr
+            ? service.category_name || ""
+            : service.category_name_ar || ""
+          )?.trim() || "";
+
           return (
             <Card
               key={service.id}
@@ -154,10 +206,23 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
                       <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
                     )}
                     <div className="flex flex-wrap items-center gap-2 mt-2">
-                      {service.category && (
-                        <Badge variant="secondary" className="text-xs">
+                      {hasLinked ? (
+                        <Badge
+                          variant="secondary"
+                          className="text-xs"
+                          title={secondary || undefined}
+                        >
                           <Tag className="w-3 h-3 mr-1" />
-                          {service.category}
+                          {primary || t("finance.categories.unavailable")}
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-dashed text-muted-foreground"
+                          title={t("finance.categories.unmappedFull")}
+                        >
+                          <Tag className="w-3 h-3 mr-1" />
+                          {t("finance.categories.unmapped")}
                         </Badge>
                       )}
                       {service.sample_type && (
