@@ -785,16 +785,76 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     return selectedNames.join(", ");
   }, [scopeConfig.mode, scopeConfig.selectedHorseIds, clientHorses, isRTL, t]);
 
+  // Slice 2B — Snapshot-backed historical category display + uncategorized detection.
+  const { historicalCategoryKeys, hasUncategorizedItems } = useMemo(() => {
+    const seen = new Map<string, { name: string; nameAr: string | null }>();
+    let anyUncat = false;
+    for (const e of entries) {
+      const enriched = enrichment.get(e.id);
+      if (!enriched) { anyUncat = true; continue; }
+      if (enriched.hasUncategorizedItem || enriched.categoryKeys.length === 0) {
+        anyUncat = true;
+      }
+      for (const d of enriched.categoryDisplay) {
+        if (!seen.has(d.key)) seen.set(d.key, { name: d.name, nameAr: d.nameAr });
+      }
+    }
+    return {
+      historicalCategoryKeys: Array.from(seen.keys()),
+      historicalCategoryDisplay: seen,
+      hasUncategorizedItems: anyUncat,
+    };
+  }, [entries, enrichment]);
+
   const scopeContextCategory = useMemo(() => {
-    if (scopeConfig.domainFilter === "all") return t("clients.statement.scopeContext.allCategories");
-    if (scopeConfig.domainFilter === "general") return t("clients.statement.scope.domainGeneral");
-    return t(`clients.statement.domain.${scopeConfig.domainFilter}`) || scopeConfig.domainFilter;
-  }, [scopeConfig.domainFilter, t]);
+    const keys = scopeConfig.categoryKeys || [];
+    if (keys.length === 0) return t("clients.statement.scopeContext.allCategories");
+    const parts: string[] = [];
+    for (const k of keys) {
+      if (k === "__uncategorized__") {
+        parts.push(t("clients.statement.scope.historicallyUncategorized"));
+        continue;
+      }
+      // Try to find a display name from the visible dataset first (preserves
+      // archived-category names via snapshot); fall back to the key itself.
+      let displayName = k;
+      for (const [, enriched] of enrichment) {
+        const hit = enriched.categoryDisplay.find(d => d.key === k);
+        if (hit) {
+          displayName = isRTL ? (hit.nameAr || hit.name) : hit.name;
+          break;
+        }
+      }
+      parts.push(displayName);
+    }
+    return parts.join(", ");
+  }, [scopeConfig.categoryKeys, enrichment, isRTL, t]);
+
+  // Slice 2B — Auxiliary data for scope selector and header presentation.
+  const { firstActivityDate } = useClientFirstActivity(clientId);
+  const { unallocated } = useUnallocatedPayments(clientId);
 
   const handleGenerate = (config: StatementScopeConfig) => {
     setScopeConfig(config);
     setHasGenerated(true);
+    // Slice 2B — Persist scope in the URL so the same view is shareable/reloadable.
+    const next = new URLSearchParams(searchParams);
+    next.set("df", config.dateFrom);
+    next.set("dt", config.dateTo);
+    next.set("mode", config.mode);
+    if (config.mode === "horses" && config.selectedHorseIds.length > 0) {
+      next.set("horses", config.selectedHorseIds.join(","));
+    } else {
+      next.delete("horses");
+    }
+    if (config.categoryKeys && config.categoryKeys.length > 0) {
+      next.set("cats", config.categoryKeys.join(","));
+    } else {
+      next.delete("cats");
+    }
+    setSearchParams(next, { replace: true });
   };
+
 
   if (!canViewStatement) {
     return (
