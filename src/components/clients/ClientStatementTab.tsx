@@ -324,6 +324,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     mode: "all",
     selectedHorseIds: [],
     domainFilter: "all",
+    categoryKeys: [],
   });
   const [hasGenerated, setHasGenerated] = useState(false);
 
