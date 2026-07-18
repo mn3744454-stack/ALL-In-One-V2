@@ -833,7 +833,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
 
   // Slice 2B — Auxiliary data for scope selector and header presentation.
   const { firstActivityDate } = useClientFirstActivity(clientId);
-  const { unallocated } = useUnallocatedPayments(clientId);
+  const { unallocated } = useUnallocatedPayments(
+    clientId,
+    scopeConfig.dateFrom,
+    scopeConfig.dateTo
+  );
   // Slice 2C — Lifetime customer ledger balance (source of truth for
   // Customer Total Outstanding). Negative = credit balance → outstanding = 0.
   const { balance: lifetimeLedgerBalance } = useLedgerBalance(clientId);
@@ -1158,6 +1162,101 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
             </Card>
           )}
 
+          {/* Slice 2 Correction 2 — Customer-level Activity: detailed rows for
+              customer-scoped movements that are not attributable to a specific
+              horse or category. Excluded from scoped paid/outstanding totals;
+              included in customer-wide balance. */}
+          {isScoped && unallocated.entries.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  {isRTL ? "حركة على مستوى العميل" : "Customer-level Activity"}
+                  <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
+                    {unallocated.entries.length}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* Desktop table */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("clients.statement.date")}</TableHead>
+                        <TableHead>{t("clients.statement.description")}</TableHead>
+                        <TableHead className="text-end">{t("clients.statement.debit")}</TableHead>
+                        <TableHead className="text-end">{t("clients.statement.credit")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {unallocated.entries.map((e) => (
+                        <TableRow key={e.id}>
+                          <TableCell className="whitespace-nowrap text-xs" dir="ltr">
+                            {formatDateTime12h(e.date)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="outline" className="text-xs">
+                                {e.entry_type === "payment"
+                                  ? (isRTL ? "دفعة على مستوى العميل" : "Customer-level Payment")
+                                  : t(`finance.ledger.entryTypes.${e.entry_type}`) || e.entry_type}
+                              </Badge>
+                              {e.payment_method && (
+                                <Badge variant="secondary" className="text-xs">{e.payment_method}</Badge>
+                              )}
+                              <span className="text-xs text-muted-foreground">
+                                {e.description || (isRTL ? "بدون مرجع" : "No reference")}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-end font-mono tabular-nums text-xs" dir="ltr">
+                            {e.debit > 0 ? formatCurrency(e.debit) : "—"}
+                          </TableCell>
+                          <TableCell className="text-end font-mono tabular-nums text-xs text-emerald-700 dark:text-emerald-400" dir="ltr">
+                            {e.credit > 0 ? formatCurrency(e.credit) : "—"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                {/* Mobile stacked */}
+                <div className="sm:hidden divide-y">
+                  {unallocated.entries.map((e) => (
+                    <div key={e.id} className="p-3 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant="outline" className="text-[10px]">
+                          {e.entry_type === "payment"
+                            ? (isRTL ? "دفعة على مستوى العميل" : "Customer-level Payment")
+                            : t(`finance.ledger.entryTypes.${e.entry_type}`) || e.entry_type}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground" dir="ltr">
+                          {formatDateTime12h(e.date)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {e.description || (isRTL ? "بدون مرجع" : "No reference")}
+                      </p>
+                      <div className="flex items-center justify-end gap-3 text-xs font-mono tabular-nums" dir="ltr">
+                        {e.debit > 0 && <span>{formatCurrency(e.debit)}</span>}
+                        {e.credit > 0 && (
+                          <span className="text-emerald-700 dark:text-emerald-400">
+                            −{formatCurrency(e.credit)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 border-t bg-muted/20 text-[11px] text-muted-foreground italic">
+                  {isRTL
+                    ? "لا تشمل إجماليات النطاق الحركات غير الموزعة على خيل أو خدمة محددة."
+                    : "Scope totals exclude customer-level activities that are not allocated to a specific horse or service."}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Statement entries */}
           <Card>

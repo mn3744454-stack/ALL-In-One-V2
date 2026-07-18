@@ -54,10 +54,12 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
     isMutating,
   } = useServiceCategories(true);
 
-  const canManage =
-    isOwner ||
-    hasPermission("finance.categories.manage") ||
-    hasPermission("services.manage");
+  // Slice 2 Correction 4 — Align frontend write gate with the Slice 1 RLS
+  // contract on tenant_service_categories, which authorizes writes via
+  // `services.manage` (owners bypass). We intentionally do NOT expose the
+  // manager under `finance.categories.manage` because the backend does not
+  // grant that permission for this table.
+  const canManage = isOwner || hasPermission("services.manage");
 
   const [name, setName] = useState("");
   const [nameAr, setNameAr] = useState("");
