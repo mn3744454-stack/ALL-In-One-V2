@@ -89,7 +89,7 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "", name_ar: "", code: "", category: "", description: "",
+      name: "", name_ar: "", code: "", category_id: null, description: "",
       sample_type: "", turnaround_hours: null, price: null, currency: "",
       is_active: true, pricing_mode: "sum_templates",
       override_price: null, discount_type: null, discount_value: null,
@@ -103,7 +103,7 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
     if (service) {
       form.reset({
         name: service.name, name_ar: service.name_ar || "",
-        code: service.code || "", category: service.category || "",
+        code: service.code || "", category_id: service.category_id ?? null,
         description: service.description || "", sample_type: service.sample_type || "",
         turnaround_hours: service.turnaround_hours, price: service.price,
         currency: service.currency || "", is_active: service.is_active,
@@ -113,7 +113,7 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
       });
     } else {
       form.reset({
-        name: "", name_ar: "", code: "", category: "", description: "",
+        name: "", name_ar: "", code: "", category_id: null, description: "",
         sample_type: "", turnaround_hours: null, price: null, currency: "",
         is_active: true, pricing_mode: "sum_templates",
         override_price: null, discount_type: null, discount_value: null,
@@ -145,7 +145,8 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
       if (tmpl && !form.getValues("name")) {
         form.setValue("name", tmpl.name);
         if (tmpl.name_ar) form.setValue("name_ar", tmpl.name_ar);
-        if (tmpl.category) form.setValue("category", tmpl.category);
+        // 2QA-C — legacy template.category (free text) is no longer written to
+        // the service; category identity must be an explicit user selection.
       }
     }
   }, [lockedTemplateId, activeTemplates, isEdit, open, form]);
@@ -194,7 +195,7 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
       name: watched.name ?? "",
       name_ar: watched.name_ar ?? "",
       code: watched.code ?? "",
-      category: watched.category ?? "",
+      category_id: watched.category_id ?? null,
       description: watched.description ?? "",
       sample_type: watched.sample_type ?? "",
       turnaround_hours: watched.turnaround_hours ?? null,
@@ -223,7 +224,7 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
     const result = await onSubmit({
       ...(service ? { id: service.id } : {}),
       name: values.name, name_ar: values.name_ar, code: values.code,
-      category: values.category, description: values.description,
+      category_id: values.category_id ?? null, description: values.description,
       sample_type: values.sample_type,
       turnaround_hours: values.turnaround_hours ?? null,
       price: values.price ?? null, currency: values.currency,
