@@ -899,7 +899,8 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     if (row.isSegment && row.segment) {
       return {
         id: row.key,
-        date: row.segment.periodEnd,
+        // 2QA-A · Finding 2 — canonical effective date on every export row
+        date: row.entry.date,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
         description: segmentToString(row.segment, row.segment.horseName, isRTL),
         reference_type: row.entry.reference_type,
@@ -922,10 +923,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     dateTo: scopeConfig.dateTo,
     entries: printEntries,
     enrichedDescriptions: printEnrichedDescriptions,
+    // 2QA-A · Finding 1 — Print/PDF/CSV inherit the same semantic totals.
     totalDebits: scopedSummary.totalDebit,
     totalCredits: scopedSummary.totalCredit,
-    // Slice 2C — Scoped outstanding = in-range debits − in-range credits
-    scopedOutstanding: scopedSummary.scopedOutstanding,
+    scopedOutstanding: scopedSummary.outstanding,
+    scopedCreditBalance: scopedSummary.creditBalance,
     // Slice 2C — Customer-wide, lifetime cards (only meaningful in scoped mode)
     customerTotalInvoices: isScoped ? clientWideTotalInvoices : undefined,
     customerTotalOutstanding: isScoped ? customerTotalOutstanding : undefined,
