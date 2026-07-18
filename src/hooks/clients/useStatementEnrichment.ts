@@ -20,6 +20,17 @@ export interface EnrichedStatementData {
   isMultiHorse: boolean;
   /** Direct domain from invoice_items.domain (first non-null) */
   directDomain?: string;
+  /** Slice 2B — Snapshot-based category keys for this entry (deduped, OR-matched).
+   *  Empty when no line item carries a `category_key` snapshot. */
+  categoryKeys: string[];
+  /** Slice 2B — Localized display names for the snapshot categories above.
+   *  Preserved even when the underlying tenant category was later archived
+   *  or renamed. */
+  categoryDisplay: Array<{ key: string; name: string; nameAr: string | null }>;
+  /** Slice 2B — True when at least one line item on this entry lacks a
+   *  category snapshot. Used to opt into the "Historically Uncategorized"
+   *  filter bucket. */
+  hasUncategorizedItem: boolean;
   /** Structured boarding segment info for explicit statement display */
   boardingSegments?: Array<{
     periodStart: string;
