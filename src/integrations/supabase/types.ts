@@ -12802,6 +12802,10 @@ export type Database = {
           status: string
         }[]
       }
+      get_client_first_financial_activity: {
+        Args: { p_client_id: string; p_tenant_id: string }
+        Returns: string
+      }
       get_connection_party_names: {
         Args: { _connection_ids: string[] }
         Returns: {
