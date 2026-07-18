@@ -3763,6 +3763,7 @@ export const en = {
       manage: "Manage categories",
       unmapped: "Unmapped",
       unmappedFull: "Unmapped Category",
+      unavailable: "Category Unavailable",
     },
     categorization: {
       income: "Income (Revenue)",

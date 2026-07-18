@@ -181,13 +181,17 @@ export function useServiceCategories(includeArchived: boolean = false) {
 }
 
 /**
- * Resolve a display name for a category in the current language, with a safe
- * fallback ladder: name_ar (ar) → name → key.
+ * Resolve a display name for a category in the current language.
+ *
+ * 2QA-C Closure — technical `key` is NEVER a visible fallback. Callers must
+ * render a localized "Category Unavailable" chip when this returns an empty
+ * string (valid category id but both localized names missing).
+ * Use "Unmapped Category" only when there is no linked category at all.
  */
 export function displayCategoryName(
-  cat: Pick<ServiceCategory, "name" | "name_ar" | "key">,
+  cat: Pick<ServiceCategory, "name" | "name_ar">,
   lang: "ar" | "en"
 ): string {
-  if (lang === "ar") return cat.name_ar || cat.name || cat.key;
-  return cat.name || cat.name_ar || cat.key;
+  if (lang === "ar") return (cat.name_ar || cat.name || "").trim();
+  return (cat.name || cat.name_ar || "").trim();
 }
