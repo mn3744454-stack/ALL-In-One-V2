@@ -114,28 +114,6 @@ function getLabels(isRTL?: boolean) {
     firstActivity: "First Financial Activity",
   };
 }
-    title: "Account Statement",
-    date: "Date",
-    description: "Description",
-    debit: "Amount Due",
-    credit: "Amount Paid",
-    balance: "Balance After",
-    totalInvoices: "Total Invoices",
-    totalPaid: "Total Paid",
-    totalOutstanding: "Total Outstanding",
-    scopedInvoices: "Invoices in Scope",
-    scopedPaid: "Paid in Scope",
-    scopedOutstanding: "Outstanding in Scope",
-    customerTotalInvoices: "Customer Total Invoices",
-    customerTotalOutstanding: "Customer Total Outstanding",
-    horses: "Horses",
-    category: "Category",
-    from: "From",
-    to: "To",
-    issuedBy: "Issued by",
-    firstActivity: "First Financial Activity",
-  };
-}
 
 function issuerDisplayName(data: StatementPrintData): string {
   const isRTL = !!data.isRTL;
