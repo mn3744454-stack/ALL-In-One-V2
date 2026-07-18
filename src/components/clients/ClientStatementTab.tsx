@@ -734,10 +734,10 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       }
     }
     // Sort rows by effective date
-    const getRowDate = (row: FlatStatementRow): string => {
-      if (row.isSegment && row.segment) return row.segment.periodEnd;
-      return row.entry.date;
-    };
+    // 2QA-A · Finding 2 — Sort/display uses the canonical effective posting
+    // date (parent ledger row date) even for exploded boarding segments. The
+    // segment period stays visible only inside the description column.
+    const getRowDate = (row: FlatStatementRow): string => row.entry.date;
     rows.sort((a, b) => {
       const da = new Date(getRowDate(a)).getTime();
       const db = new Date(getRowDate(b)).getTime();
@@ -762,16 +762,23 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     return balances;
   }, [flatRows]);
 
-  // Scoped summary
+  // 2QA-A · Finding 1 — Scoped summary is now driven by the shared semantic
+  // resolver. `totalPaid` counts ONLY real payments; cancellation/reversal
+  // adjustments never appear here. `outstanding` clamps to 0 and any genuine
+  // negative scoped balance is surfaced separately as `creditBalance`.
   const scopedSummary = useMemo(() => {
-    let totalDebit = 0;
-    let totalCredit = 0;
-    domainFilteredEntries.forEach(e => {
-      totalDebit += e.debit;
-      totalCredit += e.credit;
-    });
-    const scopedOutstanding = totalDebit - totalCredit;
-    return { totalDebit, totalCredit, scopedOutstanding };
+    const s = summarizeStatement(domainFilteredEntries);
+    return {
+      totalDebit: s.totalInvoices,
+      totalCredit: s.totalPaid,
+      rawBalance: s.rawBalance,
+      outstanding: s.outstanding,
+      creditBalance: s.creditBalance,
+      // Preserved for downstream props that used the old field name; equals
+      // rawBalance (may be negative) so existing code that expected the raw
+      // net keeps working.
+      scopedOutstanding: s.rawBalance,
+    };
   }, [domainFilteredEntries]);
 
   // Build scope context strings
