@@ -33,6 +33,7 @@ import {
   type ServiceCategory,
 } from "@/hooks/finance/useServiceCategories";
 import { ServiceCategoryManagerDialog } from "@/components/finance/ServiceCategoryManagerDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface CategoryMultiSelectProps {
   /** Selected category keys. Empty array = All Categories. */
@@ -58,6 +59,11 @@ export function CategoryMultiSelect({
   className,
 }: CategoryMultiSelectProps) {
   const { t, lang, dir } = useI18n();
+  const { hasPermission, isOwner } = usePermissions();
+  // Slice 2 Correction 4 — Category management is gated to owners and
+  // holders of `services.manage`, matching the Slice 1 RLS contract on
+  // tenant_service_categories. The entry point is hidden otherwise.
+  const canManageCategories = isOwner || hasPermission("services.manage");
   const { categories: activeCategories, isLoading } = useServiceCategories(false);
   const { categories: allCategories } = useServiceCategories(true);
   const isMobile = useIsMobile();
