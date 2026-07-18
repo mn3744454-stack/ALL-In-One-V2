@@ -29,6 +29,7 @@ import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, Arrow
 import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } from "./StatementScopeSelector";
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
+import { summarizeStatement } from "@/lib/finance/statementSemantics";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
 
@@ -733,10 +734,10 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       }
     }
     // Sort rows by effective date
-    const getRowDate = (row: FlatStatementRow): string => {
-      if (row.isSegment && row.segment) return row.segment.periodEnd;
-      return row.entry.date;
-    };
+    // 2QA-A · Finding 2 — Sort/display uses the canonical effective posting
+    // date (parent ledger row date) even for exploded boarding segments. The
+    // segment period stays visible only inside the description column.
+    const getRowDate = (row: FlatStatementRow): string => row.entry.date;
     rows.sort((a, b) => {
       const da = new Date(getRowDate(a)).getTime();
       const db = new Date(getRowDate(b)).getTime();
@@ -761,16 +762,23 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     return balances;
   }, [flatRows]);
 
-  // Scoped summary
+  // 2QA-A · Finding 1 — Scoped summary is now driven by the shared semantic
+  // resolver. `totalPaid` counts ONLY real payments; cancellation/reversal
+  // adjustments never appear here. `outstanding` clamps to 0 and any genuine
+  // negative scoped balance is surfaced separately as `creditBalance`.
   const scopedSummary = useMemo(() => {
-    let totalDebit = 0;
-    let totalCredit = 0;
-    domainFilteredEntries.forEach(e => {
-      totalDebit += e.debit;
-      totalCredit += e.credit;
-    });
-    const scopedOutstanding = totalDebit - totalCredit;
-    return { totalDebit, totalCredit, scopedOutstanding };
+    const s = summarizeStatement(domainFilteredEntries);
+    return {
+      totalDebit: s.totalInvoices,
+      totalCredit: s.totalPaid,
+      rawBalance: s.rawBalance,
+      outstanding: s.outstanding,
+      creditBalance: s.creditBalance,
+      // Preserved for downstream props that used the old field name; equals
+      // rawBalance (may be negative) so existing code that expected the raw
+      // net keeps working.
+      scopedOutstanding: s.rawBalance,
+    };
   }, [domainFilteredEntries]);
 
   // Build scope context strings
@@ -891,7 +899,8 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     if (row.isSegment && row.segment) {
       return {
         id: row.key,
-        date: row.segment.periodEnd,
+        // 2QA-A · Finding 2 — canonical effective date on every export row
+        date: row.entry.date,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
         description: segmentToString(row.segment, row.segment.horseName, isRTL),
         reference_type: row.entry.reference_type,
@@ -914,10 +923,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     dateTo: scopeConfig.dateTo,
     entries: printEntries,
     enrichedDescriptions: printEnrichedDescriptions,
+    // 2QA-A · Finding 1 — Print/PDF/CSV inherit the same semantic totals.
     totalDebits: scopedSummary.totalDebit,
     totalCredits: scopedSummary.totalCredit,
-    // Slice 2C — Scoped outstanding = in-range debits − in-range credits
-    scopedOutstanding: scopedSummary.scopedOutstanding,
+    scopedOutstanding: scopedSummary.outstanding,
+    scopedCreditBalance: scopedSummary.creditBalance,
     // Slice 2C — Customer-wide, lifetime cards (only meaningful in scoped mode)
     customerTotalInvoices: isScoped ? clientWideTotalInvoices : undefined,
     customerTotalOutstanding: isScoped ? customerTotalOutstanding : undefined,
@@ -1073,17 +1083,25 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   className="text-xs text-muted-foreground"
                   title={isScoped
                     ? (isRTL
-                        ? "الفواتير ضمن النطاق ناقصاً المدفوعات ضمن النطاق. لا يشمل الحركات على مستوى العميل."
-                        : "In-scope invoices minus in-scope payments. Excludes customer-level activities.")
+                        ? "الفواتير ضمن النطاق ناقصاً المدفوعات الفعلية ضمن النطاق. لا يشمل الحركات على مستوى العميل. لا يظهر برقم سالب أبداً."
+                        : "In-scope invoices minus in-scope real payments. Excludes customer-level activities. Never displays a negative value.")
                     : (isRTL
-                        ? "إجمالي المبلغ المستحق على العميل بعد خصم المدفوعات."
-                        : "Total amount due after subtracting payments.")}
+                        ? "إجمالي المبلغ المستحق على العميل بعد خصم المدفوعات الفعلية."
+                        : "Total amount due after subtracting real payments.")}
                 >
                   {isScoped ? t("clients.statement.scopedOutstanding") : t("clients.statement.totalOutstanding")}
                 </p>
-                <p className={cn("text-lg font-bold font-mono tabular-nums", scopedSummary.scopedOutstanding > 0 && "text-destructive")} dir="ltr">
-                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(isScoped ? scopedSummary.scopedOutstanding : Math.max(0, scopedSummary.scopedOutstanding))}
+                {/* 2QA-A · Finding 1 — Outstanding is clamped to ≥ 0. A genuine
+                    negative scoped balance is shown separately below as
+                    "Credit Balance in Scope". */}
+                <p className={cn("text-lg font-bold font-mono tabular-nums", scopedSummary.outstanding > 0 && "text-destructive")} dir="ltr">
+                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.outstanding)}
                 </p>
+                {scopedSummary.creditBalance > 0 && (
+                  <p className="mt-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400" dir="ltr">
+                    {t("clients.statement.scopedCreditBalance")}: {formatCurrency(scopedSummary.creditBalance)}
+                  </p>
+                )}
               </CardContent>
             </Card>
             {isScoped && (
@@ -1293,7 +1311,8 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                             return (
                               <TableRow key={row.key} className="align-top bg-muted/20">
                                 <TableCell className="text-center font-mono text-xs tabular-nums whitespace-nowrap text-muted-foreground" dir="ltr">
-                                  {formatDate(row.segment.periodEnd, 'dd-MM-yyyy')}
+                                  {/* 2QA-A · Finding 2 — segment rows show the parent posting date */}
+                                  {formatDate(row.entry.date, 'dd-MM-yyyy')}
                                 </TableCell>
                                 <TableCell>
                                   <RowDescription row={row} isRTL={isRTL} t={t} />
@@ -1346,7 +1365,8 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                         return (
                           <div key={row.key} className="p-3 space-y-1 bg-muted/20">
                             <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                              {formatDate(row.segment.periodEnd, 'dd-MM-yyyy')}
+                              {/* 2QA-A · Finding 2 — mobile segment rows show the parent posting date */}
+                              {formatDate(row.entry.date, 'dd-MM-yyyy')}
                             </span>
                             <RowDescription row={row} isRTL={isRTL} t={t} />
                             <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">

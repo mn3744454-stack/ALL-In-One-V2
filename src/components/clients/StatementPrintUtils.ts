@@ -2,6 +2,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
+import { classifyLedgerEntry, semanticClassLabel } from "@/lib/finance/statementSemantics";
 
 /**
  * Escape user-controlled strings before interpolating into HTML written to a
@@ -27,8 +28,10 @@ export interface StatementPrintData {
   /** Slice 2C — Overall/scoped in-range totals (sum of invoice debits in range). */
   totalDebits: number;
   totalCredits: number;
-  /** Slice 2C — Scoped outstanding = in-range invoices − in-range payments (may be negative). */
+  /** 2QA-A · Finding 1 — Scoped outstanding CLAMPED to ≥ 0 (semantic resolver). */
   scopedOutstanding: number;
+  /** 2QA-A · Finding 1 — Genuine scoped negative balance shown as Credit Balance in Scope. */
+  scopedCreditBalance?: number;
   /** Slice 2C — Lifetime posted invoice debits (customer-wide). Present in scoped mode. */
   customerTotalInvoices?: number;
   /** Slice 2C — max(0, lifetime customer ledger balance). Present in scoped mode. */
@@ -63,6 +66,7 @@ function getLabels(isRTL?: boolean) {
       title: "كشف الحساب",
       date: "التاريخ",
       description: "الوصف",
+      type: "النوع",
       debit: "المبلغ المطلوب",
       credit: "المبلغ المسدد",
       balance: "الإجمالي بعد الحركة",
@@ -74,6 +78,7 @@ function getLabels(isRTL?: boolean) {
       scopedInvoices: "إجمالي الفواتير ضمن النطاق",
       scopedPaid: "إجمالي المسدد ضمن النطاق",
       scopedOutstanding: "إجمالي المستحق ضمن النطاق",
+      scopedCreditBalance: "رصيد دائن ضمن النطاق",
       customerTotalInvoices: "إجمالي فواتير العميل",
       customerTotalOutstanding: "إجمالي مستحقات العميل",
       horses: "الخيول",
@@ -88,6 +93,7 @@ function getLabels(isRTL?: boolean) {
     title: "Account Statement",
     date: "Date",
     description: "Description",
+    type: "Type",
     debit: "Amount Due",
     credit: "Amount Paid",
     balance: "Balance After",
@@ -97,6 +103,7 @@ function getLabels(isRTL?: boolean) {
     scopedInvoices: "Invoices in Scope",
     scopedPaid: "Paid in Scope",
     scopedOutstanding: "Outstanding in Scope",
+    scopedCreditBalance: "Credit Balance in Scope",
     customerTotalInvoices: "Customer Total Invoices",
     customerTotalOutstanding: "Customer Total Outstanding",
     horses: "Horses",
@@ -131,12 +138,18 @@ export function printStatement(data: StatementPrintData) {
       const descHtml = desc.includes(" | ")
         ? desc.split(" | ").map((part, i) => i === 0 ? `<strong>${escapeHtml(part)}</strong>` : `<span style="color:#666;font-size:12px">${escapeHtml(part)}</span>`).join("<br>")
         : escapeHtml(desc);
+      // 2QA-A · Finding 1 — Surface semantic classification as an inline pill
+      // for non-standard entries (cancellation, reversal, adjustment).
+      const sem = classifyLedgerEntry(e);
+      const semPill = sem.semanticClass === "posted_invoice_debit" || sem.semanticClass === "real_payment"
+        ? ""
+        : `<div class="sem-pill sem-${sem.semanticClass}">${escapeHtml(semanticClassLabel(sem.semanticClass, !!data.isRTL))}</div>`;
       return `
     <tr>
       <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${escapeHtml(formatDateForPrint(e.date))}</td>
-      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"};vertical-align:top">${descHtml}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.debit > 0 ? escapeHtml(formatCurrency(e.debit)) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.credit > 0 ? escapeHtml(formatCurrency(e.credit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"};vertical-align:top">${descHtml}${semPill}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top;color:#b91c1c" dir="ltr">${e.debit > 0 ? escapeHtml(formatCurrency(e.debit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top;color:#047857" dir="ltr">${e.credit > 0 ? escapeHtml(formatCurrency(e.credit)) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600;vertical-align:top" dir="ltr">${escapeHtml(formatCurrency(e.balance))}</td>
     </tr>`;
     })
@@ -180,6 +193,12 @@ export function printStatement(data: StatementPrintData) {
 <meta charset="UTF-8">
 <title>${escapeHtml(labels.title)} - ${escapeHtml(data.clientName)}</title>
 <style>
+  /* 2QA-A · Finding 3 — force color/background preservation in Print/PDF. */
+  html, body, .summary-card, .sem-pill, td, th {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
   body { font-family: system-ui, sans-serif; margin: 20px; color: #1a1a1a; direction: ${dir}; }
   .issuer { padding: 8px 0 12px; border-bottom: 1px solid #eee; margin-bottom: 12px; }
   .issuer-label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -192,6 +211,16 @@ export function printStatement(data: StatementPrintData) {
   .summary-card { background: #f5f5f5; padding: 12px 16px; border-radius: 8px; min-width: 140px; }
   .summary-card .label { font-size: 12px; color: #666; }
   .summary-card .value { font-size: 18px; font-weight: 700; font-family: monospace; }
+  .summary-card.tone-debt .value { color: #b91c1c; }
+  .summary-card.tone-credit { background: #ecfdf5; }
+  .summary-card.tone-credit .value { color: #047857; }
+  .sem-pill { display:inline-block; margin-top:4px; padding:2px 8px; border-radius:9999px;
+              font-size:10px; font-weight:600; background:#fef3c7; color:#92400e; }
+  .sem-pill.sem-invoice_cancellation, .sem-pill.sem-invoice_reversal, .sem-pill.sem-invoice_debit_reversal {
+    background:#fee2e2; color:#991b1b;
+  }
+  .sem-pill.sem-credit_note, .sem-pill.sem-payment_refund { background:#dbeafe; color:#1e40af; }
+  .sem-pill.sem-accounting_adjustment { background:#e5e7eb; color:#374151; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { background: #f0f0f0; padding: 8px; text-align: ${textAlign}; font-weight: 600; border-bottom: 2px solid #ddd; }
   td { border-bottom: 1px solid #eee; }
@@ -254,27 +283,41 @@ export function exportCSV(data: StatementPrintData) {
   metaRows.push([]);
 
   const summaryRows: string[][] = [];
+  const clampedOutstanding = Math.max(0, data.scopedOutstanding);
+  const creditBal = data.scopedCreditBalance ?? 0;
   if (data.isScoped) {
     summaryRows.push([escapeCsv(labels.scopedInvoices), escapeCsv(data.totalDebits.toFixed(2))]);
     summaryRows.push([escapeCsv(labels.scopedPaid), escapeCsv(data.totalCredits.toFixed(2))]);
-    summaryRows.push([escapeCsv(labels.scopedOutstanding), escapeCsv(data.scopedOutstanding.toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.scopedOutstanding), escapeCsv(clampedOutstanding.toFixed(2))]);
+    if (creditBal > 0) {
+      summaryRows.push([escapeCsv(labels.scopedCreditBalance), escapeCsv(creditBal.toFixed(2))]);
+    }
     summaryRows.push([escapeCsv(labels.customerTotalInvoices), escapeCsv((data.customerTotalInvoices ?? 0).toFixed(2))]);
     summaryRows.push([escapeCsv(labels.customerTotalOutstanding), escapeCsv((data.customerTotalOutstanding ?? 0).toFixed(2))]);
   } else {
     summaryRows.push([escapeCsv(labels.totalInvoices), escapeCsv(data.totalDebits.toFixed(2))]);
     summaryRows.push([escapeCsv(labels.totalPaid), escapeCsv(data.totalCredits.toFixed(2))]);
-    summaryRows.push([escapeCsv(labels.totalOutstanding), escapeCsv(Math.max(0, data.scopedOutstanding).toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.totalOutstanding), escapeCsv(clampedOutstanding.toFixed(2))]);
+    if (creditBal > 0) {
+      summaryRows.push([escapeCsv(labels.scopedCreditBalance), escapeCsv(creditBal.toFixed(2))]);
+    }
   }
   summaryRows.push([]);
 
-  const headers = [labels.date, labels.description, labels.debit, labels.credit, labels.balance].map(escapeCsv);
-  const rows = data.entries.map((e) => [
-    escapeCsv(formatDateForPrint(e.date)),
-    escapeCsv(data.enrichedDescriptions?.get(e.id) || e.description || ""),
-    escapeCsv(e.debit > 0 ? e.debit.toFixed(2) : ""),
-    escapeCsv(e.credit > 0 ? e.credit.toFixed(2) : ""),
-    escapeCsv(e.balance.toFixed(2)),
-  ]);
+  // 2QA-A · Finding 1 — add a Type column with the semantic class label so
+  // CSV consumers can distinguish payments from cancellations/adjustments.
+  const headers = [labels.date, labels.type, labels.description, labels.debit, labels.credit, labels.balance].map(escapeCsv);
+  const rows = data.entries.map((e) => {
+    const sem = classifyLedgerEntry(e);
+    return [
+      escapeCsv(formatDateForPrint(e.date)),
+      escapeCsv(semanticClassLabel(sem.semanticClass, !!data.isRTL)),
+      escapeCsv(data.enrichedDescriptions?.get(e.id) || e.description || ""),
+      escapeCsv(e.debit > 0 ? e.debit.toFixed(2) : ""),
+      escapeCsv(e.credit > 0 ? e.credit.toFixed(2) : ""),
+      escapeCsv(e.balance.toFixed(2)),
+    ];
+  });
 
   const lines = [
     ...metaRows.map((r) => r.join(",")),

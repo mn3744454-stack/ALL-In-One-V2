@@ -20,6 +20,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { localDateFromToUtcIso, localDateToToUtcIso } from "@/lib/finance/effectiveDate";
 
 export interface UnallocatedEntry {
   id: string;
@@ -69,8 +70,10 @@ export function useUnallocatedPayments(
         .eq("client_id", clientId)
         .neq("reference_type", "invoice_cancellation")
         .order("created_at", { ascending: true });
-      if (dateFrom) q = q.gte("created_at", dateFrom);
-      if (dateTo) q = q.lte("created_at", dateTo + "T23:59:59.999Z");
+      // 2QA-A · Finding 2 — same canonical local-day → UTC contract as the
+      // main statement query so unallocated activity respects identical bounds.
+      if (dateFrom) q = q.gte("created_at", localDateFromToUtcIso(dateFrom));
+      if (dateTo) q = q.lte("created_at", localDateToToUtcIso(dateTo));
       const { data: rows, error } = await q;
       if (error || !rows) return { count: 0, totalAmount: 0, entries: [] };
 

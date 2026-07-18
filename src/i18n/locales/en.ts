@@ -5468,6 +5468,7 @@ export const en = {
       scopedInvoices: "Invoices in Scope",
       scopedPaid: "Paid in Scope",
       scopedOutstanding: "Outstanding in Scope",
+      scopedCreditBalance: "Credit Balance in Scope",
       customerTotalInvoices: "Customer Total Invoices",
       customerTotalOutstanding: "Customer Total Outstanding",
       creditBalance: "Credit Balance",
