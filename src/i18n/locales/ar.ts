@@ -3685,6 +3685,8 @@ export const ar = {
       parentLabel: "الأب",
       description: "الوصف",
       descriptionPlaceholder: "وصف اختياري",
+      manage: "إدارة التصنيفات",
+      unmapped: "غير مصنف",
     },
     categorization: {
       income: "إيرادات (دخل)",
