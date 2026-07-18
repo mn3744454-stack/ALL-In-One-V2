@@ -148,9 +148,9 @@ export function CategoryMultiSelect({
 
   const body = (
     <div className="flex flex-col h-full">
-      {/* Search */}
-      <div className="p-3 border-b">
-        <div className="relative">
+      {/* Search + inline Manage entry point (Slice 2C — Correction B) */}
+      <div className="p-3 border-b flex items-center gap-2">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
@@ -170,7 +170,19 @@ export function CategoryMultiSelect({
             </button>
           )}
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 shrink-0"
+          onClick={() => setManagerOpen(true)}
+          aria-label={t("clients.statement.manageCategories")}
+          title={t("clients.statement.manageCategories")}
+        >
+          <Settings2 className="h-4 w-4" />
+        </Button>
       </div>
+
 
       {/* Options */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1 min-h-[200px] max-h-[55vh]">
