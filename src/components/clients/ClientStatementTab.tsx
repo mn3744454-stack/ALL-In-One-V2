@@ -637,19 +637,35 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   // Enrichment
   const { enrichment, isEnriching } = useStatementEnrichment(entries);
 
-  // Apply domain filter post-enrichment
+  // Slice 2B — Snapshot-based category filter (OR semantics across selected keys).
+  // Empty categoryKeys = All Categories. Special key "__uncategorized__" matches
+  // entries whose invoice_items carry no category snapshot (or the entry has no
+  // line items at all, e.g. a raw payment ledger row).
+  const UNCATEGORIZED_KEY = "__uncategorized__";
   const domainFilteredEntries = useMemo(() => {
-    if (scopeConfig.domainFilter === "all") return entries;
+    const selected = scopeConfig.categoryKeys || [];
+    if (selected.length === 0) return entries;
+    const selectedSet = new Set(selected);
+    const wantsUncategorized = selectedSet.has(UNCATEGORIZED_KEY);
     return entries.filter(e => {
       const enriched = enrichment.get(e.id);
-      const domain = enriched?.directDomain || getPrimarySource(enriched);
-      if (!domain) return scopeConfig.domainFilter === "general";
-      return domain === scopeConfig.domainFilter;
+      const keys = enriched?.categoryKeys || [];
+      if (keys.some(k => selectedSet.has(k))) return true;
+      if (wantsUncategorized) {
+        // Entry counts as uncategorized when it either has no enrichment (raw
+        // payment / adjustment) or at least one line item lacks a snapshot.
+        if (!enriched) return true;
+        if (enriched.hasUncategorizedItem) return true;
+        if (enriched.categoryKeys.length === 0) return true;
+      }
+      return false;
     });
-  }, [entries, enrichment, scopeConfig.domainFilter]);
+  }, [entries, enrichment, scopeConfig.categoryKeys]);
 
   // Whether we are in a filtered/scoped view
-  const isScoped = scopeConfig.mode === "horses" || scopeConfig.domainFilter !== "all";
+  const isScoped =
+    scopeConfig.mode === "horses" || (scopeConfig.categoryKeys?.length ?? 0) > 0;
+
 
   // Build flat rows: explode boarding invoices into segment rows
   // Guard: return empty while enrichment is loading to prevent stale/misleading intermediate state
