@@ -1081,17 +1081,25 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   className="text-xs text-muted-foreground"
                   title={isScoped
                     ? (isRTL
-                        ? "الفواتير ضمن النطاق ناقصاً المدفوعات ضمن النطاق. لا يشمل الحركات على مستوى العميل."
-                        : "In-scope invoices minus in-scope payments. Excludes customer-level activities.")
+                        ? "الفواتير ضمن النطاق ناقصاً المدفوعات الفعلية ضمن النطاق. لا يشمل الحركات على مستوى العميل. لا يظهر برقم سالب أبداً."
+                        : "In-scope invoices minus in-scope real payments. Excludes customer-level activities. Never displays a negative value.")
                     : (isRTL
-                        ? "إجمالي المبلغ المستحق على العميل بعد خصم المدفوعات."
-                        : "Total amount due after subtracting payments.")}
+                        ? "إجمالي المبلغ المستحق على العميل بعد خصم المدفوعات الفعلية."
+                        : "Total amount due after subtracting real payments.")}
                 >
                   {isScoped ? t("clients.statement.scopedOutstanding") : t("clients.statement.totalOutstanding")}
                 </p>
-                <p className={cn("text-lg font-bold font-mono tabular-nums", scopedSummary.scopedOutstanding > 0 && "text-destructive")} dir="ltr">
-                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(isScoped ? scopedSummary.scopedOutstanding : Math.max(0, scopedSummary.scopedOutstanding))}
+                {/* 2QA-A · Finding 1 — Outstanding is clamped to ≥ 0. A genuine
+                    negative scoped balance is shown separately below as
+                    "Credit Balance in Scope". */}
+                <p className={cn("text-lg font-bold font-mono tabular-nums", scopedSummary.outstanding > 0 && "text-destructive")} dir="ltr">
+                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.outstanding)}
                 </p>
+                {scopedSummary.creditBalance > 0 && (
+                  <p className="mt-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400" dir="ltr">
+                    {t("clients.statement.scopedCreditBalance")}: {formatCurrency(scopedSummary.creditBalance)}
+                  </p>
+                )}
               </CardContent>
             </Card>
             {isScoped && (
