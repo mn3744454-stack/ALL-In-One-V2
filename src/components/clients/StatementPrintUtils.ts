@@ -283,27 +283,41 @@ export function exportCSV(data: StatementPrintData) {
   metaRows.push([]);
 
   const summaryRows: string[][] = [];
+  const clampedOutstanding = Math.max(0, data.scopedOutstanding);
+  const creditBal = data.scopedCreditBalance ?? 0;
   if (data.isScoped) {
     summaryRows.push([escapeCsv(labels.scopedInvoices), escapeCsv(data.totalDebits.toFixed(2))]);
     summaryRows.push([escapeCsv(labels.scopedPaid), escapeCsv(data.totalCredits.toFixed(2))]);
-    summaryRows.push([escapeCsv(labels.scopedOutstanding), escapeCsv(data.scopedOutstanding.toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.scopedOutstanding), escapeCsv(clampedOutstanding.toFixed(2))]);
+    if (creditBal > 0) {
+      summaryRows.push([escapeCsv(labels.scopedCreditBalance), escapeCsv(creditBal.toFixed(2))]);
+    }
     summaryRows.push([escapeCsv(labels.customerTotalInvoices), escapeCsv((data.customerTotalInvoices ?? 0).toFixed(2))]);
     summaryRows.push([escapeCsv(labels.customerTotalOutstanding), escapeCsv((data.customerTotalOutstanding ?? 0).toFixed(2))]);
   } else {
     summaryRows.push([escapeCsv(labels.totalInvoices), escapeCsv(data.totalDebits.toFixed(2))]);
     summaryRows.push([escapeCsv(labels.totalPaid), escapeCsv(data.totalCredits.toFixed(2))]);
-    summaryRows.push([escapeCsv(labels.totalOutstanding), escapeCsv(Math.max(0, data.scopedOutstanding).toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.totalOutstanding), escapeCsv(clampedOutstanding.toFixed(2))]);
+    if (creditBal > 0) {
+      summaryRows.push([escapeCsv(labels.scopedCreditBalance), escapeCsv(creditBal.toFixed(2))]);
+    }
   }
   summaryRows.push([]);
 
-  const headers = [labels.date, labels.description, labels.debit, labels.credit, labels.balance].map(escapeCsv);
-  const rows = data.entries.map((e) => [
-    escapeCsv(formatDateForPrint(e.date)),
-    escapeCsv(data.enrichedDescriptions?.get(e.id) || e.description || ""),
-    escapeCsv(e.debit > 0 ? e.debit.toFixed(2) : ""),
-    escapeCsv(e.credit > 0 ? e.credit.toFixed(2) : ""),
-    escapeCsv(e.balance.toFixed(2)),
-  ]);
+  // 2QA-A · Finding 1 — add a Type column with the semantic class label so
+  // CSV consumers can distinguish payments from cancellations/adjustments.
+  const headers = [labels.date, labels.type, labels.description, labels.debit, labels.credit, labels.balance].map(escapeCsv);
+  const rows = data.entries.map((e) => {
+    const sem = classifyLedgerEntry(e);
+    return [
+      escapeCsv(formatDateForPrint(e.date)),
+      escapeCsv(semanticClassLabel(sem.semanticClass, !!data.isRTL)),
+      escapeCsv(data.enrichedDescriptions?.get(e.id) || e.description || ""),
+      escapeCsv(e.debit > 0 ? e.debit.toFixed(2) : ""),
+      escapeCsv(e.credit > 0 ? e.credit.toFixed(2) : ""),
+      escapeCsv(e.balance.toFixed(2)),
+    ];
+  });
 
   const lines = [
     ...metaRows.map((r) => r.join(",")),
