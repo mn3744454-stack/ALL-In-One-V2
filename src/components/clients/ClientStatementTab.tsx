@@ -959,8 +959,16 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <FileText className="h-4 w-4" />
                     {t("clients.statement.title")}
                   </CardTitle>
-                  {/* Scope context line */}
+                  {/* Slice 2B — Issuer identity + scope context line */}
                   <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                    {activeTenant?.tenant?.name && (
+                      <Badge variant="outline" className="text-xs">
+                        {t("clients.statement.issuer")}:{" "}
+                        {isRTL
+                          ? ((activeTenant.tenant as any).name_ar || activeTenant.tenant.name)
+                          : activeTenant.tenant.name}
+                      </Badge>
+                    )}
                     <Badge variant="outline" className="font-mono text-xs" dir="ltr">
                       {t("clients.statement.scope.dateFrom")}: {formatDate(scopeConfig.dateFrom, 'dd-MM-yyyy')} — {t("clients.statement.scope.dateTo")}: {formatDate(scopeConfig.dateTo, 'dd-MM-yyyy')}
                     </Badge>
@@ -970,7 +978,13 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <Badge variant="secondary" className="text-xs">
                       {t("clients.statement.scopeContext.category")}: {scopeContextCategory}
                     </Badge>
+                    {firstActivityDate && (
+                      <Badge variant="outline" className="text-xs" dir="ltr">
+                        {t("clients.statement.scope.firstFinancialActivity")}: {firstActivityDate}
+                      </Badge>
+                    )}
                   </div>
+
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}>
