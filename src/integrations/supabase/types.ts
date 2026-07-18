@@ -6195,6 +6195,9 @@ export type Database = {
       }
       invoice_items: {
         Row: {
+          category_key: string | null
+          category_name_ar_snapshot: string | null
+          category_name_snapshot: string | null
           created_at: string | null
           description: string
           domain: string | null
@@ -6208,10 +6211,15 @@ export type Database = {
           position: number
           quantity: number
           service_id: string | null
+          service_name_ar_snapshot: string | null
+          service_name_snapshot: string | null
           total_price: number
           unit_price: number
         }
         Insert: {
+          category_key?: string | null
+          category_name_ar_snapshot?: string | null
+          category_name_snapshot?: string | null
           created_at?: string | null
           description: string
           domain?: string | null
@@ -6225,10 +6233,15 @@ export type Database = {
           position?: number
           quantity?: number
           service_id?: string | null
+          service_name_ar_snapshot?: string | null
+          service_name_snapshot?: string | null
           total_price: number
           unit_price: number
         }
         Update: {
+          category_key?: string | null
+          category_name_ar_snapshot?: string | null
+          category_name_snapshot?: string | null
           created_at?: string | null
           description?: string
           domain?: string | null
@@ -6242,6 +6255,8 @@ export type Database = {
           position?: number
           quantity?: number
           service_id?: string | null
+          service_name_ar_snapshot?: string | null
+          service_name_snapshot?: string | null
           total_price?: number
           unit_price?: number
         }
@@ -7780,6 +7795,7 @@ export type Database = {
       lab_services: {
         Row: {
           category: string | null
+          category_id: string | null
           code: string | null
           created_at: string
           currency: string | null
@@ -7800,6 +7816,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          category_id?: string | null
           code?: string | null
           created_at?: string
           currency?: string | null
@@ -7820,6 +7837,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          category_id?: string | null
           code?: string | null
           created_at?: string
           currency?: string | null
@@ -7839,6 +7857,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lab_services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_service_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lab_services_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -8038,6 +8063,7 @@ export type Database = {
       }
       lab_test_types: {
         Row: {
+          category_id: string | null
           code: string | null
           created_at: string
           id: string
@@ -8050,6 +8076,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category_id?: string | null
           code?: string | null
           created_at?: string
           id?: string
@@ -8062,6 +8089,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category_id?: string | null
           code?: string | null
           created_at?: string
           id?: string
@@ -8074,6 +8102,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lab_test_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_service_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lab_test_types_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -11291,8 +11326,63 @@ export type Database = {
           },
         ]
       }
+      tenant_service_categories: {
+        Row: {
+          created_at: string
+          domain_key: string | null
+          id: string
+          is_active: boolean
+          key: string
+          name: string
+          name_ar: string | null
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain_key?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          name: string
+          name_ar?: string | null
+          sort_order?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain_key?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          name?: string
+          name_ar?: string | null
+          sort_order?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_service_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_service_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_services: {
         Row: {
+          category_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -11309,6 +11399,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -11325,6 +11416,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -11341,6 +11433,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tenant_services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_service_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tenant_services_tenant_id_fkey"
             columns: ["tenant_id"]
