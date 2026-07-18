@@ -130,14 +130,9 @@ export function StatementScopeSelector({
     { value: "horses", label: t("clients.statement.scope.selectHorses") },
   ];
 
-  const domainPills: { value: DomainFilter; label: string }[] = [
-    { value: "all", label: t("clients.statement.scope.all") },
-    { value: "boarding", label: t("clients.statement.domain.boarding") },
-    { value: "vet", label: t("clients.statement.domain.vet") || "Vet" },
-    { value: "breeding", label: t("clients.statement.domain.breeding") },
-    { value: "lab", label: t("clients.statement.domain.lab") },
-    { value: "general", label: t("clients.statement.scope.domainGeneral") },
-  ];
+  // Legacy — retained only so previously-saved configs continue to type-check.
+  // Slice 2B replaces domain-pill filtering with snapshot-based categoryKeys.
+  const _domainPillsUnused: { value: DomainFilter; label: string }[] = [];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
