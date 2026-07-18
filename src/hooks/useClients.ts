@@ -94,7 +94,7 @@ export function useClients() {
         .select()
         .single();
       if (error) throw error;
-      return newClient as Client;
+      return { ...(newClient as any), ledger_balance: 0 } as Client;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.clients(tenantId) });
@@ -115,7 +115,7 @@ export function useClients() {
         .select()
         .single();
       if (error) throw error;
-      return updated as Client;
+      return { ...(updated as any), ledger_balance: 0 } as Client;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.clients(tenantId) });
