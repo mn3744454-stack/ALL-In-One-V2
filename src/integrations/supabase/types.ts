@@ -12846,13 +12846,17 @@ export type Database = {
       }
       get_lab_services_for_viewer: {
         Args: {
-          _category?: string
+          _category_id?: string
           _lab_tenant_id: string
           _only_active?: boolean
           _search?: string
         }
         Returns: {
-          category: string
+          category_id: string
+          category_is_active: boolean
+          category_key: string
+          category_name: string
+          category_name_ar: string
           code: string
           currency: string
           description: string
