@@ -206,9 +206,10 @@ export function StatementScopeSelector({
               value={categoryKeys}
               onChange={setCategoryKeys}
               historicalKeys={historicalCategoryKeys}
-              includeUncategorized={hasUncategorizedItems}
+              showHistoricallyUncategorized={hasUncategorizedItems}
             />
           </div>
+
 
 
 
