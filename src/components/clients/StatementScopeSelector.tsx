@@ -172,7 +172,32 @@ export function StatementScopeSelector({
             </div>
           </div>
 
-          {/* Categories (dynamic multi-select, Slice 2A) */}
+          {/* Slice 2B — First financial activity anchor */}
+          {firstActivityDate && (
+            <div className="flex items-center justify-between rounded-md border border-dashed p-2.5">
+              <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-foreground">
+                  {t("clients.statement.scope.firstFinancialActivity")}
+                </div>
+                <div>{firstActivityDate}</div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDateFrom(firstActivityDate)}
+                className="text-xs h-7"
+              >
+                {t("clients.statement.scope.fromFirstActivity")}
+              </Button>
+            </div>
+          )}
+          {!firstActivityDate && (
+            <p className="text-xs text-muted-foreground italic">
+              {t("clients.statement.scope.noFinancialActivity")}
+            </p>
+          )}
+
+          {/* Categories (dynamic multi-select, snapshot-backed — Slice 2B) */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
               {t("clients.statement.scope.categoriesLabel")}
@@ -180,28 +205,11 @@ export function StatementScopeSelector({
             <CategoryMultiSelect
               value={categoryKeys}
               onChange={setCategoryKeys}
+              historicalKeys={historicalCategoryKeys}
+              includeUncategorized={hasUncategorizedItems}
             />
           </div>
 
-          {/* Legacy domain pills — retained until Slice 2B moves filtering to snapshot categories */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              {t("clients.statement.scope.domainLabel")}
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {domainPills.map((pill) => (
-                <Button
-                  key={pill.value}
-                  variant={domainFilter === pill.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setDomainFilter(pill.value)}
-                  className="text-xs h-7"
-                >
-                  {pill.label}
-                </Button>
-              ))}
-            </div>
-          </div>
 
 
           {/* Scope pills */}
