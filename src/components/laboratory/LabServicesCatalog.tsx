@@ -29,30 +29,63 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Clock, Tag, FlaskConical, Trash2, MoreVertical, Pencil, Power } from "lucide-react";
+import { Plus, Search, Clock, Tag, FlaskConical, Trash2, MoreVertical, Pencil, Power, Settings2 } from "lucide-react";
 import { useLabServices, type LabService, type CreateLabServiceInput } from "@/hooks/laboratory/useLabServices";
 import { LabServiceFormDialog } from "./LabServiceFormDialog";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { BilingualName } from "@/components/ui/BilingualName";
+import {
+  displayCategoryName,
+  useServiceCategories,
+} from "@/hooks/finance/useServiceCategories";
+import { ServiceCategoryManagerDialog } from "@/components/finance/ServiceCategoryManagerDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 
 type DialogTarget = { service: LabService; action: "deactivate" | "delete" } | null;
 
+// 2QA-C — sentinel filter value used to surface services whose live
+// category_id relation is missing (legacy/unmapped rows).
+const UNMAPPED_FILTER = "__unmapped__";
+
 export function LabServicesCatalog() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { services, isLoading, createService, updateService, toggleActive, deleteService, isCreating, isUpdating, isDeleting } = useLabServices();
+  const { categories: allCategories } = useServiceCategories(true);
+  const { isOwner, hasPermission } = usePermissions();
+  const canManageCategories = isOwner || hasPermission("services.manage");
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<LabService | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<DialogTarget>(null);
+  const [managerOpen, setManagerOpen] = useState(false);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference("lab_services");
 
-  const categories = useMemo(() => {
-    const cats = new Set(services.map(s => s.category).filter(Boolean) as string[]);
-    return Array.from(cats).sort();
-  }, [services]);
+  const categoryMap = useMemo(
+    () => new Map(allCategories.map((c) => [c.id, c])),
+    [allCategories],
+  );
+
+  // 2QA-C — filter chips reflect the shared live category identity, not the
+  // legacy free-text column. Archived categories only appear when at least
+  // one current service still points to them.
+  const filterCategories = useMemo(() => {
+    const linkedIds = new Set(
+      services.map((s) => s.category_id).filter(Boolean) as string[],
+    );
+    const active = allCategories.filter((c) => c.is_active);
+    const archivedLinked = allCategories.filter(
+      (c) => !c.is_active && linkedIds.has(c.id),
+    );
+    return { active, archivedLinked };
+  }, [allCategories, services]);
+
+  const hasUnmapped = useMemo(
+    () => services.some((s) => !s.category_id),
+    [services],
+  );
 
   const filtered = useMemo(() => {
     let result = services;
