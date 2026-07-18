@@ -170,17 +170,19 @@ export function CategoryMultiSelect({
             </button>
           )}
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 shrink-0"
-          onClick={() => setManagerOpen(true)}
-          aria-label={t("clients.statement.manageCategories")}
-          title={t("clients.statement.manageCategories")}
-        >
-          <Settings2 className="h-4 w-4" />
-        </Button>
+        {canManageCategories && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 shrink-0"
+            onClick={() => setManagerOpen(true)}
+            aria-label={t("clients.statement.manageCategories")}
+            title={t("clients.statement.manageCategories")}
+          >
+            <Settings2 className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
 
