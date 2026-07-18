@@ -2,6 +2,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
+import { classifyLedgerEntry, semanticClassLabel } from "@/lib/finance/statementSemantics";
 
 /**
  * Escape user-controlled strings before interpolating into HTML written to a
@@ -27,8 +28,10 @@ export interface StatementPrintData {
   /** Slice 2C — Overall/scoped in-range totals (sum of invoice debits in range). */
   totalDebits: number;
   totalCredits: number;
-  /** Slice 2C — Scoped outstanding = in-range invoices − in-range payments (may be negative). */
+  /** 2QA-A · Finding 1 — Scoped outstanding CLAMPED to ≥ 0 (semantic resolver). */
   scopedOutstanding: number;
+  /** 2QA-A · Finding 1 — Genuine scoped negative balance shown as Credit Balance in Scope. */
+  scopedCreditBalance?: number;
   /** Slice 2C — Lifetime posted invoice debits (customer-wide). Present in scoped mode. */
   customerTotalInvoices?: number;
   /** Slice 2C — max(0, lifetime customer ledger balance). Present in scoped mode. */
