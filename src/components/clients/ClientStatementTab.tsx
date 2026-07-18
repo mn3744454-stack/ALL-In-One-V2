@@ -833,7 +833,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
 
   // Slice 2B — Auxiliary data for scope selector and header presentation.
   const { firstActivityDate } = useClientFirstActivity(clientId);
-  const { unallocated } = useUnallocatedPayments(clientId);
+  const { unallocated } = useUnallocatedPayments(
+    clientId,
+    scopeConfig.dateFrom,
+    scopeConfig.dateTo
+  );
   // Slice 2C — Lifetime customer ledger balance (source of truth for
   // Customer Total Outstanding). Negative = credit balance → outstanding = 0.
   const { balance: lifetimeLedgerBalance } = useLedgerBalance(clientId);
