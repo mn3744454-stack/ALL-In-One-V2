@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { localDateFromToUtcIso, localDateToToUtcIso } from "@/lib/finance/effectiveDate";
 
 export interface StatementEntry {
   id: string;
@@ -50,11 +51,14 @@ export function useClientStatement(
         .eq("client_id", clientId)
         .order("created_at", { ascending: true });
 
+      // 2QA-A · Finding 2 — canonical local-day → UTC boundary conversion so
+      // a "From 01-04-2026" filter never leaks a row whose posting timestamp
+      // is on 31-03-2026 in the user's local timezone.
       if (dateFrom) {
-        query = query.gte("created_at", dateFrom);
+        query = query.gte("created_at", localDateFromToUtcIso(dateFrom));
       }
       if (dateTo) {
-        query = query.lte("created_at", dateTo + "T23:59:59.999Z");
+        query = query.lte("created_at", localDateToToUtcIso(dateTo));
       }
 
       const { data: entries, error } = await query;
