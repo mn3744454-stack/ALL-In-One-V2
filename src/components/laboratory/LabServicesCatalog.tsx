@@ -215,7 +215,7 @@ export function LabServicesCatalog() {
               {service.category_id && categoryMap.has(service.category_id) && (
                 <Badge variant="secondary" className="text-xs">
                   <Tag className="w-3 h-3 mr-1" />
-                  {displayCategoryName(categoryMap.get(service.category_id)!, lang)}
+                  {displayCategoryName(categoryMap.get(service.category_id)!, lang === "ar" ? "ar" : "en")}
                 </Badge>
               )}
               {service.sample_type && <Badge variant="outline" className="text-xs">{service.sample_type}</Badge>}
@@ -266,7 +266,7 @@ export function LabServicesCatalog() {
                 <BilingualName name={service.name} nameAr={service.name_ar} />
               </TableCell>
               <TableCell><span className="font-mono text-xs">{service.code || "—"}</span></TableCell>
-              <TableCell>{service.category_id && categoryMap.has(service.category_id) ? displayCategoryName(categoryMap.get(service.category_id)!, lang) : "—"}</TableCell>
+              <TableCell>{service.category_id && categoryMap.has(service.category_id) ? displayCategoryName(categoryMap.get(service.category_id)!, lang === "ar" ? "ar" : "en") : "—"}</TableCell>
               <TableCell>{service.price != null ? `${service.price} ${service.currency || ""}` : "—"}</TableCell>
               <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                 <Switch
@@ -351,7 +351,7 @@ export function LabServicesCatalog() {
                   className="cursor-pointer shrink-0"
                   onClick={() => setCategoryFilter(cat.id === categoryFilter ? null : cat.id)}
                 >
-                  {displayCategoryName(cat, lang)}
+                  {displayCategoryName(cat, lang === "ar" ? "ar" : "en")}
                 </Badge>
               ))}
               {filterCategories.archivedLinked.map((cat) => (
@@ -361,7 +361,7 @@ export function LabServicesCatalog() {
                   className="cursor-pointer shrink-0 opacity-70"
                   onClick={() => setCategoryFilter(cat.id === categoryFilter ? null : cat.id)}
                 >
-                  {displayCategoryName(cat, lang)}
+                  {displayCategoryName(cat, lang === "ar" ? "ar" : "en")}
                 </Badge>
               ))}
               {hasUnmapped && (
