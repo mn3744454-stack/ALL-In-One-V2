@@ -81,10 +81,10 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         }
       });
 
-      // 2. Batch fetch invoice_items — now including horse_id, domain, period_start, period_end
+      // 2. Batch fetch invoice_items — including category snapshots (Slice 2B)
       const { data: allItems } = await supabase
         .from("invoice_items" as any)
-        .select("invoice_id, description, entity_type, entity_id, horse_id, domain, period_start, period_end, total_price, quantity")
+        .select("invoice_id, description, entity_type, entity_id, horse_id, domain, period_start, period_end, total_price, quantity, category_key, category_name_snapshot, category_name_ar_snapshot")
         .in("invoice_id", referenceIds);
 
       const typedItems = (allItems || []) as unknown as Array<{
@@ -98,6 +98,9 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         period_end: string | null;
         total_price: number | null;
         quantity: number | null;
+        category_key: string | null;
+        category_name_snapshot: string | null;
+        category_name_ar_snapshot: string | null;
       }>;
 
       // Group items by invoice_id
