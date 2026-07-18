@@ -141,9 +141,9 @@ export function printStatement(data: StatementPrintData) {
       // 2QA-A · Finding 1 — Surface semantic classification as an inline pill
       // for non-standard entries (cancellation, reversal, adjustment).
       const sem = classifyLedgerEntry(e);
-      const semPill = sem.class === "invoice" || sem.class === "payment"
+      const semPill = sem.semanticClass === "posted_invoice_debit" || sem.semanticClass === "real_payment"
         ? ""
-        : `<div class="sem-pill sem-${sem.class}">${escapeHtml(semanticClassLabel(sem.class, !!data.isRTL))}</div>`;
+        : `<div class="sem-pill sem-${sem.semanticClass}">${escapeHtml(semanticClassLabel(sem.semanticClass, !!data.isRTL))}</div>`;
       return `
     <tr>
       <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${escapeHtml(formatDateForPrint(e.date))}</td>
