@@ -1319,11 +1319,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                                 <TableCell>
                                   <RowDescription row={row} isRTL={isRTL} t={t} />
                                 </TableCell>
-                                <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                                <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">
                                   <span className="text-destructive">{formatCurrency(row.segment.amount)}</span>
                                 </TableCell>
-                                <TableCell className="text-center font-mono tabular-nums" dir="ltr">-</TableCell>
-                                <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
+                                <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">-</TableCell>
+                                <TableCell className="text-center font-mono font-medium tabular-nums whitespace-nowrap" dir="ltr">
                                   {formatCurrency(runningBal)}
                                 </TableCell>
                               </TableRow>
