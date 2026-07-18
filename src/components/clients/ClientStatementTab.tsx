@@ -1330,25 +1330,31 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                             );
                           }
 
+                          const isNeutralized = scopedSummary.neutralizedRowIds.has(row.entry.id);
                           return (
-                            <TableRow key={row.key} className="align-top">
+                            <TableRow key={row.key} className={cn("align-top", isNeutralized && "opacity-60")}>
                               <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
                                 {formatDate(row.entry.date, 'dd-MM-yyyy')}
                               </TableCell>
                               <TableCell>
                                 <RowDescription row={row} isRTL={isRTL} t={t} />
+                                {isNeutralized && (
+                                  <span className="ms-2 inline-block px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 align-middle">
+                                    {isRTL ? "خارج النطاق — لا تؤثر في الرصيد" : "Out of scope — no balance effect"}
+                                  </span>
+                                )}
                               </TableCell>
-                              <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                              <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">
                                 {row.entry.debit > 0 ? (
-                                  <span className="text-destructive">{formatCurrency(row.entry.debit)}</span>
+                                  <span className={cn(!isNeutralized && "text-destructive", isNeutralized && "line-through text-muted-foreground")}>{formatCurrency(row.entry.debit)}</span>
                                 ) : "-"}
                               </TableCell>
-                              <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                              <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">
                                 {row.entry.credit > 0 ? (
-                                  <span className="text-primary">{formatCurrency(row.entry.credit)}</span>
+                                  <span className={cn(!isNeutralized && "text-primary", isNeutralized && "line-through text-muted-foreground")}>{formatCurrency(row.entry.credit)}</span>
                                 ) : "-"}
                               </TableCell>
-                              <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
+                              <TableCell className="text-center font-mono font-medium tabular-nums whitespace-nowrap" dir="ltr">
                                 {formatCurrency(runningBal)}
                               </TableCell>
                             </TableRow>
