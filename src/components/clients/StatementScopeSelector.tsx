@@ -48,6 +48,12 @@ interface StatementScopeSelectorProps {
   horses: ScopeHorse[];
   initialConfig: StatementScopeConfig;
   onGenerate: (config: StatementScopeConfig) => void;
+  /** Slice 2B — Archived category keys still referenced by visible snapshot rows. */
+  historicalCategoryKeys?: string[];
+  /** Slice 2B — Whether the current dataset contains items with no category snapshot. */
+  hasUncategorizedItems?: boolean;
+  /** Slice 2B — Earliest ledger date for this client (yyyy-MM-dd). */
+  firstActivityDate?: string | null;
 }
 
 export function StatementScopeSelector({
@@ -57,6 +63,9 @@ export function StatementScopeSelector({
   horses,
   initialConfig,
   onGenerate,
+  historicalCategoryKeys = [],
+  hasUncategorizedItems = false,
+  firstActivityDate = null,
 }: StatementScopeSelectorProps) {
   const { t, dir } = useI18n();
   const isRTL = dir === "rtl";
