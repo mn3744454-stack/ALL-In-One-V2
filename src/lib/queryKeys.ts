@@ -91,6 +91,25 @@ export const queryKeys = {
   
   // Services
   services: (tenantId?: string) => ['services', tenantId] as const,
+
+  // Tenant service categories (Slice 2A)
+  serviceCategories: {
+    root: ['service-categories'] as const,
+    list: (tenantId?: string, includeArchived: boolean = false) =>
+      ['service-categories', tenantId, includeArchived ? 'all' : 'active'] as const,
+  },
+
+  // Client statement (Slice 2)
+  clientStatement: (
+    tenantId?: string,
+    clientId?: string,
+    scope?: Record<string, unknown>
+  ) => ['client-statement', tenantId, clientId, stableStringify(scope)] as const,
+  clientFirstActivity: (tenantId?: string, clientId?: string) =>
+    ['client-first-activity', tenantId, clientId] as const,
+  customerBalances: (tenantId?: string) => ['customer-balances', tenantId] as const,
+  customerLedgerBalance: (tenantId?: string, clientId?: string) =>
+    ['v-customer-ledger-balances', tenantId, clientId] as const,
   
   // Academy
   academySessions: (tenantId?: string) => ['academy-sessions', tenantId] as const,

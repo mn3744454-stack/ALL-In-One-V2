@@ -15,8 +15,11 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { format, subMonths } from "date-fns";
 import { Search, X } from "lucide-react";
+import { CategoryMultiSelect } from "./CategoryMultiSelect";
 
 export type ScopeMode = "all" | "horses" | "services";
+/** Legacy domain filter — kept for backward compatibility during Slice 2A.
+ *  New callers should use `categoryKeys` (dynamic, tenant-scoped). */
 export type DomainFilter = "all" | "boarding" | "vet" | "breeding" | "lab" | "general";
 
 export interface ScopeHorse {
@@ -30,8 +33,13 @@ export interface StatementScopeConfig {
   dateTo: string;
   mode: ScopeMode;
   selectedHorseIds: string[];
+  /** @deprecated Prefer `categoryKeys`. Retained until Slice 2B replaces the
+   *  entry-filtering path with snapshot-based category matching. */
   domainFilter: DomainFilter;
+  /** Dynamic, tenant-scoped category keys (OR semantics). Empty array = All Categories. */
+  categoryKeys: string[];
 }
+
 
 interface StatementScopeSelectorProps {
   open: boolean;
@@ -61,6 +69,7 @@ export function StatementScopeSelector({
   );
   const [horseSearch, setHorseSearch] = useState("");
   const [domainFilter, setDomainFilter] = useState<DomainFilter>(initialConfig.domainFilter || "all");
+  const [categoryKeys, setCategoryKeys] = useState<string[]>(initialConfig.categoryKeys || []);
 
   const filteredHorses = useMemo(() => {
     if (!horseSearch.trim()) return horses;
@@ -101,9 +110,11 @@ export function StatementScopeSelector({
       mode,
       selectedHorseIds: Array.from(selectedHorseIds),
       domainFilter,
+      categoryKeys,
     });
     onOpenChange(false);
   };
+
 
   const scopePills: { value: ScopeMode; label: string }[] = [
     { value: "all", label: t("clients.statement.scope.all") },
@@ -157,7 +168,18 @@ export function StatementScopeSelector({
             </div>
           </div>
 
-          {/* Domain filter */}
+          {/* Categories (dynamic multi-select, Slice 2A) */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("clients.statement.scope.categoriesLabel")}
+            </label>
+            <CategoryMultiSelect
+              value={categoryKeys}
+              onChange={setCategoryKeys}
+            />
+          </div>
+
+          {/* Legacy domain pills — retained until Slice 2B moves filtering to snapshot categories */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
               {t("clients.statement.scope.domainLabel")}
@@ -176,6 +198,7 @@ export function StatementScopeSelector({
               ))}
             </div>
           </div>
+
 
           {/* Scope pills */}
           <div className="space-y-1.5">

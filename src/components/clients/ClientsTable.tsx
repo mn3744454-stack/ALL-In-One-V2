@@ -20,6 +20,7 @@ import {
 import { MoreHorizontal, FileText, Edit, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
+import { normalizeCustomerBalance } from "@/lib/finance/customerBalance";
 import { cn } from "@/lib/utils";
 import type { Client, ClientStatus, ClientType } from "@/hooks/useClients";
 
@@ -65,18 +66,18 @@ export function ClientsTable({
             <TableHead className="text-center">{t("clients.form.type")}</TableHead>
             <TableHead className="text-center">{t("clients.form.creditLimit")}</TableHead>
             <TableHead className="text-center">{t("clients.outstandingBalance")}</TableHead>
-            <TableHead className="text-center">{t("finance.creditLimit.available")}</TableHead>
+            <TableHead className="text-center">{t("clients.availableCredit")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
             <TableHead className="text-center w-[60px]">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {clients.map((client) => {
-            const hasBalance = (client.outstanding_balance || 0) > 0;
-            const creditLimit = client.credit_limit || 0;
-            const outstanding = client.outstanding_balance || 0;
-            const available = Math.max(0, creditLimit - Math.max(0, outstanding));
-            
+            const bal = normalizeCustomerBalance(
+              client.ledger_balance ?? client.outstanding_balance,
+              client.credit_limit
+            );
+
             return (
               <TableRow key={client.id} className="hover:bg-muted/50">
                 <TableCell>
@@ -91,16 +92,22 @@ export function ClientsTable({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center font-mono tabular-nums" dir="ltr">
-                  {creditLimit > 0 ? formatCurrency(creditLimit, tenantCurrency) : "-"}
+                  {bal.hasCreditLimit ? formatCurrency(client.credit_limit || 0, tenantCurrency) : "-"}
                 </TableCell>
-                <TableCell className={cn(
-                  "text-center font-mono tabular-nums",
-                  hasBalance && "text-destructive"
-                )} dir="ltr">
-                  {formatCurrency(outstanding, tenantCurrency)}
+                <TableCell className="text-center" dir="ltr">
+                  <div className="flex flex-col items-center gap-0.5 font-mono tabular-nums">
+                    <span className={cn(bal.outstanding > 0 && "text-destructive")}>
+                      {formatCurrency(bal.outstanding, tenantCurrency)}
+                    </span>
+                    {bal.hasCreditBalance && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium leading-none">
+                        {t("clients.creditBalance")}: {formatCurrency(bal.creditBalance, tenantCurrency)}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
-                  {creditLimit > 0 ? formatCurrency(available, tenantCurrency) : "-"}
+                  {bal.hasCreditLimit ? formatCurrency(bal.availableCredit, tenantCurrency) : "-"}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge

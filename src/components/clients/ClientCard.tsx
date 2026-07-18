@@ -11,11 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2, FileText } from "lucide-react";
+import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2, FileText, Wallet } from "lucide-react";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 import { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
 import { formatCurrency } from "@/lib/formatters";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
+import { normalizeCustomerBalance } from "@/lib/finance/customerBalance";
 import type { Client } from "@/hooks/useClients";
 
 interface ClientCardProps {
@@ -31,7 +32,10 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
   const tenantCurrency = useTenantCurrency();
   const Icon = getClientTypeIcon(client.type);
 
-  const hasOutstandingBalance = (client.outstanding_balance || 0) > 0;
+  const bal = normalizeCustomerBalance(
+    client.ledger_balance ?? client.outstanding_balance,
+    client.credit_limit
+  );
 
   return (
     <Card className="group hover:shadow-md transition-shadow">
@@ -103,20 +107,42 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
           )}
         </div>
 
-        {hasOutstandingBalance && (
+        {bal.outstanding > 0 && (
           <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
             <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
             <span className="text-sm text-amber-700 font-medium font-mono tabular-nums" dir="ltr">
-              {t("clients.outstandingBalance")}: {formatCurrency(client.outstanding_balance || 0, tenantCurrency)}
+              {t("clients.outstandingBalance")}: {formatCurrency(bal.outstanding, tenantCurrency)}
             </span>
           </div>
         )}
 
-        {client.credit_limit && (
-          <div className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
-            {t("clients.form.creditLimit")}: {formatCurrency(client.credit_limit, tenantCurrency)}
+        {bal.hasCreditBalance && (
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+            <Wallet className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span className="text-sm text-emerald-700 font-medium font-mono tabular-nums" dir="ltr">
+              {t("clients.creditBalance")}: {formatCurrency(bal.creditBalance, tenantCurrency)}
+            </span>
           </div>
         )}
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {bal.hasCreditLimit && (
+            <div className="text-muted-foreground font-mono tabular-nums" dir="ltr">
+              <div className="text-[10px] uppercase tracking-wide opacity-70">
+                {t("clients.form.creditLimit")}
+              </div>
+              {formatCurrency(client.credit_limit || 0, tenantCurrency)}
+            </div>
+          )}
+          {bal.hasCreditLimit && (
+            <div className="text-primary font-mono tabular-nums" dir="ltr">
+              <div className="text-[10px] uppercase tracking-wide opacity-70 text-muted-foreground">
+                {t("clients.availableCredit")}
+              </div>
+              {formatCurrency(bal.availableCredit, tenantCurrency)}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
