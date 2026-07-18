@@ -38,6 +38,13 @@ export interface ClassifiedEntry {
   isPostedInvoiceDebit: boolean;
   /** True when the row is a cancellation/reversal (must NEVER be counted as Paid). */
   isCancellationOrReversal: boolean;
+  /**
+   * True when this row is a cancellation/reversal whose paired posted invoice
+   * debit is NOT present in the current scope. Its monetary effect must be
+   * neutralized (zeroed) in scoped summaries and the running balance to
+   * prevent a false credit balance.
+   */
+  isOrphanCancellation: boolean;
 }
 
 const CANCELLATION_MARKER_RE =
