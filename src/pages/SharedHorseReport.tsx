@@ -173,22 +173,29 @@ export default function SharedHorseReport() {
       return;
     }
 
+    const escapeHtml = (value: string) =>
+      value.replace(/[&<>"']/g, (ch) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string)
+      );
+    const safeLang = escapeHtml(String(lang ?? ""));
+    const safeDir = dir === "rtl" ? "rtl" : "ltr";
+    const safeTitle = escapeHtml(`${t("title")} - ${data?.data?.horse.name ?? ""}`);
     const content = DOMPurify.sanitize(reportRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
-      <html lang="${lang}" dir="${dir}">
+      <html lang="${safeLang}" dir="${safeDir}">
       <head>
-        <title>${t("title")} - ${data?.data?.horse.name}</title>
+        <title>${safeTitle}</title>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { 
             font-family: system-ui, -apple-system, sans-serif; 
             padding: 20mm;
             color: #1f2937;
-            direction: ${dir};
+            direction: ${safeDir};
           }
           table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 10px; text-align: ${dir === "rtl" ? "right" : "left"}; border: 1px solid #e5e7eb; }
+          th, td { padding: 10px; text-align: ${safeDir === "rtl" ? "right" : "left"}; border: 1px solid #e5e7eb; }
           th { background-color: #f3f4f6; font-weight: 600; }
           .header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
           .section { margin-bottom: 24px; }
