@@ -1063,6 +1063,32 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
             )}
           </div>
 
+          {/* Slice 2B — Unallocated payments (conditional; presentation-only) */}
+          {unallocated.count > 0 && (
+            <Card className="border-dashed border-amber-300 dark:border-amber-800">
+              <CardContent className="p-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Wallet className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-foreground">
+                      {t("clients.statement.unallocatedPayments")}
+                    </p>
+                    <p>
+                      {t("clients.statement.unallocatedCount").replace(
+                        "{count}",
+                        String(unallocated.count)
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-lg font-bold font-mono tabular-nums text-amber-700 dark:text-amber-300" dir="ltr">
+                  {formatCurrency(unallocated.totalAmount)}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+
           {/* Statement entries */}
           <Card>
             <CardContent className="p-0">
