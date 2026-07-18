@@ -29,6 +29,7 @@ import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, Arrow
 import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } from "./StatementScopeSelector";
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
+import { summarizeStatement } from "@/lib/finance/statementSemantics";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
 
