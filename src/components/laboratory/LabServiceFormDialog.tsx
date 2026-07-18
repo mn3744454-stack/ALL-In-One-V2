@@ -309,10 +309,15 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="category" render={({ field }) => (
+              <FormField control={form.control} name="category_id" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("laboratory.catalog.category")}</FormLabel>
-                  <FormControl><Input placeholder="e.g., Hematology" {...field} /></FormControl>
+                  <FormControl>
+                    <ServiceCategorySelect
+                      value={field.value ?? null}
+                      onChange={(id) => field.onChange(id)}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
