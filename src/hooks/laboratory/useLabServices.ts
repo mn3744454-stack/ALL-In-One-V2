@@ -10,7 +10,10 @@ export interface LabService {
   name: string;
   name_ar: string | null;
   code: string | null;
+  /** @deprecated 2QA-C — legacy free-text category. `category_id` is the live truth. */
   category: string | null;
+  /** 2QA-C — canonical live category identity via tenant_service_categories. */
+  category_id: string | null;
   description: string | null;
   sample_type: string | null;
   turnaround_hours: number | null;
@@ -30,7 +33,8 @@ export interface CreateLabServiceInput {
   name: string;
   name_ar?: string;
   code?: string;
-  category?: string;
+  /** 2QA-C — writes go to category_id. Legacy `category` text is no longer set from the form. */
+  category_id?: string | null;
   description?: string;
   sample_type?: string;
   turnaround_hours?: number | null;
@@ -70,6 +74,8 @@ export function useLabServices() {
   const createMutation = useMutation({
     mutationFn: async (input: CreateLabServiceInput) => {
       if (!tenantId) throw new Error("No active tenant");
+      // 2QA-C — write category_id only. Legacy `category` text is no longer
+      // authored from the UI. Same-tenant enforcement lives in the DB.
       const { data, error } = await supabase
         .from("lab_services")
         .insert({
@@ -77,7 +83,7 @@ export function useLabServices() {
           name: input.name,
           name_ar: input.name_ar || null,
           code: input.code || null,
-          category: input.category || null,
+          category_id: input.category_id ?? null,
           description: input.description || null,
           sample_type: input.sample_type || null,
           turnaround_hours: input.turnaround_hours ?? null,
@@ -96,6 +102,7 @@ export function useLabServices() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lab-services", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["service-categories"] });
       toast.success(t("laboratory.catalog.created"));
     },
     onError: () => toast.error(t("laboratory.catalog.createFailed")),
@@ -104,13 +111,17 @@ export function useLabServices() {
   const updateMutation = useMutation({
     mutationFn: async (input: CreateLabServiceInput & { id: string }) => {
       const { id, ...updates } = input;
+      // 2QA-C — update category_id only. Do NOT overwrite legacy `category`
+      // text: renaming the shared category or reassignment must not mutate
+      // legacy free-text, and editing a service must never rename a shared
+      // category. Historical invoice snapshots remain frozen.
       const { data, error } = await supabase
         .from("lab_services")
         .update({
           name: updates.name,
           name_ar: updates.name_ar || null,
           code: updates.code || null,
-          category: updates.category || null,
+          category_id: updates.category_id ?? null,
           description: updates.description || null,
           sample_type: updates.sample_type || null,
           turnaround_hours: updates.turnaround_hours ?? null,
@@ -130,6 +141,7 @@ export function useLabServices() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lab-services", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["service-categories"] });
       toast.success(t("laboratory.catalog.updated"));
     },
     onError: () => toast.error(t("laboratory.catalog.updateFailed")),

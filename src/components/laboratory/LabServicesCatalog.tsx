@@ -29,30 +29,63 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Clock, Tag, FlaskConical, Trash2, MoreVertical, Pencil, Power } from "lucide-react";
+import { Plus, Search, Clock, Tag, FlaskConical, Trash2, MoreVertical, Pencil, Power, Settings2 } from "lucide-react";
 import { useLabServices, type LabService, type CreateLabServiceInput } from "@/hooks/laboratory/useLabServices";
 import { LabServiceFormDialog } from "./LabServiceFormDialog";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { BilingualName } from "@/components/ui/BilingualName";
+import {
+  displayCategoryName,
+  useServiceCategories,
+} from "@/hooks/finance/useServiceCategories";
+import { ServiceCategoryManagerDialog } from "@/components/finance/ServiceCategoryManagerDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 
 type DialogTarget = { service: LabService; action: "deactivate" | "delete" } | null;
 
+// 2QA-C — sentinel filter value used to surface services whose live
+// category_id relation is missing (legacy/unmapped rows).
+const UNMAPPED_FILTER = "__unmapped__";
+
 export function LabServicesCatalog() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { services, isLoading, createService, updateService, toggleActive, deleteService, isCreating, isUpdating, isDeleting } = useLabServices();
+  const { categories: allCategories } = useServiceCategories(true);
+  const { isOwner, hasPermission } = usePermissions();
+  const canManageCategories = isOwner || hasPermission("services.manage");
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<LabService | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<DialogTarget>(null);
+  const [managerOpen, setManagerOpen] = useState(false);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference("lab_services");
 
-  const categories = useMemo(() => {
-    const cats = new Set(services.map(s => s.category).filter(Boolean) as string[]);
-    return Array.from(cats).sort();
-  }, [services]);
+  const categoryMap = useMemo(
+    () => new Map(allCategories.map((c) => [c.id, c])),
+    [allCategories],
+  );
+
+  // 2QA-C — filter chips reflect the shared live category identity, not the
+  // legacy free-text column. Archived categories only appear when at least
+  // one current service still points to them.
+  const filterCategories = useMemo(() => {
+    const linkedIds = new Set(
+      services.map((s) => s.category_id).filter(Boolean) as string[],
+    );
+    const active = allCategories.filter((c) => c.is_active);
+    const archivedLinked = allCategories.filter(
+      (c) => !c.is_active && linkedIds.has(c.id),
+    );
+    return { active, archivedLinked };
+  }, [allCategories, services]);
+
+  const hasUnmapped = useMemo(
+    () => services.some((s) => !s.category_id),
+    [services],
+  );
 
   const filtered = useMemo(() => {
     let result = services;
@@ -64,8 +97,10 @@ export function LabServicesCatalog() {
         s.code?.toLowerCase().includes(q)
       );
     }
-    if (categoryFilter) {
-      result = result.filter(s => s.category === categoryFilter);
+    if (categoryFilter === UNMAPPED_FILTER) {
+      result = result.filter((s) => !s.category_id);
+    } else if (categoryFilter) {
+      result = result.filter((s) => s.category_id === categoryFilter);
     }
     return result;
   }, [services, search, categoryFilter]);
@@ -177,8 +212,11 @@ export function LabServicesCatalog() {
               <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              {service.category && (
-                <Badge variant="secondary" className="text-xs"><Tag className="w-3 h-3 mr-1" />{service.category}</Badge>
+              {service.category_id && categoryMap.has(service.category_id) && (
+                <Badge variant="secondary" className="text-xs">
+                  <Tag className="w-3 h-3 mr-1" />
+                  {displayCategoryName(categoryMap.get(service.category_id)!, lang === "ar" ? "ar" : "en")}
+                </Badge>
               )}
               {service.sample_type && <Badge variant="outline" className="text-xs">{service.sample_type}</Badge>}
               {service.turnaround_hours && (
@@ -228,7 +266,7 @@ export function LabServicesCatalog() {
                 <BilingualName name={service.name} nameAr={service.name_ar} />
               </TableCell>
               <TableCell><span className="font-mono text-xs">{service.code || "—"}</span></TableCell>
-              <TableCell>{service.category || "—"}</TableCell>
+              <TableCell>{service.category_id && categoryMap.has(service.category_id) ? displayCategoryName(categoryMap.get(service.category_id)!, lang === "ar" ? "ar" : "en") : "—"}</TableCell>
               <TableCell>{service.price != null ? `${service.price} ${service.currency || ""}` : "—"}</TableCell>
               <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                 <Switch
@@ -273,12 +311,18 @@ export function LabServicesCatalog() {
                 showLabels={true}
               />
             </div>
+            {canManageCategories && (
+              <Button variant="outline" size="icon" onClick={() => setManagerOpen(true)} title={t("finance.categories.manage")}>
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="gold" onClick={() => { setEditingService(null); setDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-2" />
               {t("laboratory.catalog.addService")}
             </Button>
           </div>
         </div>
+
 
         {/* Search + Category Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -291,7 +335,7 @@ export function LabServicesCatalog() {
               className="pl-9"
             />
           </div>
-          {categories.length > 0 && (
+          {(filterCategories.active.length > 0 || filterCategories.archivedLinked.length > 0 || hasUnmapped) && (
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               <Badge
                 variant={categoryFilter === null ? "default" : "outline"}
@@ -300,16 +344,35 @@ export function LabServicesCatalog() {
               >
                 {t("common.all")}
               </Badge>
-              {categories.map(cat => (
+              {filterCategories.active.map((cat) => (
                 <Badge
-                  key={cat}
-                  variant={categoryFilter === cat ? "default" : "outline"}
+                  key={cat.id}
+                  variant={categoryFilter === cat.id ? "default" : "outline"}
                   className="cursor-pointer shrink-0"
-                  onClick={() => setCategoryFilter(cat === categoryFilter ? null : cat)}
+                  onClick={() => setCategoryFilter(cat.id === categoryFilter ? null : cat.id)}
                 >
-                  {cat}
+                  {displayCategoryName(cat, lang === "ar" ? "ar" : "en")}
                 </Badge>
               ))}
+              {filterCategories.archivedLinked.map((cat) => (
+                <Badge
+                  key={cat.id}
+                  variant={categoryFilter === cat.id ? "default" : "outline"}
+                  className="cursor-pointer shrink-0 opacity-70"
+                  onClick={() => setCategoryFilter(cat.id === categoryFilter ? null : cat.id)}
+                >
+                  {displayCategoryName(cat, lang === "ar" ? "ar" : "en")}
+                </Badge>
+              ))}
+              {hasUnmapped && (
+                <Badge
+                  variant={categoryFilter === UNMAPPED_FILTER ? "default" : "outline"}
+                  className="cursor-pointer shrink-0 border-dashed"
+                  onClick={() => setCategoryFilter(categoryFilter === UNMAPPED_FILTER ? null : UNMAPPED_FILTER)}
+                >
+                  {t("finance.categories.unmapped")}
+                </Badge>
+              )}
             </div>
           )}
         </div>
