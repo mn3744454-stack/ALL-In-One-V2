@@ -5363,6 +5363,11 @@ export const ar = {
     emptyDescription: "أضف أول عميل للبدء",
     outstandingBalance: "المستحق",
     balance: "الرصيد",
+    creditBalance: "رصيد دائن",
+    availableCredit: "الرصيد المتاح",
+    creditLimitHelp: "أعلى مبلغ ائتماني معتمد للعميل.",
+    availableCreditHelp: "المتبقي من الحد الائتماني بعد خصم المبلغ المستحق.",
+    backToCustomers: "الرجوع إلى العملاء",
     quickAdd: "إضافة عميل سريعة",
     filters: {
       all: "جميع العملاء",
@@ -5388,8 +5393,8 @@ export const ar = {
       check: "شيك",
     },
     form: {
-      name: "اسم العميل (إنجليزي)",
-      namePlaceholder: "Enter client name",
+      name: "اسم العميل",
+      namePlaceholder: "أدخل اسم العميل",
       nameAr: "اسم العميل (عربي)",
       nameArPlaceholder: "أدخل اسم العميل بالعربية",
       email: "البريد الإلكتروني",
