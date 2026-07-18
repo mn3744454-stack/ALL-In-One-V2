@@ -20,6 +20,7 @@ import { useClientFirstActivity } from "@/hooks/clients/useClientFirstActivity";
 import { useUnallocatedPayments } from "@/hooks/clients/useUnallocatedPayments";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency, formatDateTime12h, formatDate } from "@/lib/formatters";
+import { useLedgerBalance } from "@/hooks/finance/useLedgerBalance";
 import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
@@ -833,6 +834,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   // Slice 2B — Auxiliary data for scope selector and header presentation.
   const { firstActivityDate } = useClientFirstActivity(clientId);
   const { unallocated } = useUnallocatedPayments(clientId);
+  // Slice 2C — Lifetime customer ledger balance (source of truth for
+  // Customer Total Outstanding). Negative = credit balance → outstanding = 0.
+  const { balance: lifetimeLedgerBalance } = useLedgerBalance(clientId);
+  const customerTotalOutstanding = Math.max(0, Number(lifetimeLedgerBalance || 0));
+  const customerCreditBalance = Math.max(0, -Number(lifetimeLedgerBalance || 0));
 
   const handleGenerate = (config: StatementScopeConfig) => {
     setScopeConfig(config);
@@ -906,13 +912,20 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     enrichedDescriptions: printEnrichedDescriptions,
     totalDebits: scopedSummary.totalDebit,
     totalCredits: scopedSummary.totalCredit,
-    closingBalance: scopedSummary.scopedOutstanding,
-    clientWideOutstanding: isScoped ? clientWideTotalInvoices : undefined,
+    // Slice 2C — Scoped outstanding = in-range debits − in-range credits
+    scopedOutstanding: scopedSummary.scopedOutstanding,
+    // Slice 2C — Customer-wide, lifetime cards (only meaningful in scoped mode)
+    customerTotalInvoices: isScoped ? clientWideTotalInvoices : undefined,
+    customerTotalOutstanding: isScoped ? customerTotalOutstanding : undefined,
     scopeHorses: scopeContextHorses,
     scopeCategory: scopeContextCategory,
     isScoped,
     isRTL,
     lang,
+    // Slice 2C — Issuer identity is mandatory on Print/PDF/CSV.
+    issuerName: activeTenant?.tenant?.name,
+    issuerNameAr: (activeTenant?.tenant as any)?.name_ar ?? null,
+    firstActivityDate,
   };
 
   const handlePrint = () => printStatement(printData);
@@ -1016,12 +1029,24 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
             </CardHeader>
           </Card>
 
-          {/* Summary Cards — scoped + client-wide */}
-          <div className={cn("grid gap-3", isScoped ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3")}>
+          {/* Slice 2C — Summary Cards.
+              Overall mode = 3 cards (Total Invoices / Paid / Outstanding).
+              Scoped mode = 5 cards (in-scope trio + Customer Total Invoices +
+              Customer Total Outstanding). Grid keeps 1 col on very narrow
+              screens, 2 cols on ≥sm, and expands on desktop. Never scrolls
+              horizontally. */}
+          <div
+            className={cn(
+              "grid gap-3",
+              isScoped
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
+                : "grid-cols-1 sm:grid-cols-3"
+            )}
+          >
             <Card>
               <CardContent className="p-3">
                 <p className="text-xs text-muted-foreground">
-                  {isScoped ? t("clients.statement.scopedDebit") : t("clients.statement.totalDebit")}
+                  {isScoped ? t("clients.statement.scopedInvoices") : t("clients.statement.totalInvoices")}
                 </p>
                 <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
                   {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalDebit)}
@@ -1031,7 +1056,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
             <Card>
               <CardContent className="p-3">
                 <p className="text-xs text-muted-foreground">
-                  {isScoped ? t("clients.statement.scopedCredit") : t("clients.statement.totalCredit")}
+                  {isScoped ? t("clients.statement.scopedPaid") : t("clients.statement.totalPaid")}
                 </p>
                 <p className="text-lg font-bold text-primary font-mono tabular-nums" dir="ltr">
                   {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalCredit)}
@@ -1040,28 +1065,73 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
             </Card>
             <Card>
               <CardContent className="p-3">
-                <p className="text-xs text-muted-foreground">
-                  {isScoped ? t("clients.statement.scopedBalance") : t("clients.statement.closingBalance")}
+                <p
+                  className="text-xs text-muted-foreground"
+                  title={isScoped
+                    ? (isRTL
+                        ? "الفواتير ضمن النطاق ناقصاً المدفوعات ضمن النطاق. لا يشمل الحركات على مستوى العميل."
+                        : "In-scope invoices minus in-scope payments. Excludes customer-level activities.")
+                    : (isRTL
+                        ? "إجمالي المبلغ المستحق على العميل بعد خصم المدفوعات."
+                        : "Total amount due after subtracting payments.")}
+                >
+                  {isScoped ? t("clients.statement.scopedOutstanding") : t("clients.statement.totalOutstanding")}
                 </p>
                 <p className={cn("text-lg font-bold font-mono tabular-nums", scopedSummary.scopedOutstanding > 0 && "text-destructive")} dir="ltr">
-                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.scopedOutstanding)}
+                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(isScoped ? scopedSummary.scopedOutstanding : Math.max(0, scopedSummary.scopedOutstanding))}
                 </p>
               </CardContent>
             </Card>
             {isScoped && (
-              <Card className="border-dashed">
-                <CardContent className="p-3">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    {t("clients.statement.clientWideOutstanding")}
-                  </p>
-                  <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
-                    {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
-                  </p>
-                </CardContent>
-              </Card>
+              <>
+                <Card className="border-dashed">
+                  <CardContent className="p-3">
+                    <p
+                      className="text-xs text-muted-foreground flex items-center gap-1"
+                      title={isRTL
+                        ? "إجمالي فواتير العميل مدى الحياة (المُرحّلة فقط). يتجاهل التاريخ والخيول والتصنيفات."
+                        : "Lifetime posted invoices for this customer. Ignores date, horse, and category filters."}
+                    >
+                      <Info className="h-3 w-3" />
+                      {t("clients.statement.customerTotalInvoices")}
+                    </p>
+                    <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
+                      {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="border-dashed">
+                  <CardContent className="p-3">
+                    <p
+                      className="text-xs text-muted-foreground flex items-center gap-1"
+                      title={isRTL
+                        ? "= max(0, رصيد كشف حساب العميل). عند وجود رصيد دائن يُعرض كرصيد دائن ويكون المستحق صفراً."
+                        : "= max(0, customer ledger balance). If the balance is negative, outstanding is 0 and a credit balance chip appears."}
+                    >
+                      <Info className="h-3 w-3" />
+                      {t("clients.statement.customerTotalOutstanding")}
+                    </p>
+                    <p className={cn("text-lg font-bold font-mono tabular-nums", customerTotalOutstanding > 0 && "text-destructive")} dir="ltr">
+                      {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(customerTotalOutstanding)}
+                    </p>
+                    {customerCreditBalance > 0 && (
+                      <p className="mt-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400" dir="ltr">
+                        {t("clients.statement.creditBalance")}: {formatCurrency(customerCreditBalance)}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
             )}
           </div>
+
+          {/* Slice 2C — Scoped-mode helper: explain that customer-level
+              activities are excluded from scope totals. */}
+          {isScoped && unallocated.count > 0 && (
+            <p className="text-[11px] text-muted-foreground italic px-1">
+              {t("clients.statement.scopeExcludesHelper")}
+            </p>
+          )}
 
           {/* Slice 2B — Unallocated payments (conditional; presentation-only) */}
           {unallocated.count > 0 && (
