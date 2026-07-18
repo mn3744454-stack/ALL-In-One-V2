@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,17 +16,20 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useI18n } from "@/i18n";
 import { useClientStatement } from "@/hooks/clients/useClientStatement";
 import { useStatementEnrichment, type EnrichedStatementData, type EnrichedHorse } from "@/hooks/clients/useStatementEnrichment";
+import { useClientFirstActivity } from "@/hooks/clients/useClientFirstActivity";
+import { useUnallocatedPayments } from "@/hooks/clients/useUnallocatedPayments";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency, formatDateTime12h, formatDate } from "@/lib/formatters";
 import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { format, subMonths } from "date-fns";
-import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, ArrowUpDown } from "lucide-react";
+import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, ArrowUpDown, Wallet } from "lucide-react";
 import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } from "./StatementScopeSelector";
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
+
 
 interface ClientStatementTabProps {
   clientId: string;
