@@ -746,26 +746,9 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     return rows;
   }, [domainFilteredEntries, enrichment, isEnriching, sortOrder]);
 
-  // Running balance: ALWAYS recompute from visible rows regardless of scope
-  // This ensures exploded boarding segments accumulate correctly in all views
-  const runningBalances = useMemo(() => {
-    const balances = new Map<string, number>();
-    let balance = 0;
-    for (const row of flatRows) {
-      if (row.isSegment && row.segment) {
-        balance += row.segment.amount;
-      } else if (!row.isSegment) {
-        balance += row.entry.debit - row.entry.credit;
-      }
-      balances.set(row.key, balance);
-    }
-    return balances;
-  }, [flatRows]);
-
-  // 2QA-A · Finding 1 — Scoped summary is now driven by the shared semantic
-  // resolver. `totalPaid` counts ONLY real payments; cancellation/reversal
-  // adjustments never appear here. `outstanding` clamps to 0 and any genuine
-  // negative scoped balance is surfaced separately as `creditBalance`.
+  // 2QA-A · Finding 1 (patch) — Neutralized rows (orphan cancellations whose
+  // paired invoice debit is not in the scoped set) contribute zero to the
+  // running balance to prevent a false credit balance.
   const scopedSummary = useMemo(() => {
     const s = summarizeStatement(domainFilteredEntries);
     return {
@@ -774,12 +757,31 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       rawBalance: s.rawBalance,
       outstanding: s.outstanding,
       creditBalance: s.creditBalance,
-      // Preserved for downstream props that used the old field name; equals
-      // rawBalance (may be negative) so existing code that expected the raw
-      // net keeps working.
+      neutralizedRowIds: new Set(s.neutralizedRowIds),
       scopedOutstanding: s.rawBalance,
     };
   }, [domainFilteredEntries]);
+
+  // Running balance: recompute from visible rows, skipping neutralized rows.
+  const runningBalances = useMemo(() => {
+    const balances = new Map<string, number>();
+    let balance = 0;
+    for (const row of flatRows) {
+      const neutralized = scopedSummary.neutralizedRowIds.has(row.entry.id);
+      if (neutralized) {
+        // Show the row but do not shift the running balance.
+        balances.set(row.key, balance);
+        continue;
+      }
+      if (row.isSegment && row.segment) {
+        balance += row.segment.amount;
+      } else if (!row.isSegment) {
+        balance += row.entry.debit - row.entry.credit;
+      }
+      balances.set(row.key, balance);
+    }
+    return balances;
+  }, [flatRows, scopedSummary.neutralizedRowIds]);
 
   // Build scope context strings
   const scopeContextHorses = useMemo(() => {
@@ -1317,36 +1319,42 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                                 <TableCell>
                                   <RowDescription row={row} isRTL={isRTL} t={t} />
                                 </TableCell>
-                                <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                                <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">
                                   <span className="text-destructive">{formatCurrency(row.segment.amount)}</span>
                                 </TableCell>
-                                <TableCell className="text-center font-mono tabular-nums" dir="ltr">-</TableCell>
-                                <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
+                                <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">-</TableCell>
+                                <TableCell className="text-center font-mono font-medium tabular-nums whitespace-nowrap" dir="ltr">
                                   {formatCurrency(runningBal)}
                                 </TableCell>
                               </TableRow>
                             );
                           }
 
+                          const isNeutralized = scopedSummary.neutralizedRowIds.has(row.entry.id);
                           return (
-                            <TableRow key={row.key} className="align-top">
+                            <TableRow key={row.key} className={cn("align-top", isNeutralized && "opacity-60")}>
                               <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
                                 {formatDate(row.entry.date, 'dd-MM-yyyy')}
                               </TableCell>
                               <TableCell>
                                 <RowDescription row={row} isRTL={isRTL} t={t} />
+                                {isNeutralized && (
+                                  <span className="ms-2 inline-block px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 align-middle">
+                                    {isRTL ? "خارج النطاق — لا تؤثر في الرصيد" : "Out of scope — no balance effect"}
+                                  </span>
+                                )}
                               </TableCell>
-                              <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                              <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">
                                 {row.entry.debit > 0 ? (
-                                  <span className="text-destructive">{formatCurrency(row.entry.debit)}</span>
+                                  <span className={cn(!isNeutralized && "text-destructive", isNeutralized && "line-through text-muted-foreground")}>{formatCurrency(row.entry.debit)}</span>
                                 ) : "-"}
                               </TableCell>
-                              <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                              <TableCell className="text-center font-mono tabular-nums whitespace-nowrap" dir="ltr">
                                 {row.entry.credit > 0 ? (
-                                  <span className="text-primary">{formatCurrency(row.entry.credit)}</span>
+                                  <span className={cn(!isNeutralized && "text-primary", isNeutralized && "line-through text-muted-foreground")}>{formatCurrency(row.entry.credit)}</span>
                                 ) : "-"}
                               </TableCell>
-                              <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
+                              <TableCell className="text-center font-mono font-medium tabular-nums whitespace-nowrap" dir="ltr">
                                 {formatCurrency(runningBal)}
                               </TableCell>
                             </TableRow>
