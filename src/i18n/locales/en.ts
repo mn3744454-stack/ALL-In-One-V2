@@ -3760,6 +3760,8 @@ export const en = {
       parentLabel: "Parent",
       description: "Description",
       descriptionPlaceholder: "Optional description",
+      manage: "Manage categories",
+      unmapped: "Uncategorized",
     },
     categorization: {
       income: "Income (Revenue)",
