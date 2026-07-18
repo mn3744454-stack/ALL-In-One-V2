@@ -26,12 +26,13 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { ChevronsUpDown, Search, X, Tags } from "lucide-react";
+import { ChevronsUpDown, Search, X, Tags, Settings2 } from "lucide-react";
 import {
   useServiceCategories,
   displayCategoryName,
   type ServiceCategory,
 } from "@/hooks/finance/useServiceCategories";
+import { ServiceCategoryManagerDialog } from "@/components/finance/ServiceCategoryManagerDialog";
 
 interface CategoryMultiSelectProps {
   /** Selected category keys. Empty array = All Categories. */
@@ -61,6 +62,7 @@ export function CategoryMultiSelect({
   const { categories: allCategories } = useServiceCategories(true);
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState<Set<string>>(new Set(value));
 
