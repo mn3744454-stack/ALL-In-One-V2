@@ -24,22 +24,30 @@ export interface StatementPrintData {
   dateTo: string;
   entries: StatementEntry[];
   enrichedDescriptions?: Map<string, string>;
+  /** Slice 2C — Overall/scoped in-range totals (sum of invoice debits in range). */
   totalDebits: number;
   totalCredits: number;
-  closingBalance: number;
-  /** Client-wide outstanding (only present when scoped) */
-  clientWideOutstanding?: number;
-  /** Scope context: horse names or "All Horses" */
+  /** Slice 2C — Scoped outstanding = in-range invoices − in-range payments (may be negative). */
+  scopedOutstanding: number;
+  /** Slice 2C — Lifetime posted invoice debits (customer-wide). Present in scoped mode. */
+  customerTotalInvoices?: number;
+  /** Slice 2C — max(0, lifetime customer ledger balance). Present in scoped mode. */
+  customerTotalOutstanding?: number;
+  /** Slice 2C — Scope context */
   scopeHorses?: string;
-  /** Scope context: category label or "All Categories" */
   scopeCategory?: string;
-  /** Whether the view is filtered/scoped */
   isScoped?: boolean;
   isRTL?: boolean;
   lang?: string;
+  /** Slice 2C — Issuing tenant identity (mandatory on print/PDF/CSV). */
+  issuerName?: string;
+  issuerNameAr?: string | null;
+  /** Slice 2C — First financial activity date (yyyy-MM-dd), if available. */
+  firstActivityDate?: string | null;
 }
 
 function formatDateForPrint(dateStr: string): string {
+  if (!dateStr) return '-';
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return '-';
   return format(d, 'dd-MM-yyyy');
@@ -58,17 +66,22 @@ function getLabels(isRTL?: boolean) {
       debit: "المبلغ المطلوب",
       credit: "المبلغ المسدد",
       balance: "الإجمالي بعد الحركة",
-      totalDebit: "إجمالي المبلغ المطلوب",
-      totalCredit: "إجمالي المبلغ المسدد",
-      closingBalance: "الرصيد الختامي",
-      scopedDebit: "إجمالي الفواتير ضمن النطاق",
-      scopedCredit: "إجمالي المسدد ضمن النطاق",
-      scopedBalance: "إجمالي المستحق ضمن النطاق",
-      clientWide: "إجمالي فواتير العميل",
+      // Overall summary (3 cards)
+      totalInvoices: "إجمالي الفواتير",
+      totalPaid: "إجمالي المبلغ المسدد",
+      totalOutstanding: "إجمالي المبلغ المستحق",
+      // Scoped summary (5 cards)
+      scopedInvoices: "إجمالي الفواتير ضمن النطاق",
+      scopedPaid: "إجمالي المسدد ضمن النطاق",
+      scopedOutstanding: "إجمالي المستحق ضمن النطاق",
+      customerTotalInvoices: "إجمالي فواتير العميل",
+      customerTotalOutstanding: "إجمالي مستحقات العميل",
       horses: "الخيول",
       category: "التصنيف",
       from: "من",
       to: "إلى",
+      issuedBy: "الجهة المُصدرة",
+      firstActivity: "أول حركة مالية",
     };
   }
   return {
@@ -78,29 +91,39 @@ function getLabels(isRTL?: boolean) {
     debit: "Amount Due",
     credit: "Amount Paid",
     balance: "Balance After",
-    totalDebit: "Total Amount Due",
-    totalCredit: "Total Amount Paid",
-    closingBalance: "Closing Balance",
-    scopedDebit: "Total Invoices (Scope)",
-    scopedCredit: "Total Paid (Scope)",
-    scopedBalance: "Total Due (Scope)",
-    clientWide: "Total All Client Invoices",
+    totalInvoices: "Total Invoices",
+    totalPaid: "Total Paid",
+    totalOutstanding: "Total Outstanding",
+    scopedInvoices: "Invoices in Scope",
+    scopedPaid: "Paid in Scope",
+    scopedOutstanding: "Outstanding in Scope",
+    customerTotalInvoices: "Customer Total Invoices",
+    customerTotalOutstanding: "Customer Total Outstanding",
     horses: "Horses",
     category: "Category",
     from: "From",
     to: "To",
+    issuedBy: "Issued by",
+    firstActivity: "First Financial Activity",
   };
+}
+
+function issuerDisplayName(data: StatementPrintData): string {
+  const isRTL = !!data.isRTL;
+  if (isRTL) return data.issuerNameAr || data.issuerName || "";
+  return data.issuerName || data.issuerNameAr || "";
 }
 
 /**
  * Open a clean print window with the statement content.
- * Includes scope context and dual totals when filtered.
+ * Slice 2C — includes issuer identity, 3-card overall or 5-card scoped summary,
+ * and clearly separates the transaction running balance from Total Outstanding.
  */
 export function printStatement(data: StatementPrintData) {
   const dir = data.isRTL ? "rtl" : "ltr";
   const textAlign = data.isRTL ? "right" : "left";
-  const lang = data.lang || (data.isRTL ? 'ar' : 'en');
   const labels = getLabels(data.isRTL);
+  const issuer = issuerDisplayName(data);
 
   const rows = data.entries
     .map((e) => {
@@ -119,25 +142,37 @@ export function printStatement(data: StatementPrintData) {
     })
     .join("");
 
-  // Scope context meta line — escape user-controlled strings
-  const metaParts: string[] = [escapeHtml(data.clientName)];
+  const metaParts: string[] = [];
   if (data.scopeHorses) metaParts.push(`${escapeHtml(labels.horses)}: ${escapeHtml(data.scopeHorses)}`);
   if (data.scopeCategory) metaParts.push(`${escapeHtml(labels.category)}: ${escapeHtml(data.scopeCategory)}`);
+  if (data.firstActivityDate) metaParts.push(`${escapeHtml(labels.firstActivity)}: ${escapeHtml(formatDateForPrint(data.firstActivityDate))}`);
   const metaLine = metaParts.join(" &nbsp;|&nbsp; ");
 
-  // Summary cards
-  const debitLabel = data.isScoped ? labels.scopedDebit : labels.totalDebit;
-  const creditLabel = data.isScoped ? labels.scopedCredit : labels.totalCredit;
-  const balanceLabel = data.isScoped ? labels.scopedBalance : labels.closingBalance;
-
-  let clientWideSummaryHtml = "";
-  if (data.isScoped && data.clientWideOutstanding !== undefined) {
-    clientWideSummaryHtml = `
-  <div class="summary-card" style="border:2px dashed #ccc">
-    <div class="label">${labels.clientWide}</div>
-    <div class="value" dir="ltr">${formatCurrency(data.clientWideOutstanding)}</div>
-  </div>`;
+  // Slice 2C — Build summary cards conditionally.
+  const cards: Array<{ label: string; value: number; dashed?: boolean }> = [];
+  if (data.isScoped) {
+    cards.push({ label: labels.scopedInvoices, value: data.totalDebits });
+    cards.push({ label: labels.scopedPaid, value: data.totalCredits });
+    cards.push({ label: labels.scopedOutstanding, value: data.scopedOutstanding });
+    cards.push({ label: labels.customerTotalInvoices, value: data.customerTotalInvoices ?? 0, dashed: true });
+    cards.push({ label: labels.customerTotalOutstanding, value: data.customerTotalOutstanding ?? 0, dashed: true });
+  } else {
+    cards.push({ label: labels.totalInvoices, value: data.totalDebits });
+    cards.push({ label: labels.totalPaid, value: data.totalCredits });
+    cards.push({ label: labels.totalOutstanding, value: Math.max(0, data.scopedOutstanding) });
   }
+
+  const cardsHtml = cards.map((c) => `
+    <div class="summary-card" style="${c.dashed ? 'border:2px dashed #ccc' : ''}">
+      <div class="label">${escapeHtml(c.label)}</div>
+      <div class="value" dir="ltr">${escapeHtml(formatCurrency(c.value))}</div>
+    </div>`).join("");
+
+  const issuerBlock = issuer ? `
+  <div class="issuer">
+    <div class="issuer-label">${escapeHtml(labels.issuedBy)}</div>
+    <div class="issuer-name">${escapeHtml(issuer)}</div>
+  </div>` : "";
 
   const html = `<!DOCTYPE html>
 <html dir="${dir}">
@@ -146,10 +181,14 @@ export function printStatement(data: StatementPrintData) {
 <title>${escapeHtml(labels.title)} - ${escapeHtml(data.clientName)}</title>
 <style>
   body { font-family: system-ui, sans-serif; margin: 20px; color: #1a1a1a; direction: ${dir}; }
-  h1 { font-size: 20px; margin-bottom: 4px; }
+  .issuer { padding: 8px 0 12px; border-bottom: 1px solid #eee; margin-bottom: 12px; }
+  .issuer-label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .issuer-name { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  h1 { font-size: 20px; margin: 0 0 4px 0; }
+  .client { color: #333; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
   .meta { color: #666; font-size: 13px; margin-bottom: 6px; }
   .date-range { color: #666; font-size: 12px; margin-bottom: 16px; }
-  .summary { display: flex; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+  .summary { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
   .summary-card { background: #f5f5f5; padding: 12px 16px; border-radius: 8px; min-width: 140px; }
   .summary-card .label { font-size: 12px; color: #666; }
   .summary-card .value { font-size: 18px; font-weight: 700; font-family: monospace; }
@@ -160,34 +199,22 @@ export function printStatement(data: StatementPrintData) {
 </style>
 </head>
 <body>
-<h1>${labels.title}</h1>
-<div class="meta">${metaLine}</div>
-<div class="date-range"><span dir="ltr">${labels.from}: ${formatDateForPrint(data.dateFrom)} — ${labels.to}: ${formatDateForPrint(data.dateTo)}</span></div>
+${issuerBlock}
+<h1>${escapeHtml(labels.title)}</h1>
+<div class="client">${escapeHtml(data.clientName)}</div>
+${metaLine ? `<div class="meta">${metaLine}</div>` : ""}
+<div class="date-range"><span dir="ltr">${escapeHtml(labels.from)}: ${escapeHtml(formatDateForPrint(data.dateFrom))} — ${escapeHtml(labels.to)}: ${escapeHtml(formatDateForPrint(data.dateTo))}</span></div>
 
-<div class="summary">
-  <div class="summary-card">
-    <div class="label">${debitLabel}</div>
-    <div class="value" dir="ltr">${formatCurrency(data.totalDebits)}</div>
-  </div>
-  <div class="summary-card">
-    <div class="label">${creditLabel}</div>
-    <div class="value" dir="ltr">${formatCurrency(data.totalCredits)}</div>
-  </div>
-  <div class="summary-card">
-    <div class="label">${balanceLabel}</div>
-    <div class="value" dir="ltr">${formatCurrency(data.closingBalance)}</div>
-  </div>
-  ${clientWideSummaryHtml}
-</div>
+<div class="summary">${cardsHtml}</div>
 
 <table>
   <thead>
     <tr>
-      <th>${labels.date}</th>
-      <th>${labels.description}</th>
-      <th style="text-align:center">${labels.debit}</th>
-      <th style="text-align:center">${labels.credit}</th>
-      <th style="text-align:center">${labels.balance}</th>
+      <th>${escapeHtml(labels.date)}</th>
+      <th>${escapeHtml(labels.description)}</th>
+      <th style="text-align:center">${escapeHtml(labels.debit)}</th>
+      <th style="text-align:center">${escapeHtml(labels.credit)}</th>
+      <th style="text-align:center">${escapeHtml(labels.balance)}</th>
     </tr>
   </thead>
   <tbody>${rows}</tbody>
@@ -204,31 +231,59 @@ export function printStatement(data: StatementPrintData) {
 }
 
 /**
- * Export statement as CSV
+ * Slice 2C — CSV export with UTF-8 BOM, issuer metadata header, and parity
+ * with the on-screen 3-card / 5-card summary.
  */
 export function exportCSV(data: StatementPrintData) {
-  const lang = data.lang || (data.isRTL ? 'ar' : 'en');
   const labels = getLabels(data.isRTL);
-  const headers = [labels.date, labels.description, labels.debit, labels.credit, labels.balance];
+  const issuer = issuerDisplayName(data);
+
+  const escapeCsv = (v: unknown): string => {
+    const s = v === null || v === undefined ? "" : String(v);
+    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  };
+
+  const metaRows: string[][] = [];
+  if (issuer) metaRows.push([escapeCsv(labels.issuedBy), escapeCsv(issuer)]);
+  metaRows.push([escapeCsv(labels.title), escapeCsv(data.clientName)]);
+  metaRows.push([escapeCsv(labels.from), escapeCsv(formatDateForPrint(data.dateFrom)), escapeCsv(labels.to), escapeCsv(formatDateForPrint(data.dateTo))]);
+  if (data.scopeHorses) metaRows.push([escapeCsv(labels.horses), escapeCsv(data.scopeHorses)]);
+  if (data.scopeCategory) metaRows.push([escapeCsv(labels.category), escapeCsv(data.scopeCategory)]);
+  if (data.firstActivityDate) metaRows.push([escapeCsv(labels.firstActivity), escapeCsv(formatDateForPrint(data.firstActivityDate))]);
+  metaRows.push([]);
+
+  const summaryRows: string[][] = [];
+  if (data.isScoped) {
+    summaryRows.push([escapeCsv(labels.scopedInvoices), escapeCsv(data.totalDebits.toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.scopedPaid), escapeCsv(data.totalCredits.toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.scopedOutstanding), escapeCsv(data.scopedOutstanding.toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.customerTotalInvoices), escapeCsv((data.customerTotalInvoices ?? 0).toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.customerTotalOutstanding), escapeCsv((data.customerTotalOutstanding ?? 0).toFixed(2))]);
+  } else {
+    summaryRows.push([escapeCsv(labels.totalInvoices), escapeCsv(data.totalDebits.toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.totalPaid), escapeCsv(data.totalCredits.toFixed(2))]);
+    summaryRows.push([escapeCsv(labels.totalOutstanding), escapeCsv(Math.max(0, data.scopedOutstanding).toFixed(2))]);
+  }
+  summaryRows.push([]);
+
+  const headers = [labels.date, labels.description, labels.debit, labels.credit, labels.balance].map(escapeCsv);
   const rows = data.entries.map((e) => [
-    formatDateForPrint(e.date),
-    `"${(data.enrichedDescriptions?.get(e.id) || e.description || "").replace(/"/g, '""')}"`,
-    e.debit > 0 ? e.debit.toFixed(2) : "",
-    e.credit > 0 ? e.credit.toFixed(2) : "",
-    e.balance.toFixed(2),
+    escapeCsv(formatDateForPrint(e.date)),
+    escapeCsv(data.enrichedDescriptions?.get(e.id) || e.description || ""),
+    escapeCsv(e.debit > 0 ? e.debit.toFixed(2) : ""),
+    escapeCsv(e.credit > 0 ? e.credit.toFixed(2) : ""),
+    escapeCsv(e.balance.toFixed(2)),
   ]);
 
-  const balanceLabel = data.isScoped ? labels.scopedBalance : labels.closingBalance;
-  rows.push([]);
-  rows.push(["", `"${balanceLabel}"`, data.totalDebits.toFixed(2), data.totalCredits.toFixed(2), data.closingBalance.toFixed(2)]);
-
-  if (data.isScoped && data.clientWideOutstanding !== undefined) {
-    rows.push(["", `"${labels.clientWide}"`, "", "", data.clientWideOutstanding.toFixed(2)]);
-  }
-
-  const csv = [headers.join(","), ...rows.map((r) => (r as string[]).join(","))].join("\n");
+  const lines = [
+    ...metaRows.map((r) => r.join(",")),
+    ...summaryRows.map((r) => r.join(",")),
+    headers.join(","),
+    ...rows.map((r) => r.join(",")),
+  ];
   const BOM = "\uFEFF";
-  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob([BOM + lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -237,16 +292,12 @@ export function exportCSV(data: StatementPrintData) {
   URL.revokeObjectURL(url);
 }
 
-/**
- * Export statement as PDF using print-to-PDF approach (supports Arabic)
- */
+/** PDF via the safe print flow (unchanged). */
 export function exportPDF(data: StatementPrintData) {
   printStatement(data);
 }
 
-/**
- * Generic ledger print function (reusable for Ledger tab + Payments tab)
- */
+/** Generic ledger print utility retained for other tabs (unchanged). */
 export function printLedgerEntries(data: {
   title: string;
   entries: Array<{
@@ -302,19 +353,19 @@ export function printLedgerEntries(data: {
 <table>
   <thead>
     <tr>
-      <th>${labels.date}</th>
-      <th style="text-align:center">${data.isRTL ? "النوع" : "Type"}</th>
-      <th>${labels.description}</th>
-      <th style="text-align:center">${labels.debit}</th>
-      <th style="text-align:center">${labels.credit}</th>
-      <th style="text-align:center">${labels.balance}</th>
+      <th>${escapeHtml(labels.date)}</th>
+      <th style="text-align:center">${escapeHtml(data.isRTL ? "النوع" : "Type")}</th>
+      <th>${escapeHtml(labels.description)}</th>
+      <th style="text-align:center">${escapeHtml(labels.debit)}</th>
+      <th style="text-align:center">${escapeHtml(labels.credit)}</th>
+      <th style="text-align:center">${escapeHtml(labels.balance)}</th>
     </tr>
   </thead>
   <tbody>${rows}</tbody>
 </table>
 <div class="footer">
-  ${labels.totalDebit}: ${formatCurrency(data.totalDebits)} &nbsp;|&nbsp;
-  ${labels.totalCredit}: ${formatCurrency(data.totalCredits)}
+  ${escapeHtml(labels.totalInvoices)}: ${escapeHtml(formatCurrency(data.totalDebits))} &nbsp;|&nbsp;
+  ${escapeHtml(labels.totalPaid)}: ${escapeHtml(formatCurrency(data.totalCredits))}
 </div>
 </body>
 </html>`;
@@ -327,9 +378,6 @@ export function printLedgerEntries(data: {
   }
 }
 
-/**
- * Export ledger entries as CSV
- */
 export function exportLedgerCSV(data: {
   filename: string;
   entries: Array<{
