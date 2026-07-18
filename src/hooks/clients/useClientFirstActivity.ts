@@ -1,8 +1,9 @@
 /**
- * Slice 2B — Client First Activity anchor.
- * Returns the earliest ledger_entries.created_at for the (tenant, client) pair.
- * Used by the scope selector to offer a one-tap "From First Activity" preset
- * and by the statement header to show the true financial history start.
+ * Slice 2 Correction 1 — Secure First Financial Activity.
+ * Delegates to the `get_client_first_financial_activity` RPC which enforces
+ * tenant membership, the `clients.statement.view` permission, and excludes
+ * future-dated ledger rows plus draft/cancelled/voided invoice references.
+ * The browser never queries `ledger_entries` directly for this anchor.
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,8 +11,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import { queryKeys } from "@/lib/queryKeys";
 
 export interface ClientFirstActivity {
-  firstActivityDate: string | null; // ISO date (yyyy-MM-dd) or null when no activity
-  firstActivityAt: string | null;   // Full ISO timestamp
+  firstActivityDate: string | null; // yyyy-MM-dd
+  firstActivityAt: string | null;   // ISO timestamp
 }
 
 export function useClientFirstActivity(clientId?: string | null) {
@@ -21,21 +22,20 @@ export function useClientFirstActivity(clientId?: string | null) {
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.clientFirstActivity(tenantId, clientId || undefined),
     queryFn: async (): Promise<ClientFirstActivity> => {
-      if (!tenantId || !clientId) return { firstActivityDate: null, firstActivityAt: null };
-      const { data: rows, error } = await supabase
-        .from("ledger_entries")
-        .select("created_at")
-        .eq("tenant_id", tenantId)
-        .eq("client_id", clientId)
-        .order("created_at", { ascending: true })
-        .limit(1);
-      if (error || !rows || rows.length === 0) {
+      if (!tenantId || !clientId) {
         return { firstActivityDate: null, firstActivityAt: null };
       }
-      const at = rows[0].created_at as string;
+      const { data: at, error } = await supabase.rpc(
+        "get_client_first_financial_activity" as any,
+        { p_tenant_id: tenantId, p_client_id: clientId }
+      );
+      if (error || !at) {
+        return { firstActivityDate: null, firstActivityAt: null };
+      }
+      const iso = String(at);
       return {
-        firstActivityDate: at ? at.slice(0, 10) : null,
-        firstActivityAt: at ?? null,
+        firstActivityDate: iso ? iso.slice(0, 10) : null,
+        firstActivityAt: iso,
       };
     },
     enabled: !!tenantId && !!clientId,
