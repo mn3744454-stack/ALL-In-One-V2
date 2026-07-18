@@ -193,6 +193,12 @@ export function printStatement(data: StatementPrintData) {
 <meta charset="UTF-8">
 <title>${escapeHtml(labels.title)} - ${escapeHtml(data.clientName)}</title>
 <style>
+  /* 2QA-A · Finding 3 — force color/background preservation in Print/PDF. */
+  html, body, .summary-card, .sem-pill, td, th {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
   body { font-family: system-ui, sans-serif; margin: 20px; color: #1a1a1a; direction: ${dir}; }
   .issuer { padding: 8px 0 12px; border-bottom: 1px solid #eee; margin-bottom: 12px; }
   .issuer-label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -205,6 +211,16 @@ export function printStatement(data: StatementPrintData) {
   .summary-card { background: #f5f5f5; padding: 12px 16px; border-radius: 8px; min-width: 140px; }
   .summary-card .label { font-size: 12px; color: #666; }
   .summary-card .value { font-size: 18px; font-weight: 700; font-family: monospace; }
+  .summary-card.tone-debt .value { color: #b91c1c; }
+  .summary-card.tone-credit { background: #ecfdf5; }
+  .summary-card.tone-credit .value { color: #047857; }
+  .sem-pill { display:inline-block; margin-top:4px; padding:2px 8px; border-radius:9999px;
+              font-size:10px; font-weight:600; background:#fef3c7; color:#92400e; }
+  .sem-pill.sem-invoice_cancellation, .sem-pill.sem-invoice_reversal, .sem-pill.sem-invoice_debit_reversal {
+    background:#fee2e2; color:#991b1b;
+  }
+  .sem-pill.sem-credit_note, .sem-pill.sem-payment_refund { background:#dbeafe; color:#1e40af; }
+  .sem-pill.sem-accounting_adjustment { background:#e5e7eb; color:#374151; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { background: #f0f0f0; padding: 8px; text-align: ${textAlign}; font-weight: 600; border-bottom: 2px solid #ddd; }
   td { border-bottom: 1px solid #eee; }
