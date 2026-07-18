@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,17 +16,20 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useI18n } from "@/i18n";
 import { useClientStatement } from "@/hooks/clients/useClientStatement";
 import { useStatementEnrichment, type EnrichedStatementData, type EnrichedHorse } from "@/hooks/clients/useStatementEnrichment";
+import { useClientFirstActivity } from "@/hooks/clients/useClientFirstActivity";
+import { useUnallocatedPayments } from "@/hooks/clients/useUnallocatedPayments";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency, formatDateTime12h, formatDate } from "@/lib/formatters";
 import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { format, subMonths } from "date-fns";
-import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, ArrowUpDown } from "lucide-react";
+import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, ArrowUpDown, Wallet } from "lucide-react";
 import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } from "./StatementScopeSelector";
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
+
 
 interface ClientStatementTabProps {
   clientId: string;
@@ -316,17 +320,38 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   const canViewStatement = isOwner || hasPermission("clients.statement.view");
   const canExport = isOwner || hasPermission("clients.statement.export");
 
+  // Slice 2B — URL persistence for scope config so statements are shareable.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialFromUrl = useMemo<Partial<StatementScopeConfig> & { hasParams: boolean }>(() => {
+    const df = searchParams.get("df");
+    const dt = searchParams.get("dt");
+    const mode = searchParams.get("mode");
+    const horses = searchParams.get("horses");
+    const cats = searchParams.get("cats");
+    const hasParams = !!(df || dt || mode || horses || cats);
+    return {
+      dateFrom: df || undefined,
+      dateTo: dt || undefined,
+      mode: (mode === "horses" ? "horses" : mode === "all" ? "all" : undefined) as any,
+      selectedHorseIds: horses ? horses.split(",").filter(Boolean) : undefined,
+      categoryKeys: cats ? cats.split(",").filter(Boolean) : undefined,
+      hasParams,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // read once on mount
+
   // Scope selector state
-  const [scopeOpen, setScopeOpen] = useState(true);
+  const [scopeOpen, setScopeOpen] = useState(!initialFromUrl.hasParams);
   const [scopeConfig, setScopeConfig] = useState<StatementScopeConfig>({
-    dateFrom: format(subMonths(new Date(), 3), "yyyy-MM-dd"),
-    dateTo: format(new Date(), "yyyy-MM-dd"),
-    mode: "all",
-    selectedHorseIds: [],
-    domainFilter: "all",
-    categoryKeys: [],
+    dateFrom: initialFromUrl.dateFrom || format(subMonths(new Date(), 3), "yyyy-MM-dd"),
+    dateTo: initialFromUrl.dateTo || format(new Date(), "yyyy-MM-dd"),
+    mode: initialFromUrl.mode || "all",
+    selectedHorseIds: initialFromUrl.selectedHorseIds || [],
+    domainFilter: "all", // Deprecated in Slice 2B — filtering now uses categoryKeys
+    categoryKeys: initialFromUrl.categoryKeys || [],
   });
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(initialFromUrl.hasParams);
+
 
   // Client-wide total invoices (all invoice debits across all time)
   const [clientWideTotalInvoices, setClientWideTotalInvoices] = useState<number>(0);
@@ -612,19 +637,35 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   // Enrichment
   const { enrichment, isEnriching } = useStatementEnrichment(entries);
 
-  // Apply domain filter post-enrichment
+  // Slice 2B — Snapshot-based category filter (OR semantics across selected keys).
+  // Empty categoryKeys = All Categories. Special key "__uncategorized__" matches
+  // entries whose invoice_items carry no category snapshot (or the entry has no
+  // line items at all, e.g. a raw payment ledger row).
+  const UNCATEGORIZED_KEY = "__uncategorized__";
   const domainFilteredEntries = useMemo(() => {
-    if (scopeConfig.domainFilter === "all") return entries;
+    const selected = scopeConfig.categoryKeys || [];
+    if (selected.length === 0) return entries;
+    const selectedSet = new Set(selected);
+    const wantsUncategorized = selectedSet.has(UNCATEGORIZED_KEY);
     return entries.filter(e => {
       const enriched = enrichment.get(e.id);
-      const domain = enriched?.directDomain || getPrimarySource(enriched);
-      if (!domain) return scopeConfig.domainFilter === "general";
-      return domain === scopeConfig.domainFilter;
+      const keys = enriched?.categoryKeys || [];
+      if (keys.some(k => selectedSet.has(k))) return true;
+      if (wantsUncategorized) {
+        // Entry counts as uncategorized when it either has no enrichment (raw
+        // payment / adjustment) or at least one line item lacks a snapshot.
+        if (!enriched) return true;
+        if (enriched.hasUncategorizedItem) return true;
+        if (enriched.categoryKeys.length === 0) return true;
+      }
+      return false;
     });
-  }, [entries, enrichment, scopeConfig.domainFilter]);
+  }, [entries, enrichment, scopeConfig.categoryKeys]);
 
   // Whether we are in a filtered/scoped view
-  const isScoped = scopeConfig.mode === "horses" || scopeConfig.domainFilter !== "all";
+  const isScoped =
+    scopeConfig.mode === "horses" || (scopeConfig.categoryKeys?.length ?? 0) > 0;
+
 
   // Build flat rows: explode boarding invoices into segment rows
   // Guard: return empty while enrichment is loading to prevent stale/misleading intermediate state
@@ -744,16 +785,76 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     return selectedNames.join(", ");
   }, [scopeConfig.mode, scopeConfig.selectedHorseIds, clientHorses, isRTL, t]);
 
+  // Slice 2B — Snapshot-backed historical category display + uncategorized detection.
+  const { historicalCategoryKeys, hasUncategorizedItems } = useMemo(() => {
+    const seen = new Map<string, { name: string; nameAr: string | null }>();
+    let anyUncat = false;
+    for (const e of entries) {
+      const enriched = enrichment.get(e.id);
+      if (!enriched) { anyUncat = true; continue; }
+      if (enriched.hasUncategorizedItem || enriched.categoryKeys.length === 0) {
+        anyUncat = true;
+      }
+      for (const d of enriched.categoryDisplay) {
+        if (!seen.has(d.key)) seen.set(d.key, { name: d.name, nameAr: d.nameAr });
+      }
+    }
+    return {
+      historicalCategoryKeys: Array.from(seen.keys()),
+      historicalCategoryDisplay: seen,
+      hasUncategorizedItems: anyUncat,
+    };
+  }, [entries, enrichment]);
+
   const scopeContextCategory = useMemo(() => {
-    if (scopeConfig.domainFilter === "all") return t("clients.statement.scopeContext.allCategories");
-    if (scopeConfig.domainFilter === "general") return t("clients.statement.scope.domainGeneral");
-    return t(`clients.statement.domain.${scopeConfig.domainFilter}`) || scopeConfig.domainFilter;
-  }, [scopeConfig.domainFilter, t]);
+    const keys = scopeConfig.categoryKeys || [];
+    if (keys.length === 0) return t("clients.statement.scopeContext.allCategories");
+    const parts: string[] = [];
+    for (const k of keys) {
+      if (k === "__uncategorized__") {
+        parts.push(t("clients.statement.scope.historicallyUncategorized"));
+        continue;
+      }
+      // Try to find a display name from the visible dataset first (preserves
+      // archived-category names via snapshot); fall back to the key itself.
+      let displayName = k;
+      for (const [, enriched] of enrichment) {
+        const hit = enriched.categoryDisplay.find(d => d.key === k);
+        if (hit) {
+          displayName = isRTL ? (hit.nameAr || hit.name) : hit.name;
+          break;
+        }
+      }
+      parts.push(displayName);
+    }
+    return parts.join(", ");
+  }, [scopeConfig.categoryKeys, enrichment, isRTL, t]);
+
+  // Slice 2B — Auxiliary data for scope selector and header presentation.
+  const { firstActivityDate } = useClientFirstActivity(clientId);
+  const { unallocated } = useUnallocatedPayments(clientId);
 
   const handleGenerate = (config: StatementScopeConfig) => {
     setScopeConfig(config);
     setHasGenerated(true);
+    // Slice 2B — Persist scope in the URL so the same view is shareable/reloadable.
+    const next = new URLSearchParams(searchParams);
+    next.set("df", config.dateFrom);
+    next.set("dt", config.dateTo);
+    next.set("mode", config.mode);
+    if (config.mode === "horses" && config.selectedHorseIds.length > 0) {
+      next.set("horses", config.selectedHorseIds.join(","));
+    } else {
+      next.delete("horses");
+    }
+    if (config.categoryKeys && config.categoryKeys.length > 0) {
+      next.set("cats", config.categoryKeys.join(","));
+    } else {
+      next.delete("cats");
+    }
+    setSearchParams(next, { replace: true });
   };
+
 
   if (!canViewStatement) {
     return (
@@ -828,7 +929,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         horses={clientHorses}
         initialConfig={scopeConfig}
         onGenerate={handleGenerate}
+        historicalCategoryKeys={historicalCategoryKeys}
+        hasUncategorizedItems={hasUncategorizedItems}
+        firstActivityDate={firstActivityDate}
       />
+
 
       {!hasGenerated ? (
         <Card>
@@ -854,8 +959,16 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <FileText className="h-4 w-4" />
                     {t("clients.statement.title")}
                   </CardTitle>
-                  {/* Scope context line */}
+                  {/* Slice 2B — Issuer identity + scope context line */}
                   <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                    {activeTenant?.tenant?.name && (
+                      <Badge variant="outline" className="text-xs">
+                        {t("clients.statement.issuer")}:{" "}
+                        {isRTL
+                          ? ((activeTenant.tenant as any).name_ar || activeTenant.tenant.name)
+                          : activeTenant.tenant.name}
+                      </Badge>
+                    )}
                     <Badge variant="outline" className="font-mono text-xs" dir="ltr">
                       {t("clients.statement.scope.dateFrom")}: {formatDate(scopeConfig.dateFrom, 'dd-MM-yyyy')} — {t("clients.statement.scope.dateTo")}: {formatDate(scopeConfig.dateTo, 'dd-MM-yyyy')}
                     </Badge>
@@ -865,7 +978,13 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <Badge variant="secondary" className="text-xs">
                       {t("clients.statement.scopeContext.category")}: {scopeContextCategory}
                     </Badge>
+                    {firstActivityDate && (
+                      <Badge variant="outline" className="text-xs" dir="ltr">
+                        {t("clients.statement.scope.firstFinancialActivity")}: {firstActivityDate}
+                      </Badge>
+                    )}
                   </div>
+
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}>
@@ -943,6 +1062,32 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
               </Card>
             )}
           </div>
+
+          {/* Slice 2B — Unallocated payments (conditional; presentation-only) */}
+          {unallocated.count > 0 && (
+            <Card className="border-dashed border-amber-300 dark:border-amber-800">
+              <CardContent className="p-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Wallet className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-foreground">
+                      {t("clients.statement.unallocatedPayments")}
+                    </p>
+                    <p>
+                      {t("clients.statement.unallocatedCount").replace(
+                        "{count}",
+                        String(unallocated.count)
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-lg font-bold font-mono tabular-nums text-amber-700 dark:text-amber-300" dir="ltr">
+                  {formatCurrency(unallocated.totalAmount)}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* Statement entries */}
           <Card>

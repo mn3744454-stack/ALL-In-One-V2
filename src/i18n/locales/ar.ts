@@ -5511,8 +5511,12 @@ export const ar = {
         clearSelections: "مسح الاختيارات",
         newCategory: "تصنيف جديد",
       },
+      issuer: "الجهة المُصدرة",
+      unallocatedPayments: "مدفوعات غير موزعة",
+      unallocatedCount: "{count} دفعة غير مرتبطة بفاتورة محددة",
     },
   },
+
   connections: {
     title: "الاتصالات والمشاركة",
     description: "إدارة الاتصالات مع المنشآت والأفراد الآخرين",

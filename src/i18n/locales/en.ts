@@ -5518,8 +5518,12 @@ export const en = {
         clearSelections: "Clear selections",
         newCategory: "New category",
       },
+      issuer: "Issued by",
+      unallocatedPayments: "Unallocated payments",
+      unallocatedCount: "{count} payment(s) not linked to a specific invoice",
     },
   },
+
   connections: {
     title: "Connections & Sharing",
     description: "Manage connections with other organizations and individuals",

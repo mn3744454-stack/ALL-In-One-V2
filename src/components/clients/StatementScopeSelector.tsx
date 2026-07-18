@@ -48,6 +48,12 @@ interface StatementScopeSelectorProps {
   horses: ScopeHorse[];
   initialConfig: StatementScopeConfig;
   onGenerate: (config: StatementScopeConfig) => void;
+  /** Slice 2B — Archived category keys still referenced by visible snapshot rows. */
+  historicalCategoryKeys?: string[];
+  /** Slice 2B — Whether the current dataset contains items with no category snapshot. */
+  hasUncategorizedItems?: boolean;
+  /** Slice 2B — Earliest ledger date for this client (yyyy-MM-dd). */
+  firstActivityDate?: string | null;
 }
 
 export function StatementScopeSelector({
@@ -57,6 +63,9 @@ export function StatementScopeSelector({
   horses,
   initialConfig,
   onGenerate,
+  historicalCategoryKeys = [],
+  hasUncategorizedItems = false,
+  firstActivityDate = null,
 }: StatementScopeSelectorProps) {
   const { t, dir } = useI18n();
   const isRTL = dir === "rtl";
@@ -121,14 +130,9 @@ export function StatementScopeSelector({
     { value: "horses", label: t("clients.statement.scope.selectHorses") },
   ];
 
-  const domainPills: { value: DomainFilter; label: string }[] = [
-    { value: "all", label: t("clients.statement.scope.all") },
-    { value: "boarding", label: t("clients.statement.domain.boarding") },
-    { value: "vet", label: t("clients.statement.domain.vet") || "Vet" },
-    { value: "breeding", label: t("clients.statement.domain.breeding") },
-    { value: "lab", label: t("clients.statement.domain.lab") },
-    { value: "general", label: t("clients.statement.scope.domainGeneral") },
-  ];
+  // Legacy — retained only so previously-saved configs continue to type-check.
+  // Slice 2B replaces domain-pill filtering with snapshot-based categoryKeys.
+  const _domainPillsUnused: { value: DomainFilter; label: string }[] = [];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -168,7 +172,32 @@ export function StatementScopeSelector({
             </div>
           </div>
 
-          {/* Categories (dynamic multi-select, Slice 2A) */}
+          {/* Slice 2B — First financial activity anchor */}
+          {firstActivityDate && (
+            <div className="flex items-center justify-between rounded-md border border-dashed p-2.5">
+              <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-foreground">
+                  {t("clients.statement.scope.firstFinancialActivity")}
+                </div>
+                <div>{firstActivityDate}</div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDateFrom(firstActivityDate)}
+                className="text-xs h-7"
+              >
+                {t("clients.statement.scope.fromFirstActivity")}
+              </Button>
+            </div>
+          )}
+          {!firstActivityDate && (
+            <p className="text-xs text-muted-foreground italic">
+              {t("clients.statement.scope.noFinancialActivity")}
+            </p>
+          )}
+
+          {/* Categories (dynamic multi-select, snapshot-backed — Slice 2B) */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
               {t("clients.statement.scope.categoriesLabel")}
@@ -176,28 +205,12 @@ export function StatementScopeSelector({
             <CategoryMultiSelect
               value={categoryKeys}
               onChange={setCategoryKeys}
+              historicalKeys={historicalCategoryKeys}
+              showHistoricallyUncategorized={hasUncategorizedItems}
             />
           </div>
 
-          {/* Legacy domain pills — retained until Slice 2B moves filtering to snapshot categories */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              {t("clients.statement.scope.domainLabel")}
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {domainPills.map((pill) => (
-                <Button
-                  key={pill.value}
-                  variant={domainFilter === pill.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setDomainFilter(pill.value)}
-                  className="text-xs h-7"
-                >
-                  {pill.label}
-                </Button>
-              ))}
-            </div>
-          </div>
+
 
 
           {/* Scope pills */}
