@@ -22,7 +22,13 @@ export interface Client {
   tax_number: string | null;
   preferred_payment_method: PaymentMethod | null;
   credit_limit: number | null;
+  /** Legacy denormalized amount — kept for backward compatibility.
+   *  Do NOT rely on this for Outstanding presentation; use `ledger_balance` and
+   *  `normalizeCustomerBalance` instead. */
   outstanding_balance: number;
+  /** Authoritative current balance from v_customer_ledger_balances (Slice 2A).
+   *  Positive = customer owes tenant. Negative = customer has credit on account. */
+  ledger_balance: number;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -55,13 +61,26 @@ export function useClients() {
     queryKey: queryKeys.clients(tenantId),
     queryFn: async () => {
       if (!tenantId) return [];
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .order('name');
+      const [{ data, error }, { data: ledger }] = await Promise.all([
+        supabase
+          .from('clients')
+          .select('*')
+          .eq('tenant_id', tenantId)
+          .order('name'),
+        supabase
+          .from('v_customer_ledger_balances' as any)
+          .select('client_id, balance')
+          .eq('tenant_id', tenantId),
+      ]);
       if (error) throw error;
-      return (data as Client[]) || [];
+      const balanceByClient = new Map<string, number>();
+      (ledger as any[] | null)?.forEach((row) => {
+        if (row?.client_id) balanceByClient.set(row.client_id, Number(row.balance) || 0);
+      });
+      return ((data as any[]) || []).map((c) => ({
+        ...c,
+        ledger_balance: balanceByClient.get(c.id) ?? Number(c.outstanding_balance ?? 0),
+      })) as Client[];
     },
     enabled: !!tenantId,
   });
