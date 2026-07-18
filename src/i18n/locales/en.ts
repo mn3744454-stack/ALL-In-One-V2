@@ -3761,7 +3761,8 @@ export const en = {
       description: "Description",
       descriptionPlaceholder: "Optional description",
       manage: "Manage categories",
-      unmapped: "Uncategorized",
+      unmapped: "Unmapped",
+      unmappedFull: "Unmapped Category",
     },
     categorization: {
       income: "Income (Revenue)",

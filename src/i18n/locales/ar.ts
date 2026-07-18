@@ -3686,7 +3686,8 @@ export const ar = {
       description: "الوصف",
       descriptionPlaceholder: "وصف اختياري",
       manage: "إدارة التصنيفات",
-      unmapped: "غير مصنف",
+      unmapped: "غير مربوط",
+      unmappedFull: "التصنيف غير مربوط",
     },
     categorization: {
       income: "إيرادات (دخل)",
