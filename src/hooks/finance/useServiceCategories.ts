@@ -70,7 +70,11 @@ export function useServiceCategories(includeArchived: boolean = false) {
   });
 
   const invalidate = useCallback(() => {
+    // 2QA-C — invalidate shared category queries AND the cross-tenant Lab
+    // catalog root so an open LabCatalogViewer refetches live category
+    // identity (rename/create/archive/restore) without a page refresh.
     queryClient.invalidateQueries({ queryKey: queryKeys.serviceCategories.root });
+    queryClient.invalidateQueries({ queryKey: queryKeys.labCatalog.root });
   }, [queryClient]);
 
   const createMutation = useMutation({
