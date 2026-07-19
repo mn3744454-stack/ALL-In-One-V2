@@ -242,9 +242,6 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
                       <p className="text-sm font-medium truncate">
                         {displayCategoryName(cat, lang as "ar" | "en")}
                       </p>
-                      <p className="text-[10px] font-mono text-muted-foreground" dir="ltr">
-                        {cat.key}
-                      </p>
                     </div>
                     {canManage && (
                       <div className="flex items-center gap-1 shrink-0">
