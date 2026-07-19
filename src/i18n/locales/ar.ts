@@ -1464,6 +1464,8 @@ export const ar = {
       clearSelection: "مسح التحديد",
       searchCategoriesPlaceholder: "بحث في التصنيفات...",
       noMatches: "لا توجد تحاليل مطابقة للفلاتر",
+      atLeastOneAnalysis: "يرجى اختيار تحليل واحد على الأقل.",
+      selectedAnalysesTotal: "إجمالي التحاليل المختارة",
       addTemplate: "إضافة",
       removeTemplate: "إزالة",
       required: "مطلوب",

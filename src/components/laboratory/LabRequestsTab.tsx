@@ -311,31 +311,59 @@ function CreateRequestDialog({
     setFormData(prev => ({ ...prev, external_lab_name: lab?.name || '' }));
   };
 
+  // Slice 3 closure — analysis selection is REQUIRED in every platform-lab
+  // submission mode (internal own-tenant AND cross-tenant). Empty selection
+  // cannot silently fall back to `undefined` service_ids.
+  const analysisError = useMemo<string | null>(() => {
+    if (labMode !== 'platform' || !selectedLabTenantId || selectedHorses.length === 0) return null;
+    if (testMode === 'perHorse' && showTestModeBranch) {
+      const anyEmpty = selectedHorses.some(h => {
+        const ids = Array.from(new Set(perHorseServiceIds[h.id] || []));
+        return ids.length === 0;
+      });
+      return anyEmpty ? (t('laboratory.catalog.atLeastOneAnalysis') || 'Please select at least one analysis.') : null;
+    }
+    const unique = Array.from(new Set(selectedServiceIds));
+    return unique.length === 0 ? (t('laboratory.catalog.atLeastOneAnalysis') || 'Please select at least one analysis.') : null;
+  }, [labMode, selectedLabTenantId, selectedHorses, testMode, showTestModeBranch, perHorseServiceIds, selectedServiceIds, t]);
+
+  const [showAnalysisError, setShowAnalysisError] = useState(false);
+  useEffect(() => { if (!analysisError) setShowAnalysisError(false); }, [analysisError]);
+
   // Compute whether form is valid for submission
   const isFormValid = useMemo(() => {
     if (selectedHorses.length === 0) return false;
     if (labMode === 'platform') {
       if (!selectedLabTenantId) return false;
-      if (testMode === 'perHorse' && showTestModeBranch) {
-        // Each horse must have at least one service or a test description
-        return selectedHorses.every(h => {
-          const horseServices = perHorseServiceIds[h.id] || [];
-          return horseServices.length > 0 || !!formData.test_description.trim();
-        });
-      }
-      return !!(formData.test_description.trim() || selectedServiceIds.length > 0);
+      // Slice 3 closure — analysis selection required, no test_description fallback.
+      return analysisError === null;
     } else {
       return !!formData.test_description.trim();
     }
-  }, [selectedHorses, formData.test_description, labMode, selectedLabTenantId, selectedServiceIds, testMode, showTestModeBranch, perHorseServiceIds]);
+  }, [selectedHorses, formData.test_description, labMode, selectedLabTenantId, analysisError]);
+
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid || isSubmitting) return;
+    if (isSubmitting) return;
+    if (analysisError) {
+      setShowAnalysisError(true);
+      if (testMode === 'perHorse' && showTestModeBranch) {
+        const firstEmpty = selectedHorses.find(h => (perHorseServiceIds[h.id] || []).length === 0);
+        if (firstEmpty) setExpandedHorseId(firstEmpty.id);
+      }
+      requestAnimationFrame(() => {
+        const el = document.querySelector('[data-lab-analysis-error]') as HTMLElement | null;
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      return;
+    }
+    if (!isFormValid) return;
 
     setIsSubmitting(true);
+
 
     try {
       const isPerHorse = testMode === 'perHorse' && showTestModeBranch;
@@ -692,8 +720,9 @@ function CreateRequestDialog({
                             labName={selectedLabName}
                             selectable
                             selectedIds={selectedServiceIds}
+                            errorMessage={showAnalysisError ? analysisError : null}
                             onSelectServices={(ids, names) => {
-                              setSelectedServiceIds(ids);
+                              setSelectedServiceIds(Array.from(new Set(ids)));
                               if (names) setSelectedServiceNames(names);
                             }}
                           />
@@ -736,7 +765,8 @@ function CreateRequestDialog({
                                     labName={selectedLabName}
                                     selectable
                                     selectedIds={horseServices}
-                                    onSelectServices={(ids, names) => handlePerHorseServiceChange(horse.id, ids, names)}
+                                    errorMessage={showAnalysisError && horseServices.length === 0 ? analysisError : null}
+                                    onSelectServices={(ids, names) => handlePerHorseServiceChange(horse.id, Array.from(new Set(ids)), names)}
                                   />
                                 </div>
                               )}

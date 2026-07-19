@@ -14,6 +14,8 @@ interface Props {
   onSelectServices?: (serviceIds: string[], serviceNames?: string[]) => void;
   selectable?: boolean;
   selectedIds?: string[];
+  /** Slice 3 closure — inline validation message rendered above the list. */
+  errorMessage?: string | null;
 }
 
 /**
@@ -35,7 +37,7 @@ interface Props {
  *    provider changes the parent already clears selection (LabRequestsTab)
  *    and the internal registry is scoped to the current provider only.
  */
-export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selectable, selectedIds = [] }: Props) {
+export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selectable, selectedIds = [], errorMessage }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const [search, setSearch] = useState("");
@@ -134,6 +136,28 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
     });
   };
 
+  // Slice 3 closure — grouped price totals over unique selected IDs.
+  // Missing price is never treated as zero; missing count is reported separately.
+  // Declared before any early returns to satisfy rules-of-hooks.
+  const totalsByCurrency = useMemo(() => {
+    const unique = Array.from(new Set(selectedIds));
+    const buckets = new Map<string, { total: number; missing: number }>();
+    for (const id of unique) {
+      const s = registryRef.current.get(id);
+      if (!s) continue;
+      const cur = (s.currency || "").trim() || "—";
+      const b = buckets.get(cur) || { total: 0, missing: 0 };
+      if (typeof s.price === "number" && !Number.isNaN(s.price)) {
+        b.total += s.price;
+      } else {
+        b.missing += 1;
+      }
+      buckets.set(cur, b);
+    }
+    return Array.from(buckets.entries()).map(([currency, v]) => ({ currency, ...v }));
+  }, [selectedIds]);
+
+
   if (!labTenantId) {
     return (
       <Card variant="elevated" className="border-dashed">
@@ -183,11 +207,24 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
 
   const totalSelected = selectedIds.length;
 
+
   return (
     <div className="space-y-4">
       {labName && (
         <h3 className="text-base font-semibold">{t("laboratory.catalog.servicesFrom")} {labName}</h3>
       )}
+
+      {/* Slice 3 closure — inline validation error, anchored above selection. */}
+      {errorMessage && (
+        <div
+          role="alert"
+          data-lab-analysis-error
+          className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {errorMessage}
+        </div>
+      )}
+
 
       {/* Sticky selected-analysis chip strip. Keeps hidden selections visible. */}
       {selectable && totalSelected > 0 && (
@@ -227,6 +264,27 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
               );
             })}
           </div>
+          {/* Slice 3 closure — selected analyses total by currency */}
+          {totalsByCurrency.length > 0 && (
+            <div className="border-t pt-2 mt-1 space-y-0.5">
+              <div className="text-xs font-medium text-muted-foreground">
+                {t("laboratory.catalog.selectedAnalysesTotal")}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                {totalsByCurrency.map((b) => (
+                  <span key={b.currency} className="text-sm font-semibold">
+                    {b.total.toLocaleString(isAr ? "ar" : "en", { maximumFractionDigits: 2 })}
+                    {b.currency !== "—" ? ` ${b.currency}` : ""}
+                    {b.missing > 0 && (
+                      <span className="ms-1 text-xs font-normal text-muted-foreground">
+                        (+{b.missing} {t("finance.pos.priceMissing") || "no price"})
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
