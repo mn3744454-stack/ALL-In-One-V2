@@ -52,7 +52,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
     queryFn: async (): Promise<ServiceCategory[]> => {
       if (!tenantId) return [];
       let q = supabase
-        .from("tenant_service_categories" as any)
+        .from("tenant_service_categories")
         .select("id,tenant_id,key,name,name_ar,is_active,sort_order,domain_key")
         .eq("tenant_id", tenantId)
         .order("sort_order", { ascending: true })
@@ -81,7 +81,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
     mutationFn: async (input: CreateServiceCategoryInput) => {
       if (!tenantId) throw new Error("No active tenant");
       const { data, error } = await supabase
-        .from("tenant_service_categories" as any)
+        .from("tenant_service_categories")
         .insert({
           tenant_id: tenantId,
           name: input.name,
@@ -99,7 +99,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
       invalidate();
       toast({ title: "Category created" });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       console.error("useServiceCategories.create error", err);
       toast({ title: "Failed to create category", variant: "destructive" });
     },
@@ -114,7 +114,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
       if (data.name_ar !== undefined) patch.name_ar = data.name_ar;
       if (typeof data.sort_order === "number") patch.sort_order = data.sort_order;
       const { data: updated, error } = await supabase
-        .from("tenant_service_categories" as any)
+        .from("tenant_service_categories")
         .update(patch)
         .eq("id", id)
         .eq("tenant_id", tenantId)
@@ -127,7 +127,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
       invalidate();
       toast({ title: "Category updated" });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       console.error("useServiceCategories.rename error", err);
       toast({ title: "Failed to update category", variant: "destructive" });
     },
@@ -137,7 +137,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
     mutationFn: async (id: string) => {
       if (!tenantId) throw new Error("No active tenant");
       const { error } = await supabase
-        .from("tenant_service_categories" as any)
+        .from("tenant_service_categories")
         .update({ is_active: false })
         .eq("id", id)
         .eq("tenant_id", tenantId);
@@ -148,7 +148,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
       invalidate();
       toast({ title: "Category archived" });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       console.error("useServiceCategories.archive error", err);
       toast({ title: "Failed to archive category", variant: "destructive" });
     },
@@ -158,7 +158,7 @@ export function useServiceCategories(includeArchived: boolean = false) {
     mutationFn: async (id: string) => {
       if (!tenantId) throw new Error("No active tenant");
       const { error } = await supabase
-        .from("tenant_service_categories" as any)
+        .from("tenant_service_categories")
         .update({ is_active: true })
         .eq("id", id)
         .eq("tenant_id", tenantId);
