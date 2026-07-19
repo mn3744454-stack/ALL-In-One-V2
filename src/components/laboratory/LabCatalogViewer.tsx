@@ -185,11 +185,44 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
 
   const totalSelected = selectedIds.length;
 
+  // Slice 3 closure — grouped price totals over unique selected IDs.
+  // Missing price is never treated as zero: the currency bucket is flagged
+  // "missing" and reported separately so it can never inflate a numeric total.
+  const totalsByCurrency = useMemo(() => {
+    const unique = Array.from(new Set(selectedIds));
+    const buckets = new Map<string, { total: number; missing: number }>();
+    for (const id of unique) {
+      const s = registryRef.current.get(id);
+      if (!s) continue;
+      const cur = (s.currency || "").trim() || "—";
+      const b = buckets.get(cur) || { total: 0, missing: 0 };
+      if (typeof s.price === "number" && !Number.isNaN(s.price)) {
+        b.total += s.price;
+      } else {
+        b.missing += 1;
+      }
+      buckets.set(cur, b);
+    }
+    return Array.from(buckets.entries()).map(([currency, v]) => ({ currency, ...v }));
+  }, [selectedIds]);
+
   return (
     <div className="space-y-4">
       {labName && (
         <h3 className="text-base font-semibold">{t("laboratory.catalog.servicesFrom")} {labName}</h3>
       )}
+
+      {/* Slice 3 closure — inline validation error, anchored above selection. */}
+      {errorMessage && (
+        <div
+          role="alert"
+          data-lab-analysis-error
+          className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {errorMessage}
+        </div>
+      )}
+
 
       {/* Sticky selected-analysis chip strip. Keeps hidden selections visible. */}
       {selectable && totalSelected > 0 && (
