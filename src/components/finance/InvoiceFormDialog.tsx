@@ -394,24 +394,26 @@ export function InvoiceFormDialog({
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.issueDate")}</Label>
-                <InvoiceDateField
+                <SharedDateField
                   value={formData.issue_date}
                   onChange={(v) => setFormData({ ...formData, issue_date: v })}
-                  todayLabel={t("finance.invoices.dateToday")}
-                  clearLabel={t("finance.invoices.dateClear")}
-                  locale={lang === "ar" ? arLocale : enLocale}
+                  showToday
+                  ariaLabel={t("finance.invoices.issueDate")}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.dueDate")}</Label>
-                <InvoiceDateField
+                <SharedDateField
                   value={formData.due_date}
                   onChange={(v) => setFormData({ ...formData, due_date: v })}
-                  todayLabel={t("finance.invoices.dateToday")}
-                  clearLabel={t("finance.invoices.dateClear")}
-                  locale={lang === "ar" ? arLocale : enLocale}
+                  min={formData.issue_date || undefined}
+                  showToday
+                  ariaLabel={t("finance.invoices.dueDate")}
                 />
+                {formData.due_date && formData.issue_date && formData.due_date < formData.issue_date && (
+                  <p className="text-xs text-destructive">{t("common.dateRange.dueBeforeIssue")}</p>
+                )}
               </div>
             </div>
 
