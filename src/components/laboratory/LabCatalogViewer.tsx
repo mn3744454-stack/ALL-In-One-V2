@@ -14,6 +14,8 @@ interface Props {
   onSelectServices?: (serviceIds: string[], serviceNames?: string[]) => void;
   selectable?: boolean;
   selectedIds?: string[];
+  /** Slice 3 closure — inline validation message rendered above the list. */
+  errorMessage?: string | null;
 }
 
 /**
@@ -35,7 +37,7 @@ interface Props {
  *    provider changes the parent already clears selection (LabRequestsTab)
  *    and the internal registry is scoped to the current provider only.
  */
-export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selectable, selectedIds = [] }: Props) {
+export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selectable, selectedIds = [], errorMessage }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const [search, setSearch] = useState("");
