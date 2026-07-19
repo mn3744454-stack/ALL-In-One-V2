@@ -191,7 +191,7 @@ function AddExamDialog({ open, onOpenChange, pregnancyId, mareId, onSubmit, onCr
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>{t("common.date")} *</Label>
+            <Label>{t("common.date.label")} *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !checkDate && "text-muted-foreground")}>

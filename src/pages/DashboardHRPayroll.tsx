@@ -350,7 +350,7 @@ export default function DashboardHRPayroll() {
                         <TableRow>
                           <TableHead>{t('hr.name')}</TableHead>
                           <TableHead>{t('hr.payroll.period')}</TableHead>
-                          <TableHead>{t('common.date') || 'Date'}</TableHead>
+                          <TableHead>{t('common.date.label') || 'Date'}</TableHead>
                           <TableHead className="text-end">{t('finance.expenses.amount')}</TableHead>
                           <TableHead className="text-end">{t('common.status')}</TableHead>
                         </TableRow>

@@ -314,7 +314,7 @@ export function InvoicesList({
               <TableRow>
                 <TableHead className="w-[120px] text-start">{t("finance.invoices.number")}</TableHead>
                 <TableHead className="text-start">{t("finance.invoices.client")}</TableHead>
-                <TableHead className="w-[110px] whitespace-nowrap">{t("common.date")}</TableHead>
+                <TableHead className="w-[110px] whitespace-nowrap">{t("common.date.label")}</TableHead>
                 <TableHead className="text-center w-[110px]">{t("finance.invoices.total")}</TableHead>
                 <TableHead className="text-center w-[110px]">{t("finance.payments.paidSoFar")}</TableHead>
                 <TableHead className="text-center w-[110px]">{t("finance.payments.outstanding")}</TableHead>

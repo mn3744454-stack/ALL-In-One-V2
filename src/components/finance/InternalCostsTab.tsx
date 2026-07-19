@@ -254,7 +254,7 @@ export function InternalCostsTab() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("common.date")}</TableHead>
+                      <TableHead>{t("common.date.label")}</TableHead>
                       <TableHead>{t("finance.internalCosts.source")}</TableHead>
                       <TableHead>{t("finance.traceability.horseName")}</TableHead>
                       <TableHead>{t("finance.internalCosts.serviceMode")}</TableHead>

@@ -233,7 +233,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
           <TableRow>
             <TableHead className="text-center">#</TableHead>
             <TableHead className="text-center">{t("laboratory.table.sampleId")}</TableHead>
-            <TableHead className="text-center">{t("common.date")}</TableHead>
+            <TableHead className="text-center">{t("common.date.label")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -370,7 +370,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
             <TableHead className="text-center">{t("laboratory.samples.title")}</TableHead>
             <TableHead className="text-center">{t("laboratory.results.analyses")}</TableHead>
             <TableHead className="text-center">#</TableHead>
-            <TableHead className="text-center">{t("common.date")}</TableHead>
+            <TableHead className="text-center">{t("common.date.label")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -488,7 +488,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
           <TableRow>
             <TableHead className="text-center">{t("finance.invoices.number")}</TableHead>
             <TableHead className="text-center">{t("finance.invoices.client")}</TableHead>
-            <TableHead className="text-center">{t("common.date")}</TableHead>
+            <TableHead className="text-center">{t("common.date.label")}</TableHead>
             <TableHead className="text-center">{t("finance.invoices.total")}</TableHead>
             <TableHead className="text-center">{t("finance.payments.paidSoFar")}</TableHead>
             <TableHead className="text-center">{t("finance.payments.outstanding")}</TableHead>

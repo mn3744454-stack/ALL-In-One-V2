@@ -73,7 +73,7 @@ export function StableMessagesView() {
                 <th className="py-2 px-3 font-medium text-start">{t('laboratory.requests.testDescription')}</th>
                 <th className="py-2 px-3 font-medium text-start">{t('laboratory.requests.messages')}</th>
                 <th className="py-2 px-3 font-medium text-start">#</th>
-                <th className="py-2 px-3 font-medium text-start">{t('common.date')}</th>
+                <th className="py-2 px-3 font-medium text-start">{t('common.date.label')}</th>
               </tr>
             </thead>
             <tbody>

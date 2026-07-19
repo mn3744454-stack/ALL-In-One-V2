@@ -1298,7 +1298,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-center w-[160px]">{t("common.date")}</TableHead>
+                          <TableHead className="text-center w-[160px]">{t("common.date.label")}</TableHead>
                           <TableHead className={dir === "rtl" ? "text-right" : "text-left"}>{t("common.description")}</TableHead>
                           <TableHead className="text-center">{t("clients.statement.debit")}</TableHead>
                           <TableHead className="text-center">{t("clients.statement.credit")}</TableHead>
