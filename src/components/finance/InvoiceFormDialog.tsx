@@ -262,10 +262,48 @@ export function InvoiceFormDialog({
     setAttemptedSubmit(true);
 
     if (missingIssues.length > 0) {
-      // In-surface guidance is now shown via MissingRequirementsBar; toast kept as supplemental.
       toast.error(t("common.validation.attemptedSubmit"));
       return;
     }
+
+    if (formData.issue_date && formData.due_date && formData.due_date < formData.issue_date) {
+      toast.error(t("common.dateRange.dueBeforeIssue"));
+      return;
+    }
+
+    // Build a single row from a LineItem — includes Label 2 package snapshot columns.
+    const buildRow = (item: LineItem, invoiceId: string, index: number) => {
+      const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
+      const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
+      const isPackageLine = item.source === 'package' && !!item.package_id;
+      return {
+        invoice_id: invoiceId,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+        entity_type: item.entity_type,
+        entity_id: item.entity_id,
+        horse_id: horseIdOut,
+        lab_horse_id: labHorseIdOut,
+        domain: item.domain || null,
+        // Package vs service are mutually exclusive (DB check constraint).
+        service_id: isPackageLine ? null : (item.service_id || null),
+        service_source: isPackageLine
+          ? null
+          : (item.service_id ? (item.service_source || catalogSource) : 'tenant_services'),
+        category_id: isPackageLine ? null : (item.category_id || null),
+        package_id: isPackageLine ? item.package_id : null,
+        package_source: isPackageLine ? (item.package_source || 'stable_service_plans') : null,
+        package_name_snapshot: isPackageLine ? item.package_name_snapshot : null,
+        package_name_ar_snapshot: isPackageLine ? item.package_name_ar_snapshot : null,
+        package_price_snapshot: isPackageLine ? item.package_price_snapshot : null,
+        package_currency_snapshot: isPackageLine ? item.package_currency_snapshot : null,
+        package_services_snapshot: isPackageLine ? item.package_services_snapshot : null,
+        position: index,
+      };
+    };
+
 
     try {
       const validItems = lineItems.filter((item) => item.description && item.total_price > 0);
