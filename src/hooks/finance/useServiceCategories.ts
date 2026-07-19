@@ -80,10 +80,19 @@ export function useServiceCategories(includeArchived: boolean = false) {
   const createMutation = useMutation({
     mutationFn: async (input: CreateServiceCategoryInput) => {
       if (!tenantId) throw new Error("No active tenant");
+      // Generate an immutable slug key from the English name; fall back to a
+      // random suffix if the slug is empty (e.g. Arabic-only names).
+      const slug = input.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+      const key = slug || `cat_${crypto.randomUUID().slice(0, 8)}`;
       const { data, error } = await supabase
         .from("tenant_service_categories")
         .insert({
           tenant_id: tenantId,
+          key,
           name: input.name,
           name_ar: input.name_ar ?? null,
           domain_key: input.domain_key ?? null,
