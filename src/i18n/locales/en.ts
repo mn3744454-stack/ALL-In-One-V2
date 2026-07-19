@@ -1446,6 +1446,8 @@ export const en = {
       clearSelection: "Clear selection",
       searchCategoriesPlaceholder: "Search categories...",
       noMatches: "No analyses match your filters",
+      atLeastOneAnalysis: "Please select at least one analysis.",
+      selectedAnalysesTotal: "Selected Analyses Total",
       addTemplate: "Add",
       removeTemplate: "Remove",
       required: "Required",
