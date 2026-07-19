@@ -493,11 +493,16 @@ export function InvoiceFormDialog({
                 items={lineItems}
                 onChange={setLineItems}
                 currency={invoice?.currency || tenantCurrency}
-                horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
-                services={allServices}
+                horses={customerHorses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
+                services={catalogItems}
                 plans={allPlans}
+                disablePackages={isLabIssuer}
+                onQuickAddHorse={canWriteHorse ? () => setQuickAddOpen(true) : undefined}
+                canQuickAddHorse={!!formData.client_id}
+                quickAddDisabledReason={t("finance.invoices.selectCustomerFirst")}
               />
             </div>
+
 
             {/* Financial Summary Card */}
             <div className="border border-border rounded-lg p-4 space-y-3 bg-muted/30">
