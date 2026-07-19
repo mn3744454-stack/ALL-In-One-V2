@@ -290,9 +290,6 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
                       <p className="text-sm truncate">
                         {displayCategoryName(cat, lang as "ar" | "en")}
                       </p>
-                      <p className="text-[10px] font-mono text-muted-foreground" dir="ltr">
-                        {cat.key}
-                      </p>
                     </div>
                     {canManage && (
                       <Button
