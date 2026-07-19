@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { SharedDateField } from "@/components/ui/shared-date-field";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { InvoiceClientPicker } from "./InvoiceClientPicker";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
@@ -19,10 +18,8 @@ import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
 import { formatCurrency } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { addDays, format, parse, type Locale } from "date-fns";
-import { ar as arLocale, enUS as enLocale } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+import { addDays, format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useInvoiceCatalogSources, resolveInvoiceCatalogSource } from "@/hooks/finance/useInvoiceCatalogSources";
@@ -31,6 +28,7 @@ import { InvoiceQuickAddHorseDialog } from "./InvoiceQuickAddHorseDialog";
 import { usePermissions } from "@/hooks/usePermissions";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+
 
 
 /**
