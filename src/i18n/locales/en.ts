@@ -1443,6 +1443,9 @@ export const en = {
       // Phase 10: Linked Templates
       linkedTemplates: "Linked Templates",
       selectedCount: "{{count}} selected",
+      clearSelection: "Clear selection",
+      searchCategoriesPlaceholder: "Search categories...",
+      noMatches: "No analyses match your filters",
       addTemplate: "Add",
       removeTemplate: "Remove",
       required: "Required",
