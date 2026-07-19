@@ -45,6 +45,11 @@ export const ar = {
     status: "الحالة",
     type: "النوع",
     date: "التاريخ",
+    dateRange: {
+      startAfterEnd: "لا يمكن أن يكون تاريخ البداية بعد تاريخ النهاية.",
+      endBeforeStart: "لا يمكن أن يكون تاريخ النهاية قبل تاريخ البداية.",
+      dueBeforeIssue: "لا يمكن أن يكون تاريخ الاستحقاق قبل تاريخ الإصدار.",
+    },
     name: "الاسم",
     description: "الوصف",
     notes: "ملاحظات",
