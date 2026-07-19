@@ -152,16 +152,35 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
                   />
                 </div>
               </div>
-              {editing && (
-                <p className="text-[11px] text-muted-foreground">
-                  {isRTL
-                    ? "مفتاح التصنيف ثابت ولا يتغير بعد الإنشاء."
-                    : "The category key is immutable and does not change on rename."}
-                  {" "}
-                  <span className="font-mono" dir="ltr">
-                    key: {editing.key}
-                  </span>
-                </p>
+              {editing && canManage && (
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                      {isRTL ? "تفاصيل متقدمة" : "Advanced Details"}
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">
+                      {isRTL ? "المعرّف الداخلي" : "Internal Identifier"}
+                    </Label>
+                    <Input
+                      readOnly
+                      value={editing.key}
+                      dir="ltr"
+                      className="font-mono text-[11px] h-7 bg-muted/40"
+                      onFocus={(e) => e.currentTarget.select()}
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      {isRTL
+                        ? "قيمة تقنية للقراءة فقط. لا تُستخدم كعنوان تصنيف."
+                        : "Read-only technical value. Not used as a category title."}
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
               <div className="flex items-center gap-2">
                 <Button
