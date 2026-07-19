@@ -6195,6 +6195,7 @@ export type Database = {
       }
       invoice_items: {
         Row: {
+          category_id: string | null
           category_key: string | null
           category_name_ar_snapshot: string | null
           category_name_snapshot: string | null
@@ -6213,10 +6214,12 @@ export type Database = {
           service_id: string | null
           service_name_ar_snapshot: string | null
           service_name_snapshot: string | null
+          service_source: string
           total_price: number
           unit_price: number
         }
         Insert: {
+          category_id?: string | null
           category_key?: string | null
           category_name_ar_snapshot?: string | null
           category_name_snapshot?: string | null
@@ -6235,10 +6238,12 @@ export type Database = {
           service_id?: string | null
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
+          service_source?: string
           total_price: number
           unit_price: number
         }
         Update: {
+          category_id?: string | null
           category_key?: string | null
           category_name_ar_snapshot?: string | null
           category_name_snapshot?: string | null
@@ -6257,10 +6262,18 @@ export type Database = {
           service_id?: string | null
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
+          service_source?: string
           total_price?: number
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoice_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_service_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoice_items_horse_id_fkey"
             columns: ["horse_id"]
@@ -6280,13 +6293,6 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoice_items_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "tenant_services"
             referencedColumns: ["id"]
           },
         ]
