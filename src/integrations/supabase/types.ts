@@ -6207,6 +6207,7 @@ export type Database = {
           horse_id: string | null
           id: string
           invoice_id: string
+          lab_horse_id: string | null
           period_end: string | null
           period_start: string | null
           position: number
@@ -6231,6 +6232,7 @@ export type Database = {
           horse_id?: string | null
           id?: string
           invoice_id: string
+          lab_horse_id?: string | null
           period_end?: string | null
           period_start?: string | null
           position?: number
@@ -6255,6 +6257,7 @@ export type Database = {
           horse_id?: string | null
           id?: string
           invoice_id?: string
+          lab_horse_id?: string | null
           period_end?: string | null
           period_start?: string | null
           position?: number
@@ -6293,6 +6296,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_lab_horse_id_fkey"
+            columns: ["lab_horse_id"]
+            isOneToOne: false
+            referencedRelation: "lab_horses"
             referencedColumns: ["id"]
           },
         ]

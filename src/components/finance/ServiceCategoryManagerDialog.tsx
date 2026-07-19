@@ -84,15 +84,26 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
 
   const handleSubmit = async () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    const trimmedAr = nameAr.trim();
+    // Label 1 — bilingual identity required for both create and rename.
+    if (!trimmed) {
+      const msg = isRTL ? "الاسم الإنجليزي مطلوب." : "English name is required.";
+      (await import("sonner")).toast.error(msg);
+      return;
+    }
+    if (!trimmedAr) {
+      const msg = isRTL ? "الاسم العربي مطلوب." : "Arabic name is required.";
+      (await import("sonner")).toast.error(msg);
+      return;
+    }
     try {
       if (editing) {
         await renameCategory({
           id: editing.id,
-          data: { name: trimmed, name_ar: nameAr.trim() || null },
+          data: { name: trimmed, name_ar: trimmedAr },
         });
       } else {
-        await createCategory({ name: trimmed, name_ar: nameAr.trim() || null });
+        await createCategory({ name: trimmed, name_ar: trimmedAr });
       }
       resetForm();
     } catch {
@@ -103,7 +114,7 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
   const active = allCategories.filter((c) => c.is_active);
   const archived = allCategories.filter((c) => !c.is_active);
 
-  const canSubmit = name.trim().length > 0 && !isMutating;
+  const canSubmit = name.trim().length > 0 && nameAr.trim().length > 0 && !isMutating;
 
   return (
     <Dialog
