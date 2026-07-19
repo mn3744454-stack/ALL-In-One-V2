@@ -740,25 +740,52 @@ export function InvoiceDetailsSheet({
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {items.map((item: any) => (
-                    <Card key={item.id}>
-                      <CardContent className="p-3">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium break-words">
-                              {item.enrichedDescription || item.description}
-                            </p>
-                            <p className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
-                              {item.quantity} × {formatAmount(item.unit_price)}
+                  {items.map((item: any) => {
+                    const isPackage = !!item.package_id;
+                    const snap: any[] = Array.isArray(item.package_services_snapshot)
+                      ? item.package_services_snapshot
+                      : [];
+                    return (
+                      <Card key={item.id} className={isPackage ? "border-primary/40 bg-primary/[0.02]" : undefined}>
+                        <CardContent className="p-3">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium break-words">
+                                {isPackage && (
+                                  <span className="inline-flex items-center rounded bg-primary/15 text-primary text-[10px] px-1.5 py-0.5 me-1.5 uppercase tracking-wide">
+                                    {t("finance.invoices.packageSource")}
+                                  </span>
+                                )}
+                                {item.enrichedDescription || item.description}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
+                                {item.quantity} × {formatAmount(item.unit_price)}
+                              </p>
+                            </div>
+                            <p className="font-mono text-sm font-medium tabular-nums shrink-0" dir="ltr">
+                              {formatAmount(item.total_price)}
                             </p>
                           </div>
-                          <p className="font-mono text-sm font-medium tabular-nums shrink-0" dir="ltr">
-                            {formatAmount(item.total_price)}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          {isPackage && snap.length > 0 && (
+                            <div className="mt-2 ms-2 border-s ps-3 space-y-1">
+                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                {t("finance.invoices.includedServices")}
+                              </div>
+                              {snap.map((child: any, idx: number) => (
+                                <div key={idx} className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <span className="truncate flex-1 min-w-0">
+                                    {child.name || child.name_ar}
+                                    <span className="opacity-70"> × {child.quantity ?? 1}</span>
+                                  </span>
+                                  <span className="font-mono tabular-nums shrink-0" dir="ltr">0.00</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </div>
