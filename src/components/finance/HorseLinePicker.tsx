@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +10,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronsUpDown, Plus, Search, Check, X } from "lucide-react";
 import { useI18n } from "@/i18n";
-import { useTenant } from "@/contexts/TenantContext";
-import { QuickCreateHorseDialog } from "@/components/housing/QuickCreateHorseDialog";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { cn } from "@/lib/utils";
 
@@ -26,25 +23,31 @@ interface HorseLinePickerProps {
   horses: HorseLinePickerOption[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  /** Label 1 — tenant-aware Quick Add. Owner controls creation flow. */
+  onQuickAdd?: () => void;
+  canQuickAdd?: boolean;
+  quickAddDisabledReason?: string;
 }
 
 /**
  * Picker dialog for selecting a horse on an invoice line item.
  * - Bilingual search (matches name + name_ar)
  * - "No horse (client-level)" option always present
- * - "+ Add new horse" bridge that reuses QuickCreateHorseDialog
+ * - "+ Add new horse" bridge — actual creation flow is owner-controlled
+ *   (Label 1 wires it to the correct registry: lab_horses for Lab issuers,
+ *   platform horses for Stable issuers).
  */
 export function HorseLinePicker({
   horses,
   selectedId,
   onSelect,
+  onQuickAdd,
+  canQuickAdd = true,
+  quickAddDisabledReason,
 }: HorseLinePickerProps) {
   const { t, lang } = useI18n();
-  const { activeTenant } = useTenant();
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [addOpen, setAddOpen] = useState(false);
 
   useEffect(() => {
     if (!open) setSearch("");
