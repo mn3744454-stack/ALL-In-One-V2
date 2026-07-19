@@ -6208,6 +6208,13 @@ export type Database = {
           id: string
           invoice_id: string
           lab_horse_id: string | null
+          package_currency_snapshot: string | null
+          package_id: string | null
+          package_name_ar_snapshot: string | null
+          package_name_snapshot: string | null
+          package_price_snapshot: number | null
+          package_services_snapshot: Json | null
+          package_source: string | null
           period_end: string | null
           period_start: string | null
           position: number
@@ -6233,6 +6240,13 @@ export type Database = {
           id?: string
           invoice_id: string
           lab_horse_id?: string | null
+          package_currency_snapshot?: string | null
+          package_id?: string | null
+          package_name_ar_snapshot?: string | null
+          package_name_snapshot?: string | null
+          package_price_snapshot?: number | null
+          package_services_snapshot?: Json | null
+          package_source?: string | null
           period_end?: string | null
           period_start?: string | null
           position?: number
@@ -6258,6 +6272,13 @@ export type Database = {
           id?: string
           invoice_id?: string
           lab_horse_id?: string | null
+          package_currency_snapshot?: string | null
+          package_id?: string | null
+          package_name_ar_snapshot?: string | null
+          package_name_snapshot?: string | null
+          package_price_snapshot?: number | null
+          package_services_snapshot?: Json | null
+          package_source?: string | null
           period_end?: string | null
           period_start?: string | null
           position?: number
