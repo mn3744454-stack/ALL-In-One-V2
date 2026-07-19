@@ -348,11 +348,14 @@ function CreateRequestDialog({
         let horseDescription: string;
 
         if (isPerHorse) {
-          horseServiceIds = perHorseServiceIds[horse.id]?.length ? perHorseServiceIds[horse.id] : undefined;
+          const rawPer = perHorseServiceIds[horse.id] ?? [];
+          const uniqPer = Array.from(new Set(rawPer));
+          horseServiceIds = uniqPer.length ? uniqPer : undefined;
           const horseNames = perHorseServiceNames[horse.id] || [];
           horseDescription = formData.test_description.trim() || horseNames.join(', ') || '';
         } else {
-          horseServiceIds = selectedServiceIds.length > 0 ? selectedServiceIds : undefined;
+          const uniq = Array.from(new Set(selectedServiceIds));
+          horseServiceIds = uniq.length > 0 ? uniq : undefined;
           let desc = formData.test_description.trim();
           if (!desc && selectedServiceNames.length > 0) desc = selectedServiceNames.join(', ');
           horseDescription = desc;

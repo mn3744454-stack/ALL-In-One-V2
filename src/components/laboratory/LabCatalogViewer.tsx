@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Clock, Tag, FlaskConical, ShieldAlert } from "lucide-react";
-import { useLabCatalogViewer } from "@/hooks/laboratory/useLabServices";
+import { Search, Clock, Tag, FlaskConical, ShieldAlert, X } from "lucide-react";
+import { useLabCatalogViewer, type LabCatalogViewerService } from "@/hooks/laboratory/useLabServices";
 import { useI18n } from "@/i18n";
 
 interface Props {
@@ -16,24 +17,58 @@ interface Props {
 }
 
 /**
- * 2QA-C Cross-Tenant Closure — this cross-tenant catalog surface renders
- * live category identity from the shared tenant_service_categories join
- * returned by `get_lab_services_for_viewer`. Legacy free-text category
- * (`lab_services.category`) is intentionally NOT read here, so a legacy
- * value such as "ميم" can never appear as a live category label.
+ * Slice 3 — Category → Analysis selection surface.
+ *
+ * Live category identity comes exclusively from the shared
+ * tenant_service_categories join returned by `get_lab_services_for_viewer`
+ * (Slice 2QA-C closure). Legacy free-text `lab_services.category` is never
+ * read here — a legacy value such as "ميم" cannot appear as a live label.
+ *
+ * Behavior contract:
+ *  - Fetches all active services for the provider with server-side search;
+ *    category filtering is applied client-side so multi-select uses OR
+ *    semantics without a new RPC.
+ *  - Selected analyses persist across category/search changes even when the
+ *    current filter hides them — a sticky "Selected" chip strip keeps hidden
+ *    selections visible and removable.
+ *  - Provider switch: parent owns `labTenantId` + `selectedIds`; when the
+ *    provider changes the parent already clears selection (LabRequestsTab)
+ *    and the internal registry is scoped to the current provider only.
  */
 export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selectable, selectedIds = [] }: Props) {
   const { t, lang } = useI18n();
   const isAr = lang === "ar";
   const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [categoryIds, setCategoryIds] = useState<Set<string>>(new Set());
+  const [includeUnmapped, setIncludeUnmapped] = useState(false);
 
-  const { data: services, isLoading, isError } = useLabCatalogViewer(labTenantId, search, categoryId);
+  // Fetch with server-side search only; multi-category OR is applied client-side.
+  const { data, isLoading, isError } = useLabCatalogViewer(labTenantId, search, null);
+  const services = useMemo<LabCatalogViewerService[]>(() => data ?? [], [data]);
 
-  // Distinct shared categories present in the current result set.
+  // Persistent registry of selected analyses so hidden selections stay
+  // visible as removable chips. Scoped to the current provider.
+  const registryRef = useRef<Map<string, LabCatalogViewerService>>(new Map());
+  useEffect(() => {
+    registryRef.current = new Map();
+    setCategoryIds(new Set());
+    setIncludeUnmapped(false);
+    setSearch("");
+    setCategorySearch("");
+  }, [labTenantId]);
+
+  useEffect(() => {
+    for (const s of services) {
+      if (selectedIds.includes(s.id)) registryRef.current.set(s.id, s);
+    }
+  }, [services, selectedIds]);
+
+  // Distinct shared categories across the FULL fetched set (not filtered)
+  // so the chip list is stable while the user narrows selection.
   const categories = useMemo(() => {
     const map = new Map<string, { id: string; name: string; name_ar: string | null }>();
-    for (const s of services ?? []) {
+    for (const s of services) {
       if (s.category_id && !map.has(s.category_id)) {
         map.set(s.category_id, {
           id: s.category_id,
@@ -49,20 +84,54 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
     });
   }, [services, isAr]);
 
-  const hasUnmapped = useMemo(
-    () => (services ?? []).some((s) => !s.category_id),
-    [services],
-  );
+  const hasUnmapped = useMemo(() => services.some((s) => !s.category_id), [services]);
 
-  const handleToggleService = (serviceId: string) => {
+  const visibleCategories = useMemo(() => {
+    const q = categorySearch.trim().toLowerCase();
+    if (!q) return categories;
+    return categories.filter((c) =>
+      `${c.name} ${c.name_ar ?? ""}`.toLowerCase().includes(q),
+    );
+  }, [categories, categorySearch]);
+
+  // OR semantics: no chip = show all; chip(s) = union of matched categories.
+  const filteredServices = useMemo(() => {
+    if (categoryIds.size === 0 && !includeUnmapped) return services;
+    return services.filter((s) => {
+      if (!s.category_id) return includeUnmapped;
+      return categoryIds.has(s.category_id);
+    });
+  }, [services, categoryIds, includeUnmapped]);
+
+  const emitSelection = (nextIds: string[]) => {
     if (!onSelectServices) return;
-    const newSelected = selectedIds.includes(serviceId)
-      ? selectedIds.filter(id => id !== serviceId)
-      : [...selectedIds, serviceId];
-    const newNames = (services ?? [])
-      .filter(s => newSelected.includes(s.id))
-      .map(s => s.name);
-    onSelectServices(newSelected, newNames);
+    // Dedup defensively.
+    const unique = Array.from(new Set(nextIds));
+    const names = unique
+      .map((id) => registryRef.current.get(id)?.name)
+      .filter((n): n is string => !!n);
+    onSelectServices(unique, names);
+  };
+
+  const handleToggleService = (service: LabCatalogViewerService) => {
+    if (!onSelectServices) return;
+    registryRef.current.set(service.id, service);
+    const next = selectedIds.includes(service.id)
+      ? selectedIds.filter((id) => id !== service.id)
+      : [...selectedIds, service.id];
+    emitSelection(next);
+  };
+
+  const handleRemoveSelected = (id: string) => emitSelection(selectedIds.filter((x) => x !== id));
+  const handleClearSelection = () => emitSelection([]);
+
+  const toggleCategory = (id: string) => {
+    setCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   if (!labTenantId) {
@@ -79,7 +148,7 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
+        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
       </div>
     );
   }
@@ -96,9 +165,7 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
     );
   }
 
-  const servicesList = services ?? [];
-
-  if (servicesList.length === 0) {
+  if (services.length === 0) {
     return (
       <Card variant="elevated" className="border-dashed">
         <CardContent className="py-12 text-center">
@@ -114,7 +181,7 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
     );
   }
 
-  const UNMAPPED_FILTER = "__unmapped__";
+  const totalSelected = selectedIds.length;
 
   return (
     <div className="space-y-4">
@@ -122,135 +189,204 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
         <h3 className="text-base font-semibold">{t("laboratory.catalog.servicesFrom")} {labName}</h3>
       )}
 
-      {/* Search + Category */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("laboratory.catalog.searchPlaceholder")}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        {(categories.length > 0 || hasUnmapped) && (
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            <Badge
-              variant={categoryId === null ? "default" : "outline"}
-              className="cursor-pointer shrink-0"
-              onClick={() => setCategoryId(null)}
+      {/* Sticky selected-analysis chip strip. Keeps hidden selections visible. */}
+      {selectable && totalSelected > 0 && (
+        <div className="rounded-md border bg-muted/30 p-2 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted-foreground">
+              {(t("laboratory.catalog.selectedCount") || "{{count}} selected").replace("{{count}}", String(totalSelected))}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={handleClearSelection}
             >
-              {t("common.all")}
-            </Badge>
-            {categories.map(cat => {
-              const label = (isAr ? cat.name_ar || cat.name : cat.name || cat.name_ar || "").trim();
+              {t("laboratory.catalog.clearSelection") || "Clear selection"}
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {selectedIds.map((id) => {
+              const s = registryRef.current.get(id);
+              const label = s
+                ? (isAr ? s.name_ar || s.name : s.name || s.name_ar || "")
+                : id.slice(0, 6);
               return (
-                <Badge
-                  key={cat.id}
-                  variant={categoryId === cat.id ? "default" : "outline"}
-                  className="cursor-pointer shrink-0"
-                  onClick={() => setCategoryId(cat.id === categoryId ? null : cat.id)}
-                >
-                  {label || t("finance.categories.unavailable")}
+                <Badge key={id} variant="secondary" className="gap-1 min-h-6">
+                  <span className="max-w-[10rem] truncate">{label}</span>
+                  <button
+                    type="button"
+                    aria-label={t("common.remove") || "Remove"}
+                    className="hover:text-destructive"
+                    onClick={() => handleRemoveSelected(id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 </Badge>
               );
             })}
-            {hasUnmapped && (
-              <Badge
-                variant="outline"
-                className="cursor-pointer shrink-0 border-dashed text-muted-foreground"
-                title={t("finance.categories.unmappedFull")}
-              >
-                {t("finance.categories.unmapped")}
-              </Badge>
-            )}
+          </div>
+        </div>
+      )}
+
+      {/* Search: analyses + categories */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("laboratory.catalog.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="ps-9 min-h-11"
+          />
+        </div>
+        {(categories.length > 3 || categorySearch) && (
+          <div className="relative sm:w-56">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("laboratory.catalog.searchCategoriesPlaceholder") || "Search categories..."}
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              className="ps-9 min-h-11"
+            />
           </div>
         )}
       </div>
 
+      {/* Category chip toolbar (multi-select) */}
+      {(visibleCategories.length > 0 || hasUnmapped) && (
+        <div className="flex flex-wrap gap-2">
+          <Badge
+            variant={categoryIds.size === 0 && !includeUnmapped ? "default" : "outline"}
+            className="cursor-pointer min-h-7"
+            onClick={() => { setCategoryIds(new Set()); setIncludeUnmapped(false); }}
+          >
+            {t("common.all")}
+          </Badge>
+          {visibleCategories.map((cat) => {
+            const label = (isAr ? cat.name_ar || cat.name : cat.name || cat.name_ar || "").trim();
+            const active = categoryIds.has(cat.id);
+            return (
+              <Badge
+                key={cat.id}
+                variant={active ? "default" : "outline"}
+                className="cursor-pointer min-h-7"
+                onClick={() => toggleCategory(cat.id)}
+              >
+                {label || t("finance.categories.unavailable")}
+              </Badge>
+            );
+          })}
+          {hasUnmapped && (
+            <Badge
+              variant={includeUnmapped ? "default" : "outline"}
+              className="cursor-pointer min-h-7 border-dashed text-muted-foreground"
+              title={t("finance.categories.unmappedFull")}
+              onClick={() => setIncludeUnmapped((v) => !v)}
+            >
+              {t("finance.categories.unmapped")}
+            </Badge>
+          )}
+        </div>
+      )}
+
       {/* Services */}
       <div className="space-y-3">
-        {servicesList.map(service => {
-          const isSelected = selectedIds.includes(service.id);
+        {filteredServices.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">
+            {t("laboratory.catalog.noMatches") || "No analyses match your filters"}
+          </p>
+        ) : (
+          filteredServices.map((service) => {
+            const isSelected = selectedIds.includes(service.id);
 
-          const hasLinked = !!service.category_id;
-          const primary = (isAr
-            ? service.category_name_ar || service.category_name
-            : service.category_name || service.category_name_ar || ""
-          )?.trim() || "";
-          const secondary = (isAr
-            ? service.category_name || ""
-            : service.category_name_ar || ""
-          )?.trim() || "";
+            const hasLinked = !!service.category_id;
+            const primary = (isAr
+              ? service.category_name_ar || service.category_name
+              : service.category_name || service.category_name_ar || ""
+            )?.trim() || "";
+            const secondary = (isAr
+              ? service.category_name || ""
+              : service.category_name_ar || ""
+            )?.trim() || "";
 
-          return (
-            <Card
-              key={service.id}
-              variant="elevated"
-              className={`transition-all ${selectable ? "cursor-pointer hover:shadow-md" : ""} ${isSelected ? "ring-2 ring-primary" : ""}`}
-              onClick={selectable ? () => handleToggleService(service.id) : undefined}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold truncate">{service.name}</h3>
-                      {service.code && (
-                        <Badge variant="outline" className="font-mono text-xs shrink-0">{service.code}</Badge>
-                      )}
-                    </div>
-                    {service.name_ar && (
-                      <p className="text-sm text-muted-foreground truncate" dir="rtl">{service.name_ar}</p>
-                    )}
-                    {service.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                      {hasLinked ? (
-                        <Badge
-                          variant="secondary"
-                          className="text-xs"
-                          title={secondary || undefined}
+            return (
+              <Card
+                key={service.id}
+                variant="elevated"
+                className={`transition-all ${selectable ? "cursor-pointer hover:shadow-md" : ""} ${isSelected ? "ring-2 ring-primary" : ""}`}
+                onClick={selectable ? () => handleToggleService(service) : undefined}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold truncate">
+                          {isAr ? service.name_ar || service.name : service.name}
+                        </h3>
+                        {service.code && (
+                          <Badge variant="outline" className="font-mono text-xs shrink-0">{service.code}</Badge>
+                        )}
+                      </div>
+                      {(isAr ? service.name : service.name_ar) && (
+                        <p
+                          className="text-sm text-muted-foreground truncate"
+                          dir={isAr ? "ltr" : "rtl"}
                         >
-                          <Tag className="w-3 h-3 mr-1" />
-                          {primary || t("finance.categories.unavailable")}
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="text-xs border-dashed text-muted-foreground"
-                          title={t("finance.categories.unmappedFull")}
-                        >
-                          <Tag className="w-3 h-3 mr-1" />
-                          {t("finance.categories.unmapped")}
-                        </Badge>
+                          {isAr ? service.name : service.name_ar}
+                        </p>
                       )}
-                      {service.sample_type && (
-                        <Badge variant="outline" className="text-xs">{service.sample_type}</Badge>
+                      {service.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
                       )}
-                      {service.turnaround_hours && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {service.turnaround_hours}h
-                        </span>
-                      )}
-                      {service.price != null && (
-                        <span className="text-sm font-medium text-primary">
-                          {service.price} {service.currency || ""}
-                        </span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        {hasLinked ? (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs"
+                            title={secondary || undefined}
+                          >
+                            <Tag className="w-3 h-3 me-1" />
+                            {primary || t("finance.categories.unavailable")}
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-dashed text-muted-foreground"
+                            title={t("finance.categories.unmappedFull")}
+                          >
+                            <Tag className="w-3 h-3 me-1" />
+                            {t("finance.categories.unmapped")}
+                          </Badge>
+                        )}
+                        {service.sample_type && (
+                          <Badge variant="outline" className="text-xs">{service.sample_type}</Badge>
+                        )}
+                        {service.turnaround_hours && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {service.turnaround_hours}h
+                          </span>
+                        )}
+                        {service.price != null && (
+                          <span className="text-sm font-medium text-primary">
+                            {service.price} {service.currency || ""}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    {selectable && (
+                      <div className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-1 ${isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
+                        {isSelected && <span className="text-xs">✓</span>}
+                      </div>
+                    )}
                   </div>
-                  {selectable && (
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-1 ${isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
-                      {isSelected && <span className="text-xs">✓</span>}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
     </div>
   );
