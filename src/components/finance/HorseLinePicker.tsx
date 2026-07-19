@@ -201,19 +201,7 @@ export function HorseLinePicker({
           </ScrollArea>
         </DialogContent>
       </Dialog>
-
-      <QuickCreateHorseDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onCreated={(horse) => {
-          // Refresh horses list, then auto-select.
-          queryClient.invalidateQueries({ queryKey: ["horses", activeTenant?.tenant.id] });
-          onSelect(horse.id);
-          setAddOpen(false);
-          setOpen(false);
-        }}
-        minimal
-      />
     </>
   );
 }
+
