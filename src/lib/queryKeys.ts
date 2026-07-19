@@ -99,6 +99,15 @@ export const queryKeys = {
       ['service-categories', tenantId, includeArchived ? 'all' : 'active'] as const,
   },
 
+  // 2QA-C — Canonical root for cross-tenant Laboratory catalog queries.
+  // Category create/rename/archive/restore invalidates this root so an open
+  // LabCatalogViewer refetches live category identity without a page refresh.
+  labCatalog: {
+    root: ['lab-catalog'] as const,
+    list: (labTenantId?: string | null, search?: string, categoryId?: string | null) =>
+      ['lab-catalog', labTenantId, search ?? '', categoryId ?? null] as const,
+  },
+
   // Client statement (Slice 2)
   clientStatement: (
     tenantId?: string,

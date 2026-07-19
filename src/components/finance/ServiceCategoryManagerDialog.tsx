@@ -26,6 +26,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useI18n } from "@/i18n";
 import {
   useServiceCategories,
@@ -33,7 +38,7 @@ import {
   type ServiceCategory,
 } from "@/hooks/finance/useServiceCategories";
 import { usePermissions } from "@/hooks/usePermissions";
-import { Archive, ArchiveRestore, Edit2, Plus, Loader2 } from "lucide-react";
+import { Archive, ArchiveRestore, Edit2, Plus, Loader2, ChevronDown } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -147,16 +152,35 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
                   />
                 </div>
               </div>
-              {editing && (
-                <p className="text-[11px] text-muted-foreground">
-                  {isRTL
-                    ? "مفتاح التصنيف ثابت ولا يتغير بعد الإنشاء."
-                    : "The category key is immutable and does not change on rename."}
-                  {" "}
-                  <span className="font-mono" dir="ltr">
-                    key: {editing.key}
-                  </span>
-                </p>
+              {editing && canManage && (
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                      {isRTL ? "تفاصيل متقدمة" : "Advanced Details"}
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">
+                      {isRTL ? "المعرّف الداخلي" : "Internal Identifier"}
+                    </Label>
+                    <Input
+                      readOnly
+                      value={editing.key}
+                      dir="ltr"
+                      className="font-mono text-[11px] h-7 bg-muted/40"
+                      onFocus={(e) => e.currentTarget.select()}
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      {isRTL
+                        ? "قيمة تقنية للقراءة فقط. لا تُستخدم كعنوان تصنيف."
+                        : "Read-only technical value. Not used as a category title."}
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
               <div className="flex items-center gap-2">
                 <Button
@@ -218,9 +242,6 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
                       <p className="text-sm font-medium truncate">
                         {displayCategoryName(cat, lang as "ar" | "en")}
                       </p>
-                      <p className="text-[10px] font-mono text-muted-foreground" dir="ltr">
-                        {cat.key}
-                      </p>
                     </div>
                     {canManage && (
                       <div className="flex items-center gap-1 shrink-0">
@@ -268,9 +289,6 @@ export function ServiceCategoryManagerDialog({ open, onOpenChange }: Props) {
                     <div className="min-w-0">
                       <p className="text-sm truncate">
                         {displayCategoryName(cat, lang as "ar" | "en")}
-                      </p>
-                      <p className="text-[10px] font-mono text-muted-foreground" dir="ltr">
-                        {cat.key}
                       </p>
                     </div>
                     {canManage && (

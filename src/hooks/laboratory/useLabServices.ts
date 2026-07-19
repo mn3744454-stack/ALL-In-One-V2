@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
+import { queryKeys } from "@/lib/queryKeys";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface LabService {
   id: string;
@@ -218,43 +220,30 @@ export function useLabServices() {
  * text is intentionally NOT returned by the RPC anymore — it is kept in the
  * table only for historical compatibility.
  */
-export interface LabCatalogViewerService {
-  id: string;
-  name: string;
-  name_ar: string | null;
-  code: string | null;
-  description: string | null;
-  sample_type: string | null;
-  turnaround_hours: number | null;
-  price: number | null;
-  currency: string | null;
-  is_active: boolean;
-  // Shared category identity (same-tenant join). All null when unmapped.
-  category_id: string | null;
-  category_key: string | null;
-  category_name: string | null;
-  category_name_ar: string | null;
-  category_is_active: boolean | null;
-}
+export type LabCatalogViewerService =
+  Database["public"]["Functions"]["get_lab_services_for_viewer"]["Returns"][number];
 
-// Hook for viewing a lab's catalog (cross-tenant via RPC)
+// Hook for viewing a lab's catalog (cross-tenant via RPC).
+// 2QA-C closure — fully typed RPC call (no `as any`), canonical query key root
+// (`queryKeys.labCatalog`) so shared category mutations can invalidate the
+// currently open viewer without a refresh.
 export function useLabCatalogViewer(
   labTenantId: string | null,
   search = "",
   categoryId: string | null = null,
 ) {
   return useQuery({
-    queryKey: ["lab-catalog", labTenantId, search, categoryId],
-    queryFn: async () => {
-      if (!labTenantId) return [] as LabCatalogViewerService[];
-      const { data, error } = await supabase.rpc("get_lab_services_for_viewer" as any, {
+    queryKey: queryKeys.labCatalog.list(labTenantId, search, categoryId),
+    queryFn: async (): Promise<LabCatalogViewerService[]> => {
+      if (!labTenantId) return [];
+      const { data, error } = await supabase.rpc("get_lab_services_for_viewer", {
         _lab_tenant_id: labTenantId,
         _only_active: true,
         _search: search,
-        _category_id: categoryId,
+        _category_id: categoryId ?? undefined,
       });
       if (error) throw error;
-      return (data ?? []) as unknown as LabCatalogViewerService[];
+      return data ?? [];
     },
     enabled: !!labTenantId,
   });
