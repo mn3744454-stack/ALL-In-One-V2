@@ -404,17 +404,21 @@ export function InvoiceFormDialog({
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <Label>{t("finance.invoices.issueDate")}</Label>
                 <SharedDateField
                   value={formData.issue_date}
-                  onChange={(v) => setFormData({ ...formData, issue_date: v })}
+                  onChange={(v) => {
+                    // Auto-forward Due when Issue moves past it.
+                    const nextDue = formData.due_date && v && formData.due_date < v ? v : formData.due_date;
+                    setFormData({ ...formData, issue_date: v, due_date: nextDue });
+                  }}
                   showToday
                   ariaLabel={t("finance.invoices.issueDate")}
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <Label>{t("finance.invoices.dueDate")}</Label>
                 <SharedDateField
                   value={formData.due_date}
@@ -422,6 +426,7 @@ export function InvoiceFormDialog({
                   min={formData.issue_date || undefined}
                   showToday
                   ariaLabel={t("finance.invoices.dueDate")}
+                  invalid={!!(formData.due_date && formData.issue_date && formData.due_date < formData.issue_date)}
                 />
                 {formData.due_date && formData.issue_date && formData.due_date < formData.issue_date && (
                   <p className="text-xs text-destructive">{t("common.dateRange.dueBeforeIssue")}</p>

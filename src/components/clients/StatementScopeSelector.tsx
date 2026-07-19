@@ -192,7 +192,7 @@ export function StatementScopeSelector({
             >
               {t("clients.statement.scope.cancel")}
             </Button>
-            <Button className="flex-1" onClick={handleGenerate}>
+            <Button className="flex-1" onClick={handleGenerate} disabled={isInvalidRange}>
               {t("clients.statement.scope.generate")}
             </Button>
           </div>
