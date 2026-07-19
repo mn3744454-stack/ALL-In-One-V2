@@ -114,20 +114,32 @@ export function InvoiceFormDialog({
       });
       
       if (existingItems.length > 0) {
-        setLineItems(existingItems.map(item => ({
-          id: item.id,
-          description: item.description,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.total_price,
-          entity_type: item.entity_type,
-          entity_id: item.entity_id,
-          horse_id: (item as any).horse_id ?? null,
-          domain: (item as any).domain ?? null,
-          service_id: (item as any).service_id ?? null,
-          service_source: (item as any).service_source ?? null,
-          category_id: (item as any).category_id ?? null,
-        })));
+        setLineItems(existingItems.map(item => {
+          const raw = item as any;
+          const hasPackage = !!raw.package_id;
+          return {
+            id: item.id,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.total_price,
+            entity_type: item.entity_type,
+            entity_id: item.entity_id,
+            horse_id: raw.horse_id ?? raw.lab_horse_id ?? null,
+            domain: raw.domain ?? null,
+            service_id: raw.service_id ?? null,
+            service_source: raw.service_source ?? null,
+            category_id: raw.category_id ?? null,
+            source: hasPackage ? 'package' : (raw.service_id ? 'catalog' : 'manual'),
+            package_id: raw.package_id ?? null,
+            package_source: raw.package_source ?? null,
+            package_name_snapshot: raw.package_name_snapshot ?? null,
+            package_name_ar_snapshot: raw.package_name_ar_snapshot ?? null,
+            package_price_snapshot: raw.package_price_snapshot ?? null,
+            package_currency_snapshot: raw.package_currency_snapshot ?? null,
+            package_services_snapshot: raw.package_services_snapshot ?? null,
+          };
+        }));
       }
     } else {
       setFormData({
