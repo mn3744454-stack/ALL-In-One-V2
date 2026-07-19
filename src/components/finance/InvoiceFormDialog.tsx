@@ -212,6 +212,8 @@ export function InvoiceFormDialog({
           horse_id: (item as any).horse_id ?? null,
           domain: (item as any).domain ?? null,
           service_id: (item as any).service_id ?? null,
+          service_source: (item as any).service_source ?? null,
+          category_id: (item as any).category_id ?? null,
         })));
       }
     } else {
