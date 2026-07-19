@@ -262,6 +262,27 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
               );
             })}
           </div>
+          {/* Slice 3 closure — selected analyses total by currency */}
+          {totalsByCurrency.length > 0 && (
+            <div className="border-t pt-2 mt-1 space-y-0.5">
+              <div className="text-xs font-medium text-muted-foreground">
+                {t("laboratory.catalog.selectedAnalysesTotal")}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                {totalsByCurrency.map((b) => (
+                  <span key={b.currency} className="text-sm font-semibold">
+                    {b.total.toLocaleString(isAr ? "ar" : "en", { maximumFractionDigits: 2 })}
+                    {b.currency !== "—" ? ` ${b.currency}` : ""}
+                    {b.missing > 0 && (
+                      <span className="ms-1 text-xs font-normal text-muted-foreground">
+                        (+{b.missing} {t("finance.pos.priceMissing") || "no price"})
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
