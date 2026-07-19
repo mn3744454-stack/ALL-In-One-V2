@@ -235,7 +235,7 @@ export function ExpensesList({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[110px] whitespace-nowrap">{t("common.date")}</TableHead>
+                <TableHead className="w-[110px] whitespace-nowrap">{t("common.date.label")}</TableHead>
                 <TableHead className="min-w-[120px] text-start">{t("finance.expenses.vendor")}</TableHead>
                 <TableHead className="min-w-[100px] text-start">{t("finance.expenses.category")}</TableHead>
                 <TableHead className="text-center w-[110px] whitespace-nowrap">{t("finance.expenses.amount")}</TableHead>

@@ -5,15 +5,17 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 /**
- * Label 2 — Shared platform date field.
+ * Label 2 — Shared platform date field (compact segmented layout).
  *
- * Requirements:
- * - Direct day / month / year selection (no arrow-only calendar nav).
- * - Visible display always DD-MM-YYYY regardless of browser locale.
- * - Internal value: yyyy-MM-dd (ISO, DB-friendly).
- * - RTL/LTR aware; Arabic month names localized.
- * - Optional Today and Clear actions.
- * - `min` / `max` (ISO yyyy-MM-dd) bound the year range and reject out-of-range dates.
+ * Contract:
+ * - Direct Day / Month / Year Select controls in a single compact grid row.
+ * - Compact segment labels above each Select (Day / Month / Year, localized).
+ * - Internal value: yyyy-MM-dd (ISO). Display: DD-MM-YYYY (elsewhere for read-only).
+ * - Month option and trigger show "MM — Name" (localized name).
+ * - Today / Clear actions rendered on a separate compact action row so they
+ *   never cause the D/M/Y controls to wrap.
+ * - `min` / `max` (ISO yyyy-MM-dd) constrain the year range and clamp the value.
+ * - RTL-safe: segment shell is forced dir="ltr" so D → M → Y ordering is stable.
  */
 
 export interface SharedDateFieldProps {
@@ -26,6 +28,7 @@ export interface SharedDateFieldProps {
   disabled?: boolean;
   className?: string;
   ariaLabel?: string;
+  invalid?: boolean;
 }
 
 const EN_MONTHS = [
@@ -63,6 +66,7 @@ export function SharedDateField({
   disabled,
   className,
   ariaLabel,
+  invalid,
 }: SharedDateFieldProps) {
   const { t, lang } = useI18n();
   const months = lang === "ar" ? AR_MONTHS : EN_MONTHS;
@@ -105,57 +109,138 @@ export function SharedDateField({
     onChange(clamp(today.getFullYear(), today.getMonth() + 1, today.getDate()));
   };
 
-  return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)} aria-label={ariaLabel} dir="ltr">
-      {/* Day */}
-      <Select value={parsed ? String(d) : ""} onValueChange={(v) => setDay(Number(v))} disabled={disabled}>
-        <SelectTrigger className="w-[76px] h-9 tabular-nums">
-          <SelectValue placeholder={t("common.date.day") || "DD"} />
-        </SelectTrigger>
-        <SelectContent className="max-h-64">
-          {days.map((n) => (
-            <SelectItem key={n} value={String(n)}>{String(n).padStart(2, "0")}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <span className="text-muted-foreground">-</span>
-      {/* Month */}
-      <Select value={parsed ? String(m) : ""} onValueChange={(v) => setMonth(Number(v))} disabled={disabled}>
-        <SelectTrigger className="min-w-[120px] h-9">
-          <SelectValue placeholder={t("common.date.month") || "MM"} />
-        </SelectTrigger>
-        <SelectContent className="max-h-64">
-          {months.map((name, i) => (
-            <SelectItem key={i + 1} value={String(i + 1)}>
-              <span className="tabular-nums me-1">{String(i + 1).padStart(2, "0")}</span>
-              <span className="text-muted-foreground">— {name}</span>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <span className="text-muted-foreground">-</span>
-      {/* Year */}
-      <Select value={parsed ? String(y) : ""} onValueChange={(v) => setYear(Number(v))} disabled={disabled}>
-        <SelectTrigger className="w-[100px] h-9 tabular-nums">
-          <SelectValue placeholder={t("common.date.year") || "YYYY"} />
-        </SelectTrigger>
-        <SelectContent className="max-h-64">
-          {years.map((yy) => (
-            <SelectItem key={yy} value={String(yy)}>{yy}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+  const lblDay = t("common.date.day") || "Day";
+  const lblMonth = t("common.date.month") || "Month";
+  const lblYear = t("common.date.year") || "Year";
+  const lblToday = t("common.date.today") || "Today";
+  const lblClear = t("common.date.clear") || "Clear";
 
+  const monthLabel = (i: number) =>
+    `${String(i + 1).padStart(2, "0")} — ${months[i]}`;
+
+  return (
+    <div
+      className={cn("w-full min-w-0", className)}
+      role="group"
+      aria-label={ariaLabel}
+      aria-invalid={invalid || undefined}
+    >
+      {/* Segmented row — forced LTR so D → M → Y order is stable in RTL layouts */}
+      <div
+        dir="ltr"
+        className={cn(
+          "grid gap-1.5 items-end",
+          "grid-cols-[minmax(56px,68px)_minmax(112px,1fr)_minmax(76px,88px)]",
+        )}
+      >
+        {/* Day */}
+        <div className="flex flex-col min-w-0">
+          <span className="text-[10px] font-medium text-muted-foreground mb-1 leading-none">
+            {lblDay}
+          </span>
+          <Select
+            value={parsed ? String(d) : ""}
+            onValueChange={(v) => setDay(Number(v))}
+            disabled={disabled}
+          >
+            <SelectTrigger
+              className={cn("h-9 tabular-nums px-2", invalid && "border-destructive")}
+              aria-label={lblDay}
+            >
+              <SelectValue placeholder="DD" />
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              {days.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {String(n).padStart(2, "0")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Month */}
+        <div className="flex flex-col min-w-0">
+          <span className="text-[10px] font-medium text-muted-foreground mb-1 leading-none">
+            {lblMonth}
+          </span>
+          <Select
+            value={parsed ? String(m) : ""}
+            onValueChange={(v) => setMonth(Number(v))}
+            disabled={disabled}
+          >
+            <SelectTrigger
+              className={cn("h-9 min-w-0 px-2", invalid && "border-destructive")}
+              aria-label={lblMonth}
+            >
+              <SelectValue placeholder="MM">
+                {parsed ? monthLabel(m - 1) : undefined}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              {months.map((name, i) => (
+                <SelectItem key={i + 1} value={String(i + 1)}>
+                  <span className="tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="mx-1 text-muted-foreground">—</span>
+                  <span>{name}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Year */}
+        <div className="flex flex-col min-w-0">
+          <span className="text-[10px] font-medium text-muted-foreground mb-1 leading-none">
+            {lblYear}
+          </span>
+          <Select
+            value={parsed ? String(y) : ""}
+            onValueChange={(v) => setYear(Number(v))}
+            disabled={disabled}
+          >
+            <SelectTrigger
+              className={cn("h-9 tabular-nums px-2", invalid && "border-destructive")}
+              aria-label={lblYear}
+            >
+              <SelectValue placeholder="YYYY" />
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              {years.map((yy) => (
+                <SelectItem key={yy} value={String(yy)}>{yy}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Actions — separate row; never causes segment wrap */}
       {(showToday || showClear) && (
-        <div className="flex items-center gap-1 ms-1">
+        <div className="mt-1 flex items-center gap-1" dir="ltr">
           {showToday && (
-            <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={setToday} disabled={disabled}>
-              {t("common.date.today") || "Today"}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={setToday}
+              disabled={disabled}
+              aria-label={lblToday}
+            >
+              {lblToday}
             </Button>
           )}
           {showClear && (
-            <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => onChange("")} disabled={disabled}>
-              {t("common.date.clear") || "Clear"}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => onChange("")}
+              disabled={disabled}
+              aria-label={lblClear}
+            >
+              {lblClear}
             </Button>
           )}
         </div>

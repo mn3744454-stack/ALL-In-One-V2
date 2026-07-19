@@ -501,7 +501,7 @@ function LedgerTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[160px]">{t("common.date")}</TableHead>
+                  <TableHead className="w-[160px]">{t("common.date.label")}</TableHead>
                   <TableHead className="w-[90px]">{t("common.type")}</TableHead>
                   <TableHead className={cn(dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</TableHead>
                   <TableHead className="w-[110px]">{t("finance.ledger.debit")}</TableHead>
@@ -790,7 +790,7 @@ function PaymentsTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[160px]">{t("common.date")}</TableHead>
+                  <TableHead className="w-[160px]">{t("common.date.label")}</TableHead>
                   <TableHead className={cn(dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</TableHead>
                   <TableHead className="w-[100px]">{t("finance.payments.method")}</TableHead>
                   <TableHead className="w-[120px]">{t("finance.payments.amount")}</TableHead>

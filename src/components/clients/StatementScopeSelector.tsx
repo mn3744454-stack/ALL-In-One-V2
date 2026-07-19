@@ -64,7 +64,10 @@ export function StatementScopeSelector({
   const [domainFilter] = useState<DomainFilter>(initialConfig.domainFilter || "all");
   const [categoryKeys, setCategoryKeys] = useState<string[]>(initialConfig.categoryKeys || []);
 
+  const isInvalidRange = !!(dateFrom && dateTo && dateTo < dateFrom);
+
   const handleGenerate = () => {
+    if (isInvalidRange) return; // Block generation on invalid range.
     onGenerate({
       dateFrom,
       dateTo,
@@ -85,7 +88,7 @@ export function StatementScopeSelector({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side={isRTL ? "left" : "right"}
-        className="w-full sm:max-w-md flex flex-col p-0"
+        className="w-full sm:max-w-xl flex flex-col p-0"
       >
         <SheetHeader className="p-4 pb-2">
           <SheetTitle>{t("clients.statement.scope.title")}</SheetTitle>
@@ -101,7 +104,11 @@ export function StatementScopeSelector({
               </label>
               <SharedDateField
                 value={dateFrom}
-                onChange={setDateFrom}
+                onChange={(v) => {
+                  setDateFrom(v);
+                  // Auto-forward: if new start is after current end, move end.
+                  if (v && dateTo && dateTo < v) setDateTo(v);
+                }}
                 max={dateTo || undefined}
                 showToday
                 showClear
@@ -117,8 +124,9 @@ export function StatementScopeSelector({
                 min={dateFrom || undefined}
                 showToday
                 showClear
+                invalid={isInvalidRange}
               />
-              {dateFrom && dateTo && dateTo < dateFrom && (
+              {isInvalidRange && (
                 <p className="text-xs text-destructive">{t("common.dateRange.endBeforeStart")}</p>
               )}
             </div>
@@ -184,7 +192,7 @@ export function StatementScopeSelector({
             >
               {t("clients.statement.scope.cancel")}
             </Button>
-            <Button className="flex-1" onClick={handleGenerate}>
+            <Button className="flex-1" onClick={handleGenerate} disabled={isInvalidRange}>
               {t("clients.statement.scope.generate")}
             </Button>
           </div>

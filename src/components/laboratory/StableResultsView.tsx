@@ -234,7 +234,7 @@ function SampleGroupTable({
             <th className="py-2 px-3 font-medium text-start">{t('laboratory.preview.testType')}</th>
             <th className="py-2 px-3 font-medium text-start">{t('laboratory.results.statusFilter')}</th>
             <th className="py-2 px-3 font-medium text-start">Tests</th>
-            <th className="py-2 px-3 font-medium text-start">{t('common.date')}</th>
+            <th className="py-2 px-3 font-medium text-start">{t('common.date.label')}</th>
             <th className="py-2 px-3 font-medium text-start">{t('laboratory.stableResults.labName')}</th>
           </tr>
         </thead>
