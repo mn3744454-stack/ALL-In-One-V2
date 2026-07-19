@@ -370,6 +370,9 @@ export function InvoiceFormDialog({
 
         for (let index = 0; index < validItems.length; index++) {
           const item = validItems[index];
+          // Label 1 — write path: split horse reference by issuer type.
+          const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
+          const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
           await supabase.from("invoice_items" as any).insert({
             invoice_id: invoice.id,
             description: item.description,
@@ -378,7 +381,8 @@ export function InvoiceFormDialog({
             total_price: item.total_price,
             entity_type: item.entity_type,
             entity_id: item.entity_id,
-            horse_id: item.horse_id || null,
+            horse_id: horseIdOut,
+            lab_horse_id: labHorseIdOut,
             domain: item.domain || null,
             service_id: item.service_id || null,
             service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
@@ -386,6 +390,7 @@ export function InvoiceFormDialog({
             position: index,
           });
         }
+
 
 
         toast.success(t("finance.invoices.updated"));
@@ -412,6 +417,9 @@ export function InvoiceFormDialog({
         if (newInvoice) {
           for (let index = 0; index < validItems.length; index++) {
             const item = validItems[index];
+            // Label 1 — write path: split horse reference by issuer type.
+            const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
+            const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
             await supabase.from("invoice_items" as any).insert({
               invoice_id: newInvoice.id,
               description: item.description,
@@ -420,15 +428,16 @@ export function InvoiceFormDialog({
               total_price: item.total_price,
               entity_type: item.entity_type,
               entity_id: item.entity_id,
-              horse_id: item.horse_id || null,
+              horse_id: horseIdOut,
+              lab_horse_id: labHorseIdOut,
               domain: item.domain || null,
               service_id: item.service_id || null,
               service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
               category_id: item.category_id || null,
               position: index,
-
             });
           }
+
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
           // NOT at creation time. Draft invoices have zero financial impact.
         }
