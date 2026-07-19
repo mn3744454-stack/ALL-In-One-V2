@@ -379,9 +379,12 @@ export function InvoiceFormDialog({
             horse_id: item.horse_id || null,
             domain: item.domain || null,
             service_id: item.service_id || null,
+            service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
+            category_id: item.category_id || null,
             position: index,
           });
         }
+
 
         toast.success(t("finance.invoices.updated"));
       } else {
