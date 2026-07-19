@@ -119,17 +119,26 @@ export function HorseLinePicker({
                 autoFocus
               />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setAddOpen(true)}
-              className="w-full gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              {t("finance.invoices.addNewHorse")}
-            </Button>
+            {onQuickAdd && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!canQuickAdd}
+                title={!canQuickAdd ? quickAddDisabledReason : undefined}
+                onClick={() => {
+                  if (!canQuickAdd) return;
+                  setOpen(false);
+                  onQuickAdd();
+                }}
+                className="w-full gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                {t("finance.invoices.addNewHorse")}
+              </Button>
+            )}
           </div>
+
 
           <ScrollArea className="flex-1 min-h-0">
             <div className="p-2">
