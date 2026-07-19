@@ -2,17 +2,17 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
-import { Plus, Trash2, Package, FileText, Layers, GripVertical } from "lucide-react";
+import { Plus, Trash2, Package, FileText, Layers, GripVertical, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StableServicePlan } from "@/hooks/useStableServicePlans";
 import { normalizeIncludes } from "@/lib/planIncludes";
 import { HorseLinePicker } from "./HorseLinePicker";
 import { ServiceCategorySelect } from "./ServiceCategorySelect";
 import type { InvoiceCatalogItem } from "@/hooks/finance/useInvoiceCatalogSources";
+import { ServiceSelectionDialog } from "./ServiceSelectionDialog";
+import { PackageSelectionDialog } from "./PackageSelectionDialog";
 import {
   DndContext,
   PointerSensor,
@@ -31,6 +31,17 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+/** Snapshot for one included service inside a package line. */
+export interface PackageServiceSnapshot {
+  service_id: string;
+  service_source: "tenant_services" | "lab_services";
+  name: string;
+  name_ar: string | null;
+  quantity: number;
+  unit_price: number;
+  currency: string | null;
+}
+
 export interface LineItem {
   id: string;
   description: string;
@@ -44,10 +55,19 @@ export interface LineItem {
   service_id?: string | null;
   /** Label 1 — required discriminator when service_id is set. */
   service_source?: "tenant_services" | "lab_services" | null;
-  /** Label 1 — live shared category identity (tenant_service_categories.id). */
+  /** Label 1 — live shared category identity. */
   category_id?: string | null;
   /** Tracks how the line was added: 'manual', 'catalog', or 'package' */
   source?: 'manual' | 'catalog' | 'package';
+
+  /** Label 2 — Package snapshot fields (only when source === 'package') */
+  package_id?: string | null;
+  package_source?: string | null;
+  package_name_snapshot?: string | null;
+  package_name_ar_snapshot?: string | null;
+  package_price_snapshot?: number | null;
+  package_currency_snapshot?: string | null;
+  package_services_snapshot?: PackageServiceSnapshot[] | null;
 }
 
 export interface HorseOption {
@@ -62,14 +82,11 @@ interface InvoiceLineItemsEditorProps {
   currency: string;
   horses?: HorseOption[];
   showAttribution?: boolean;
-  /** Label 1 — normalized catalog items (tenant_services or lab_services). */
   services?: InvoiceCatalogItem[];
   plans?: StableServicePlan[];
   /** Lab-issuer packages are disabled in Label 1. */
   disablePackages?: boolean;
-  /** Optional slot for the horse-picker area (e.g. Add-New bridge). */
   onQuickAddHorse?: () => void;
-  /** Whether Quick Add is currently allowed (customer must be selected). */
   canQuickAddHorse?: boolean;
   quickAddDisabledReason?: string;
 }
@@ -89,25 +106,18 @@ export function InvoiceLineItemsEditor({
 }: InvoiceLineItemsEditorProps) {
   const { t, lang } = useI18n();
 
-  const activeServices = useMemo(
-    () => services.filter(s => s.isActive),
-    [services]
-  );
+  const activeServices = useMemo(() => services.filter(s => s.isActive), [services]);
+  const activePlans = useMemo(() => plans.filter(p => p.is_active), [plans]);
 
-  const activePlans = useMemo(
-    () => plans.filter(p => p.is_active),
-    [plans]
-  );
-
-  // Service lookup by id (used for package expansion + tax status)
   const serviceById = useMemo(() => {
     const map = new Map<string, InvoiceCatalogItem>();
     for (const s of services) map.set(s.id, s);
     return map;
   }, [services]);
 
-  const getHorseName = (h: HorseOption) =>
-    lang === "ar" ? (h.name_ar || h.name) : (h.name || h.name_ar || "");
+  const [servicesDialogOpen, setServicesDialogOpen] = useState(false);
+  const [packagesDialogOpen, setPackagesDialogOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const getServiceName = (s: InvoiceCatalogItem) =>
     lang === "ar" ? (s.nameAr || s.name) : (s.name || s.nameAr || "");
@@ -129,53 +139,71 @@ export function InvoiceLineItemsEditor({
     onChange([...items, newItem]);
   };
 
-  const addItemFromService = (service: InvoiceCatalogItem) => {
-    const newItem: LineItem = {
+  const addItemsFromServices = (svcs: InvoiceCatalogItem[]) => {
+    const newItems: LineItem[] = svcs.map((s) => ({
       id: crypto.randomUUID(),
-      description: getServiceName(service),
+      description: getServiceName(s),
       quantity: 1,
-      unit_price: service.unitPrice ?? 0,
-      total_price: service.unitPrice ?? 0,
+      unit_price: s.unitPrice ?? 0,
+      total_price: s.unitPrice ?? 0,
       horse_id: null,
       domain: null,
-      service_id: service.id,
-      service_source: service.serviceSource,
-      category_id: service.categoryId ?? null,
+      service_id: s.id,
+      service_source: s.serviceSource,
+      category_id: s.categoryId ?? null,
       source: 'catalog',
-    };
-    onChange([...items, newItem]);
+    }));
+    onChange([...items, ...newItems]);
   };
 
-  const addItemsFromPackage = (plan: StableServicePlan) => {
-    const includes = normalizeIncludes(plan.includes);
-    if (includes.length === 0) return;
-
+  const addItemsFromPackages = (selectedPlans: StableServicePlan[]) => {
     const newItems: LineItem[] = [];
-    for (const entry of includes) {
-      const svc = serviceById.get(entry.service_id);
-      if (!svc) continue;
+    for (const plan of selectedPlans) {
+      const includes = normalizeIncludes(plan.includes);
+      const snapshot: PackageServiceSnapshot[] = includes.map((e) => {
+        const svc = serviceById.get(e.service_id);
+        return {
+          service_id: e.service_id,
+          service_source: (svc?.serviceSource ?? "tenant_services") as PackageServiceSnapshot["service_source"],
+          name: svc?.name ?? "",
+          name_ar: svc?.nameAr ?? null,
+          quantity: 1,
+          unit_price: svc?.unitPrice ?? 0,
+          currency: svc?.currency ?? plan.currency,
+        };
+      });
+      const packagePrice = Number(plan.base_price) || 0;
       newItems.push({
         id: crypto.randomUUID(),
-        description: getServiceName(svc),
+        description: lang === "ar" ? (plan.name_ar || plan.name) : plan.name,
         quantity: 1,
-        unit_price: svc.unitPrice ?? 0,
-        total_price: svc.unitPrice ?? 0,
+        unit_price: packagePrice,
+        total_price: packagePrice,
         horse_id: null,
         domain: null,
-        service_id: svc.id,
-        service_source: svc.serviceSource,
-        category_id: svc.categoryId ?? null,
+        service_id: null,
+        service_source: null,
+        category_id: null,
         source: 'package',
+        package_id: plan.id,
+        package_source: 'stable_service_plans',
+        package_name_snapshot: plan.name,
+        package_name_ar_snapshot: plan.name_ar,
+        package_price_snapshot: packagePrice,
+        package_currency_snapshot: plan.currency,
+        package_services_snapshot: snapshot,
       });
     }
-    if (newItems.length > 0) {
-      onChange([...items, ...newItems]);
-    }
+    if (newItems.length > 0) onChange([...items, ...newItems]);
   };
 
   const updateItem = (id: string, field: keyof LineItem, value: string | number | null) => {
     const updated = items.map((item) => {
       if (item.id !== id) return item;
+      // Package lines: keep totals aligned to snapshot price; quantity stays 1
+      if (item.source === 'package') {
+        if (field === 'unit_price' || field === 'quantity' || field === 'total_price') return item;
+      }
       const newItem = { ...item, [field]: value } as LineItem;
       if (field === "quantity" || field === "unit_price") {
         newItem.total_price = newItem.quantity * newItem.unit_price;
@@ -185,9 +213,7 @@ export function InvoiceLineItemsEditor({
     onChange(updated);
   };
 
-  const removeItem = (id: string) => {
-    onChange(items.filter((item) => item.id !== id));
-  };
+  const removeItem = (id: string) => onChange(items.filter((i) => i.id !== id));
 
   const subtotal = items.reduce((sum, item) => sum + item.total_price, 0);
 
@@ -212,6 +238,8 @@ export function InvoiceLineItemsEditor({
     if (oldIndex === -1 || newIndex === -1) return;
     onChange(arrayMove(items, oldIndex, newIndex));
   };
+
+  const toggleExpanded = (id: string) => setExpanded((p) => ({ ...p, [id]: !p[id] }));
 
   return (
     <div className="space-y-3">
@@ -252,6 +280,9 @@ export function InvoiceLineItemsEditor({
                   onQuickAddHorse={onQuickAddHorse}
                   canQuickAddHorse={canQuickAddHorse}
                   quickAddDisabledReason={quickAddDisabledReason}
+                  expanded={!!expanded[item.id]}
+                  onToggleExpanded={() => toggleExpanded(item.id)}
+                  lang={lang}
                   t={t}
                 />
               ))}
@@ -261,36 +292,52 @@ export function InvoiceLineItemsEditor({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addItem}
-          className="gap-2"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={addItem} className="gap-2">
           <Plus className="w-4 h-4" />
           {t("finance.invoices.addManualItem")}
         </Button>
 
-        {activeServices.length > 0 && (
-          <ServicePicker
-            services={activeServices}
-            onSelect={addItemFromService}
-            getServiceName={getServiceName}
-            lang={lang}
-            t={t}
-          />
-        )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setServicesDialogOpen(true)}
+          className="gap-2"
+        >
+          <Package className="w-4 h-4" />
+          {t("finance.invoices.addFromCatalog")}
+        </Button>
 
-        {!disablePackages && activePlans.length > 0 && (
-          <PackagePicker
-            plans={activePlans}
-            onSelect={addItemsFromPackage}
-            lang={lang}
-            t={t}
-          />
+        {!disablePackages && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPackagesDialogOpen(true)}
+            className="gap-2"
+          >
+            <Layers className="w-4 h-4" />
+            {t("finance.invoices.addFromPackage")}
+          </Button>
         )}
       </div>
+
+      <ServiceSelectionDialog
+        open={servicesDialogOpen}
+        onOpenChange={setServicesDialogOpen}
+        services={activeServices}
+        onApply={addItemsFromServices}
+      />
+
+      {!disablePackages && (
+        <PackageSelectionDialog
+          open={packagesDialogOpen}
+          onOpenChange={setPackagesDialogOpen}
+          plans={activePlans}
+          services={services}
+          onApply={addItemsFromPackages}
+        />
+      )}
 
       {items.length > 0 && (
         <div className="flex justify-end border-t pt-3">
@@ -316,6 +363,9 @@ function SortableLineItemRow({
   onQuickAddHorse,
   canQuickAddHorse,
   quickAddDisabledReason,
+  expanded,
+  onToggleExpanded,
+  lang,
   t,
 }: {
   item: LineItem;
@@ -327,6 +377,9 @@ function SortableLineItemRow({
   onQuickAddHorse?: () => void;
   canQuickAddHorse?: boolean;
   quickAddDisabledReason?: string;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  lang: string;
   t: (key: string) => string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -340,12 +393,17 @@ function SortableLineItemRow({
 
   const taxStatus = getLineTaxStatus(item);
   const itemSource = item.source || (item.service_id ? 'catalog' : 'manual');
+  const isPackage = itemSource === 'package';
+  const includedCount = item.package_services_snapshot?.length ?? 0;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="border border-border/50 rounded-lg p-3 space-y-2 bg-background"
+      className={cn(
+        "border rounded-lg p-3 space-y-2 bg-background",
+        isPackage ? "border-primary/40 bg-primary/[0.02]" : "border-border/50"
+      )}
     >
       <div className="grid grid-cols-12 gap-2 items-center">
         <div className="col-span-5 flex items-center gap-2">
@@ -358,11 +416,22 @@ function SortableLineItemRow({
           >
             <GripVertical className="w-4 h-4" />
           </button>
+          {isPackage && includedCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleExpanded}
+              aria-label={expanded ? "Collapse" : "Expand"}
+              className="shrink-0 text-muted-foreground hover:text-foreground p-1"
+            >
+              {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </button>
+          )}
           <Input
             value={item.description}
             onChange={(e) => updateItem(item.id, "description", e.target.value)}
             placeholder={t("finance.invoices.itemDescription")}
             className="text-sm"
+            readOnly={isPackage}
           />
         </div>
         <div className="col-span-2">
@@ -372,6 +441,7 @@ function SortableLineItemRow({
             value={item.quantity}
             onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)}
             className="text-center text-sm"
+            readOnly={isPackage}
           />
         </div>
         <div className="col-span-2">
@@ -382,6 +452,7 @@ function SortableLineItemRow({
             value={item.unit_price}
             onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)}
             className="text-center text-sm"
+            readOnly={isPackage}
           />
         </div>
         <div className="col-span-2 text-end font-medium text-sm px-2">
@@ -401,7 +472,7 @@ function SortableLineItemRow({
       </div>
 
       <div className="grid grid-cols-12 gap-2 items-center">
-        {showAttribution && !item.entity_type ? (
+        {showAttribution && !item.entity_type && !isPackage ? (
           <>
             <div className="col-span-5">
               <HorseLinePicker
@@ -421,14 +492,19 @@ function SortableLineItemRow({
               />
             </div>
           </>
+        ) : isPackage ? (
+          <div className="col-span-9 text-xs text-muted-foreground ps-6">
+            {t("finance.invoices.packageLineHint")}
+          </div>
         ) : (
           <div className="col-span-9" />
         )}
         <div className="col-span-3 flex items-center justify-end gap-1.5 flex-wrap">
-          {itemSource === 'package' ? (
+          {isPackage ? (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Layers className="w-3 h-3" />
               {t("finance.invoices.packageSource")}
+              {includedCount > 0 && <span>· {includedCount}</span>}
             </span>
           ) : itemSource === 'catalog' ? (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -441,175 +517,41 @@ function SortableLineItemRow({
               {t("finance.invoices.manualEntry")}
             </span>
           )}
-          <Badge
-            variant={taxStatus === "taxable" ? "default" : "secondary"}
-            className={cn(
-              "text-[10px] px-1.5 py-0",
-              taxStatus === "taxable"
-                ? "bg-primary/15 text-primary border-primary/30"
-                : "bg-muted text-muted-foreground"
-            )}
-          >
-            {taxStatus === "taxable"
-              ? t("finance.invoices.taxBadgeTaxable")
-              : t("finance.invoices.taxBadgeExempt")}
-          </Badge>
+          {!isPackage && (
+            <Badge
+              variant={taxStatus === "taxable" ? "default" : "secondary"}
+              className={cn(
+                "text-[10px] px-1.5 py-0",
+                taxStatus === "taxable"
+                  ? "bg-primary/15 text-primary border-primary/30"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {taxStatus === "taxable"
+                ? t("finance.invoices.taxBadgeTaxable")
+                : t("finance.invoices.taxBadgeExempt")}
+            </Badge>
+          )}
         </div>
       </div>
+
+      {/* Package children detail — read-only, at 0.00 */}
+      {isPackage && expanded && includedCount > 0 && (
+        <div className="ms-8 border-s ps-3 space-y-1.5">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground pt-1">
+            {t("finance.invoices.includedServices")}
+          </div>
+          {(item.package_services_snapshot || []).map((child, idx) => (
+            <div key={`${child.service_id}-${idx}`} className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="truncate flex-1 min-w-0">
+                {lang === "ar" ? (child.name_ar || child.name) : (child.name || child.name_ar)}
+                <span className="opacity-70"> × {child.quantity}</span>
+              </div>
+              <div className="font-mono tabular-nums shrink-0" dir="ltr">0.00</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-  );
-}
-
-function ServicePicker({
-  services,
-  onSelect,
-  getServiceName,
-  lang,
-  t,
-}: {
-  services: InvoiceCatalogItem[];
-  onSelect: (service: InvoiceCatalogItem) => void;
-  getServiceName: (s: InvoiceCatalogItem) => string;
-  lang: string;
-  t: (key: string) => string;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <Package className="w-4 h-4" />
-          {t("finance.invoices.addFromCatalog")}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
-        <Command>
-          <CommandInput placeholder={t("finance.invoices.searchService")} className="h-9" />
-          <CommandList>
-            <CommandEmpty>{t("common.noResults")}</CommandEmpty>
-            <CommandGroup>
-              {services.map((svc) => {
-                const secondary = lang === "ar" ? svc.name : svc.nameAr;
-                const catName = lang === "ar" ? (svc.categoryNameAr || svc.categoryName) : (svc.categoryName || svc.categoryNameAr);
-                return (
-                  <CommandItem
-                    key={svc.id}
-                    value={`${svc.name} ${svc.nameAr ?? ""}`}
-                    onSelect={() => {
-                      onSelect(svc);
-                      setOpen(false);
-                    }}
-                    className="text-sm"
-                  >
-                    <div className="flex items-start justify-between w-full gap-2">
-                      <div className="min-w-0">
-                        <div className="truncate font-medium">{getServiceName(svc)}</div>
-                        {secondary && (
-                          <div className="truncate text-[10px] text-muted-foreground">{secondary}</div>
-                        )}
-                        {catName && (
-                          <div className="truncate text-[10px] text-muted-foreground/80">{catName}</div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {svc.isTaxable === false && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground">
-                            {t("finance.invoices.taxBadgeExempt")}
-                          </Badge>
-                        )}
-                        {svc.unitPrice != null && (
-                          <span className="text-xs text-muted-foreground">
-                            {svc.unitPrice}{svc.currency ? ` ${svc.currency}` : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function PackagePicker({
-  plans,
-  onSelect,
-  lang,
-  t,
-}: {
-  plans: StableServicePlan[];
-  onSelect: (plan: StableServicePlan) => void;
-  lang: string;
-  t: (key: string) => string;
-}) {
-  const [open, setOpen] = useState(false);
-
-  const getPlanName = (p: StableServicePlan) =>
-    lang === "ar" ? (p.name_ar || p.name) : p.name;
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <Layers className="w-4 h-4" />
-          {t("finance.invoices.addFromPackage")}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-72 p-0" align="start">
-        <Command>
-          <CommandInput placeholder={t("finance.invoices.searchPackage")} className="h-9" />
-          <CommandList>
-            <CommandEmpty>{t("common.noResults")}</CommandEmpty>
-            <CommandGroup>
-              {plans.map((plan) => {
-                const includes = normalizeIncludes(plan.includes);
-                return (
-                  <CommandItem
-                    key={plan.id}
-                    value={plan.name}
-                    onSelect={() => {
-                      onSelect(plan);
-                      setOpen(false);
-                    }}
-                    className="text-sm"
-                  >
-                    <div className="flex items-center justify-between w-full gap-2">
-                      <div className="min-w-0">
-                        <span className="truncate block">{getPlanName(plan)}</span>
-                        {includes.length > 0 && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {includes.length} {t("finance.invoices.servicesIncluded")}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-xs text-muted-foreground">
-                          {plan.base_price} {plan.currency}
-                        </span>
-                      </div>
-                    </div>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
   );
 }

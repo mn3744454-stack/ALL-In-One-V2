@@ -7,7 +7,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SharedDateField } from "@/components/ui/shared-date-field";
 import { useI18n } from "@/i18n";
 import { CategoryMultiSelect } from "./CategoryMultiSelect";
 import { HorseSelectDialog, type HorseSelectOption } from "./HorseSelectDialog";
@@ -99,21 +99,28 @@ export function StatementScopeSelector({
               <label className="text-sm font-medium text-foreground">
                 {t("clients.statement.scope.dateFrom")}
               </label>
-              <Input
-                type="date"
+              <SharedDateField
                 value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
+                onChange={setDateFrom}
+                max={dateTo || undefined}
+                showToday
+                showClear
               />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-foreground">
                 {t("clients.statement.scope.dateTo")}
               </label>
-              <Input
-                type="date"
+              <SharedDateField
                 value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
+                onChange={setDateTo}
+                min={dateFrom || undefined}
+                showToday
+                showClear
               />
+              {dateFrom && dateTo && dateTo < dateFrom && (
+                <p className="text-xs text-destructive">{t("common.dateRange.endBeforeStart")}</p>
+              )}
             </div>
           </div>
 

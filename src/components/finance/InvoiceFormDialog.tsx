@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { SharedDateField } from "@/components/ui/shared-date-field";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { InvoiceClientPicker } from "./InvoiceClientPicker";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
@@ -19,10 +18,8 @@ import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
 import { formatCurrency } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { addDays, format, parse, type Locale } from "date-fns";
-import { ar as arLocale, enUS as enLocale } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+import { addDays, format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useInvoiceCatalogSources, resolveInvoiceCatalogSource } from "@/hooks/finance/useInvoiceCatalogSources";
@@ -33,91 +30,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 
 
-/**
- * Local date field used inside the Create Invoice dialog.
- * - Display format: dd-MM-yyyy (e.g. 18-05-2026)
- * - Internal value: yyyy-MM-dd (unchanged from previous native <input type="date">)
- * - Footer actions: Today / Clear
- */
-function InvoiceDateField({
-  value,
-  onChange,
-  todayLabel,
-  clearLabel,
-  placeholder,
-  locale,
-}: {
-  value: string;
-  onChange: (next: string) => void;
-  todayLabel: string;
-  clearLabel: string;
-  placeholder?: string;
-  locale?: Locale;
-}) {
-  const [open, setOpen] = useState(false);
-  const parsed = useMemo(() => {
-    if (!value) return undefined;
-    const d = parse(value, "yyyy-MM-dd", new Date());
-    return isNaN(d.getTime()) ? undefined : d;
-  }, [value]);
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className={cn(
-            "w-full justify-start text-start font-normal",
-            !parsed && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="me-2 h-4 w-4 opacity-70" />
-          {parsed ? format(parsed, "dd-MM-yyyy", { locale }) : <span>{placeholder || "dd-MM-yyyy"}</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 z-[70]" align="start">
-        <Calendar
-          mode="single"
-          selected={parsed}
-          onSelect={(d) => {
-            if (d) {
-              onChange(format(d, "yyyy-MM-dd"));
-              setOpen(false);
-            }
-          }}
-          locale={locale}
-          initialFocus
-          className={cn("p-3 pointer-events-auto")}
-        />
-        <div className="flex items-center justify-between gap-2 border-t p-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              onChange("");
-              setOpen(false);
-            }}
-          >
-            {clearLabel}
-          </Button>
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            onClick={() => {
-              onChange(format(new Date(), "yyyy-MM-dd"));
-              setOpen(false);
-            }}
-          >
-            {todayLabel}
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 interface InvoiceFormDialogProps {
   open: boolean;
@@ -201,20 +114,32 @@ export function InvoiceFormDialog({
       });
       
       if (existingItems.length > 0) {
-        setLineItems(existingItems.map(item => ({
-          id: item.id,
-          description: item.description,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.total_price,
-          entity_type: item.entity_type,
-          entity_id: item.entity_id,
-          horse_id: (item as any).horse_id ?? null,
-          domain: (item as any).domain ?? null,
-          service_id: (item as any).service_id ?? null,
-          service_source: (item as any).service_source ?? null,
-          category_id: (item as any).category_id ?? null,
-        })));
+        setLineItems(existingItems.map(item => {
+          const raw = item as any;
+          const hasPackage = !!raw.package_id;
+          return {
+            id: item.id,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.total_price,
+            entity_type: item.entity_type,
+            entity_id: item.entity_id,
+            horse_id: raw.horse_id ?? raw.lab_horse_id ?? null,
+            domain: raw.domain ?? null,
+            service_id: raw.service_id ?? null,
+            service_source: raw.service_source ?? null,
+            category_id: raw.category_id ?? null,
+            source: hasPackage ? 'package' : (raw.service_id ? 'catalog' : 'manual'),
+            package_id: raw.package_id ?? null,
+            package_source: raw.package_source ?? null,
+            package_name_snapshot: raw.package_name_snapshot ?? null,
+            package_name_ar_snapshot: raw.package_name_ar_snapshot ?? null,
+            package_price_snapshot: raw.package_price_snapshot ?? null,
+            package_currency_snapshot: raw.package_currency_snapshot ?? null,
+            package_services_snapshot: raw.package_services_snapshot ?? null,
+          };
+        }));
       }
     } else {
       setFormData({
@@ -337,10 +262,48 @@ export function InvoiceFormDialog({
     setAttemptedSubmit(true);
 
     if (missingIssues.length > 0) {
-      // In-surface guidance is now shown via MissingRequirementsBar; toast kept as supplemental.
       toast.error(t("common.validation.attemptedSubmit"));
       return;
     }
+
+    if (formData.issue_date && formData.due_date && formData.due_date < formData.issue_date) {
+      toast.error(t("common.dateRange.dueBeforeIssue"));
+      return;
+    }
+
+    // Build a single row from a LineItem — includes Label 2 package snapshot columns.
+    const buildRow = (item: LineItem, invoiceId: string, index: number) => {
+      const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
+      const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
+      const isPackageLine = item.source === 'package' && !!item.package_id;
+      return {
+        invoice_id: invoiceId,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+        entity_type: item.entity_type,
+        entity_id: item.entity_id,
+        horse_id: horseIdOut,
+        lab_horse_id: labHorseIdOut,
+        domain: item.domain || null,
+        // Package vs service are mutually exclusive (DB check constraint).
+        service_id: isPackageLine ? null : (item.service_id || null),
+        service_source: isPackageLine
+          ? null
+          : (item.service_id ? (item.service_source || catalogSource) : 'tenant_services'),
+        category_id: isPackageLine ? null : (item.category_id || null),
+        package_id: isPackageLine ? item.package_id : null,
+        package_source: isPackageLine ? (item.package_source || 'stable_service_plans') : null,
+        package_name_snapshot: isPackageLine ? item.package_name_snapshot : null,
+        package_name_ar_snapshot: isPackageLine ? item.package_name_ar_snapshot : null,
+        package_price_snapshot: isPackageLine ? item.package_price_snapshot : null,
+        package_currency_snapshot: isPackageLine ? item.package_currency_snapshot : null,
+        package_services_snapshot: isPackageLine ? item.package_services_snapshot : null,
+        position: index,
+      };
+    };
+
 
     try {
       const validItems = lineItems.filter((item) => item.description && item.total_price > 0);
@@ -369,26 +332,7 @@ export function InvoiceFormDialog({
           .eq("invoice_id", invoice.id);
 
         for (let index = 0; index < validItems.length; index++) {
-          const item = validItems[index];
-          // Label 1 — write path: split horse reference by issuer type.
-          const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
-          const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
-          await supabase.from("invoice_items" as any).insert({
-            invoice_id: invoice.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            total_price: item.total_price,
-            entity_type: item.entity_type,
-            entity_id: item.entity_id,
-            horse_id: horseIdOut,
-            lab_horse_id: labHorseIdOut,
-            domain: item.domain || null,
-            service_id: item.service_id || null,
-            service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
-            category_id: item.category_id || null,
-            position: index,
-          });
+          await supabase.from("invoice_items" as any).insert(buildRow(validItems[index], invoice.id, index));
         }
 
 
@@ -416,26 +360,7 @@ export function InvoiceFormDialog({
 
         if (newInvoice) {
           for (let index = 0; index < validItems.length; index++) {
-            const item = validItems[index];
-            // Label 1 — write path: split horse reference by issuer type.
-            const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
-            const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
-            await supabase.from("invoice_items" as any).insert({
-              invoice_id: newInvoice.id,
-              description: item.description,
-              quantity: item.quantity,
-              unit_price: item.unit_price,
-              total_price: item.total_price,
-              entity_type: item.entity_type,
-              entity_id: item.entity_id,
-              horse_id: horseIdOut,
-              lab_horse_id: labHorseIdOut,
-              domain: item.domain || null,
-              service_id: item.service_id || null,
-              service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
-              category_id: item.category_id || null,
-              position: index,
-            });
+            await supabase.from("invoice_items" as any).insert(buildRow(validItems[index], newInvoice.id, index));
           }
 
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
@@ -481,24 +406,26 @@ export function InvoiceFormDialog({
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.issueDate")}</Label>
-                <InvoiceDateField
+                <SharedDateField
                   value={formData.issue_date}
                   onChange={(v) => setFormData({ ...formData, issue_date: v })}
-                  todayLabel={t("finance.invoices.dateToday")}
-                  clearLabel={t("finance.invoices.dateClear")}
-                  locale={lang === "ar" ? arLocale : enLocale}
+                  showToday
+                  ariaLabel={t("finance.invoices.issueDate")}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.dueDate")}</Label>
-                <InvoiceDateField
+                <SharedDateField
                   value={formData.due_date}
                   onChange={(v) => setFormData({ ...formData, due_date: v })}
-                  todayLabel={t("finance.invoices.dateToday")}
-                  clearLabel={t("finance.invoices.dateClear")}
-                  locale={lang === "ar" ? arLocale : enLocale}
+                  min={formData.issue_date || undefined}
+                  showToday
+                  ariaLabel={t("finance.invoices.dueDate")}
                 />
+                {formData.due_date && formData.issue_date && formData.due_date < formData.issue_date && (
+                  <p className="text-xs text-destructive">{t("common.dateRange.dueBeforeIssue")}</p>
+                )}
               </div>
             </div>
 
