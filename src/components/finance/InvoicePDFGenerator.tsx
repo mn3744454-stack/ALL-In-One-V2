@@ -24,16 +24,31 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
   };
 
   const itemsRows = items
-    .map(
-      (item) => `
+    .map((item) => {
+      const raw = item as any;
+      const isPackage = !!raw.package_id;
+      const snap: any[] = Array.isArray(raw.package_services_snapshot) ? raw.package_services_snapshot : [];
+      const headerRow = `
     <tr>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">${item.description}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">
+        ${isPackage ? '<span style="display:inline-block;background:#eef2ff;color:#3730a3;font-size:10px;padding:1px 6px;border-radius:4px;margin-right:6px;text-transform:uppercase;letter-spacing:0.5px;">Package</span>' : ''}
+        ${item.description}
+      </td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.unit_price)}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.total_price)}</td>
-    </tr>
-  `
-    )
+    </tr>`;
+      const childRows = (isPackage && snap.length > 0)
+        ? snap.map((c: any) => `
+    <tr>
+      <td style="padding: 6px 12px 6px 32px; border-bottom: 1px solid #f3f4f6; color:#6b7280; font-size:12px;">↳ ${c.name || c.name_ar || ''} × ${c.quantity ?? 1}</td>
+      <td style="padding: 6px 12px; border-bottom: 1px solid #f3f4f6;"></td>
+      <td style="padding: 6px 12px; border-bottom: 1px solid #f3f4f6;"></td>
+      <td style="padding: 6px 12px; border-bottom: 1px solid #f3f4f6; text-align:right; color:#6b7280; font-size:12px;">${formatCurrency(0)}</td>
+    </tr>`).join("")
+        : "";
+      return headerRow + childRows;
+    })
     .join("");
 
   return `
