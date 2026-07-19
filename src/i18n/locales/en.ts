@@ -45,6 +45,11 @@ export const en = {
     status: "Status",
     type: "Type",
     date: "Date",
+    dateRange: {
+      startAfterEnd: "Start date cannot be after end date.",
+      endBeforeStart: "End date cannot be before start date.",
+      dueBeforeIssue: "Due date cannot be earlier than issue date.",
+    },
     name: "Name",
     description: "Description",
     notes: "Notes",
