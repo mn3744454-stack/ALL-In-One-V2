@@ -1461,6 +1461,9 @@ export const ar = {
       // Phase 10: Linked Templates
       linkedTemplates: "القوالب المرتبطة",
       selectedCount: "{{count}} مختار",
+      clearSelection: "مسح التحديد",
+      searchCategoriesPlaceholder: "بحث في التصنيفات...",
+      noMatches: "لا توجد تحاليل مطابقة للفلاتر",
       addTemplate: "إضافة",
       removeTemplate: "إزالة",
       required: "مطلوب",
