@@ -12,8 +12,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { InvoiceClientPicker } from "./InvoiceClientPicker";
-import { useHorses } from "@/hooks/useHorses";
-import { useServices } from "@/hooks/useServices";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
@@ -27,8 +25,13 @@ import { ar as arLocale, enUS as enLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useInvoiceCatalogSources, resolveInvoiceCatalogSource } from "@/hooks/finance/useInvoiceCatalogSources";
+import { useInvoiceCustomerHorses } from "@/hooks/finance/useInvoiceCustomerHorses";
+import { InvoiceQuickAddHorseDialog } from "./InvoiceQuickAddHorseDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+
 
 /**
  * Local date field used inside the Create Invoice dialog.
