@@ -360,26 +360,7 @@ export function InvoiceFormDialog({
 
         if (newInvoice) {
           for (let index = 0; index < validItems.length; index++) {
-            const item = validItems[index];
-            // Label 1 — write path: split horse reference by issuer type.
-            const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
-            const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
-            await supabase.from("invoice_items" as any).insert({
-              invoice_id: newInvoice.id,
-              description: item.description,
-              quantity: item.quantity,
-              unit_price: item.unit_price,
-              total_price: item.total_price,
-              entity_type: item.entity_type,
-              entity_id: item.entity_id,
-              horse_id: horseIdOut,
-              lab_horse_id: labHorseIdOut,
-              domain: item.domain || null,
-              service_id: item.service_id || null,
-              service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
-              category_id: item.category_id || null,
-              position: index,
-            });
+            await supabase.from("invoice_items" as any).insert(buildRow(validItems[index], newInvoice.id, index));
           }
 
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
