@@ -347,9 +347,20 @@ function CreateRequestDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid || isSubmitting) return;
+    if (isSubmitting) return;
+    if (analysisError) {
+      setShowAnalysisError(true);
+      // Reveal + focus the analysis error near the selection surface.
+      requestAnimationFrame(() => {
+        const el = document.querySelector('[data-lab-analysis-error]') as HTMLElement | null;
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      return;
+    }
+    if (!isFormValid) return;
 
     setIsSubmitting(true);
+
 
     try {
       const isPerHorse = testMode === 'perHorse' && showTestModeBranch;
