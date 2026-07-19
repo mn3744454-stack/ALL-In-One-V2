@@ -26,6 +26,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useI18n } from "@/i18n";
 import {
   useServiceCategories,
@@ -33,7 +38,7 @@ import {
   type ServiceCategory,
 } from "@/hooks/finance/useServiceCategories";
 import { usePermissions } from "@/hooks/usePermissions";
-import { Archive, ArchiveRestore, Edit2, Plus, Loader2 } from "lucide-react";
+import { Archive, ArchiveRestore, Edit2, Plus, Loader2, ChevronDown } from "lucide-react";
 
 interface Props {
   open: boolean;
