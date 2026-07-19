@@ -597,6 +597,18 @@ export function InvoiceFormDialog({
             </div>
           </DialogFooter>
         </form>
+        {issuerTenantId && (
+          <InvoiceQuickAddHorseDialog
+            open={quickAddOpen}
+            onOpenChange={setQuickAddOpen}
+            tenantId={issuerTenantId}
+            tenantType={issuerTenantType}
+            customerId={formData.client_id || null}
+            onCreated={(h) => {
+              queryClient.invalidateQueries({ queryKey: ["invoice-customer-horses"] });
+            }}
+          />
+        )}
     </SafeFormDialog>
   );
 }
