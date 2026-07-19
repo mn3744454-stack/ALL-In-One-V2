@@ -2,17 +2,17 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
 import { Plus, Trash2, Package, FileText, Layers, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { TenantService } from "@/hooks/useServices";
 import type { StableServicePlan } from "@/hooks/useStableServicePlans";
 import { normalizeIncludes } from "@/lib/planIncludes";
 import { HorseLinePicker } from "./HorseLinePicker";
+import { ServiceCategorySelect } from "./ServiceCategorySelect";
+import type { InvoiceCatalogItem } from "@/hooks/finance/useInvoiceCatalogSources";
 import {
   DndContext,
   PointerSensor,
@@ -42,6 +42,10 @@ export interface LineItem {
   horse_id?: string | null;
   domain?: string | null;
   service_id?: string | null;
+  /** Label 1 — required discriminator when service_id is set. */
+  service_source?: "tenant_services" | "lab_services" | null;
+  /** Label 1 — live shared category identity (tenant_service_categories.id). */
+  category_id?: string | null;
   /** Tracks how the line was added: 'manual', 'catalog', or 'package' */
   source?: 'manual' | 'catalog' | 'package';
 }
@@ -52,34 +56,22 @@ export interface HorseOption {
   name_ar?: string | null;
 }
 
-const DOMAIN_OPTIONS = [
-  { value: "general", labelKey: "finance.invoices.domain.general" },
-  { value: "boarding", labelKey: "clients.statement.domain.boarding" },
-  { value: "vet", labelKey: "clients.statement.domain.vet" },
-  { value: "breeding", labelKey: "clients.statement.domain.breeding" },
-  { value: "training", labelKey: "finance.invoices.domain.training" },
-  { value: "transport", labelKey: "finance.invoices.domain.transport" },
-  { value: "lab", labelKey: "clients.statement.domain.lab" },
-] as const;
-
-// Map service_kind to domain
-const SERVICE_KIND_TO_DOMAIN: Record<string, string> = {
-  boarding: "boarding",
-  vet: "vet",
-  breeding: "breeding",
-  training: "training",
-  transport: "transport",
-  service: "general",
-};
-
 interface InvoiceLineItemsEditorProps {
   items: LineItem[];
   onChange: (items: LineItem[]) => void;
   currency: string;
   horses?: HorseOption[];
   showAttribution?: boolean;
-  services?: TenantService[];
+  /** Label 1 — normalized catalog items (tenant_services or lab_services). */
+  services?: InvoiceCatalogItem[];
   plans?: StableServicePlan[];
+  /** Lab-issuer packages are disabled in Label 1. */
+  disablePackages?: boolean;
+  /** Optional slot for the horse-picker area (e.g. Add-New bridge). */
+  onQuickAddHorse?: () => void;
+  /** Whether Quick Add is currently allowed (customer must be selected). */
+  canQuickAddHorse?: boolean;
+  quickAddDisabledReason?: string;
 }
 
 export function InvoiceLineItemsEditor({
@@ -90,11 +82,15 @@ export function InvoiceLineItemsEditor({
   showAttribution = true,
   services = [],
   plans = [],
+  disablePackages = false,
+  onQuickAddHorse,
+  canQuickAddHorse = true,
+  quickAddDisabledReason,
 }: InvoiceLineItemsEditorProps) {
-  const { t, dir, lang } = useI18n();
+  const { t, lang } = useI18n();
 
   const activeServices = useMemo(
-    () => services.filter(s => s.is_active),
+    () => services.filter(s => s.isActive),
     [services]
   );
 
@@ -103,29 +99,18 @@ export function InvoiceLineItemsEditor({
     [plans]
   );
 
-  // Build a lookup for service taxability
-  const serviceTaxMap = useMemo(() => {
-    const map = new Map<string, boolean>();
-    for (const s of services) {
-      map.set(s.id, s.is_taxable !== false);
-    }
-    return map;
-  }, [services]);
-
-  // Service lookup by id
+  // Service lookup by id (used for package expansion + tax status)
   const serviceById = useMemo(() => {
-    const map = new Map<string, TenantService>();
-    for (const s of services) {
-      map.set(s.id, s);
-    }
+    const map = new Map<string, InvoiceCatalogItem>();
+    for (const s of services) map.set(s.id, s);
     return map;
   }, [services]);
 
   const getHorseName = (h: HorseOption) =>
     lang === "ar" ? (h.name_ar || h.name) : (h.name || h.name_ar || "");
 
-  const getServiceName = (s: TenantService) =>
-    lang === "ar" ? (s.name_ar || s.name) : (s.name || s.name_ar || "");
+  const getServiceName = (s: InvoiceCatalogItem) =>
+    lang === "ar" ? (s.nameAr || s.name) : (s.name || s.nameAr || "");
 
   const addItem = () => {
     const newItem: LineItem = {
@@ -137,21 +122,25 @@ export function InvoiceLineItemsEditor({
       horse_id: null,
       domain: null,
       service_id: null,
+      service_source: null,
+      category_id: null,
       source: 'manual',
     };
     onChange([...items, newItem]);
   };
 
-  const addItemFromService = (service: TenantService) => {
+  const addItemFromService = (service: InvoiceCatalogItem) => {
     const newItem: LineItem = {
       id: crypto.randomUUID(),
       description: getServiceName(service),
       quantity: 1,
-      unit_price: service.unit_price || 0,
-      total_price: service.unit_price || 0,
+      unit_price: service.unitPrice ?? 0,
+      total_price: service.unitPrice ?? 0,
       horse_id: null,
-      domain: SERVICE_KIND_TO_DOMAIN[service.service_kind] || "general",
+      domain: null,
       service_id: service.id,
+      service_source: service.serviceSource,
+      category_id: service.categoryId ?? null,
       source: 'catalog',
     };
     onChange([...items, newItem]);
@@ -169,11 +158,13 @@ export function InvoiceLineItemsEditor({
         id: crypto.randomUUID(),
         description: getServiceName(svc),
         quantity: 1,
-        unit_price: svc.unit_price || 0,
-        total_price: svc.unit_price || 0,
+        unit_price: svc.unitPrice ?? 0,
+        total_price: svc.unitPrice ?? 0,
         horse_id: null,
-        domain: SERVICE_KIND_TO_DOMAIN[svc.service_kind] || "general",
+        domain: null,
         service_id: svc.id,
+        service_source: svc.serviceSource,
+        category_id: svc.categoryId ?? null,
         source: 'package',
       });
     }
@@ -185,14 +176,10 @@ export function InvoiceLineItemsEditor({
   const updateItem = (id: string, field: keyof LineItem, value: string | number | null) => {
     const updated = items.map((item) => {
       if (item.id !== id) return item;
-
-      const newItem = { ...item, [field]: value };
-
-      // Auto-calculate total
+      const newItem = { ...item, [field]: value } as LineItem;
       if (field === "quantity" || field === "unit_price") {
         newItem.total_price = newItem.quantity * newItem.unit_price;
       }
-
       return newItem;
     });
     onChange(updated);
@@ -204,12 +191,11 @@ export function InvoiceLineItemsEditor({
 
   const subtotal = items.reduce((sum, item) => sum + item.total_price, 0);
 
-  /** Determine tax status for a line item */
   const getLineTaxStatus = (item: LineItem): "taxable" | "exempt" => {
     if (item.service_id) {
-      return serviceTaxMap.get(item.service_id) !== false ? "taxable" : "exempt";
+      const svc = serviceById.get(item.service_id);
+      if (svc && svc.isTaxable === false) return "exempt";
     }
-    // Free-text lines are taxable by default
     return "taxable";
   };
 
@@ -229,7 +215,6 @@ export function InvoiceLineItemsEditor({
 
   return (
     <div className="space-y-3">
-      {/* Column headers — ABOVE items */}
       {items.length > 0 && (
         <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
           <div className="col-span-5">{t("finance.invoices.description")}</div>
@@ -240,7 +225,6 @@ export function InvoiceLineItemsEditor({
         </div>
       )}
 
-      {/* Items */}
       <div className="space-y-3">
         {items.length === 0 && (
           <div className="border border-dashed border-border rounded-lg p-6 text-center">
@@ -265,6 +249,9 @@ export function InvoiceLineItemsEditor({
                   getLineTaxStatus={getLineTaxStatus}
                   updateItem={updateItem}
                   removeItem={removeItem}
+                  onQuickAddHorse={onQuickAddHorse}
+                  canQuickAddHorse={canQuickAddHorse}
+                  quickAddDisabledReason={quickAddDisabledReason}
                   t={t}
                 />
               ))}
@@ -273,7 +260,6 @@ export function InvoiceLineItemsEditor({
         )}
       </div>
 
-      {/* Add Item Buttons — BELOW items list */}
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
@@ -291,11 +277,12 @@ export function InvoiceLineItemsEditor({
             services={activeServices}
             onSelect={addItemFromService}
             getServiceName={getServiceName}
+            lang={lang}
             t={t}
           />
         )}
 
-        {activePlans.length > 0 && (
+        {!disablePackages && activePlans.length > 0 && (
           <PackagePicker
             plans={activePlans}
             onSelect={addItemsFromPackage}
@@ -305,7 +292,6 @@ export function InvoiceLineItemsEditor({
         )}
       </div>
 
-      {/* Subtotal */}
       {items.length > 0 && (
         <div className="flex justify-end border-t pt-3">
           <div className="text-end">
@@ -320,7 +306,6 @@ export function InvoiceLineItemsEditor({
   );
 }
 
-/** Sortable invoice line item row — uses dedicated grip handle to drag. */
 function SortableLineItemRow({
   item,
   horses,
@@ -328,6 +313,9 @@ function SortableLineItemRow({
   getLineTaxStatus,
   updateItem,
   removeItem,
+  onQuickAddHorse,
+  canQuickAddHorse,
+  quickAddDisabledReason,
   t,
 }: {
   item: LineItem;
@@ -336,6 +324,9 @@ function SortableLineItemRow({
   getLineTaxStatus: (i: LineItem) => "taxable" | "exempt";
   updateItem: (id: string, field: keyof LineItem, value: string | number | null) => void;
   removeItem: (id: string) => void;
+  onQuickAddHorse?: () => void;
+  canQuickAddHorse?: boolean;
+  quickAddDisabledReason?: string;
   t: (key: string) => string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -356,7 +347,6 @@ function SortableLineItemRow({
       style={style}
       className="border border-border/50 rounded-lg p-3 space-y-2 bg-background"
     >
-      {/* Row 1: Drag handle + Description + Qty + Price + Total + Delete */}
       <div className="grid grid-cols-12 gap-2 items-center">
         <div className="col-span-5 flex items-center gap-2">
           <button
@@ -410,7 +400,6 @@ function SortableLineItemRow({
         </div>
       </div>
 
-      {/* Row 2: Attribution + tax badge + source indicator */}
       <div className="grid grid-cols-12 gap-2 items-center">
         {showAttribution && !item.entity_type ? (
           <>
@@ -419,24 +408,17 @@ function SortableLineItemRow({
                 horses={horses}
                 selectedId={item.horse_id || null}
                 onSelect={(id) => updateItem(item.id, "horse_id", id)}
+                onQuickAdd={onQuickAddHorse}
+                canQuickAdd={canQuickAddHorse}
+                quickAddDisabledReason={quickAddDisabledReason}
               />
             </div>
             <div className="col-span-4">
-              <Select
-                value={item.domain || ""}
-                onValueChange={(v) => updateItem(item.id, "domain", v || null)}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder={t("finance.invoices.domain.select")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOMAIN_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {t(opt.labelKey)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ServiceCategorySelect
+                value={item.category_id ?? null}
+                onChange={(id) => updateItem(item.id, "category_id", id)}
+                className="h-8 text-xs"
+              />
             </div>
           </>
         ) : (
@@ -478,16 +460,17 @@ function SortableLineItemRow({
   );
 }
 
-/** Service catalog picker — adds a new line item from the catalog */
 function ServicePicker({
   services,
   onSelect,
   getServiceName,
+  lang,
   t,
 }: {
-  services: TenantService[];
-  onSelect: (service: TenantService) => void;
-  getServiceName: (s: TenantService) => string;
+  services: InvoiceCatalogItem[];
+  onSelect: (service: InvoiceCatalogItem) => void;
+  getServiceName: (s: InvoiceCatalogItem) => string;
+  lang: string;
   t: (key: string) => string;
 }) {
   const [open, setOpen] = useState(false);
@@ -505,39 +488,51 @@ function ServicePicker({
           {t("finance.invoices.addFromCatalog")}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-0" align="start">
+      <PopoverContent className="w-80 p-0" align="start">
         <Command>
           <CommandInput placeholder={t("finance.invoices.searchService")} className="h-9" />
           <CommandList>
             <CommandEmpty>{t("common.noResults")}</CommandEmpty>
             <CommandGroup>
-              {services.map((svc) => (
-                <CommandItem
-                  key={svc.id}
-                  value={svc.name}
-                  onSelect={() => {
-                    onSelect(svc);
-                    setOpen(false);
-                  }}
-                  className="text-sm"
-                >
-                  <div className="flex items-center justify-between w-full gap-2">
-                    <span className="truncate">{getServiceName(svc)}</span>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {svc.is_taxable === false && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground">
-                          {t("finance.invoices.taxBadgeExempt")}
-                        </Badge>
-                      )}
-                      {svc.unit_price != null && (
-                        <span className="text-xs text-muted-foreground">
-                          {svc.unit_price}
-                        </span>
-                      )}
+              {services.map((svc) => {
+                const secondary = lang === "ar" ? svc.name : svc.nameAr;
+                const catName = lang === "ar" ? (svc.categoryNameAr || svc.categoryName) : (svc.categoryName || svc.categoryNameAr);
+                return (
+                  <CommandItem
+                    key={svc.id}
+                    value={`${svc.name} ${svc.nameAr ?? ""}`}
+                    onSelect={() => {
+                      onSelect(svc);
+                      setOpen(false);
+                    }}
+                    className="text-sm"
+                  >
+                    <div className="flex items-start justify-between w-full gap-2">
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{getServiceName(svc)}</div>
+                        {secondary && (
+                          <div className="truncate text-[10px] text-muted-foreground">{secondary}</div>
+                        )}
+                        {catName && (
+                          <div className="truncate text-[10px] text-muted-foreground/80">{catName}</div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {svc.isTaxable === false && (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground">
+                            {t("finance.invoices.taxBadgeExempt")}
+                          </Badge>
+                        )}
+                        {svc.unitPrice != null && (
+                          <span className="text-xs text-muted-foreground">
+                            {svc.unitPrice}{svc.currency ? ` ${svc.currency}` : ""}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CommandItem>
-              ))}
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -546,7 +541,6 @@ function ServicePicker({
   );
 }
 
-/** Package picker — expands a package into multiple attributed service line items */
 function PackagePicker({
   plans,
   onSelect,
