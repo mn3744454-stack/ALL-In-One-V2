@@ -232,14 +232,12 @@ export function InvoiceFormDialog({
   const pricesTaxInclusive = Boolean(activeTenant?.tenant?.prices_tax_inclusive);
 
   const calculations = useMemo(() => {
-    // Separate taxable vs non-taxable line totals based on linked service's is_taxable
     let taxableTotal = 0;
     let nonTaxableTotal = 0;
     for (const item of lineItems) {
-      // If line has a service_id, look up is_taxable; free-text lines default to taxable
       if (item.service_id) {
-        const svc = allServices.find(s => s.id === item.service_id);
-        if (svc && svc.is_taxable === false) {
+        const svc = catalogItems.find(s => s.id === item.service_id);
+        if (svc && svc.isTaxable === false) {
           nonTaxableTotal += item.total_price;
         } else {
           taxableTotal += item.total_price;
@@ -257,19 +255,18 @@ export function InvoiceFormDialog({
     let taxAmount: number;
 
     if (pricesTaxInclusive) {
-      // Line prices include tax — back-calculate only on taxable portion
       const taxFromTaxable = taxRate > 0 ? Math.round(taxableTotal * taxRate / (100 + taxRate) * 100) / 100 : 0;
       taxAmount = taxFromTaxable;
       subtotal = Math.round((lineTotal - taxAmount) * 100) / 100;
     } else {
-      // Line prices are tax-exclusive — add tax only on taxable portion
       subtotal = lineTotal;
       taxAmount = Math.round(taxableTotal * taxRate / 100 * 100) / 100;
     }
 
     const totalAmount = subtotal + taxAmount - discountAmount;
     return { subtotal, taxAmount, discountAmount, totalAmount, taxableTotal, nonTaxableTotal };
-  }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, allServices]);
+  }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, catalogItems]);
+
 
   const generateInvoiceNumber = () => {
     const prefix = activeTenant?.tenant.name?.substring(0, 3).toUpperCase() || "INV";
