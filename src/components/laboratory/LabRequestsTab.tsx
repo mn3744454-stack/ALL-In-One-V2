@@ -717,8 +717,9 @@ function CreateRequestDialog({
                             labName={selectedLabName}
                             selectable
                             selectedIds={selectedServiceIds}
+                            errorMessage={showAnalysisError ? analysisError : null}
                             onSelectServices={(ids, names) => {
-                              setSelectedServiceIds(ids);
+                              setSelectedServiceIds(Array.from(new Set(ids)));
                               if (names) setSelectedServiceNames(names);
                             }}
                           />
@@ -761,7 +762,8 @@ function CreateRequestDialog({
                                     labName={selectedLabName}
                                     selectable
                                     selectedIds={horseServices}
-                                    onSelectServices={(ids, names) => handlePerHorseServiceChange(horse.id, ids, names)}
+                                    errorMessage={showAnalysisError && horseServices.length === 0 ? analysisError : null}
+                                    onSelectServices={(ids, names) => handlePerHorseServiceChange(horse.id, Array.from(new Set(ids)), names)}
                                   />
                                 </div>
                               )}
