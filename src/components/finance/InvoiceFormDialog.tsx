@@ -276,7 +276,17 @@ export function InvoiceFormDialog({
     return `${prefix}-${year}${month}-${random}`;
   };
 
+  const { data: customerHorses = [] } = useInvoiceCustomerHorses({
+    issuerTenantId,
+    issuerTenantType,
+    customerId: formData.client_id || null,
+  });
+
   const handleClientChange = (clientId: string, client: { name?: string; name_ar?: string | null } | null) => {
+    // Change-customer dependency: clear line-level horses that aren't valid
+    // for the new customer (fresh customer -> unknown horses; we clear all
+    // horse selections; issuer categories / services stay intact).
+    setLineItems((prev) => prev.map((li) => (li.horse_id ? { ...li, horse_id: null } : li)));
     setFormData({
       ...formData,
       client_id: clientId,
@@ -285,6 +295,7 @@ export function InvoiceFormDialog({
   };
 
   const invalidateAllFinance = () => invalidateFinanceQueries(queryClient, activeTenant?.tenant.id);
+
 
   // Build the missing-requirements list. Computed every render; cheap.
   const missingIssues = useMemo<string[]>(() => {
