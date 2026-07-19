@@ -12,8 +12,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { InvoiceClientPicker } from "./InvoiceClientPicker";
-import { useHorses } from "@/hooks/useHorses";
-import { useServices } from "@/hooks/useServices";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
@@ -27,8 +25,13 @@ import { ar as arLocale, enUS as enLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useInvoiceCatalogSources, resolveInvoiceCatalogSource } from "@/hooks/finance/useInvoiceCatalogSources";
+import { useInvoiceCustomerHorses } from "@/hooks/finance/useInvoiceCustomerHorses";
+import { InvoiceQuickAddHorseDialog } from "./InvoiceQuickAddHorseDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+
 
 /**
  * Local date field used inside the Create Invoice dialog.
@@ -138,10 +141,24 @@ export function InvoiceFormDialog({
   const tenantCurrency = useTenantCurrency();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   
-  const { horses = [] } = useHorses();
-  const { data: allServices = [] } = useServices();
+  const issuerTenantId = activeTenant?.tenant?.id ?? null;
+  const issuerTenantType = activeTenant?.tenant?.type ?? null;
+  const catalogSource = resolveInvoiceCatalogSource(issuerTenantType);
+  const isLabIssuer = catalogSource === "lab_services";
+  const { hasPermission, isOwner } = usePermissions();
+  const canWriteHorse = isOwner
+    || hasPermission(isLabIssuer ? "laboratory.horses.write" : "horses.write")
+    || hasPermission("horses.write");
+
+  const { activeItems: catalogItems } = useInvoiceCatalogSources({
+    issuerTenantId,
+    issuerTenantType,
+  });
   const { plans: allPlans = [] } = useStableServicePlans();
   const queryClient = useQueryClient();
+
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+
 
   const isEditMode = mode === "edit" && invoice;
 
@@ -195,6 +212,8 @@ export function InvoiceFormDialog({
           horse_id: (item as any).horse_id ?? null,
           domain: (item as any).domain ?? null,
           service_id: (item as any).service_id ?? null,
+          service_source: (item as any).service_source ?? null,
+          category_id: (item as any).category_id ?? null,
         })));
       }
     } else {
@@ -215,14 +234,12 @@ export function InvoiceFormDialog({
   const pricesTaxInclusive = Boolean(activeTenant?.tenant?.prices_tax_inclusive);
 
   const calculations = useMemo(() => {
-    // Separate taxable vs non-taxable line totals based on linked service's is_taxable
     let taxableTotal = 0;
     let nonTaxableTotal = 0;
     for (const item of lineItems) {
-      // If line has a service_id, look up is_taxable; free-text lines default to taxable
       if (item.service_id) {
-        const svc = allServices.find(s => s.id === item.service_id);
-        if (svc && svc.is_taxable === false) {
+        const svc = catalogItems.find(s => s.id === item.service_id);
+        if (svc && svc.isTaxable === false) {
           nonTaxableTotal += item.total_price;
         } else {
           taxableTotal += item.total_price;
@@ -240,19 +257,18 @@ export function InvoiceFormDialog({
     let taxAmount: number;
 
     if (pricesTaxInclusive) {
-      // Line prices include tax — back-calculate only on taxable portion
       const taxFromTaxable = taxRate > 0 ? Math.round(taxableTotal * taxRate / (100 + taxRate) * 100) / 100 : 0;
       taxAmount = taxFromTaxable;
       subtotal = Math.round((lineTotal - taxAmount) * 100) / 100;
     } else {
-      // Line prices are tax-exclusive — add tax only on taxable portion
       subtotal = lineTotal;
       taxAmount = Math.round(taxableTotal * taxRate / 100 * 100) / 100;
     }
 
     const totalAmount = subtotal + taxAmount - discountAmount;
     return { subtotal, taxAmount, discountAmount, totalAmount, taxableTotal, nonTaxableTotal };
-  }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, allServices]);
+  }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, catalogItems]);
+
 
   const generateInvoiceNumber = () => {
     const prefix = activeTenant?.tenant.name?.substring(0, 3).toUpperCase() || "INV";
@@ -262,7 +278,17 @@ export function InvoiceFormDialog({
     return `${prefix}-${year}${month}-${random}`;
   };
 
+  const { data: customerHorses = [] } = useInvoiceCustomerHorses({
+    issuerTenantId,
+    issuerTenantType,
+    customerId: formData.client_id || null,
+  });
+
   const handleClientChange = (clientId: string, client: { name?: string; name_ar?: string | null } | null) => {
+    // Change-customer dependency: clear line-level horses that aren't valid
+    // for the new customer (fresh customer -> unknown horses; we clear all
+    // horse selections; issuer categories / services stay intact).
+    setLineItems((prev) => prev.map((li) => (li.horse_id ? { ...li, horse_id: null } : li)));
     setFormData({
       ...formData,
       client_id: clientId,
@@ -271,6 +297,7 @@ export function InvoiceFormDialog({
   };
 
   const invalidateAllFinance = () => invalidateFinanceQueries(queryClient, activeTenant?.tenant.id);
+
 
   // Build the missing-requirements list. Computed every render; cheap.
   const missingIssues = useMemo<string[]>(() => {
@@ -354,9 +381,12 @@ export function InvoiceFormDialog({
             horse_id: item.horse_id || null,
             domain: item.domain || null,
             service_id: item.service_id || null,
+            service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
+            category_id: item.category_id || null,
             position: index,
           });
         }
+
 
         toast.success(t("finance.invoices.updated"));
       } else {
@@ -393,7 +423,10 @@ export function InvoiceFormDialog({
               horse_id: item.horse_id || null,
               domain: item.domain || null,
               service_id: item.service_id || null,
+              service_source: item.service_id ? (item.service_source || catalogSource) : 'tenant_services',
+              category_id: item.category_id || null,
               position: index,
+
             });
           }
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
@@ -468,11 +501,16 @@ export function InvoiceFormDialog({
                 items={lineItems}
                 onChange={setLineItems}
                 currency={invoice?.currency || tenantCurrency}
-                horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
-                services={allServices}
+                horses={customerHorses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
+                services={catalogItems}
                 plans={allPlans}
+                disablePackages={isLabIssuer}
+                onQuickAddHorse={canWriteHorse ? () => setQuickAddOpen(true) : undefined}
+                canQuickAddHorse={!!formData.client_id}
+                quickAddDisabledReason={t("finance.invoices.selectCustomerFirst")}
               />
             </div>
+
 
             {/* Financial Summary Card */}
             <div className="border border-border rounded-lg p-4 space-y-3 bg-muted/30">
@@ -559,6 +597,18 @@ export function InvoiceFormDialog({
             </div>
           </DialogFooter>
         </form>
+        {issuerTenantId && (
+          <InvoiceQuickAddHorseDialog
+            open={quickAddOpen}
+            onOpenChange={setQuickAddOpen}
+            tenantId={issuerTenantId}
+            tenantType={issuerTenantType}
+            customerId={formData.client_id || null}
+            onCreated={(h) => {
+              queryClient.invalidateQueries({ queryKey: ["invoice-customer-horses"] });
+            }}
+          />
+        )}
     </SafeFormDialog>
   );
 }
