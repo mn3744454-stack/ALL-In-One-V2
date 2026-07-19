@@ -350,7 +350,10 @@ function CreateRequestDialog({
     if (isSubmitting) return;
     if (analysisError) {
       setShowAnalysisError(true);
-      // Reveal + focus the analysis error near the selection surface.
+      if (testMode === 'perHorse' && showTestModeBranch) {
+        const firstEmpty = selectedHorses.find(h => (perHorseServiceIds[h.id] || []).length === 0);
+        if (firstEmpty) setExpandedHorseId(firstEmpty.id);
+      }
       requestAnimationFrame(() => {
         const el = document.querySelector('[data-lab-analysis-error]') as HTMLElement | null;
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
