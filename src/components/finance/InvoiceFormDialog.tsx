@@ -141,10 +141,24 @@ export function InvoiceFormDialog({
   const tenantCurrency = useTenantCurrency();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   
-  const { horses = [] } = useHorses();
-  const { data: allServices = [] } = useServices();
+  const issuerTenantId = activeTenant?.tenant?.id ?? null;
+  const issuerTenantType = activeTenant?.tenant?.type ?? null;
+  const catalogSource = resolveInvoiceCatalogSource(issuerTenantType);
+  const isLabIssuer = catalogSource === "lab_services";
+  const { hasPermission, isOwner } = usePermissions();
+  const canWriteHorse = isOwner
+    || hasPermission(isLabIssuer ? "laboratory.horses.write" : "horses.write")
+    || hasPermission("horses.write");
+
+  const { activeItems: catalogItems } = useInvoiceCatalogSources({
+    issuerTenantId,
+    issuerTenantType,
+  });
   const { plans: allPlans = [] } = useStableServicePlans();
   const queryClient = useQueryClient();
+
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+
 
   const isEditMode = mode === "edit" && invoice;
 
