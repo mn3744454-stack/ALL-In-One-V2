@@ -2839,8 +2839,14 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
+          ledger_entry_id: string | null
+          ledger_status: string | null
           notes: string | null
+          posted_at: string | null
           receipt_asset_id: string | null
+          reverses_expense_id: string | null
+          source_reference: string | null
+          source_type: string | null
           status: string | null
           tenant_id: string
           updated_at: string | null
@@ -2856,8 +2862,14 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          ledger_entry_id?: string | null
+          ledger_status?: string | null
           notes?: string | null
+          posted_at?: string | null
           receipt_asset_id?: string | null
+          reverses_expense_id?: string | null
+          source_reference?: string | null
+          source_type?: string | null
           status?: string | null
           tenant_id: string
           updated_at?: string | null
@@ -2873,8 +2885,14 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          ledger_entry_id?: string | null
+          ledger_status?: string | null
           notes?: string | null
+          posted_at?: string | null
           receipt_asset_id?: string | null
+          reverses_expense_id?: string | null
+          source_reference?: string | null
+          source_type?: string | null
           status?: string | null
           tenant_id?: string
           updated_at?: string | null
@@ -2883,10 +2901,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "expenses_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "expenses_receipt_asset_id_fkey"
             columns: ["receipt_asset_id"]
             isOneToOne: false
             referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_reverses_expense_id_fkey"
+            columns: ["reverses_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
             referencedColumns: ["id"]
           },
           {
@@ -3050,6 +3082,57 @@ export type Database = {
           },
           {
             foreignKeyName: "facility_areas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_request_idempotency: {
+        Row: {
+          actor_id: string
+          created_at: string
+          expires_at: string
+          idempotency_key: string
+          operation: string
+          request_hash: string
+          resolved_snapshot: Json
+          response: Json | null
+          tenant_id: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          expires_at?: string
+          idempotency_key: string
+          operation: string
+          request_hash: string
+          resolved_snapshot?: Json
+          response?: Json | null
+          tenant_id: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          expires_at?: string
+          idempotency_key?: string
+          operation?: string
+          request_hash?: string
+          resolved_snapshot?: Json
+          response?: Json | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_request_idempotency_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_request_idempotency_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -6333,6 +6416,7 @@ export type Database = {
           branch_id: string | null
           client_id: string | null
           client_name: string | null
+          corrects_invoice_id: string | null
           created_at: string | null
           created_by: string | null
           currency: string | null
@@ -6356,6 +6440,7 @@ export type Database = {
           branch_id?: string | null
           client_id?: string | null
           client_name?: string | null
+          corrects_invoice_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency?: string | null
@@ -6379,6 +6464,7 @@ export type Database = {
           branch_id?: string | null
           client_id?: string | null
           client_name?: string | null
+          corrects_invoice_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency?: string | null
@@ -6411,6 +6497,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_corrects_invoice_id_fkey"
+            columns: ["corrects_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
           {
@@ -8170,6 +8263,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          effective_date: string | null
           entry_type: string
           id: string
           metadata: Json
@@ -8186,6 +8280,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          effective_date?: string | null
           entry_type: string
           id?: string
           metadata?: Json
@@ -8202,6 +8297,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          effective_date?: string | null
           entry_type?: string
           id?: string
           metadata?: Json
@@ -9308,6 +9404,87 @@ export type Database = {
           resource?: string
         }
         Relationships: []
+      }
+      pos_sales: {
+        Row: {
+          cart_hash: string
+          created_at: string
+          created_by: string
+          currency: string
+          id: string
+          invoice_id: string | null
+          sale_number: number
+          session_id: string
+          subtotal: number
+          tax_amount: number
+          tenant_id: string
+          total_amount: number
+        }
+        Insert: {
+          cart_hash: string
+          created_at?: string
+          created_by: string
+          currency: string
+          id?: string
+          invoice_id?: string | null
+          sale_number: number
+          session_id: string
+          subtotal: number
+          tax_amount?: number
+          tenant_id: string
+          total_amount: number
+        }
+        Update: {
+          cart_hash?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          id?: string
+          invoice_id?: string | null
+          sale_number?: number
+          session_id?: string
+          subtotal?: number
+          tax_amount?: number
+          tenant_id?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_sales_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pos_sessions: {
         Row: {
