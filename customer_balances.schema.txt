@@ -1,0 +1,29 @@
+                          Table "public.customer_balances"
+    Column    |           Type           | Collation | Nullable |      Default      
+--------------+--------------------------+-----------+----------+-------------------
+ id           | uuid                     |           | not null | gen_random_uuid()
+ tenant_id    | uuid                     |           | not null | 
+ client_id    | uuid                     |           | not null | 
+ balance      | numeric(12,2)            |           | not null | 0
+ currency     | text                     |           |          | 'SAR'::text
+ last_updated | timestamp with time zone |           |          | now()
+Indexes:
+    "customer_balances_pkey" PRIMARY KEY, btree (id)
+    "customer_balances_tenant_id_client_id_key" UNIQUE CONSTRAINT, btree (tenant_id, client_id)
+    "idx_customer_balances_tenant" btree (tenant_id)
+Foreign-key constraints:
+    "customer_balances_client_id_fkey" FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+    "customer_balances_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+Policies:
+    POLICY "Permission-based delete customer balances" FOR DELETE
+      USING (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text))
+    POLICY "Permission-based insert customer balances" FOR INSERT
+      WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text))
+    POLICY "Permission-based update customer balances" FOR UPDATE
+      USING (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text))
+      WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text))
+    POLICY "Tenant members can view balances" FOR SELECT
+      USING (is_tenant_member(auth.uid(), tenant_id))
+Publications:
+    "supabase_realtime"
+

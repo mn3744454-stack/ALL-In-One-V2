@@ -1,0 +1,76 @@
+                                     Table "public.invoice_items"
+          Column           |           Type           | Collation | Nullable |         Default         
+---------------------------+--------------------------+-----------+----------+-------------------------
+ id                        | uuid                     |           | not null | gen_random_uuid()
+ invoice_id                | uuid                     |           | not null | 
+ description               | text                     |           | not null | 
+ quantity                  | numeric(10,2)            |           | not null | 1
+ unit_price                | numeric(12,2)            |           | not null | 
+ total_price               | numeric(12,2)            |           | not null | 
+ entity_type               | text                     |           |          | 
+ entity_id                 | uuid                     |           |          | 
+ created_at                | timestamp with time zone |           |          | now()
+ horse_id                  | uuid                     |           |          | 
+ domain                    | text                     |           |          | 
+ period_start              | date                     |           |          | 
+ period_end                | date                     |           |          | 
+ service_id                | uuid                     |           |          | 
+ position                  | integer                  |           | not null | 0
+ category_key              | text                     |           |          | 
+ category_name_snapshot    | text                     |           |          | 
+ category_name_ar_snapshot | text                     |           |          | 
+ service_name_snapshot     | text                     |           |          | 
+ service_name_ar_snapshot  | text                     |           |          | 
+ service_source            | text                     |           | not null | 'tenant_services'::text
+ category_id               | uuid                     |           |          | 
+ lab_horse_id              | uuid                     |           |          | 
+ package_id                | uuid                     |           |          | 
+ package_source            | text                     |           |          | 
+ package_name_snapshot     | text                     |           |          | 
+ package_name_ar_snapshot  | text                     |           |          | 
+ package_price_snapshot    | numeric                  |           |          | 
+ package_currency_snapshot | text                     |           |          | 
+ package_services_snapshot | jsonb                    |           |          | 
+Indexes:
+    "invoice_items_pkey" PRIMARY KEY, btree (id)
+    "idx_invoice_items_category_id" btree (category_id) WHERE category_id IS NOT NULL
+    "idx_invoice_items_category_key" btree (category_key) WHERE category_key IS NOT NULL
+    "idx_invoice_items_domain" btree (domain) WHERE domain IS NOT NULL
+    "idx_invoice_items_horse_id" btree (horse_id) WHERE horse_id IS NOT NULL
+    "idx_invoice_items_invoice" btree (invoice_id)
+    "idx_invoice_items_invoice_position" btree (invoice_id, "position")
+    "idx_invoice_items_lab_horse_id" btree (lab_horse_id) WHERE lab_horse_id IS NOT NULL
+    "idx_invoice_items_package_id" btree (package_id) WHERE package_id IS NOT NULL
+    "idx_invoice_items_service_id" btree (service_id) WHERE service_id IS NOT NULL
+Check constraints:
+    "invoice_items_horse_source_exclusive_chk" CHECK (NOT (horse_id IS NOT NULL AND lab_horse_id IS NOT NULL))
+    "invoice_items_service_package_exclusive_chk" CHECK (NOT (service_id IS NOT NULL AND package_id IS NOT NULL))
+    "invoice_items_service_source_chk" CHECK (service_source = ANY (ARRAY['tenant_services'::text, 'lab_services'::text]))
+Foreign-key constraints:
+    "invoice_items_category_id_fkey" FOREIGN KEY (category_id) REFERENCES tenant_service_categories(id) ON DELETE SET NULL
+    "invoice_items_horse_id_fkey" FOREIGN KEY (horse_id) REFERENCES horses(id) ON DELETE SET NULL
+    "invoice_items_invoice_id_fkey" FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    "invoice_items_lab_horse_id_fkey" FOREIGN KEY (lab_horse_id) REFERENCES lab_horses(id) ON DELETE SET NULL
+Policies:
+    POLICY "Permission-based delete invoice items" FOR DELETE
+      USING ((EXISTS ( SELECT 1
+   FROM invoices i
+  WHERE ((i.id = invoice_items.invoice_id) AND has_permission(auth.uid(), i.tenant_id, 'finance.invoice.edit'::text)))))
+    POLICY "Permission-based insert invoice items" FOR INSERT
+      WITH CHECK ((EXISTS ( SELECT 1
+   FROM invoices i
+  WHERE ((i.id = invoice_items.invoice_id) AND has_permission(auth.uid(), i.tenant_id, 'finance.invoice.edit'::text)))))
+    POLICY "Permission-based update invoice items" FOR UPDATE
+      USING ((EXISTS ( SELECT 1
+   FROM invoices i
+  WHERE ((i.id = invoice_items.invoice_id) AND has_permission(auth.uid(), i.tenant_id, 'finance.invoice.edit'::text)))))
+    POLICY "Tenant members can view invoice items" FOR SELECT
+      USING ((EXISTS ( SELECT 1
+   FROM invoices i
+  WHERE ((i.id = invoice_items.invoice_id) AND is_tenant_member(auth.uid(), i.tenant_id)))))
+Publications:
+    "supabase_realtime"
+Triggers:
+    trg_invoice_items_fill_snapshots BEFORE INSERT ON invoice_items FOR EACH ROW EXECUTE FUNCTION _invoice_items_fill_snapshots()
+    trg_invoice_items_validate_source BEFORE INSERT OR UPDATE ON invoice_items FOR EACH ROW EXECUTE FUNCTION _invoice_items_validate_source()
+
