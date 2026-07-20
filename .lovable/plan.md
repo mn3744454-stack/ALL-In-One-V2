@@ -1,635 +1,761 @@
-# AML.1.b.1 — Stage 3 Numeric-Precision Closure & Stage 4 Permission Foundation
+# AML.1.b.1 — Stage 6 Execution Specification Mechanical Correction Pass
 
-## A. Executive Decision
+**Mode:** Read-only investigative work plus one documentation-file write only.  
 
-**READY FOR ONE BOUNDED EXECUTION.**
-
-The Stage 3 post-execution investigation is complete. No further investigative audit is required.
-
-Stage 3 is mechanically correct except for one confirmed catalog deviation:
-
-- `pos_sales.subtotal`
-- `pos_sales.tax_amount`
-- `pos_sales.total_amount`
-
-are currently unqualified `numeric`, while the approved contract requires `numeric(12,2)`.
-
-Because the ordered execution contract prohibits Stage 4 from beginning before Stage 3 conforms completely, the previous decision:
-
-`READY FOR STAGE 4 EXECUTION`
-
-is replaced with:
-
-`READY FOR A GUARDED STAGE 3 PRECISION PATCH, FOLLOWED BY STAGE 4 AFTER THE STAGE 3 GATE PASSES.`
-
-Upon approval, execution will use two separate immutable migrations:
-
-1. Migration C — narrow Stage 3 numeric-precision correction.
-2. Migration D — exact Stage 4 permission rows and bundle bindings.
-
-The migrations must not be combined.
-
-If Migration C fails, Migration D must not begin.
-
-If Migration C passes and Migration D fails, only Migration D rolls back; the corrected Stage 3 remains passed.
-
-No Stage 5 work is included.
+**Zero database/business-data mutations. No migration calls. No code/config changes. No Stage 6 implementation.**
 
 ---
 
-## B. Locked Current Evidence
+## Scope
 
-The following evidence is accepted:
+Produce the fully regenerated:
 
-### Migration history
+`docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_[SPEC.md](http://SPEC.md)`
 
-- Original incorrect Stage 3:
-  `supabase/migrations/20260720112709_ad08a2ec-3811-4c0f-ad01-b99e602a10c1.sql`
-- Migration A — precise rollback:
-  `supabase/migrations/20260720165405_b3636f3e-6418-4f8a-a5ab-89a765b18580.sql`
-- Migration B — corrected additive schema:
-  `supabase/migrations/20260720165521_b5a440d6-46e0-46a5-b1b6-e3db4380bc22.sql`
+The document must incorporate every correction A.1–A.17, backed by current live-catalog evidence and repository inspection, and end with the exact terminal-readiness line dictated by A.18.
 
-These files remain immutable.
-
-### Stage 3 confirmed-correct objects
-
-- `ledger_entries.effective_date date NULL`, no default.
-- Approved composite effective-date index exists.
-- Approved cancellation partial UNIQUE index exists.
-- `invoices.corrects_invoice_id` exists with the correct self-FK.
-- `invoices.corrects_invoke_id` is absent; the earlier wording was a narrative typo only.
-- `invoice_items_period_valid_ck` exists and remains NOT VALID.
-- All six approved expense columns exist.
-- The expense ledger/source checks and partial unique indexes exist.
-- The unapproved expense enum is absent.
-- `finance_request_idempotency` matches its approved UUID/bytea/snapshot/expiry contract.
-- `pos_sales` matches its approved identities, FKs, occurrence key, currency nullability, and non-unique cart hash.
-- RLS is enabled and not forced on both internal tables.
-- No PUBLIC/anon/authenticated access exists on either internal table.
-- Both internal tables contain zero rows.
-- D-07 is canonical and non-duplicated.
-- Protected financial fingerprints match Stage 2.
-- Stage 4 has not begun.
-
-### Remaining Stage 3 deviation
-
-Live catalog:
-
-- `subtotal numeric`
-- `tax_amount numeric`
-- `total_amount numeric`
-
-Approved:
-
-- `subtotal numeric(12,2)`
-- `tax_amount numeric(12,2)`
-- `total_amount numeric(12,2)`
-
-This deviation must be closed before Stage 4.
+No unresolved fact may be inferred to obtain a `READY` decision.
 
 ---
 
-## C. Migration C — Guarded Stage 3 Numeric-Precision Patch
+## Delivery channel — user approved
 
-### C1. Pre-mutation guards
+The prior “no repository edits” rule is relaxed for this exact documentation file only:
 
-Before executing any ALTER, assert:
+`docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_[SPEC.md](http://SPEC.md)`
 
-1. `public.pos_sales` exists.
-2. Row count is exactly 0.
-3. RLS is enabled and not forced.
-4. No policy exists.
-5. The approved PK, FKs, and unique `(tenant_id, session_id, sale_number)` remain exact.
-6. `cart_hash` is not unique.
-7. `currency` remains NOT NULL.
-8. No incorrect placeholder column exists.
-9. The exact current numeric definitions are:
+All other prohibitions remain:
 
-   - `subtotal` = unqualified `numeric`, NOT NULL, no default.
-   - `tax_amount` = unqualified `numeric`, NOT NULL, default numerically equal to 0.
-   - `total_amount` = unqualified `numeric`, NOT NULL, no default.
+- Do not call the migration tool.
 
-10. None of the three columns already has precision/scale.
-11. No view, function, generated expression, trigger, or unexpected dependency prevents the approved precision change.
-12. All six expense FKs/checks/indexes and every other Stage 3 object still match Migration B.
-13. Stage 4 permission keys and bindings remain absent.
-14. Protected financial counts, sums, distributions, and keyed fingerprints still match the Stage 2 baseline.
+- Do not use `supabase--migration`, `supabase--insert`, or any database write tool.
 
-Any failed guard aborts Migration C before the first ALTER.
+- Do not execute DDL or DML.
 
-### C2. Exact mutation
+- Do not edit any other file, including another file inside `stage_06_readiness/`.
 
-In one transactional migration, execute:
+- Do not edit migrations, source code, configuration, RPCs, permissions or rollback artifacts.
 
-```sql
-ALTER TABLE public.pos_sales
-  ALTER COLUMN subtotal
-    TYPE numeric(12,2)
-    USING subtotal::numeric(12,2),
-  ALTER COLUMN tax_amount
-    TYPE numeric(12,2)
-    USING tax_amount::numeric(12,2),
-  ALTER COLUMN total_amount
-    TYPE numeric(12,2)
-    USING total_amount::numeric(12,2);
+- Do not modify protected records or business data.
 
-Preserve:
+- Do not modify `docs/aml_1_b_1/stage_05_private_helpers/ROLLBACK.sql`.
 
-- `subtotal` NOT NULL with no default.  
+- The A.15 Stage 5 rollback-guard replacement must appear inside the regenerated specification as a prescribed later edit only.
 
-- `tax_amount` NOT NULL with default `0`.  
+- If the exact target file cannot be written without modifying another repository object, return `BLOCKED`; do not widen the write scope.
 
-- `total_amount` NOT NULL with no default.  
-
-
-Do not change any other `pos_sales` column, constraint, FK, index, ACL, RLS flag, policy, or table property.
-
-Do not use `CASCADE`.
-
-Do not use `IF EXISTS`.
-
-Do not modify default privileges.
-
-### C3. Post-mutation Stage 3 gate
-
-Before COMMIT, assert:
-
--   
-all three columns are exactly `numeric(12,2)`;  
-
--   
-precision = 12;  
-
--   
-scale = 2;  
-
--   
-all required nullability/default contracts remain exact;  
-
-- `pos_sales` still contains 0 rows;  
-
--   
-every approved Stage 3 object remains exact;  
-
--   
-no existing financial/business row changed;  
-
--   
-protected financial fingerprints remain exact;  
-
--   
-Stage 4 remains unstarted.  
-
-
-Successful terminal gate:
-
-**AML.1.b.1 STAGE 3: PASSED — CORRECT ADDITIVE SCHEMA FULLY CONFORMANT, INCLUDING POS NUMERIC(12,2); PROTECTED FINANCIAL STATE UNCHANGED.**
-
-Only after this gate passes may Migration D begin.
-
-### C4. Stage 3 execution evidence
-
-Create/update:
-
-`docs/aml_1_b_1/stage_03_execution/STAGE_03_[CLOSURE.md](http://CLOSURE.md)`
-
-Record:
-
--   
-original incorrect migration;  
-
--   
-Migration A rollback;  
-
--   
-Migration B corrected additive schema;  
-
--   
-Migration C precision correction;  
-
--   
-before/after precision evidence;  
-
--   
-zero-row proof;  
-
--   
-complete protected parity;  
-
--   
-D-07 canonical state;  
-
--   
-final Stage 3 PASSED decision.  
-
-
-Do not alter the canonical D-07 row.
+The file may be created or replaced using the necessary file-writing mechanism, but the final repository effect must be limited to that one exact path.
 
 ---
 
-## D. Migration D — Stage 4 Exact Permission Foundation
+## Execution phases
 
-### D1. Pre-mutation catalog assertions
+All investigation is read-only. The only permitted repository mutation is the final write of the exact specification file.
 
-Before insertion, assert:
+### Phase 1 — Live catalog and no-drift capture
 
-#### `permission_definitions`
+Use read-only queries through `supabase--read_query` and, where the existing environment permits it, read-only `psql` catalog introspection.
 
-The authoritative insert columns are exactly:
+Do not rely on `\d` output alone where an exact `pg_catalog` definition is available.
 
-- `key`  
+Evidence must be captured for the following.
 
-- `module`  
+### 1. `payment_intents`
 
-- `resource`  
+Capture:
 
-- `action`  
+- Columns, types, defaults and nullability.
 
-- `display_name`  
+- CHECK constraints.
 
-- `display_name_ar`  
+- Unique constraints and indexes.
 
-- `description`  
+- Foreign keys.
 
-- `description_ar`  
+- RLS/ACL state relevant to Stage 6.
 
-- `is_delegatable`  
+- Current frontend writer payloads.
 
+### 2. Payment allocation behavior
 
-Confirm:
+Inspect:
 
-- `is_owner_only` does not exist.  
+- `src/lib/finance/postLedgerForPayments.ts`
 
--   
-None of the three target permission keys exists.  
+- `src/hooks/**/usePayment*`
 
--   
-Current Finance permission-definition count is exactly 16.  
+- `src/components/payments/**`
 
--   
-Existing sibling Finance convention still supports the captured exact values.  
+- `src/components/pos/EmbeddedCheckout.tsx`
 
--   
-No conflicting catalog drift exists.  
+- Every additional live payment writer found through `rg`.
 
+Lock the exact current rules for:
 
-#### `كبير المشرفين` bundle
+- Outstanding amount.
 
-Assert the platform-wide exact set is one row:
+- Allocation.
 
-- `bundle_id = 4d9b8917-f11d-4879-840d-1b682bad8cec`  
+- Overpayment.
 
-- `tenant_id = 145f2128-83ca-4ba8-85b5-8ade245c5530`  
+- Tolerance and rounding.
 
-- `name = كبير المشرفين`  
+- Derived invoice status.
 
-- `is_system = false`  
+- Multiple payments/payment methods.
 
+- Replay expectations.
 
-Confirm:
+### 3. Payment accounts and methods
 
--   
-no duplicate same-name bundle exists;  
+Capture:
 
--   
-current Finance bindings count = 14;  
+- `payment_accounts` schema, constraints, active-state fields and tenant relation.
 
--   
-none of the three target bindings exists;  
+- Current same-tenant/account validation.
 
-- `finance.invoice.markPaid` remains present and bound;  
+- Allowed payment-method values and validation source.
 
-- `bundle_permissions` contains only `(bundle_id, permission_key)`;  
+- Fields required by `post_payment` and POS.
 
--   
-PK is `(bundle_id, permission_key)`;  
+### 4. Complete POS mutation chain
 
--   
-no `tenant_id` column exists on `bundle_permissions`.  
+Capture the actual live objects and current flow for:
 
+- `pos_sessions`
 
-Any failed assertion aborts Migration D before insertion.
+- `pos_sales`
 
-### D2. Exact permission rows
+- Inventory/stock tables that actually exist.
 
-Insert exactly:
+- Payment records.
 
-```
+- Sale-number allocation.
 
-```
+- Session totals/counters.
 
-```
-INSERT INTO public.permission_definitions
-  (
-    key,
-    module,
-    resource,
-    action,
-    display_name,
-    display_name_ar,
-    description,
-    description_ar,
-    is_delegatable
-  )
-VALUES
-  (
-    'finance.invoice.approve',
-    'finance',
-    'invoice',
-    'approve',
-    'Approve Invoices',
-    'اعتماد الفواتير',
-    'Approve draft invoices and post them to the ledger',
-    'اعتماد مسودات الفواتير وترحيلها إلى السجل المالي',
-    true
-  ),
-  (
-    'finance.invoice.cancel',
-    'finance',
-    'invoice',
-    'cancel',
-    'Cancel Invoices',
-    'إلغاء الفواتير',
-    'Cancel invoices and reverse associated ledger entries',
-    'إلغاء الفواتير وعكس القيود المحاسبية المرتبطة بها',
-    true
-  ),
-  (
-    'finance.adjustment.create',
-    'finance',
-    'adjustment',
-    'create',
-    'Create Financial Adjustments',
-    'إنشاء تسويات مالية',
-    'Create manual financial adjustments to customer balances',
-    'إنشاء تسويات مالية يدوية لأرصدة العملاء',
-    true
-  );
-```
+- Branch/register/account validation.
 
-No additional permission key, alias, wildcard, plural namespace, or compatibility key may be added.
+- Inventory validation and mutation order.
 
-### D3. Exact bundle bindings
+- Current invoice/items/payment creation.
 
-Insert exactly:
+- Explicit business-date availability.
 
-```
+Do not assume that every candidate table name exists. Record absent candidate objects as absent and use only the verified live chain.
+
+### 5. Invoice-number generation
+
+Inspect:
+
+- All current invoice-number formats and prefixes.
+
+- Tenant/domain/POS variations.
+
+- Every frontend generator.
+
+- Existing database functions, sequences or counters.
+
+- Collision and concurrency handling.
+
+- Current persisted examples by format without exposing unnecessary business data.
+
+Do not approve `MAX(right(invoice_number))` or create an invoice-number helper without evidence.
+
+### 6. `billing_links`
+
+Capture the complete live definition:
+
+- Columns, types, defaults and nullability.
+
+- CHECKs, uniques and indexes.
+
+- Foreign keys.
+
+- RLS/ACL facts relevant to the planned helper.
+
+- Existing `source_type` and `link_kind` census.
+
+Do not invent `amount`, period, currency or any absent column.
+
+### 7. Laboratory join graph
+
+Capture the exact joins and key direction for:
+
+```text
+
+lab_requests
+
+→ lab_horses
+
+→ party_horse_links
+
+→ clients
+
+→ applicable services/prices
 
 ```
 
+Identify how `lab_[requests.horse](http://requests.horse)_id` relates to the correct lab-horse record and how client/service/price truth is resolved.
+
+### 8. `party_horse_links`
+
+Confirm exact live columns, FKs and uniqueness for:
+
+- `tenant_id`
+
+- `lab_horse_id`
+
+- `client_id`
+
+- `relationship_type`
+
+Do not substitute `horse_id` or `party_id` unless the live catalog proves those names.
+
+### 9. `lab_horses.client_id`
+
+Capture null/non-null counts per tenant and reconcile them against:
+
+`docs/aml_1_b_1/stage_01_preflight/lab_horses_client_id_census.txt`
+
+Any drift must be reported explicitly.
+
+### 10. Package grouping
+
+Inspect the actual package parent/child mechanism used by current invoice-item code and schema.
+
+- Confirm whether `parent_item_id` or an equivalent exists.
+
+- If absent, record the real grouping predicate.
+
+- Do not invent a new grouping column.
+
+- Separate package grouping from Housing monthly financial lines.
+
+### 11. Rounding, tax and discount
+
+Inspect:
+
+- `src/lib/taxUtils.ts`
+
+- `src/lib/pricing/**`
+
+- `computeTax` callers.
+
+- Invoice form calculations.
+
+- POS calculations.
+
+- Housing proration helpers.
+
+Lock:
+
+- Two-decimal rounding points.
+
+- Tax-inclusive/exclusive behavior.
+
+- Taxable-item filtering.
+
+- Discount application.
+
+- Header/item parity rules.
+
+### 12. External-provider predicates
+
+Capture exact columns and code predicates for:
+
+- `vet_treatments`
+
+- `horse_vaccinations`
+
+- `breeding_attempts`
+
+- `pregnancy_checks`
+
+- `foalings`
+
+Do not lock `service_mode`, `external_provider_id`, `source_mode` or `provider_tenant_id` until verified for the corresponding table.
+
+### 13. `hr_salary_payments`
+
+Capture:
+
+- Complete columns and types.
+
+- Defaults and nullability.
+
+- CHECKs, uniques, indexes and FKs.
+
+- The exact expense-link column, if present.
+
+- Current writer payload and mutation order.
+
+Do not lock `finance_expense_id` unless confirmed live.
+
+### 14. Stage 6 uniqueness`23505` surface
+
+Enumerate every unique constraint and unique partial index that any Stage 6 RPC/helper/adapter can encounter across all verified mutated tables, including where applicable:
+
+- `invoices`
+
+- `invoice_items`
+
+- `ledger_entries`
+
+- `customer_balances`
+
+- `billing_links`
+
+- `expenses`
+
+- `finance_request_idempotency`
+
+- `pos_sales`
+
+- `payment_intents`
+
+- `hr_salary_payments`
+
+- POS inventory/session/payment tables
+
+- Any additional table proved to be mutated by the final contract.
+
+For each, identify:
+
+- Constraint/index name.
+
+- Key and predicate.
+
+- Calling operation.
+
+- Whether the conflict is replay-verifiable or maps to a stable `FIN_*` error.
+
+Do not describe this as an “eight-table” scan.
+
+### 15. Stage 3 and Stage 5 no-drift gate
+
+Reconfirm:
+
+- Correct Stage 3 additive columns, constraints and indexes.
+
+- `pos_sales` remains `numeric(12,2)` where approved.
+
+- `finance_request_idempotency` schema, zero-row state, RLS and policy state.
+
+- All seven Stage 5 helper signatures.
+
+- Owners, security mode, `search_path`, volatility and ACLs.
+
+- Only `*finance*idempotency_purge_expired` remains executable by `service_role`.
+
+### 16. Stage 4 permission no-drift gate
+
+Reconfirm:
+
+- Finance permission-definition count.
+
+- The three Stage 4 permission rows and exact content.
+
+- The captured `كبير المشرفين` bundle identity.
+
+- Finance binding count.
+
+- The three new bindings.
+
+- `finance.invoice.markPaid` remains present and bound.
+
+- Exact adapter-domain permission/capability keys.
+
+### 17. Protected financial parity
+
+Reconfirm the Stage 2/Stage 5 protected fingerprints:
+
+- `invoices`
+
+- `invoice_items`
+
+- `ledger_entries`
+
+- `customer_balances`
+
+- `billing_links`
+
+- `expenses`
+
+Also verify the protected invoice/ledger sentinels, including `الم-202607-213`, remain unchanged.
+
+No readiness decision may be `READY` if any protected fingerprint drifts.
+
+### Evidence format
+
+Each capture must appear in the specification as:
+
+```text
+
+Query/command
+
+→ raw relevant result
+
+→ interpretation
+
+→ locked consequence or unresolved identifier
+
 ```
-INSERT INTO public.bundle_permissions
-  (bundle_id, permission_key)
-VALUES
-  (
-    '4d9b8917-f11d-4879-840d-1b682bad8cec',
-    'finance.invoice.approve'
-  ),
-  (
-    '4d9b8917-f11d-4879-840d-1b682bad8cec',
-    'finance.invoice.cancel'
-  ),
-  (
-    '4d9b8917-f11d-4879-840d-1b682bad8cec',
-    'finance.adjustment.create'
-  );
-```
 
-Do not bind the keys to:
-
--   
-any other preset;  
-
--   
-any custom role;  
-
--   
-any other tenant bundle;  
-
--   
-any bundle inferred from create/edit permissions;  
-
--   
-any individual user automatically.  
-
-
-Do not add, remove, rename, or rebind `finance.invoice.markPaid`.
+Raw output must be sufficient to prove the conclusion, but must not expose secrets, credentials, tokens or unnecessary full business payloads.
 
 ---
 
-## E. Stage 4 Post-Mutation Assertions
+## Phase 2 — Complete repository writer census
 
-Before COMMIT, assert:
+Run `rg -n` sweeps over `src/**` for every direct or wrapped write affecting:
 
-1.   
-Exactly three new permission definitions exist.  
+- `invoices`
 
-2.   
-Every stored column value matches §D2 byte-for-byte.  
+- `invoice_items`
 
-3.   
-Finance permission-definition count changed exactly from 16 to 19.  
+- `ledger_entries`
 
-4.   
-Exactly three new bundle bindings exist.  
+- `expenses`
 
-5.   
-Bundle Finance binding count changed exactly from 14 to 17.  
+- `payment_intents`
 
-6.   
-No target permission is bound to another bundle.  
+- `pos_sales`
 
-7.   
-No unrelated permission definition or binding changed.  
+- `pos_sessions`
 
-8. `finance.invoice.markPaid` row and binding remain unchanged.  
+- `billing_links`
 
-9.   
-No invoice, invoice item, ledger entry, customer balance, billing link, expense, POS row, or idempotency row changed.  
+- `customer_balances`
 
-10.   
-Protected financial fingerprints remain exact.  
+- `hr_salary_payments`
 
-11.   
-Stage 3 schema remains exact, including all three `numeric(12,2)` columns.  
+- Verified POS inventory/payment tables.
 
-12.   
-No ACL, RLS policy, default privilege, function, trigger, or application writer changed.  
+Also capture all read/validation/generation paths needed by the six domain adapters.
 
-13.   
-Stage 5 has not begun.  
+For each current site record:
 
+- File and exact line.
 
-Any failed assertion aborts Migration D entirely.
+- Operation.
 
-Successful gate:
+- Field mapping.
 
-**AML.1.b.1 STAGE 4: PASSED — EXACT THREE PERMISSION DEFINITIONS INSERTED AND BOUND ONLY TO THE CAPTURED كبير المشرفين BUNDLE.**
+- Mutation order.
 
----
+- Validation and calculation helpers.
 
-## F. Stage 4 Rollback Artifact
+- Permission assumption.
 
-Store the exact rollback artifact before applying Migration D.
+- Idempotency behavior.
 
-Rollback order:
+- Replacement Stage 6 RPC/adapter.
 
-1.   
-Delete only the three captured `bundle_permissions` rows.  
+- Stage 8 migration disposition.
 
-2.   
-Delete only the three inserted `permission_definitions` rows.  
+The prior census reported 57 sites. Treat 57 as a comparison baseline, not a forced result.
 
+The current repository scan is authoritative:
 
-The rollback must assert:
+- If exactly 57 sites remain, record parity.
 
--   
-captured bundle ID/tenant set remains exact;  
+- If the count differs, enumerate the additions/removals and treat unexplained drift as a blocker.
 
--   
-the three definitions still match the Stage 4 inserted preimage;  
+- Do not omit a current site merely to preserve the prior count.
 
--   
-the only Stage 4 bindings are the three captured bundle rows;  
+- Do not claim “57 complete sites” unless every row is actually populated.
 
--   
-no future/manual binding of these keys exists elsewhere;  
-
-- `finance.invoice.markPaid` remains untouched;  
-
--   
-post-rollback Finance permission-definition count returns from 19 to 16;  
-
--   
-post-rollback bundle Finance binding count returns from 17 to 14.  
-
-
-If another binding or definition drift appears after Stage 4, rollback must halt rather than delete it silently.
-
-Store Stage 4 execution and rollback evidence under:
-
-`docs/aml_1_b_1/stage_04_permissions/`
+Stage 8 still owns the frontend mutation. This pass records the census only.
 
 ---
 
-## G. Failure Handling
+## Phase 3 — Regenerate the complete specification
 
-### Migration C failure
+Rewrite:
 
--   
-Roll back Migration C completely.  
+`docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_[SPEC.md](http://SPEC.md)`
 
--   
-Do not begin Migration D.  
+from its first heading through its terminal line.
 
--   
-Preserve the current Stage 3 state.  
+Apply A.1–A.17 throughout as one coherent document. Do not add a detached errata section and do not retain a false statement with a correction note beside it.
 
--   
-Report the exact failing precision/catalog guard.  
+Required structure:
 
+1. Header, scope and locked invariants.
 
-### Migration D failure
+2. The A.2 twelve-invariant approval contract.
 
--   
-Roll back Migration D completely.  
+3. Universal A.12 payload rejection rules.
 
--   
-Preserve the successfully corrected Stage 3.  
+4. Live evidence for Phase 1 items 1–17.
 
--   
-Do not begin Stage 5.  
+5. Exact A.17 permission map and canonical authorization/locking order.
 
--   
-Report the exact permission/bundle assertion failure.  
+6. `approve_invoice` and `cancel_invoice` state machines, including:
 
+   - legacy `sent` rejection;
 
-No guard may be weakened or waived.
+   - exact `issued` handling;
 
-No alternative schema, role inference, additional permission, or unrelated fix may be introduced.
+   - `-213` exclusion.
+
+7. Expense dual-axis state machine, including:
+
+   - `ledger_status='unposted'`;
+
+   - the only non-null AML expense source `hr_salary_payment`;
+
+   - Model-B reversal linkage.
+
+8. SQLSTATE→stable `FIN_*` mapping.
+
+9. Final evidence-based private-helper inventory:
+
+   - exact signatures;
+
+   - responsibilities;
+
+   - dependencies;
+
+   - owner/security/search path;
+
+   - ACLs;
+
+   - creation/drop order.
+
+10. Invoice-number helper only if Phase 1 item 5 proves that it is required.
+
+11. Fourteen public RPC entries, each with all 20 required fields fully populated:
+
+    - `create_invoice_with_items`
+
+    - `update_invoice_with_items`
+
+    - `delete_draft_invoice`
+
+    - `approve_invoice`
+
+    - `cancel_invoice`
+
+    - `post_payment`
+
+    - `create_expense`
+
+    - `update_expense`
+
+    - `delete_expense`
+
+    - `post_expense_with_ledger`
+
+    - `reverse_expense`
+
+    - `post_manual_ledger_adjustment`
+
+    - `pos_finalize_sale`
+
+    - `record_salary_payment`
+
+12. Six complete adapter entries:
+
+    - Housing
+
+    - Laboratory
+
+    - Doctor
+
+    - Vet
+
+    - Vaccination
+
+    - Breeding
+
+13. Every adapter must include:
+
+    - domain authority;
+
+    - exact source lock;
+
+    - `FOR UPDATE` target;
+
+    - source/client/الخيل/service/price derivation;
+
+    - active-occurrence check;
+
+    - external-provider exclusion;
+
+    - corrective-rebill lineage;
+
+    - canonical final `billing_links` row;
+
+    - response/replay/error/rollback contract.
+
+14. Housing’s corrected closed-range overlap query.
+
+15. Laboratory’s exact direct-client-or-PHL predicate and locked error taxonomy.
+
+16. Twelve field-by-field payload contracts with all ten metadata columns.
+
+17. Current writer census and comparison against the prior 57-site baseline.
+
+18. F0 guarded forward SQL and guarded rollback SQL.
+
+19. F1–F6 migration grouping.
+
+20. Per-migration rollback scope and exact rollback signatures.
+
+21. A.15 Stage 5 rollback guard, clearly labelled:
+
+    `Later file edit for docs/aml_1_b_1/stage_05_private_helpers/ROLLBACK.sql — not applied in this pass`.
+
+22. No-drift and completeness gate.
+
+23. Exact terminal-readiness line.
+
+The document must not contain placeholders such as:
+
+- `TBD`
+
+- `to confirm`
+
+- `assumed`
+
+- `likely`
+
+- `etc.`
+
+- incomplete matrix cells
+
+unless the item is explicitly recorded as unresolved and included in the terminal `BLOCKED` list.
 
 ---
 
-## H. Explicit Non-Scope
+## Phase 4 — Terminal readiness gate
 
-This execution does not:
+After writing the specification, evaluate:
 
--   
-begin Stage 5;  
+- Every Phase 1 item.
 
--   
-create RPCs;  
+- Every A.1–A.17 correction.
 
--   
-migrate frontend writers;  
+- Every RPC and adapter field.
 
--   
-backfill `effective_date`;  
+- Every payload contract.
 
--   
-rebuild balances;  
+- Current writer census completeness.
 
--   
-revoke Finance-Core table DML;  
+- Private-helper dependency and rollback correctness.
 
--   
-modify default privileges;  
+- F0 forward/rollback safety.
 
--   
-add RLS policies;  
+- Stage 3–5 no-drift.
 
--   
-change protected Demo financial records;  
+- Protected financial parity.
 
--   
-neutralize `الم-202607-213`;  
+- Exact file completeness.
 
--   
-create the future real Laboratory customer account;  
+If every input is mechanically proved and every contradiction is removed, the only permitted terminal line is:
 
--   
-change any unrelated module.  
+```text
 
+AML.1.b.1 STAGE 6 FINAL READINESS: READY — READ-ONLY, ZERO MUTATIONS.
+
+```
+
+Here, `ZERO MUTATIONS` refers to database, business data, permissions, migrations, application code and protected records; the single approved specification-file write must be disclosed in the document header.
+
+If anything remains inferred, unresolved or drifted, the only permitted terminal line is:
+
+```text
+
+AML.1.b.1 STAGE 6 FINAL READINESS: BLOCKED — [exact unresolved identifiers], READ-ONLY, ZERO MUTATIONS.
+
+```
+
+Do not use a generic blocker. List exact identifiers.
+
+A delivery-channel or output-size issue is not permission to compress away evidence. If the exact file cannot be completed, return:
+
+```text
+
+AML.1.b.1 STAGE 6 FINAL READINESS: BLOCKED — [SPEC_FILE_DELIVERY_INCOMPLETE], READ-ONLY, ZERO MUTATIONS.
+
+```
 
 ---
 
-## I. Final Execution Output
+## Explicit non-actions
 
-Successful completion must report:
+- Migration tool: not called.
 
-1.   
-Migration C filename and applied result.  
+- Database DDL/DML: not executed.
 
-2.   
-Exact before/after POS numeric definitions.  
+- `supabase/migrations/**`: not created or edited.
 
-3.   
-Final Stage 3 PASSED gate.  
+- `docs/aml_1_b_1/stage_05_private_helpers/ROLLBACK.sql`: not edited.
 
-4.   
-Migration D filename and applied result.  
+- Any file other than the exact Stage 6 specification: not edited.
 
-5.   
-Exact three permission rows.  
+- `src/**`: not edited.
 
-6.   
-Exact three bundle bindings.  
+- Permissions, grants, policies and RPCs: not modified.
 
-7. `finance.invoice.markPaid` preservation.  
+- `finance_request_idempotency`: not written.
 
-8.   
-Protected financial parity.  
+- Protected records: not touched.
 
-9.   
-Stage 4 rollback-artifact location.  
+- Stages 7, 8, 11, 12, 15 and 19: not started.
 
-10.   
-Final status:  
+---
 
+## Deliverables
 
-**AML.1.b.1 STAGE 3: PASSED — FULLY CONFORMANT.**
+1. Exact file:
 
-**AML.1.b.1 STAGE 4: PASSED — EXACT PERMISSION FOUNDATION APPLIED.**
+   `docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_[SPEC.md](http://SPEC.md)`
 
-**STAGE 5: READY, NOT STARTED.**
+2. One compact chat response containing:
+
+   - `READY` or `BLOCKED`.
+
+   - Exact unresolved identifiers when blocked.
+
+   - Exact file path.
+
+   - File line count.
+
+   - File byte count.
+
+   - SHA-256 of the completed file.
+
+   - Confirmation that no other repository file changed.
+
+   - Confirmation that no database/migration write tool was called.
+
+The complete specification lives in the file; the chat response is only its verification manifest.
+
+---
+
+## Technical constraints
+
+- Investigation tools: read-only catalog queries, `rg`, file views and read-only shell/catalog inspection.
+
+- No write-capable database tool.
+
+- No SQL passed through `code--exec` unless it is demonstrably read-only.
+
+- The sole permitted repository effect is the exact specification file.
+
+- The F1 helper count must be derived from the final evidence.
+
+- A.15 `s6_names` must exactly match the final Stage 6 function inventory.
+
+- The Stage 5 `helpers` array remains the exact seven installed Stage 5 helpers.
+
+- No `CASCADE`.
+
+- No default-privilege modification.
+
+- No policy widening.
+
+- No execution of any SQL printed inside the specification.
