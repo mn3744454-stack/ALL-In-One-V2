@@ -12595,6 +12595,64 @@ export type Database = {
         }
         Returns: Json
       }
+      _finance_advisory_lock_key: {
+        Args: {
+          p_idempotency_key: string
+          p_operation: string
+          p_tenant_id: string
+        }
+        Returns: number
+      }
+      _finance_idempotency_begin: {
+        Args: {
+          p_actor_id: string
+          p_idempotency_key: string
+          p_intent: Json
+          p_operation: string
+          p_source: Json
+          p_tenant_id: string
+        }
+        Returns: {
+          is_replay: boolean
+          request_hash: string
+          stored_response: Json
+        }[]
+      }
+      _finance_idempotency_complete: {
+        Args: {
+          p_actor_id: string
+          p_idempotency_key: string
+          p_operation: string
+          p_request_hash: string
+          p_resolved_snapshot: Json
+          p_response: Json
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      _finance_idempotency_purge_expired: {
+        Args: { p_cutoff: string }
+        Returns: number
+      }
+      _finance_request_hash: {
+        Args: {
+          p_actor_id: string
+          p_intent: Json
+          p_operation: string
+          p_source: Json
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      _finance_riyadh_date: { Args: { p_ts: string }; Returns: string }
+      _finance_source_lock_key: {
+        Args: {
+          p_source_id: string
+          p_source_type: string
+          p_tenant_id: string
+        }
+        Returns: number
+      }
       _get_app_setting: { Args: { p_key: string }; Returns: string }
       _lock_horse_authority_scope: {
         Args: { p_horse_id: string }
