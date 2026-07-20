@@ -1,639 +1,635 @@
-# AML.1.b.1 — Stage 3 Precise Recovery & Correct Additive Re-Application
+# AML.1.b.1 — Stage 3 Numeric-Precision Closure & Stage 4 Permission Foundation
 
 ## A. Executive Decision
 
-**READY FOR APPROVAL — ONE BOUNDED EXECUTION.**
+**READY FOR ONE BOUNDED EXECUTION.**
 
-The Stage 3 investigative evidence is complete and sufficient. No additional investigative audit is required.
+The Stage 3 post-execution investigation is complete. No further investigative audit is required.
 
-Upon approval, execution will:
+Stage 3 is mechanically correct except for one confirmed catalog deviation:
 
-1. Roll back only the incorrect Stage 3 additive objects.
-2. Verify exact restoration of the Stage 2 baseline.
-3. Apply the correct approved Stage 3 additive schema in a separate migration.
-4. Verify the corrected catalog and protected financial fingerprints.
-5. Replace the contradictory D-07 documentation with one canonical entry.
-6. Stop before Stage 4 and report the exact result.
+- `pos_sales.subtotal`
+- `pos_sales.tax_amount`
+- `pos_sales.total_amount`
 
-Stage 4 permission insertion/binding is not included in this execution.
+are currently unqualified `numeric`, while the approved contract requires `numeric(12,2)`.
+
+Because the ordered execution contract prohibits Stage 4 from beginning before Stage 3 conforms completely, the previous decision:
+
+`READY FOR STAGE 4 EXECUTION`
+
+is replaced with:
+
+`READY FOR A GUARDED STAGE 3 PRECISION PATCH, FOLLOWED BY STAGE 4 AFTER THE STAGE 3 GATE PASSES.`
+
+Upon approval, execution will use two separate immutable migrations:
+
+1. Migration C — narrow Stage 3 numeric-precision correction.
+2. Migration D — exact Stage 4 permission rows and bundle bindings.
+
+The migrations must not be combined.
+
+If Migration C fails, Migration D must not begin.
+
+If Migration C passes and Migration D fails, only Migration D rolls back; the corrected Stage 3 remains passed.
+
+No Stage 5 work is included.
 
 ---
 
-## B. Current Proven State
+## B. Locked Current Evidence
 
-The incorrectly applied migration is:
+The following evidence is accepted:
 
-`supabase/migrations/20260720112709_ad08a2ec-3811-4c0f-ad01-b99e602a10c1.sql`
+### Migration history
 
-It remains immutable and must not be edited or deleted.
+- Original incorrect Stage 3:
+  `supabase/migrations/20260720112709_ad08a2ec-3811-4c0f-ad01-b99e602a10c1.sql`
+- Migration A — precise rollback:
+  `supabase/migrations/20260720165405_b3636f3e-6418-4f8a-a5ab-89a765b18580.sql`
+- Migration B — corrected additive schema:
+  `supabase/migrations/20260720165521_b5a440d6-46e0-46a5-b1b6-e3db4380bc22.sql`
 
-Read-only evidence confirms:
+These files remain immutable.
 
-- `finance_request_idempotency` contains 0 rows.
-- `pos_sales` contains 0 rows.
-- Neither table has application-code consumers.
-- Neither table has policies, triggers, referencing FKs, views, or function dependencies.
-- `expense_ledger_status` is used only by `expenses.ledger_status`.
-- `ledger_entries.effective_date` has no reader/writer consumer.
+### Stage 3 confirmed-correct objects
+
+- `ledger_entries.effective_date date NULL`, no default.
+- Approved composite effective-date index exists.
+- Approved cancellation partial UNIQUE index exists.
+- `invoices.corrects_invoice_id` exists with the correct self-FK.
+- `invoices.corrects_invoke_id` is absent; the earlier wording was a narrative typo only.
+- `invoice_items_period_valid_ck` exists and remains NOT VALID.
+- All six approved expense columns exist.
+- The expense ledger/source checks and partial unique indexes exist.
+- The unapproved expense enum is absent.
+- `finance_request_idempotency` matches its approved UUID/bytea/snapshot/expiry contract.
+- `pos_sales` matches its approved identities, FKs, occurrence key, currency nullability, and non-unique cart hash.
+- RLS is enabled and not forced on both internal tables.
+- No PUBLIC/anon/authenticated access exists on either internal table.
+- Both internal tables contain zero rows.
+- D-07 is canonical and non-duplicated.
+- Protected financial fingerprints match Stage 2.
 - Stage 4 has not begun.
-- All Stage 2 protected fingerprints, counts, sums, status distributions, and protected records remain unchanged.
 
-Therefore a precise Stage-3-only rollback is mechanically safe.
+### Remaining Stage 3 deviation
 
----
+Live catalog:
 
-## C. Execution Boundary
+- `subtotal numeric`
+- `tax_amount numeric`
+- `total_amount numeric`
 
-This execution consists of two separate immutable migrations:
+Approved:
 
-### Migration A — Precise rollback
+- `subtotal numeric(12,2)`
+- `tax_amount numeric(12,2)`
+- `total_amount numeric(12,2)`
 
-Create a new migration that reverses only the incorrect objects introduced by the failed Stage 3 migration.
-
-### Migration B — Correct Stage 3
-
-Only after Migration A passes its restoration gate, create and apply a second migration containing the exact approved Stage 3 additive schema.
-
-The two migrations must never be combined into one transaction or one migration file.
-
-If Migration A fails, Migration B must not begin.
-
-If Migration B fails, its own transaction must roll back completely, leaving the successfully restored Stage 2 baseline intact.
+This deviation must be closed before Stage 4.
 
 ---
 
-## D. Migration A — Exact Guarded Rollback
+## C. Migration C — Guarded Stage 3 Numeric-Precision Patch
 
-### D1. Pre-mutation guards
+### C1. Pre-mutation guards
 
-Before dropping anything, the rollback transaction must verify:
+Before executing any ALTER, assert:
 
-#### Incorrect `finance_request_idempotency`
+1. `public.pos_sales` exists.
+2. Row count is exactly 0.
+3. RLS is enabled and not forced.
+4. No policy exists.
+5. The approved PK, FKs, and unique `(tenant_id, session_id, sale_number)` remain exact.
+6. `cart_hash` is not unique.
+7. `currency` remains NOT NULL.
+8. No incorrect placeholder column exists.
+9. The exact current numeric definitions are:
 
-- Row count = 0.
-- Exact columns and order:
+   - `subtotal` = unqualified `numeric`, NOT NULL, no default.
+   - `tax_amount` = unqualified `numeric`, NOT NULL, default numerically equal to 0.
+   - `total_amount` = unqualified `numeric`, NOT NULL, no default.
 
-  1. `id uuid NOT NULL DEFAULT gen_random_uuid()`
-  2. `tenant_id uuid NOT NULL`
-  3. `actor_user_id uuid NOT NULL`
-  4. `operation text NOT NULL`
-  5. `request_key text NOT NULL`
-  6. `payload_hash text NOT NULL`
-  7. `response jsonb NULL`
-  8. `status text NOT NULL DEFAULT 'pending'`
-  9. `created_at timestamptz NOT NULL DEFAULT now()`
-  10. `completed_at timestamptz NULL`
+10. None of the three columns already has precision/scale.
+11. No view, function, generated expression, trigger, or unexpected dependency prevents the approved precision change.
+12. All six expense FKs/checks/indexes and every other Stage 3 object still match Migration B.
+13. Stage 4 permission keys and bindings remain absent.
+14. Protected financial counts, sums, distributions, and keyed fingerprints still match the Stage 2 baseline.
 
-- Primary key on `id`.
-- Unique constraint on `(tenant_id, actor_user_id, operation, request_key)`.
-- Exact indexes:
+Any failed guard aborts Migration C before the first ALTER.
 
-  - `finance_request_idempotency_tenant_idx`
-  - `finance_request_idempotency_hash_idx`
+### C2. Exact mutation
 
-- No foreign keys.
-- RLS currently enabled and forced, matching the failed migration.
-- Zero policies.
-- Zero triggers.
-- Zero unexpected dependencies.
-- No `PUBLIC`, `anon`, or `authenticated` access.
-- Current service-role access matches the failed migration.
+In one transactional migration, execute:
 
-#### Incorrect `pos_sales`
+```sql
+ALTER TABLE public.pos_sales
+  ALTER COLUMN subtotal
+    TYPE numeric(12,2)
+    USING subtotal::numeric(12,2),
+  ALTER COLUMN tax_amount
+    TYPE numeric(12,2)
+    USING tax_amount::numeric(12,2),
+  ALTER COLUMN total_amount
+    TYPE numeric(12,2)
+    USING total_amount::numeric(12,2);
 
-- Row count = 0.
-- Exact columns and order:
+Preserve:
 
-  1. `id uuid NOT NULL DEFAULT gen_random_uuid()`
-  2. `tenant_id uuid NOT NULL`
-  3. `branch_id uuid NULL`
-  4. `cashier_user_id uuid NULL`
-  5. `sale_reference text NULL`
-  6. `occurred_at timestamptz NOT NULL DEFAULT now()`
-  7. `subtotal numeric(14,2) NOT NULL DEFAULT 0`
-  8. `tax_amount numeric(14,2) NOT NULL DEFAULT 0`
-  9. `total_amount numeric(14,2) NOT NULL DEFAULT 0`
-  10. `currency text NULL`
-  11. `status text NOT NULL DEFAULT 'draft'`
-  12. `created_at timestamptz NOT NULL DEFAULT now()`
-  13. `updated_at timestamptz NOT NULL DEFAULT now()`
+- `subtotal` NOT NULL with no default.  
 
-- Primary key on `id`.
-- Exact index `pos_sales_tenant_occurred_idx`.
-- No other user-defined constraint.
-- No foreign key.
-- RLS currently enabled and forced, matching the failed migration.
-- Zero policies.
-- Zero triggers.
-- Zero unexpected dependencies.
-- No `PUBLIC`, `anon`, or `authenticated` access.
-- Current service-role access matches the failed migration.
+- `tax_amount` NOT NULL with default `0`.  
 
-#### Incorrect `expenses.ledger_status`
+- `total_amount` NOT NULL with no default.  
 
-- Column exists.
-- Type is exactly `public.expense_ledger_status`.
-- Column is nullable with no default.
-- Enum labels and order are exactly:
 
-  - `unposted`
-  - `posted`
-  - `reversed`
+Do not change any other `pos_sales` column, constraint, FK, index, ACL, RLS flag, policy, or table property.
 
-- `expenses.ledger_status` is the type’s only column consumer.
-- No constraint, index, view, function, trigger, policy expression, or other dependency uses the column/type.
+Do not use `CASCADE`.
 
-#### Incorrect `ledger_entries.effective_date`
+Do not use `IF EXISTS`.
 
-- Column is `date NULL` with no default.
-- Exact incorrect indexes exist:
+Do not modify default privileges.
 
-  - `ledger_entries_effective_date_idx` on `(effective_date)`
-  - `ledger_entries_tenant_effective_date_idx` on `(tenant_id, effective_date)`
-
-- Those are the only indexes referencing `effective_date`.
-- No constraint, view, function, trigger, policy expression, generated expression, default, or other dependency references it.
-
-Any guard failure aborts the complete rollback transaction before the first DROP.
-
-### D2. Exact drop order
-
-After all guards pass, execute plain DROP statements in this order:
-
-1. `DROP INDEX public.pos_sales_tenant_occurred_idx`
-2. `DROP TABLE public.pos_sales`
-3. `DROP INDEX public.finance_request_idempotency_hash_idx`
-4. `DROP INDEX public.finance_request_idempotency_tenant_idx`
-5. `DROP TABLE public.finance_request_idempotency`
-6. `ALTER TABLE public.expenses DROP COLUMN ledger_status`
-7. `DROP TYPE public.expense_ledger_status`
-8. `DROP INDEX public.ledger_entries_tenant_effective_date_idx`
-9. `DROP INDEX public.ledger_entries_effective_date_idx`
-10. `ALTER TABLE public.ledger_entries DROP COLUMN effective_date`
-
-Rules:
-
-- No `IF EXISTS`.
-- No `CASCADE`.
-- No deletion or modification of the already-applied failed migration file.
-- No change to default privileges.
-- No change to the six existing Finance-Core table ACLs.
-- No protected-row mutation.
-
-### D3. Post-drop assertions inside the same transaction
+### C3. Post-mutation Stage 3 gate
 
 Before COMMIT, assert:
 
-- `finance_request_idempotency` is absent.
-- `pos_sales` is absent.
-- `expense_ledger_status` is absent.
-- `expenses.ledger_status` is absent.
-- `ledger_entries.effective_date` is absent.
-- All failed Stage 3 index names are absent.
-- No failed Stage 3 object remains.
-- The three Stage 4 permission keys remain absent.
-- No corresponding bundle binding exists.
-- Stage 2 protected counts, sums, ledger distributions, invoice-status distribution, and keyed fingerprints remain exact.
-- `INV-MMO9AAXD` remains paid at 60,000.00.
-- `INV-MNDH8GPD` remains approved at 106,375.00 with its protected 37 items.
-- `INV-MP4ET8LQ` remains draft at 2,032.26.
-- `الم-202607-213` remains approved at 50.00 with its single `+50` ledger row.
-- No protected record changed.
+-   
+all three columns are exactly `numeric(12,2)`;  
 
-Any failed post-drop assertion aborts the transaction and restores the incorrect Stage 3 objects automatically.
+-   
+precision = 12;  
 
-### D4. Migration A exit gate
+-   
+scale = 2;  
 
-Migration A passes only when:
+-   
+all required nullability/default contracts remain exact;  
 
-**AML.1.b.1 STAGE 3 ROLLBACK: PASSED — EXACT STAGE 2 BASELINE RESTORED.**
+- `pos_sales` still contains 0 rows;  
 
-Only then may Migration B begin.
+-   
+every approved Stage 3 object remains exact;  
+
+-   
+no existing financial/business row changed;  
+
+-   
+protected financial fingerprints remain exact;  
+
+-   
+Stage 4 remains unstarted.  
+
+
+Successful terminal gate:
+
+**AML.1.b.1 STAGE 3: PASSED — CORRECT ADDITIVE SCHEMA FULLY CONFORMANT, INCLUDING POS NUMERIC(12,2); PROTECTED FINANCIAL STATE UNCHANGED.**
+
+Only after this gate passes may Migration D begin.
+
+### C4. Stage 3 execution evidence
+
+Create/update:
+
+`docs/aml_1_b_1/stage_03_execution/STAGE_03_[CLOSURE.md](http://CLOSURE.md)`
+
+Record:
+
+-   
+original incorrect migration;  
+
+-   
+Migration A rollback;  
+
+-   
+Migration B corrected additive schema;  
+
+-   
+Migration C precision correction;  
+
+-   
+before/after precision evidence;  
+
+-   
+zero-row proof;  
+
+-   
+complete protected parity;  
+
+-   
+D-07 canonical state;  
+
+-   
+final Stage 3 PASSED decision.  
+
+
+Do not alter the canonical D-07 row.
 
 ---
 
-## E. Migration B — Correct Approved Stage 3
+## D. Migration D — Stage 4 Exact Permission Foundation
 
-Migration B must use plain additive DDL after proving that every target object is absent. Do not reuse the incorrect placeholder designs.
+### D1. Pre-mutation catalog assertions
 
-### E1. `ledger_entries`
+Before insertion, assert:
 
-Add:
+#### `permission_definitions`
 
-```sql
-effective_date date NULL
+The authoritative insert columns are exactly:
 
-No default and no backfill.
+- `key`  
 
-Add the approved composite index on:
+- `module`  
+
+- `resource`  
+
+- `action`  
+
+- `display_name`  
+
+- `display_name_ar`  
+
+- `description`  
+
+- `description_ar`  
+
+- `is_delegatable`  
+
+
+Confirm:
+
+- `is_owner_only` does not exist.  
+
+-   
+None of the three target permission keys exists.  
+
+-   
+Current Finance permission-definition count is exactly 16.  
+
+-   
+Existing sibling Finance convention still supports the captured exact values.  
+
+-   
+No conflicting catalog drift exists.  
+
+
+#### `كبير المشرفين` bundle
+
+Assert the platform-wide exact set is one row:
+
+- `bundle_id = 4d9b8917-f11d-4879-840d-1b682bad8cec`  
+
+- `tenant_id = 145f2128-83ca-4ba8-85b5-8ade245c5530`  
+
+- `name = كبير المشرفين`  
+
+- `is_system = false`  
+
+
+Confirm:
+
+-   
+no duplicate same-name bundle exists;  
+
+-   
+current Finance bindings count = 14;  
+
+-   
+none of the three target bindings exists;  
+
+- `finance.invoice.markPaid` remains present and bound;  
+
+- `bundle_permissions` contains only `(bundle_id, permission_key)`;  
+
+-   
+PK is `(bundle_id, permission_key)`;  
+
+-   
+no `tenant_id` column exists on `bundle_permissions`.  
+
+
+Any failed assertion aborts Migration D before insertion.
+
+### D2. Exact permission rows
+
+Insert exactly:
 
 ```
 
 ```
 
 ```
-(tenant_id, client_id, effective_date, created_at, id)
-```
-
-Add a partial UNIQUE index on `reference_id` where:
-
-```
-
-```
-
-```
-entry_type = 'adjustment'
-AND reference_type = 'invoice_cancellation'
-```
-
-Do not recreate either incorrect Stage 3 index.
-
-### E2. `invoices`
-
-Add:
-
-```
-
-```
-
-```
-corrects_invoice_id uuid NULL
-REFERENCES public.invoices(id)
-```
-
-No existing invoice is updated.
-
-### E3. `invoice_items`
-
-Add exactly:
-
-```
-
-```
-
-```
-CONSTRAINT invoice_items_period_valid_ck
-CHECK (
-  (period_start IS NULL AND period_end IS NULL)
-  OR
+INSERT INTO public.permission_definitions
   (
-    period_start IS NOT NULL
-    AND period_end IS NOT NULL
-    AND period_end >= period_start
+    key,
+    module,
+    resource,
+    action,
+    display_name,
+    display_name_ar,
+    description,
+    description_ar,
+    is_delegatable
   )
-) NOT VALID
+VALUES
+  (
+    'finance.invoice.approve',
+    'finance',
+    'invoice',
+    'approve',
+    'Approve Invoices',
+    'اعتماد الفواتير',
+    'Approve draft invoices and post them to the ledger',
+    'اعتماد مسودات الفواتير وترحيلها إلى السجل المالي',
+    true
+  ),
+  (
+    'finance.invoice.cancel',
+    'finance',
+    'invoice',
+    'cancel',
+    'Cancel Invoices',
+    'إلغاء الفواتير',
+    'Cancel invoices and reverse associated ledger entries',
+    'إلغاء الفواتير وعكس القيود المحاسبية المرتبطة بها',
+    true
+  ),
+  (
+    'finance.adjustment.create',
+    'finance',
+    'adjustment',
+    'create',
+    'Create Financial Adjustments',
+    'إنشاء تسويات مالية',
+    'Create manual financial adjustments to customer balances',
+    'إنشاء تسويات مالية يدوية لأرصدة العملاء',
+    true
+  );
 ```
 
-Do not validate this constraint during AML.1.b.1.
+No additional permission key, alias, wildcard, plural namespace, or compatibility key may be added.
 
-The one existing legacy invalid range remains protected and is not rewritten.
+### D3. Exact bundle bindings
 
-### E4. `expenses`
-
-Add nullable columns only:
-
-```
-
-```
-
-```
-ledger_status text NULL
-posted_at timestamptz NULL
-ledger_entry_id uuid NULL REFERENCES public.ledger_entries(id)
-source_type text NULL
-source_reference uuid NULL
-reverses_expense_id uuid NULL REFERENCES public.expenses(id)
-```
-
-Add a transition-safe CHECK allowing `ledger_status` values:
-
-```
-
-```
-
-```
-NULL
-'unposted'
-'posted'
-'reversed'
-```
-
-Do not create an enum type.
-
-Add the both-null-or-both-non-null source-pair CHECK:
-
-```
-
-```
-
-```
-(source_type IS NULL AND source_reference IS NULL)
-OR
-(source_type IS NOT NULL AND source_reference IS NOT NULL)
-```
-
-Add:
-
--   
-Unique `(tenant_id, source_type, source_reference)` where `source_type IS NOT NULL`.  
-
--   
-Unique non-null `reverses_expense_id`.  
-
--   
-One-ledger-row-per-expense enforcement for ledger rows whose `reference_type='expense'`.  
-
-
-Do not backfill these fields in Stage 3.
-
-Do not set a default or NOT NULL on `ledger_status`.
-
-The only non-null expense source introduced later by AML.1.b.1 remains `hr_salary_payment`. Source-row validation and ordinary-delete guards remain at their approved later stage.
-
-### E5. Correct `finance_request_idempotency`
-
-Create exactly:
+Insert exactly:
 
 ```
 
 ```
 
 ```
-CREATE TABLE public.finance_request_idempotency (
-  tenant_id uuid NOT NULL
-    REFERENCES public.tenants(id) ON DELETE CASCADE,
-  operation text NOT NULL,
-  idempotency_key uuid NOT NULL,
-  actor_id uuid NOT NULL,
-  request_hash bytea NOT NULL,
-  resolved_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
-  response jsonb NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  expires_at timestamptz NOT NULL
-    DEFAULT (now() + interval '7 days'),
-  PRIMARY KEY (tenant_id, operation, idempotency_key)
-);
+INSERT INTO public.bundle_permissions
+  (bundle_id, permission_key)
+VALUES
+  (
+    '4d9b8917-f11d-4879-840d-1b682bad8cec',
+    'finance.invoice.approve'
+  ),
+  (
+    '4d9b8917-f11d-4879-840d-1b682bad8cec',
+    'finance.invoice.cancel'
+  ),
+  (
+    '4d9b8917-f11d-4879-840d-1b682bad8cec',
+    'finance.adjustment.create'
+  );
 ```
 
-Add the approved index on `expires_at`.
-
-Security:
+Do not bind the keys to:
 
 -   
-Enable RLS.  
+any other preset;  
 
 -   
-Do not FORCE RLS.  
+any custom role;  
 
 -   
-Revoke all access from `PUBLIC`, `anon`, and `authenticated`.  
+any other tenant bundle;  
 
 -   
-Retain required access for the table owner/approved controlled SECURITY DEFINER function owner.  
+any bundle inferred from create/edit permissions;  
 
 -   
-Grant required maintenance access to `service_role`.  
+any individual user automatically.  
+
+
+Do not add, remove, rename, or rebind `finance.invoice.markPaid`.
+
+---
+
+## E. Stage 4 Post-Mutation Assertions
+
+Before COMMIT, assert:
+
+1.   
+Exactly three new permission definitions exist.  
+
+2.   
+Every stored column value matches §D2 byte-for-byte.  
+
+3.   
+Finance permission-definition count changed exactly from 16 to 19.  
+
+4.   
+Exactly three new bundle bindings exist.  
+
+5.   
+Bundle Finance binding count changed exactly from 14 to 17.  
+
+6.   
+No target permission is bound to another bundle.  
+
+7.   
+No unrelated permission definition or binding changed.  
+
+8. `finance.invoice.markPaid` row and binding remain unchanged.  
+
+9.   
+No invoice, invoice item, ledger entry, customer balance, billing link, expense, POS row, or idempotency row changed.  
+
+10.   
+Protected financial fingerprints remain exact.  
+
+11.   
+Stage 3 schema remains exact, including all three `numeric(12,2)` columns.  
+
+12.   
+No ACL, RLS policy, default privilege, function, trigger, or application writer changed.  
+
+13.   
+Stage 5 has not begun.  
+
+
+Any failed assertion aborts Migration D entirely.
+
+Successful gate:
+
+**AML.1.b.1 STAGE 4: PASSED — EXACT THREE PERMISSION DEFINITIONS INSERTED AND BOUND ONLY TO THE CAPTURED كبير المشرفين BUNDLE.**
+
+---
+
+## F. Stage 4 Rollback Artifact
+
+Store the exact rollback artifact before applying Migration D.
+
+Rollback order:
+
+1.   
+Delete only the three captured `bundle_permissions` rows.  
+
+2.   
+Delete only the three inserted `permission_definitions` rows.  
+
+
+The rollback must assert:
 
 -   
-Create no permissive authenticated/anon policy.  
-
-
-Technical locks:
-
-- `idempotency_key` remains UUID.  
-
-- `request_hash` remains bytea/SHA-256.  
+captured bundle ID/tenant set remains exact;  
 
 -   
-No surrogate `id`.  
+the three definitions still match the Stage 4 inserted preimage;  
 
 -   
-No actor-dependent uniqueness.  
+the only Stage 4 bindings are the three captured bundle rows;  
 
 -   
-No `request_key text`.  
+no future/manual binding of these keys exists elsewhere;  
+
+- `finance.invoice.markPaid` remains untouched;  
 
 -   
-No `payload_hash text`.  
+post-rollback Finance permission-definition count returns from 19 to 16;  
 
 -   
-No unapproved `status` or `completed_at`.  
+post-rollback bundle Finance binding count returns from 17 to 14.  
 
 
-### E6. Correct `pos_sales`
+If another binding or definition drift appears after Stage 4, rollback must halt rather than delete it silently.
 
-Create exactly:
+Store Stage 4 execution and rollback evidence under:
 
-```
+`docs/aml_1_b_1/stage_04_permissions/`
 
-```
+---
 
-```
-CREATE TABLE public.pos_sales (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL REFERENCES public.tenants(id),
-  session_id uuid NOT NULL REFERENCES public.pos_sessions(id),
-  sale_number integer NOT NULL,
-  cart_hash text NOT NULL,
-  subtotal numeric(12,2) NOT NULL,
-  tax_amount numeric(12,2) NOT NULL DEFAULT 0,
-  total_amount numeric(12,2) NOT NULL,
-  currency text NOT NULL,
-  invoice_id uuid NULL REFERENCES public.invoices(id),
-  created_by uuid NOT NULL REFERENCES public.profiles(id),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (tenant_id, session_id, sale_number)
-);
-```
+## G. Failure Handling
 
-Security:
+### Migration C failure
 
 -   
-Enable RLS.  
+Roll back Migration C completely.  
 
 -   
-Do not FORCE RLS.  
+Do not begin Migration D.  
 
 -   
-Revoke all access from `PUBLIC`, `anon`, and `authenticated`.  
+Preserve the current Stage 3 state.  
 
 -   
-Retain required table-owner/controlled function-owner access.  
+Report the exact failing precision/catalog guard.  
+
+
+### Migration D failure
 
 -   
-Grant required maintenance access to `service_role`.  
+Roll back Migration D completely.  
 
 -   
-Create no permissive authenticated/anon policy.  
+Preserve the successfully corrected Stage 3.  
 
 -   
-Do not grant authenticated SELECT because no existing reader currently requires it.  
-
-
-Technical locks:
-
-- `cart_hash` is audit-only and must not be unique.  
+Do not begin Stage 5.  
 
 -   
-Do not add `branch_id`, `cashier_user_id`, `sale_reference`, `occurred_at`, `status`, or `updated_at`.  
+Report the exact permission/bundle assertion failure.  
+
+
+No guard may be weakened or waived.
+
+No alternative schema, role inference, additional permission, or unrelated fix may be introduced.
+
+---
+
+## H. Explicit Non-Scope
+
+This execution does not:
 
 -   
-Do not change numeric precision from `numeric(12,2)`.  
+begin Stage 5;  
 
 -   
-Do not make currency nullable.  
+create RPCs;  
 
-
-### E7. Stage 3 prohibited actions
-
-Migration B must not:
+-   
+migrate frontend writers;  
 
 -   
 backfill `effective_date`;  
 
 -   
-backfill expense fields;  
-
--   
 rebuild balances;  
 
 -   
-add final NOT NULL constraints;  
+revoke Finance-Core table DML;  
 
 -   
-insert permission definitions;  
+modify default privileges;  
 
 -   
-bind permission bundles;  
+add RLS policies;  
 
 -   
-modify the six existing Finance-Core ACLs;  
+change protected Demo financial records;  
 
 -   
-execute `ALTER DEFAULT PRIVILEGES`;  
+neutralize `الم-202607-213`;  
 
 -   
-mutate any invoice, item, ledger, balance, billing link, expense, or protected Demo record;  
+create the future real Laboratory customer account;  
 
 -   
-touch `الم-202607-213`;  
-
--   
-begin Stage 4.  
+change any unrelated module.  
 
 
 ---
 
-## F. D-07 Documentation Correction
+## I. Final Execution Output
 
-Replace every old or duplicate D-07 paragraph/row in:
-
-`docs/aml_1_b_1/stage_01_preflight/STAGE_01_[CLOSURE.md](http://CLOSURE.md)`
-
-with one canonical entry only:
-
-> **D-07 (locked, corrected).** `information_schema.role_table_grants` is role-visibility-dependent and is not authoritative evidence of current table ACLs. The captured `pg_class.relacl` fingerprint in `docs/aml_1_b_1/stage_02_rollback_artifacts/relacl_fingerprint.tsv` is authoritative for the six existing locked Finance-Core tables. Stage 15 uses narrow explicit table-level `REVOKE` statements on those six existing tables only after Stage 8 writer migration and the Stage 9 zero-bypass gate. `ALTER DEFAULT PRIVILEGES` and every global/default-privilege modification are prohibited in AML.1.b.1. Stage 3 does not revoke access from the six existing Finance-Core tables. New internal tables receive their explicit restrictive ACLs in their own migration. RLS is enabled but not forced. `PUBLIC`, `anon`, and `authenticated` cannot access `finance_request_idempotency`; `pos_sales` has no authenticated/anon DML and currently no authenticated SELECT. The approved table owner/controlled SECURITY DEFINER function owner and service role retain only the internal access required by the approved design.
-
-No superseded D-07 text remains.
-
----
-
-## G. Correct Stage 3 Verification Gate
-
-After Migration B, run read-only verification proving:
+Successful completion must report:
 
 1.   
-Every approved column, type, nullability, default, FK, CHECK, index, partial predicate, and unique key exists exactly.  
+Migration C filename and applied result.  
 
 2.   
-No incorrect Stage 3 object or index exists.  
+Exact before/after POS numeric definitions.  
 
-3. `finance_request_idempotency` has 0 rows.  
+3.   
+Final Stage 3 PASSED gate.  
 
-4. `pos_sales` has 0 rows.  
+4.   
+Migration D filename and applied result.  
 
 5.   
-RLS is enabled and not forced on both new tables.  
+Exact three permission rows.  
 
 6.   
-No authenticated/anon/PUBLIC access exists on either new table.  
+Exact three bundle bindings.  
 
-7.   
-No permissive policy exists.  
+7. `finance.invoice.markPaid` preservation.  
 
 8.   
-No six-table ACL changed.  
+Protected financial parity.  
 
 9.   
-No default privilege changed.  
+Stage 4 rollback-artifact location.  
 
 10.   
-No existing row was updated.  
-
-11.   
-Stage 2 protected fingerprints, counts, sums, ledger distributions, invoice-status distribution, and protected records remain exact.  
-
-12.   
-The three Stage 4 permission keys remain absent.  
-
-13.   
-Stage 4 has not begun.  
-
-14.   
-The original failed migration, rollback migration, and corrected migration all remain present as immutable migration history.  
-
-15.   
-The D-07 document contains one canonical entry and no contradiction.  
+Final status:  
 
 
-The two expected `INFO 0008 RLS Enabled No Policy` findings on the internal tables are intentional and must not be “fixed” by adding permissive policies.
+**AML.1.b.1 STAGE 3: PASSED — FULLY CONFORMANT.**
 
----
+**AML.1.b.1 STAGE 4: PASSED — EXACT PERMISSION FOUNDATION APPLIED.**
 
-## H. Failure Handling
-
-If Migration A fails:
-
--   
-its transaction rolls back completely;  
-
--   
-Migration B does not begin;  
-
--   
-Stage 4 does not begin;  
-
--   
-report the exact failed guard.  
-
-
-If Migration A passes but Migration B fails:
-
--   
-Migration B rolls back completely;  
-
--   
-the database remains at the exact Stage 2 baseline restored by Migration A;  
-
--   
-Stage 4 does not begin;  
-
--   
-report the exact failing DDL object.  
-
-
-Do not improvise an alternative schema, weaken a guard, add a policy, change a permission namespace, or use `IF NOT EXISTS` to conceal incompatible state.
-
----
-
-## I. Final Execution Status
-
-Upon approval, execute Migration A, its restoration gate, Migration B, its corrected Stage 3 gate, and the D-07 documentation replacement.
-
-Do not proceed to Stage 4 in the same execution.
-
-Successful terminal output must be:
-
-**AML.1.b.1 STAGE 3: PASSED — INCORRECT ADDITIVE MIGRATION PRECISELY REVERSED, CORRECT ADDITIVE SCHEMA APPLIED, PROTECTED FINANCIAL STATE UNCHANGED.**
-
-**STAGE 4: READY, NOT STARTED.**
+**STAGE 5: READY, NOT STARTED.**
