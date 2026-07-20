@@ -164,14 +164,19 @@ Invoice status distribution: `draft` 5, `approved` 14, `shared` 3, `paid` 14,
 - Function grants on finance-relevant helpers captured in
   `protected_records_preimage_raw.txt` (rows for `_invoice_items_*`,
   `can_view_payment_*`, `validate_payment_intent`).
-- Table-level explicit ACL for the six locked financial tables
-  (`invoices`, `invoice_items`, `ledger_entries`, `customer_balances`,
-  `billing_links`, `expenses`) shows no explicit `role_table_grants` entries
-  for `anon`/`authenticated`/`service_role` — access flows via default
-  privileges + RLS. Stage 15 revoke must therefore act on default privileges
-  and any implicit `TABLE ... TO authenticated` grants issued by migrations,
-  not just on entries visible in `information_schema.role_table_grants`.
-  Stage 2 captures `pg_class.relacl` fingerprints for exact restore.
+- `information_schema.role_table_grants` being empty for the six locked
+  tables is **not** authoritative proof that no grants exist; that view's
+  visibility depends on the querying role and may omit grants the current
+  role cannot see. The authoritative current-table ACL evidence is the
+  captured `pg_class.relacl` fingerprint in
+  `docs/aml_1_b_1/stage_02_rollback_artifacts/relacl_fingerprint.tsv`.
+- Stage 15 must use **narrow explicit table-level `REVOKE` statements** on
+  the six locked existing tables only (`invoices`, `invoice_items`,
+  `ledger_entries`, `customer_balances`, `billing_links`, `expenses`).
+- `ALTER DEFAULT PRIVILEGES` is **prohibited** anywhere in AML.1.b.1. Do
+  not modify global or default privileges.
+
+
 
 ## 11. Drift resolutions (this closure)
 
@@ -183,7 +188,7 @@ Invoice status distribution: `draft` 5, `approved` 14, `shared` 3, `paid` 14,
 | D-04 | `lab_horses.client_id` treated as permanently NULL | Reclassified as current evidence only, not schema invariant (§6). |
 | D-05 | Prior narrative implied `-213` neutralization amount was `-213` | Verified: the invoice `الم-202607-213` total is 50.00; single ledger row `+50`. Stage 19 canonical reversal amount is **-50**, not -213. |
 | D-06 | `customer_balances.updated_at` referenced in preflight | Column does not exist. Reconciliation queries must use `balance` only. |
-| D-07 | Explicit `role_table_grants` empty for the six locked tables | Stage 15 revoke acts against default privileges + `pg_class.relacl`. |
+| D-07 (**locked, corrected**) | Earlier draft treated an empty `information_schema.role_table_grants` result as proof no grants exist on the six locked tables, and implied Stage 15 could act on default privileges. | (1) `role_table_grants` visibility is role-dependent and is **not** authoritative. (2) The captured `pg_class.relacl` fingerprint (`stage_02_rollback_artifacts/relacl_fingerprint.tsv`) is the authoritative current-table ACL evidence. (3) Stage 15 must use **narrow explicit table-level `REVOKE`** on the six locked existing tables only. (4) `ALTER DEFAULT PRIVILEGES` and any other global/default-privilege modification is **prohibited** in AML.1.b.1. (5) New Stage 3 internal tables receive their explicit restrictive grants/revokes inside their own additive migration: `finance_request_idempotency` — no `authenticated`, `anon`, or `PUBLIC` access; `pos_sales` — no `authenticated`/`anon` DML (no existing reader mechanically requires SELECT today). (6) Stage 3 must **not** revoke DML from the six existing Finance-Core tables; their lockdown remains Stage 15 after writer migration and the Stage 9 gate. |
 
 ## 12. Production zero-mutation confirmation
 
