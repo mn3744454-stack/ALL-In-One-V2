@@ -2839,11 +2839,14 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
-          ledger_status:
-            | Database["public"]["Enums"]["expense_ledger_status"]
-            | null
+          ledger_entry_id: string | null
+          ledger_status: string | null
           notes: string | null
+          posted_at: string | null
           receipt_asset_id: string | null
+          reverses_expense_id: string | null
+          source_reference: string | null
+          source_type: string | null
           status: string | null
           tenant_id: string
           updated_at: string | null
@@ -2859,11 +2862,14 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
-          ledger_status?:
-            | Database["public"]["Enums"]["expense_ledger_status"]
-            | null
+          ledger_entry_id?: string | null
+          ledger_status?: string | null
           notes?: string | null
+          posted_at?: string | null
           receipt_asset_id?: string | null
+          reverses_expense_id?: string | null
+          source_reference?: string | null
+          source_type?: string | null
           status?: string | null
           tenant_id: string
           updated_at?: string | null
@@ -2879,11 +2885,14 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
-          ledger_status?:
-            | Database["public"]["Enums"]["expense_ledger_status"]
-            | null
+          ledger_entry_id?: string | null
+          ledger_status?: string | null
           notes?: string | null
+          posted_at?: string | null
           receipt_asset_id?: string | null
+          reverses_expense_id?: string | null
+          source_reference?: string | null
+          source_type?: string | null
           status?: string | null
           tenant_id?: string
           updated_at?: string | null
@@ -2892,10 +2901,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "expenses_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "expenses_receipt_asset_id_fkey"
             columns: ["receipt_asset_id"]
             isOneToOne: false
             referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_reverses_expense_id_fkey"
+            columns: ["reverses_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
             referencedColumns: ["id"]
           },
           {
@@ -3068,42 +3091,54 @@ export type Database = {
       }
       finance_request_idempotency: {
         Row: {
-          actor_user_id: string
-          completed_at: string | null
+          actor_id: string
           created_at: string
-          id: string
+          expires_at: string
+          idempotency_key: string
           operation: string
-          payload_hash: string
-          request_key: string
+          request_hash: string
+          resolved_snapshot: Json
           response: Json | null
-          status: string
           tenant_id: string
         }
         Insert: {
-          actor_user_id: string
-          completed_at?: string | null
+          actor_id: string
           created_at?: string
-          id?: string
+          expires_at?: string
+          idempotency_key: string
           operation: string
-          payload_hash: string
-          request_key: string
+          request_hash: string
+          resolved_snapshot?: Json
           response?: Json | null
-          status?: string
           tenant_id: string
         }
         Update: {
-          actor_user_id?: string
-          completed_at?: string | null
+          actor_id?: string
           created_at?: string
-          id?: string
+          expires_at?: string
+          idempotency_key?: string
           operation?: string
-          payload_hash?: string
-          request_key?: string
+          request_hash?: string
+          resolved_snapshot?: Json
           response?: Json | null
-          status?: string
           tenant_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "finance_request_idempotency_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_request_idempotency_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_entries: {
         Row: {
@@ -6381,6 +6416,7 @@ export type Database = {
           branch_id: string | null
           client_id: string | null
           client_name: string | null
+          corrects_invoice_id: string | null
           created_at: string | null
           created_by: string | null
           currency: string | null
@@ -6404,6 +6440,7 @@ export type Database = {
           branch_id?: string | null
           client_id?: string | null
           client_name?: string | null
+          corrects_invoice_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency?: string | null
@@ -6427,6 +6464,7 @@ export type Database = {
           branch_id?: string | null
           client_id?: string | null
           client_name?: string | null
+          corrects_invoice_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency?: string | null
@@ -6459,6 +6497,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_corrects_invoice_id_fkey"
+            columns: ["corrects_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
           {
@@ -9362,51 +9407,84 @@ export type Database = {
       }
       pos_sales: {
         Row: {
-          branch_id: string | null
-          cashier_user_id: string | null
+          cart_hash: string
           created_at: string
-          currency: string | null
+          created_by: string
+          currency: string
           id: string
-          occurred_at: string
-          sale_reference: string | null
-          status: string
+          invoice_id: string | null
+          sale_number: number
+          session_id: string
           subtotal: number
           tax_amount: number
           tenant_id: string
           total_amount: number
-          updated_at: string
         }
         Insert: {
-          branch_id?: string | null
-          cashier_user_id?: string | null
+          cart_hash: string
           created_at?: string
-          currency?: string | null
+          created_by: string
+          currency: string
           id?: string
-          occurred_at?: string
-          sale_reference?: string | null
-          status?: string
-          subtotal?: number
+          invoice_id?: string | null
+          sale_number: number
+          session_id: string
+          subtotal: number
           tax_amount?: number
           tenant_id: string
-          total_amount?: number
-          updated_at?: string
+          total_amount: number
         }
         Update: {
-          branch_id?: string | null
-          cashier_user_id?: string | null
+          cart_hash?: string
           created_at?: string
-          currency?: string | null
+          created_by?: string
+          currency?: string
           id?: string
-          occurred_at?: string
-          sale_reference?: string | null
-          status?: string
+          invoice_id?: string | null
+          sale_number?: number
+          session_id?: string
           subtotal?: number
           tax_amount?: number
           tenant_id?: string
           total_amount?: number
-          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pos_sales_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pos_sessions: {
         Row: {
@@ -13455,7 +13533,6 @@ export type Database = {
       contract_template_status: "draft" | "published" | "archived"
       contract_template_version_status: "draft" | "published" | "archived"
       contract_type: "boarding" | "training" | "reproduction" | "custom"
-      expense_ledger_status: "unposted" | "posted" | "reversed"
       hr_employee_category: "field" | "office" | "mixed"
       hr_employee_type:
         | "trainer"
@@ -13680,7 +13757,6 @@ export const Constants = {
       contract_template_status: ["draft", "published", "archived"],
       contract_template_version_status: ["draft", "published", "archived"],
       contract_type: ["boarding", "training", "reproduction", "custom"],
-      expense_ledger_status: ["unposted", "posted", "reversed"],
       hr_employee_category: ["field", "office", "mixed"],
       hr_employee_type: [
         "trainer",
