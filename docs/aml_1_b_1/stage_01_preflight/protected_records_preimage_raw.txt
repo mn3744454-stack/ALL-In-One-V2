@@ -1,0 +1,62 @@
+                    x                    
+-----------------------------------------
+ ---PROTECTED LEDGER FOR -213 INVOICE---
+(1 row)
+
+                  id                  |              tenant_id               |              client_id               | entry_type | reference_type |             reference_id             | amount | balance_after |      description       |              created_by              |          created_at           | payment_method | metadata | payment_session_id 
+--------------------------------------+--------------------------------------+--------------------------------------+------------+----------------+--------------------------------------+--------+---------------+------------------------+--------------------------------------+-------------------------------+----------------+----------+--------------------
+ dbaccc18-2c28-401b-af9f-e10167ac4ba2 | 348ce41c-1102-4295-bf6a-2ea0203c1036 | 364165f0-58ec-464c-bdc0-86f3e7a0c79b | invoice    | invoice        | bc37440d-d402-4e2b-96cd-67329456d0fd |  50.00 |         70.00 | Invoice الم-202607-213 | 2a1593d8-2397-4d1f-90f5-aba5983a9b57 | 2026-07-19 21:08:27.882235+00 |                | {}       | 
+(1 row)
+
+         x          
+--------------------
+ ---INVOICE-BC37---
+(1 row)
+
+                  id                  | invoice_number |  status  | total_amount | subtotal | tax_amount | issue_date |              tenant_id               |              client_id               |          created_at          
+--------------------------------------+----------------+----------+--------------+----------+------------+------------+--------------------------------------+--------------------------------------+------------------------------
+ bc37440d-d402-4e2b-96cd-67329456d0fd | الم-202607-213 | approved |        50.00 |    50.00 |       0.00 | 2017-02-20 | 348ce41c-1102-4295-bf6a-2ea0203c1036 | 364165f0-58ec-464c-bdc0-86f3e7a0c79b | 2026-07-19 21:08:15.04247+00
+(1 row)
+
+     x      
+------------
+ ---MMO9---
+(1 row)
+
+                  id                  | status | total_amount | items | ledger_rows | billing_links 
+--------------------------------------+--------+--------------+-------+-------------+---------------
+ 674bfa8a-49ec-4aaa-ac35-1047826b7e22 | paid   |     60000.00 |     0 |           0 |             1
+(1 row)
+
+           x           
+-----------------------
+ ---MNDH8GPD (Fani)---
+(1 row)
+
+                  id                  |  status  | total_amount | items | ledger_rows 
+--------------------------------------+----------+--------------+-------+-------------
+ ee8dc05c-18a8-488c-a5fe-eeb1b7cd4783 | approved |    106375.00 |    37 |           1
+(1 row)
+
+            x            
+-------------------------
+ ---CUSTOMER BALANCES---
+(1 row)
+
+ERROR:  column "updated_at" does not exist
+LINE 1: SELECT tenant_id, client_id, balance, updated_at FROM custom...
+                                              ^
+                    x                     
+------------------------------------------
+ ---FUNCTION GRANTS (finance-relevant)---
+(1 row)
+
+                               func                               |                                                                                 proacl                                                                                  
+------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ public._invoice_items_fill_snapshots()                           | {postgres=X/postgres,service_role=X/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=X/postgres,sandbox_exec=X/postgres}
+ public._invoice_items_validate_source()                          | {postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=X/postgres,sandbox_exec=X/postgres}
+ public.can_view_payment_account(_user_id uuid, _account_id uuid) | {=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=X/postgres,sandbox_exec=X/postgres}
+ public.can_view_payment_intent(_user_id uuid, _intent_id uuid)   | {=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=X/postgres,sandbox_exec=X/postgres}
+ public.validate_payment_intent()                                 | {=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=X/postgres,sandbox_exec=X/postgres}
+(5 rows)
+
