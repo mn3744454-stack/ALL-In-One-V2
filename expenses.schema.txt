@@ -1,0 +1,44 @@
+                                Table "public.expenses"
+      Column      |           Type           | Collation | Nullable |      Default      
+------------------+--------------------------+-----------+----------+-------------------
+ id               | uuid                     |           | not null | gen_random_uuid()
+ tenant_id        | uuid                     |           | not null | 
+ category         | text                     |           | not null | 
+ description      | text                     |           |          | 
+ amount           | numeric(12,2)            |           | not null | 
+ currency         | text                     |           |          | 'SAR'::text
+ expense_date     | date                     |           | not null | CURRENT_DATE
+ vendor_name      | text                     |           |          | 
+ vendor_id        | uuid                     |           |          | 
+ status           | text                     |           |          | 'pending'::text
+ receipt_asset_id | uuid                     |           |          | 
+ notes            | text                     |           |          | 
+ created_by       | uuid                     |           |          | 
+ created_at       | timestamp with time zone |           |          | now()
+ updated_at       | timestamp with time zone |           |          | now()
+Indexes:
+    "expenses_pkey" PRIMARY KEY, btree (id)
+    "idx_expenses_tenant_date" btree (tenant_id, expense_date, status)
+Check constraints:
+    "expenses_status_check" CHECK (status = ANY (ARRAY['pending'::text, 'approved'::text, 'paid'::text, 'rejected'::text]))
+Foreign-key constraints:
+    "expenses_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id)
+    "expenses_receipt_asset_id_fkey" FOREIGN KEY (receipt_asset_id) REFERENCES media_assets(id)
+    "expenses_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    "expenses_vendor_id_fkey" FOREIGN KEY (vendor_id) REFERENCES service_providers(id)
+Referenced by:
+    TABLE "hr_salary_payments" CONSTRAINT "hr_salary_payments_expense_fk" FOREIGN KEY (finance_expense_id) REFERENCES expenses(id)
+    TABLE "inventory_transactions" CONSTRAINT "inventory_transactions_expense_id_fkey" FOREIGN KEY (expense_id) REFERENCES expenses(id) ON DELETE SET NULL
+Policies:
+    POLICY "Permission-based delete expenses" FOR DELETE
+      USING (has_permission(auth.uid(), tenant_id, 'finance.expenses.manage'::text))
+    POLICY "Permission-based insert expenses" FOR INSERT
+      WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.expenses.create'::text))
+    POLICY "Permission-based update expenses" FOR UPDATE
+      USING (has_permission(auth.uid(), tenant_id, 'finance.expenses.manage'::text))
+      WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.expenses.manage'::text))
+    POLICY "Tenant members can view expenses" FOR SELECT
+      USING (is_tenant_member(auth.uid(), tenant_id))
+Publications:
+    "supabase_realtime"
+
