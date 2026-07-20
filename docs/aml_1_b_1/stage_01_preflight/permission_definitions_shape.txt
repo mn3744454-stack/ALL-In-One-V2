@@ -1,0 +1,25 @@
+                    Table "public.permission_definitions"
+     Column      |           Type           | Collation | Nullable | Default 
+-----------------+--------------------------+-----------+----------+---------
+ key             | text                     |           | not null | 
+ module          | text                     |           | not null | 
+ resource        | text                     |           | not null | 
+ action          | text                     |           | not null | 
+ display_name    | text                     |           | not null | 
+ description     | text                     |           |          | 
+ description_ar  | text                     |           |          | 
+ is_delegatable  | boolean                  |           | not null | true
+ created_at      | timestamp with time zone |           | not null | now()
+ display_name_ar | text                     |           |          | 
+Indexes:
+    "permission_definitions_pkey" PRIMARY KEY, btree (key)
+Referenced by:
+    TABLE "bundle_permissions" CONSTRAINT "bundle_permissions_permission_key_fkey" FOREIGN KEY (permission_key) REFERENCES permission_definitions(key) ON DELETE CASCADE
+    TABLE "delegation_scopes" CONSTRAINT "delegation_scopes_permission_key_fkey" FOREIGN KEY (permission_key) REFERENCES permission_definitions(key) ON DELETE CASCADE
+    TABLE "member_permissions" CONSTRAINT "member_permissions_permission_key_fkey" FOREIGN KEY (permission_key) REFERENCES permission_definitions(key) ON DELETE CASCADE
+    TABLE "tenant_role_permissions" CONSTRAINT "tenant_role_permissions_permission_key_fkey" FOREIGN KEY (permission_key) REFERENCES permission_definitions(key) ON DELETE CASCADE
+Policies:
+    POLICY "Authenticated users can view permission definitions" FOR SELECT
+      TO authenticated
+      USING (true)
+

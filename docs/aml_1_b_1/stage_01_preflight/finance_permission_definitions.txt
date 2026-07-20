@@ -1,0 +1,20 @@
+           key            | module  | resource |  action  |       display_name       |    display_name_ar     |                    description                    |          description_ar           | is_delegatable 
+--------------------------+---------+----------+----------+--------------------------+------------------------+---------------------------------------------------+-----------------------------------+----------------
+ finance.expenses.approve | finance | expenses | approve  | Approve Expenses         |                        | Can approve expense claims                        |                                   | t
+ finance.expenses.create  | finance | expenses | create   | Create Expenses          |                        | Can record expenses                               |                                   | t
+ finance.expenses.manage  | finance | expenses | manage   | Manage Expenses          |                        | Full control over expenses                        |                                   | t
+ finance.invoice.create   | finance | invoice  | create   | Create Invoices          | إنشاء فواتير           | Can create invoices                               | إنشاء فواتير                      | t
+ finance.invoice.delete   | finance | invoice  | delete   | Delete Invoices          | حذف الفواتير           | Delete invoices from the system                   | حذف الفواتير من النظام            | t
+ finance.invoice.edit     | finance | invoice  | edit     | Edit Invoices            | تعديل الفواتير         | Edit draft invoices                               | تعديل مسودات الفواتير             | t
+ finance.invoice.markPaid | finance | invoice  | markPaid | Mark Invoices Paid       | تحديد الفواتير كمدفوعة | Mark invoices as paid                             | تحديد الفواتير كمدفوعة            | t
+ finance.invoice.print    | finance | invoice  | print    | Print/Download Invoices  | طباعة/تحميل الفواتير   | Print or download invoice PDFs                    | طباعة أو تحميل ملفات PDF للفواتير | t
+ finance.invoice.send     | finance | invoice  | send     | Send Invoices            | إرسال الفواتير         | Send invoices to clients                          | إرسال الفواتير للعملاء            | t
+ finance.invoice.view     | finance | invoice  | view     | View Invoices            | عرض الفواتير           | View invoices and billing information             | عرض الفواتير ومعلومات الفوترة     | t
+ finance.ledger.view      | finance | ledger   | view     | View Ledger              | عرض السجل المالي       |                                                   |                                   | t
+ finance.payables.manage  | finance | payables | manage   | Manage Supplier Payables | إدارة مستحقات الموردين | Create, edit, and manage supplier payable records |                                   | t
+ finance.payment.collect  | finance | payment  | collect  | Collect Payments         | تحصيل مدفوعات          | Can collect payments                              | تحصيل مدفوعات                     | t
+ finance.payment.create   | finance | payment  | create   | Record Payment           | تسجيل دفعة             |                                                   |                                   | t
+ finance.payment.view     | finance | payment  | view     | View Payments            | عرض المدفوعات          |                                                   |                                   | t
+ finance.settings.manage  | finance | settings | manage   | Manage Finance Settings  | إدارة إعدادات المالية  | Manage tax, pricing, and currency settings        |                                   | t
+(16 rows)
+

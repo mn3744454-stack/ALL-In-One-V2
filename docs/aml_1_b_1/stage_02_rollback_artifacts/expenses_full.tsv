@@ -1,0 +1,5 @@
+id	tenant_id	category	description	amount	currency	expense_date	vendor_name	vendor_id	status	receipt_asset_id	notes	created_by	created_at	updated_at
+0a6278b8-a808-4c20-8d7b-81c4cd55dda2	348ce41c-1102-4295-bf6a-2ea0203c1036	equipment	شراء كنترولات	200.00	SAR	2026-02-20			approved			2a1593d8-2397-4d1f-90f5-aba5983a9b57	2026-02-20 01:12:31.249755+00	2026-02-20 01:14:43.715+00
+371f2dda-407d-43e8-a7a1-2a65b8fb2b0c	348ce41c-1102-4295-bf6a-2ea0203c1036	maintenance		20.00	SAR	2026-03-05	دار العبور		approved	c682de73-9aa7-4efb-b776-6e72add4e2ea		2a1593d8-2397-4d1f-90f5-aba5983a9b57	2026-03-05 16:53:02.529853+00	2026-03-05 19:54:02.833+00
+64a3f696-42e1-4b77-ba5e-d4e242e736ed	348ce41c-1102-4295-bf6a-2ea0203c1036	maintenance		20.00	SAR	2026-03-05	دار العبور		pending	7a706b49-5b05-42ad-ab66-2f3f48feb66d		2a1593d8-2397-4d1f-90f5-aba5983a9b57	2026-03-05 16:53:14.653543+00	2026-03-05 16:53:14.653543+00
+(3 rows)

@@ -1,0 +1,8 @@
+table_name	relacl
+billing_links	{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=ar/postgres,sandbox_exec=ar/postgres}
+customer_balances	{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=ar/postgres,sandbox_exec=ar/postgres}
+expenses	{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=ar/postgres,sandbox_exec=ar/postgres}
+invoice_items	{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=ar/postgres,sandbox_exec=ar/postgres}
+invoices	{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=ar/postgres,sandbox_exec=ar/postgres}
+ledger_entries	{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec_vhxglsvxwwpmoqjabfmj=ar/postgres,sandbox_exec=ar/postgres}
+(6 rows)

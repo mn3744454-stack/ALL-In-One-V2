@@ -1,0 +1,50 @@
+ entry_type | count | sum_amount 
+------------+-------+------------
+ adjustment |     3 | -17475.00
+ invoice    |    35 | 168694.43
+ payment    |    26 | -18492.58
+(3 rows)
+
+            x             
+--------------------------
+ ---PROTECTED INVOICES---
+(1 row)
+
+ invoice_number |  status  | total_amount |              tenant_id               | issue_date 
+----------------+----------+--------------+--------------------------------------+------------
+ INV-MMO9AAXD   | paid     |     60000.00 | 145f2128-83ca-4ba8-85b5-8ade245c5530 | 2026-03-13
+ INV-MNDH8GPD   | approved |    106375.00 | 145f2128-83ca-4ba8-85b5-8ade245c5530 | 2026-03-30
+ INV-MP4ET8LQ   | draft    |      2032.26 | 145f2128-83ca-4ba8-85b5-8ade245c5530 | 2026-05-13
+(3 rows)
+
+                x                 
+----------------------------------
+ ---LEDGER 213/-213 CANDIDATES---
+(1 row)
+
+                  id                  |              tenant_id               | entry_type | reference_type |             reference_id             | amount | balance_after |      description       |          created_at           
+--------------------------------------+--------------------------------------+------------+----------------+--------------------------------------+--------+---------------+------------------------+-------------------------------
+ dbaccc18-2c28-401b-af9f-e10167ac4ba2 | 348ce41c-1102-4295-bf6a-2ea0203c1036 | invoice    | invoice        | bc37440d-d402-4e2b-96cd-67329456d0fd |  50.00 |         70.00 | Invoice الم-202607-213 | 2026-07-19 21:08:27.882235+00
+(1 row)
+
+                          x                          
+-----------------------------------------------------
+ ---ACL public role_table_grants (broader lookup)---
+(1 row)
+
+   grantee    |    table_name     | privilege_type 
+--------------+-------------------+----------------
+ sandbox_exec | billing_links     | INSERT
+ sandbox_exec | billing_links     | SELECT
+ sandbox_exec | customer_balances | INSERT
+ sandbox_exec | customer_balances | SELECT
+ sandbox_exec | expenses          | INSERT
+ sandbox_exec | expenses          | SELECT
+ sandbox_exec | invoice_items     | INSERT
+ sandbox_exec | invoice_items     | SELECT
+ sandbox_exec | invoices          | INSERT
+ sandbox_exec | invoices          | SELECT
+ sandbox_exec | ledger_entries    | INSERT
+ sandbox_exec | ledger_entries    | SELECT
+(12 rows)
+
