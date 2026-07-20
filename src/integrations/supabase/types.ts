@@ -2839,9 +2839,6 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
-          ledger_status:
-            | Database["public"]["Enums"]["expense_ledger_status"]
-            | null
           notes: string | null
           receipt_asset_id: string | null
           status: string | null
@@ -2859,9 +2856,6 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
-          ledger_status?:
-            | Database["public"]["Enums"]["expense_ledger_status"]
-            | null
           notes?: string | null
           receipt_asset_id?: string | null
           status?: string | null
@@ -2879,9 +2873,6 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
-          ledger_status?:
-            | Database["public"]["Enums"]["expense_ledger_status"]
-            | null
           notes?: string | null
           receipt_asset_id?: string | null
           status?: string | null
@@ -3065,45 +3056,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      finance_request_idempotency: {
-        Row: {
-          actor_user_id: string
-          completed_at: string | null
-          created_at: string
-          id: string
-          operation: string
-          payload_hash: string
-          request_key: string
-          response: Json | null
-          status: string
-          tenant_id: string
-        }
-        Insert: {
-          actor_user_id: string
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          operation: string
-          payload_hash: string
-          request_key: string
-          response?: Json | null
-          status?: string
-          tenant_id: string
-        }
-        Update: {
-          actor_user_id?: string
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          operation?: string
-          payload_hash?: string
-          request_key?: string
-          response?: Json | null
-          status?: string
-          tenant_id?: string
-        }
-        Relationships: []
       }
       financial_entries: {
         Row: {
@@ -8218,7 +8170,6 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
-          effective_date: string | null
           entry_type: string
           id: string
           metadata: Json
@@ -8235,7 +8186,6 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          effective_date?: string | null
           entry_type: string
           id?: string
           metadata?: Json
@@ -8252,7 +8202,6 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          effective_date?: string | null
           entry_type?: string
           id?: string
           metadata?: Json
@@ -9357,54 +9306,6 @@ export type Database = {
           key?: string
           module?: string
           resource?: string
-        }
-        Relationships: []
-      }
-      pos_sales: {
-        Row: {
-          branch_id: string | null
-          cashier_user_id: string | null
-          created_at: string
-          currency: string | null
-          id: string
-          occurred_at: string
-          sale_reference: string | null
-          status: string
-          subtotal: number
-          tax_amount: number
-          tenant_id: string
-          total_amount: number
-          updated_at: string
-        }
-        Insert: {
-          branch_id?: string | null
-          cashier_user_id?: string | null
-          created_at?: string
-          currency?: string | null
-          id?: string
-          occurred_at?: string
-          sale_reference?: string | null
-          status?: string
-          subtotal?: number
-          tax_amount?: number
-          tenant_id: string
-          total_amount?: number
-          updated_at?: string
-        }
-        Update: {
-          branch_id?: string | null
-          cashier_user_id?: string | null
-          created_at?: string
-          currency?: string | null
-          id?: string
-          occurred_at?: string
-          sale_reference?: string | null
-          status?: string
-          subtotal?: number
-          tax_amount?: number
-          tenant_id?: string
-          total_amount?: number
-          updated_at?: string
         }
         Relationships: []
       }
@@ -13455,7 +13356,6 @@ export type Database = {
       contract_template_status: "draft" | "published" | "archived"
       contract_template_version_status: "draft" | "published" | "archived"
       contract_type: "boarding" | "training" | "reproduction" | "custom"
-      expense_ledger_status: "unposted" | "posted" | "reversed"
       hr_employee_category: "field" | "office" | "mixed"
       hr_employee_type:
         | "trainer"
@@ -13680,7 +13580,6 @@ export const Constants = {
       contract_template_status: ["draft", "published", "archived"],
       contract_template_version_status: ["draft", "published", "archived"],
       contract_type: ["boarding", "training", "reproduction", "custom"],
-      expense_ledger_status: ["unposted", "posted", "reversed"],
       hr_employee_category: ["field", "office", "mixed"],
       hr_employee_type: [
         "trainer",
