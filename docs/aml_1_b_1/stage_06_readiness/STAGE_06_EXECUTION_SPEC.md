@@ -2073,8 +2073,8 @@ Until those four sections are rewritten in place using the §17.1–§17.8 contr
 | §14.6 enum rollback uses no `CASCADE`; exact-order dependency capture present | PASS (in §17.7) |
 | §14.6 canonical stock mechanism is single-path (movement → trigger → stock_levels) | PASS (in §17.8) |
 | §14.6 M1–M7 ordering mapped into F0–F6 without replacing phase boundaries | PASS (in §17.9) |
-| §14.6 §17 corrections inlined into §5/§9/§11/§13 body | **FAIL** (documented in §17.10 — follow-up controlled edit required) |
-| §14.6 verbatim body of `validate_payment_intent` captured into Stage 2 keyed preimage on disk | **FAIL** (must be captured before F1 deploys additive enum labels) |
+| §14.6 §17 corrections inlined into §5/§9/§11/§13 body | PASS (Batch D.1: §5.3 M1 + `validate_payment_intent` extension, §5.4 exact enum rollback, §5.5 canonical POS inventory M3+M5, §9.3 canonical numbering M2+M4+helper+rollback, §11.6 canonical POS payload fields locked; §17.10 marks integration complete) |
+| §14.6 verbatim body of `validate_payment_intent` captured into Stage 2 keyed preimage on disk | PASS (embedded verbatim in §0.2 with exact identity, owner, ACL, `prosecdef`, `proconfig`, trigger def, enum labels/order, column metadata, and index/constraint inventory) |
 | §14.6 only file changed is `STAGE_06_EXECUTION_SPEC.md`; no DB/migration write tool called | PASS |
 
 ---
