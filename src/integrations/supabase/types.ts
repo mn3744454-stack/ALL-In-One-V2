@@ -12690,6 +12690,29 @@ export type Database = {
         }
         Returns: number
       }
+      _finance_billing_link_upsert: {
+        Args: {
+          p_amount: number
+          p_corrects_invoice_id: string
+          p_created_by: string
+          p_invoice_id: string
+          p_link_kind: string
+          p_source_id: string
+          p_source_type: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      _finance_expense_create_sourced: {
+        Args: {
+          p_actor_id: string
+          p_payload: Json
+          p_source_reference_trusted: string
+          p_source_type_trusted: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
       _finance_idempotency_begin: {
         Args: {
           p_actor_id: string
