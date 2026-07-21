@@ -3089,6 +3089,83 @@ export type Database = {
           },
         ]
       }
+      finance_invoice_number_config: {
+        Row: {
+          created_at: string
+          domain: string
+          padding_width: number
+          prefix: string
+          reset_policy: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          padding_width: number
+          prefix: string
+          reset_policy: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          padding_width?: number
+          prefix?: string
+          reset_policy?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_invoice_number_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_invoice_number_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_invoice_number_counters: {
+        Row: {
+          domain: string
+          next_value: number
+          period_key: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          domain: string
+          next_value: number
+          period_key: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          domain?: string
+          next_value?: number
+          period_key?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_invoice_number_counters_tenant_id_domain_fkey"
+            columns: ["tenant_id", "domain"]
+            isOneToOne: false
+            referencedRelation: "finance_invoice_number_config"
+            referencedColumns: ["tenant_id", "domain"]
+          },
+        ]
+      }
       finance_request_idempotency: {
         Row: {
           actor_id: string
@@ -11606,6 +11683,7 @@ export type Database = {
           name: string
           name_ar: string | null
           price_display: string | null
+          product_id: string | null
           service_kind: string
           service_type: string | null
           tenant_id: string
@@ -11623,6 +11701,7 @@ export type Database = {
           name: string
           name_ar?: string | null
           price_display?: string | null
+          product_id?: string | null
           service_kind?: string
           service_type?: string | null
           tenant_id: string
@@ -11640,6 +11719,7 @@ export type Database = {
           name?: string
           name_ar?: string | null
           price_display?: string | null
+          product_id?: string | null
           service_kind?: string
           service_type?: string | null
           tenant_id?: string
@@ -11653,6 +11733,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenant_service_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_services_product_fk"
+            columns: ["tenant_id", "product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["tenant_id", "id"]
           },
           {
             foreignKeyName: "tenant_services_tenant_id_fkey"
@@ -12633,6 +12720,10 @@ export type Database = {
       _finance_idempotency_purge_expired: {
         Args: { p_cutoff: string }
         Returns: number
+      }
+      _finance_invoice_number_next: {
+        Args: { p_domain: string; p_tenant_id: string }
+        Returns: string
       }
       _finance_request_hash: {
         Args: {
@@ -13632,7 +13723,11 @@ export type Database = {
       lab_template_decision: "pending" | "accepted" | "rejected"
       movement_type: "in" | "out" | "transfer"
       occupancy_mode: "single" | "group"
-      payment_intent_type: "platform_fee" | "service_payment" | "commission"
+      payment_intent_type:
+        | "platform_fee"
+        | "service_payment"
+        | "commission"
+        | "receivable"
       payment_owner_type: "platform" | "tenant"
       payment_reference_type:
         | "academy_booking"
@@ -13640,6 +13735,7 @@ export type Database = {
         | "order"
         | "auction"
         | "subscription"
+        | "invoice"
       payment_split_role: "platform" | "tenant"
       payment_status: "draft" | "pending" | "paid" | "cancelled"
       post_visibility: "public" | "private" | "followers"
@@ -13861,7 +13957,12 @@ export const Constants = {
       lab_template_decision: ["pending", "accepted", "rejected"],
       movement_type: ["in", "out", "transfer"],
       occupancy_mode: ["single", "group"],
-      payment_intent_type: ["platform_fee", "service_payment", "commission"],
+      payment_intent_type: [
+        "platform_fee",
+        "service_payment",
+        "commission",
+        "receivable",
+      ],
       payment_owner_type: ["platform", "tenant"],
       payment_reference_type: [
         "academy_booking",
@@ -13869,6 +13970,7 @@ export const Constants = {
         "order",
         "auction",
         "subscription",
+        "invoice",
       ],
       payment_split_role: ["platform", "tenant"],
       payment_status: ["draft", "pending", "paid", "cancelled"],
