@@ -12721,9 +12721,37 @@ export type Database = {
         Args: { p_cutoff: string }
         Returns: number
       }
+      _finance_invoice_compute_totals: {
+        Args: { p_payload: Json; p_tenant_id: string }
+        Returns: Json
+      }
       _finance_invoice_number_next: {
         Args: { p_domain: string; p_tenant_id: string }
         Returns: string
+      }
+      _finance_invoice_payload_reject_unknown: {
+        Args: { p_payload: Json }
+        Returns: undefined
+      }
+      _finance_ledger_insert: {
+        Args: {
+          p_amount: number
+          p_client_id: string
+          p_created_by: string
+          p_description: string
+          p_effective_date: string
+          p_entry_type: string
+          p_metadata: Json
+          p_payment_method: string
+          p_payment_session_id: string
+          p_reference_id: string
+          p_reference_type: string
+          p_tenant_id: string
+        }
+        Returns: {
+          balance_after: number
+          ledger_entry_id: string
+        }[]
       }
       _finance_request_hash: {
         Args: {
@@ -12843,6 +12871,14 @@ export type Database = {
         Args: { _document_id: string }
         Returns: undefined
       }
+      approve_invoice: {
+        Args: {
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       archive_contract_document: {
         Args: { _document_id: string }
         Returns: undefined
@@ -12934,6 +12970,16 @@ export type Database = {
       }
       cancel_incoming_movement: {
         Args: { p_incoming_id: string; p_reason?: string }
+        Returns: Json
+      }
+      cancel_invoice: {
+        Args: {
+          p_effective_date: string
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_reason: string
+          p_tenant_id: string
+        }
         Returns: Json
       }
       cancel_service_request: {
@@ -13053,6 +13099,14 @@ export type Database = {
         }
         Returns: Json
       }
+      create_invoice_with_items: {
+        Args: {
+          p_idempotency_key: string
+          p_payload: Json
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       create_lab_report_share: {
         Args: {
           _alias_name_snapshot?: string
@@ -13099,6 +13153,14 @@ export type Database = {
           _owner_supplied_item?: boolean
           _provider_tenant_id?: string
           _request_type: string
+        }
+        Returns: Json
+      }
+      delete_draft_invoice: {
+        Args: {
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_tenant_id: string
         }
         Returns: Json
       }
@@ -13635,6 +13697,15 @@ export type Database = {
           p_active_tenant_id: string
           p_horse_id: string
           p_payload: Json
+        }
+        Returns: Json
+      }
+      update_invoice_with_items: {
+        Args: {
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_payload: Json
+          p_tenant_id: string
         }
         Returns: Json
       }
