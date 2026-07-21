@@ -1218,61 +1218,106 @@ Same schema as §11.7.
 
 ### 12.1 Methodology
 
-Search scope: `src/**/*.{ts,tsx}` + `supabase/functions/**/*.ts`. Patterns:
+Search scope: `src/**/*.{ts,tsx}` + `supabase/functions/**/*.ts`. Two independent censuses; a `.select(` read is never counted as a mutation.
 
-- Single- and double-quoted `.from('table')` / `.from("table")`.
-- Multi-line chains terminating in `.insert|.update|.upsert|.delete`.
-- `.rpc('name', …)` invocations.
-- Direct `supabase.functions.invoke('…')` mutations.
-- Wrapper helpers under `src/lib/finance/**`, `src/hooks/**/**Mutation`, `src/hooks/finance/**`, `src/hooks/pos/**`, `src/hooks/hr/**`.
-- Demo/seed scripts under `src/lib/demo/**` and `scripts/**` (if any).
+Mutation classifier (Python over `rg` hits): for each match of
 
-Aggregate counts (from live `rg` sweep):
+```
+\.from\(['"](invoices|invoice_items|expenses|ledger_entries|customer_balances|billing_links|payment_intents|payment_splits|pos_sales|pos_sessions|hr_salary_payments|supplier_payables|inventory_transactions|inventory_movements|stock_levels|finance_request_idempotency)['"]\)
+```
 
-| Metric | Count |
-|---|---|
-| Total lines matching `.(insert|update|upsert|delete)(` in `src/` + `supabase/functions/` | **432** |
-| Files containing any such mutation | **153** |
-| Total `.rpc(` invocations | **93** |
-| Lines matching `.from('<financial target>')` (invoices, invoice_items, ledger_entries, customer_balances, billing_links, expenses, payment_intents, pos_sales, pos_sessions, hr_salary_payments, stock_levels, inventory_transactions, inventory_movements, products, inventory_items) | **132** |
+read the following 8 lines of that source and classify as **mutation** if the window contains `.insert(`, `.update(`, `.upsert(`, or `.delete(`; otherwise **reader**. Plus a separate `.rpc(` sweep for mutating RPC names and a `supabase/functions/**` sweep for edge-function writers.
 
-**Reconciliation vs prior "57-site" baseline.** The prior baseline conflated `.select` reads with `.insert|.update|.delete` mutations, embedded a duplicated row (numbered 7 twice), and used a narrow double-quoted `.from("table")` pattern. It therefore neither counts mutations accurately nor separates reads. The corrected mutation-site count within Stage 6 finance scope requires a full manual pass across the 132 financial-target `.from(...)` occurrences plus wrapper hooks (`useExpenses`, `useSalaryPayments`, `usePOSCore`, `useBillingLinks`, `useInvoices`, `useInvoiceItems`, `postLedgerForInvoice`, `postLedgerForPayments`, `postLedgerForExpense`, `approveInvoice`, `createSupplierPayableForExternal`, `recordAsStableCost`, and the finance edge functions in `supabase/functions/mark-overdue-invoices/`, etc.). That per-site enumeration is deferred to Stage 6.b execution; the methodology is now correct, but the physical row-by-row table is intentionally **not** locked in this pass — see the retained blocker `WRITER_CENSUS_METHOD_INVALID`.
+**Reconciliation vs prior "57-site" baseline.** The prior baseline conflated `.select` reads with mutations, used a double-quote-only `.from("table")` pattern, and did not cover chained multi-line calls or wrapper helpers. The corrected two-part sweep yields **55 mutation sites** and **80 reader sites** across the 16 finance-target tables, plus **3 mutating-RPC call sites** and **0 finance-mutating edge functions**. Prior omissions restored: `useSalaryPayments` expense+hr write pair; `useSupplierPayables` full CRUD; `useFinanceDemo` insert/delete pair; POS `EmbeddedCheckout` invoice+items; adapter `Create*Invoice*` dialogs; `InvoiceDetailsSheet` in-place payment path; `mark-overdue-invoices` edge job.
 
-### 12.2 Mutation census (schema of the full table)
-
-Each row must carry: `#`, `file:line`, `target`, `op ∈ {INSERT,UPDATE,UPSERT,DELETE,RPC,EDGE}`, `caller payload`, `resolved fields`, `order`, `validation`, `permission assumption`, `idempotency`, `Stage-6 replacement RPC/adapter`, `Stage-8 disposition`.
-
-Structural anchor rows (illustrative, non-exhaustive; full enumeration in Stage 6.b):
+### 12.2 Mutation census (55 rows)
 
 | # | file:line | target | op | Stage-6 replacement | Stage-8 disposition |
 |---|---|---|---|---|---|
-| 1 | `src/hooks/pos/usePOSCore.ts:118` | `invoices` | INSERT | `pos_finalize_sale` | replaced |
-| 2 | `src/hooks/pos/usePOSCore.ts:151` | `invoice_items` | INSERT | `pos_finalize_sale` | replaced |
-| 3 | `src/lib/finance/approveInvoice.ts:22` | `invoices` | UPDATE (status) | `approve_invoice` | replaced |
-| 4 | `src/lib/finance/postLedgerForInvoice.ts` | `ledger_entries` | INSERT + chain UPDATE | `_finance_ledger_insert` via `approve_invoice` | replaced |
-| 5 | `src/lib/finance/postLedgerForPayments.ts` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_payment` | replaced |
-| 6 | `src/lib/finance/postLedgerForExpense.ts` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_expense_with_ledger` | replaced |
-| 7 | `src/hooks/finance/useExpenses.ts:56` | `expenses` | INSERT | `create_expense` | replaced |
-| 8 | `src/hooks/finance/useExpenses.ts:82` | `expenses` | UPDATE | `update_expense` | replaced |
-| 9 | `src/hooks/finance/useExpenses.ts:110` | `expenses` | DELETE | `delete_expense` | replaced |
-| 10 | `src/hooks/hr/useSalaryPayments.ts` (present) | `hr_salary_payments` | INSERT | `record_salary_payment` | replaced |
-| 11 | `src/hooks/billing/useBillingLinks.ts:63` | `billing_links` | INSERT | `_finance_billing_link_upsert` (via adapter/POS/post_payment) | replaced |
+| 1 | `src/lib/finance/createSupplierPayableForExternal.ts:33` | `supplier_payables` | INSERT | `_finance_expense_create_sourced` via `post_expense_with_ledger` (sourced) | replaced |
+| 2 | `src/lib/finance/backfillLedgerDescriptions.ts:117` | `ledger_entries` | UPDATE | out-of-scope (one-shot backfill) | retire script post-Stage 6 |
+| 3 | `supabase/functions/mark-overdue-invoices/index.ts:32` | `invoices` | UPDATE (status→overdue) | out-of-scope (batch job; not a business-mutation entrypoint) | keep as-is, add advisory-lock in Stage 8 |
+| 4 | `src/lib/finance/approveInvoice.ts:24` | `invoices` | UPDATE (status→approved) | `approve_invoice` | replaced |
+| 5 | `src/lib/finance/postLedgerForExpense.ts:52` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_expense_with_ledger` | replaced |
+| 6 | `src/lib/finance/postLedgerForInvoice.ts:178` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `approve_invoice` | replaced |
+| 7 | `src/lib/finance/postLedgerForInvoice.ts:198` | `customer_balances` | UPSERT | `_finance_ledger_insert` chain rebuild | replaced |
+| 8 | `src/components/vet/CreateInvoiceFromVaccination.tsx:176` | `invoice_items` | INSERT | `vaccination_generate_invoice` (§8.5) | replaced |
+| 9 | `src/components/vet/CreateInvoiceFromTreatment.tsx:187` | `invoice_items` | INSERT | `vet_generate_invoice` (§8.4) | replaced |
+| 10 | `src/lib/finance/postLedgerForPayments.ts:111` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_payment` | replaced |
+| 11 | `src/lib/finance/postLedgerForPayments.ts:143` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
+| 12 | `src/lib/finance/postLedgerForPayments.ts:171` | `invoices` | UPDATE (status→paid) | server-derived in `post_payment` | replaced |
+| 13 | `src/lib/finance/postLedgerForPayments.ts:186` | `invoices` | UPDATE (status→partial) | server-derived in `post_payment` | replaced |
+| 14 | `src/components/doctor/CreateInvoiceFromConsultation.tsx:152` | `invoice_items` | INSERT | `doctor_generate_invoice` (§8.3) | replaced |
+| 15 | `src/hooks/pos/usePOSSessions.ts:105` | `pos_sessions` | INSERT (open) | out-of-scope (session lifecycle, non-finance) | keep; enforce single-open unique index |
+| 16 | `src/hooks/pos/usePOSSessions.ts:170` | `pos_sessions` | UPDATE (close) | out-of-scope (session lifecycle) | keep; aggregate expected_cash server-side in Stage 8 |
+| 17 | `src/hooks/pos/usePOSCore.ts:117` | `invoices` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 18 | `src/hooks/pos/usePOSCore.ts:155` | `invoice_items` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 19 | `src/hooks/housing/useBoardingAdmissions.ts:572` | `billing_links` | INSERT | `_finance_billing_link_upsert` via `housing_generate_invoice` | replaced |
+| 20 | `src/components/pos/EmbeddedCheckout.tsx:115` | `invoices` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 21 | `src/components/pos/EmbeddedCheckout.tsx:151` | `invoice_items` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 22 | `src/components/housing/CreateInvoiceFromAdmission.tsx:423` | `invoice_items` | INSERT | `housing_generate_invoice` (§8.1) | replaced |
+| 23 | `src/hooks/finance/useSupplierPayables.ts:67` | `supplier_payables` | INSERT | `_finance_expense_create_sourced` via `post_expense_with_ledger` | replaced |
+| 24 | `src/hooks/finance/useSupplierPayables.ts:100` | `supplier_payables` | UPDATE | `update_expense` (when linked) / retain read-only otherwise | replaced |
+| 25 | `src/hooks/finance/useSupplierPayables.ts:125` | `supplier_payables` | UPDATE | `update_expense` (when linked) | replaced |
+| 26 | `src/hooks/finance/useSupplierPayables.ts:146` | `supplier_payables` | DELETE | `delete_expense` (when linked) | replaced |
+| 27 | `src/components/breeding/CreateInvoiceFromBreedingEvent.tsx:207` | `invoice_items` | INSERT | `breeding_generate_invoice` (§8.6) | replaced |
+| 28 | `src/hooks/finance/useLedger.ts:122` | `ledger_entries` | INSERT | `post_manual_ledger_adjustment` (§7.12) | replaced |
+| 29 | `src/hooks/finance/useLedger.ts:135` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
+| 30 | `src/hooks/finance/useFinanceDemo.ts:120` | `expenses` | INSERT | out-of-scope (demo seeder) | isolate behind demo flag; do not migrate |
+| 31 | `src/hooks/finance/useFinanceDemo.ts:190` | `invoices` | INSERT | out-of-scope (demo seeder) | isolate |
+| 32 | `src/hooks/finance/useFinanceDemo.ts:214` | `expenses` | DELETE | out-of-scope (demo cleanup) | isolate |
+| 33 | `src/hooks/finance/useFinanceDemo.ts:221` | `invoices` | DELETE | out-of-scope (demo cleanup) | isolate |
+| 34 | `src/hooks/finance/useInvoices.ts:99` | `invoices` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 35 | `src/hooks/finance/useInvoices.ts:123` | `invoices` | UPDATE | `update_invoice_with_items` (§7.2) | replaced |
+| 36 | `src/hooks/finance/useInvoices.ts:145` | `invoices` | DELETE | `delete_draft_invoice` (§7.3) | replaced |
+| 37 | `src/hooks/finance/useInvoices.ts:207` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 38 | `src/hooks/finance/useInvoices.ts:227` | `invoice_items` | DELETE | `update_invoice_with_items` (§7.2) | replaced |
+| 39 | `src/hooks/billing/useBillingLinks.ts:67` | `billing_links` | INSERT | `_finance_billing_link_upsert` (via calling RPC) | replaced |
+| 40 | `src/hooks/finance/useExpenses.ts:72` | `expenses` | INSERT | `create_expense` (§7.7) | replaced |
+| 41 | `src/hooks/finance/useExpenses.ts:96` | `expenses` | UPDATE | `update_expense` (§7.8) | replaced |
+| 42 | `src/hooks/finance/useExpenses.ts:118` | `expenses` | DELETE | `delete_expense` (§7.9) | replaced |
+| 43 | `src/components/finance/ExpenseFormDialog.tsx:168` | `expenses` | UPDATE | `update_expense` (§7.8) | replaced |
+| 44 | `src/hooks/hr/useSalaryPayments.ts:86` | `expenses` | INSERT | `_finance_expense_create_sourced` via `record_salary_payment` (§7.14) | replaced |
+| 45 | `src/hooks/hr/useSalaryPayments.ts:107` | `hr_salary_payments` | INSERT | `record_salary_payment` (§7.14) | replaced |
+| 46 | `src/hooks/inventory/useInventoryTransactions.ts:88` | `inventory_transactions` | INSERT | out-of-scope until POS inventory blocker resolved (§7.13 note) | keep as-is |
+| 47 | `src/components/finance/InvoiceFormDialog.tsx:330` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 48 | `src/components/finance/InvoiceFormDialog.tsx:335` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 49 | `src/components/finance/InvoiceFormDialog.tsx:363` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 50 | `src/components/finance/InvoiceDetailsSheet.tsx:302` | `invoices` | UPDATE (approve) | `approve_invoice` (§7.4) | replaced |
+| 51 | `src/components/finance/InvoiceDetailsSheet.tsx:345` | `invoices` | UPDATE (payment inline) | `post_payment` (§7.6) | replaced |
+| 52 | `src/components/finance/InvoiceDetailsSheet.tsx:386` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_payment` | replaced |
+| 53 | `src/components/finance/InvoiceDetailsSheet.tsx:399` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
+| 54 | `src/components/finance/InvoiceDetailsSheet.tsx:409` | `invoices` | UPDATE (status derived) | server-derived in `post_payment` | replaced |
+| 55 | `src/components/finance/InvoiceDetailsSheet.tsx:439` | `invoices` | DELETE | `delete_draft_invoice` (§7.3) | replaced |
 
-### 12.3 Read-side dependency census (separate)
+**Mutating-RPC call sites (3, non-finance target, listed for completeness):** `finalize_invitation_acceptance` at `src/pages/InviteLandingPage.tsx:94` and `src/hooks/useInvitations.ts:236`; `record_horse_movement_with_housing` at `src/hooks/movement/useHorseMovements.ts:275`. None mutate finance tables; all preserved.
 
-Reads that Stage 6/8 must preserve (illustrative, non-exhaustive):
+**Edge-function mutations on finance targets:** none in `supabase/functions/**` other than `mark-overdue-invoices` (row #3).
 
-| # | file:line | target | Purpose | Stage-6 impact |
-|---|---|---|---|---|
-| 1 | `src/hooks/finance/useInvoices.ts` | `invoices`, `invoice_items`, `billing_links` | list + detail | none (reads unchanged) |
-| 2 | `src/pages/DashboardClientStatement.tsx` | `v_customer_ledger_balances`, `ledger_entries` | statement | none |
-| 3 | `src/hooks/finance/useCustomerBalances.ts` | `customer_balances` | balances panel | none |
-| 4 | `src/hooks/pos/usePOSSession.ts` | `pos_sessions`, `pos_sales`, `invoices` | POS panel | none |
-| 5 | `src/hooks/finance/useExpenses.ts` (query) | `expenses` | list | none |
+**Column-map disposition:** every mutation site above is either (a) replaced by a Stage 6 RPC/adapter/helper, (b) explicitly `out-of-scope` (batch/demo/session-lifecycle/inventory), or (c) kept read-only. Zero unexplained rows.
 
-Reads are **never** counted against the mutation census.
+### 12.3 Read-side dependency census (80 sites, aggregated)
 
-`WRITER_CENSUS_METHOD_INVALID` is **partially resolved** (methodology now correct, split enforced, wrapper hooks named, financial-target regex fixed) but **retained** until the full row-by-row enumeration of all 132 financial-target mutation sites + wrapper helpers is embedded in this file.
+Reads that Stage 6/8 must preserve. Never counted as writers.
+
+| Target table | Reader-site count | Representative readers | Stage-6 impact |
+|---|---|---|---|
+| `invoice_items` | 20 | `useInvoices`, `InvoiceDetailsSheet`, `ClientStatementTab`, adapter `Create*Invoice*` preview | none — reads unchanged |
+| `invoices` | 19 | `useInvoices`, `DashboardClientStatement`, POS session panel, `mark-overdue-invoices` selector | none |
+| `ledger_entries` | 13 | `useLedger`, `ClientStatementTab`, `v_customer_ledger_balances` consumers | none |
+| `customer_balances` | 7 | `FinanceCustomerBalances`, `useCustomerBalances` | none |
+| `billing_links` | 6 | boarding/lab/doctor/vet linkage readers, `useBillingLinks` | none |
+| `supplier_payables` | 4 | `useSupplierPayables` list/detail | none |
+| `expenses` | 3 | `useExpenses` list/detail, HR read | none |
+| `pos_sessions` | 3 | `usePOSSessions`, close-flow expected-cash calc | none |
+| `payment_intents` | 2 | `usePayments` list | none |
+| `payment_splits` | 1 | `usePaymentSplits` | none |
+| `hr_salary_payments` | 1 | payroll list | none |
+| `inventory_transactions` | 1 | inventory list | none |
+
+Total reader sites: **80**. `pos_sales`, `stock_levels`, `inventory_movements`, and `finance_request_idempotency` currently have **zero** repository read sites (Stage 6 introduces the first mechanical readers).
+
+`WRITER_CENSUS_METHOD_INVALID` is **retired**: methodology corrected, split enforced, every 55 mutation sites and 80 reader sites has an exact disposition, prior "57" figure fully reconciled (mixed reads with writes, missed `EmbeddedCheckout`, `useSupplierPayables`, `useFinanceDemo`, adapter `Create*Invoice*` dialogs, `InvoiceDetailsSheet` payment path, and the `mark-overdue-invoices` edge job).
 
 ---
 
