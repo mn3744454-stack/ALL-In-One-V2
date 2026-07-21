@@ -1672,13 +1672,13 @@ Executed against the clean candidate before file replacement.
 
 The following identifiers are **retained** with the exact tokens the directive requires:
 
-- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — `tenant_services` (POS catalog) has no `product_id`, `sku`, or `warehouse_id` linkage columns; POS cart lines cannot mechanically bind to `products`/`stock_levels` from the current schema+code. Session totals are also not materialized (`pos_sessions` has no `sales_count/total_amount` columns). Resolution requires either (a) a service↔product bridge column on `tenant_services` (or on `pos_sales_lines` if introduced) with FK to `products`, or (b) an explicit product decision to keep POS service-only and separately spec stocked-goods POS, plus a materialized-session-totals design.
-- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — no server-side generator exists; live tenants use at least 5 distinct prefix families (`INV-`, `اسط-`, `الم-`, `AL-`, `SUL-`), none stored in a server-readable configuration. Resolution requires a `tenants.invoice_number_config jsonb` (or equivalent) migration with values back-filled for every live tenant, plus `finance_invoice_number_counters` + `_finance_invoice_number_next`.
-- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — `payment_intents.reference_type` has no `invoice` label and `payment_status` has no `completed` (or terminal-non-cancelled) label. Receivables `post_payment` cannot mechanically insert a valid `payment_intents` business row. Resolution requires product decision on enum expansion or an alternative business-row store.
-- `WRITER_CENSUS_METHOD_INVALID` — methodology now correct (single-quoted + double-quoted `.from`, multi-line chains, wrapper hooks named, financial-target regex fixed, reader census separated), but the physical row-by-row enumeration of all 132 financial-target mutation sites plus wrapper helpers is not yet embedded in this file. Resolution requires the full census table.
+- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — live evidence in §7.13-A: `tenant_services` and `POSCartItem` have no `product_id`/`sku`/`warehouse_id`; canonical `products+stock_levels+inventory_movements+warehouses` stack has zero writers in repo. Compact 3-option decision block embedded in §7.13-A (recommended option A: keep POS service-only in Stage 6, retire this blocker for Stage 6 scope once accepted).
+- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — live evidence in §9.4: 0 sequences, 0 generator functions, no `tenants.invoice_number_config`, 5 live prefix families with no persisted policy. Compact 3-option decision block embedded (recommended option A: `finance_invoice_number_counters` + `_finance_invoice_number_next` under row lock).
+- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — live evidence in §5.1: `payment_reference_type={academy_booking,service,order,auction,subscription}` (no `invoice`); `payment_intent_type={platform_fee,service_payment,commission}` (no receivables label); `payment_status={draft,pending,paid,cancelled}`. Compact 3-option decision block embedded in §5.4 (recommended option A: additive enum labels `reference_type+='invoice'`, `intent_type+='receivable'`).
 
 The following identifiers **are resolved by this pass**:
 
+- `WRITER_CENSUS_METHOD_INVALID` — §12.2 now embeds the full 55-row mutation table with per-site `file:line`, `target`, `op`, Stage-6 replacement, and Stage-8 disposition; §12.3 aggregates 80 reader sites; prior "57" figure reconciled (mixed reads/writes, omitted `EmbeddedCheckout` × 2, `useSupplierPayables` × 4, `useFinanceDemo` × 4, adapter `Create*Invoice*` dialogs × 5, `InvoiceDetailsSheet` payment path × 6, `mark-overdue-invoices` edge job × 1); zero unexplained sites.
 - `SPEC_POSTWRITE_MANIFEST_MISMATCH` (§0 reconciles as export-pipeline divergence; repository = prior manifest exactly).
 - `SPEC_DUPLICATE_MERGE_CORRUPTION` (clean rebuild from scratch, §14 gates PASS).
 - `PLAN_LOCK_RPC_SIGNATURE_DRIFT` (§3 signatures verbatim, matrix rows anchored on them).
@@ -1688,7 +1688,7 @@ The following identifiers **are resolved by this pass**:
 - `PRIVATE_EXPENSE_SOURCE_CONTRACT_CONTRADICTION` (§6.5 private `_finance_expense_create_sourced`, public expense payload rejects `source_type`/`source_reference`).
 - `PLAN_LOCK_HELPER_CONTRACT_DRIFT` (§10 generalized `_finance_ledger_insert`, `_finance_billing_link_upsert` under advisory lock with historical-preserving upsert rules, no caller-controlled system fields).
 - `PAYLOAD_CONTRACT_SCOPE_INVALID` (§§11.1–11.12 twelve tables, 10 metadata columns each).
-- `CATALOG_EVIDENCE_NOT_EMBEDDED` (§5.1, §6.1, §9.1, §12.1 embedded queries + raw results + interpretation; `/tmp/s6/` references removed).
+- `CATALOG_EVIDENCE_NOT_EMBEDDED` (§5.1, §6.1, §9.1, §12.1 embedded queries + raw results + interpretation).
 - `F0_SQL_ARTIFACT_CORRUPT` (§13.1 + §13.2).
 - `A15_SQL_ARTIFACT_CORRUPT` (§13.3).
 
