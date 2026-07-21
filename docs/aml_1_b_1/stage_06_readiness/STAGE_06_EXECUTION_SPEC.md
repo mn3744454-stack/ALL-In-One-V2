@@ -2079,19 +2079,21 @@ Until those four sections are rewritten in place using the §17.1–§17.8 contr
 
 ---
 
-## §15. Unresolved identifiers — Batch D revision
+## §15. Unresolved identifiers — Batch D.1 canonical closure
 
-**Retired by this pass (Batch D):**
+**Retired by this pass (Batch D.1, canonical inline integration):**
 
-- `WAREHOUSE_RESOLUTION_UNRESOLVED` — §17.1 live-column evidence supports the two-index rule; contract embedded.
-- `WRITER_CENSUS_METHOD_INVALID` — retired in the prior pass; unchanged.
+- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — canonical inventory stack (`products (tenant_id,id)` unique + `tenant_services.product_id` composite FK + two non-conflicting warehouse-default partial unique indexes + single stock path via `inventory_movements` → `trg_stock_levels_apply_movement` → `stock_levels`) inlined into §5.5 with complete forward SQL, guards, rollback, post-gates and mechanical tests; POS payment behavior (§5.3) locks `cash|card|transfer` → verified `receivable` intent with `reference_type='invoice'`; POS invoice ends `paid`; POS never emits `issued`; `debt` rejected with `FIN_POS_DEBT_UNSUPPORTED`; `payment_status` untouched.
+- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — canonical `finance_invoice_number_config` (explicit `prefix`, `reset_policy`, `padding_width`), period-aware `finance_invoice_number_counters(tenant_id, domain, period_key)` PK, verbatim `_finance_invoice_number_next` helper (advisory + row-lock, config-only prefix, retry probe against the tenant unique index, no runtime `MAX`/`COUNT`), M4 one-time family-specific numeric-max seed with opaque families placed into a distinct canonical namespace, and complete guarded rollback (aborts on any advanced counter or any Stage-6-generated invoice) all inlined into §9.3; caller-supplied numbers rejected with `FIN_PAYLOAD_UNKNOWN_KEY`.
+- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — additive M1 (`payment_reference_type += 'invoice'`, `payment_intent_type += 'receivable'`) inlined into §5.3 with the extended `validate_payment_intent` branch (`receivable` requires `tenant_id NOT NULL` and payee kind `tenant`); `payment_status` terminal remains `paid`; `post_payment` step 7 now inserts the full `payment_intents` business row.
+- `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED` — exact dependency-preserving rollback inlined into §5.4 using the verbatim `validate_payment_intent` preimage embedded on disk in §0.2; drops trigger, drops validator, converts only `payment_intents.reference_type`/`intent_type` to text, drops and recreates the two enums with the exact original labels and ordering, restores exact owner/ACL, casts columns back, restores validator verbatim (owner, `SECURITY DEFINER`, `SET search_path TO 'public'`, ACL), restores trigger, verifies every captured index and constraint, and uses no `CASCADE`, no `--force`, no `--purge*`, no `REINDEX INDEX CONCURRENTLY`, no caller tolerance; `payment_status` untouched throughout.
 
-**Retained (require inline body integration per §17.10):**
+**Previously retired (unchanged):** `WAREHOUSE_RESOLUTION_UNRESOLVED`, `WRITER_CENSUS_METHOD_INVALID`, `SPEC_POSTWRITE_MANIFEST_MISMATCH`, `SPEC_DUPLICATE_MERGE_CORRUPTION`, `PLAN_LOCK_RPC_SIGNATURE_DRIFT`, `PLAN_LOCK_IDEMPOTENCY_ERROR_DRIFT`, `PLAN_LOCK_EXPENSE_STATE_DRIFT`, `PLAN_LOCK_EXPENSE_REVERSAL_DRIFT`, `PRIVATE_EXPENSE_SOURCE_CONTRACT_CONTRADICTION`, `PLAN_LOCK_HELPER_CONTRACT_DRIFT`.
 
-- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — canonical stack contract fixed in §17.2/§17.8 but not inlined into §11 payload and §13 F0 SQL body.
-- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — period-aware counter/config/seed/rollback fixed in §17.3–§17.5 but not inlined into §9.3–§9.5 body.
-- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — additive-label decision fixed in §17.7 introduction but not inlined into §5.4 decision block; also see next identifier.
-- `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED` — new. §17.7 defines the exact dependency-preserving rollback but requires the verbatim `validate_payment_intent` body captured into the Stage 2 keyed preimage on disk before F1 deploys additive labels.
+**Retained:** none.
+
+This section supersedes the prior §15 (lines ~1671–1699) and the Batch-D revision — they are historical only; the canonical unresolved set is this one.
+
 
 ---
 
