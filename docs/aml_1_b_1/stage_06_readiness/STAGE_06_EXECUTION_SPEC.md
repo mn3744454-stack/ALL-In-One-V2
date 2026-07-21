@@ -1012,45 +1012,266 @@ WHERE n.nspname='public'
 - Multiple prefix families exist across tenants (`INV-`, Arabic prefixes, `AL-`, `SUL-`), each derived from tenant-scoped configuration currently held **client-side** (`usePOSCore.ts` uses `POS-${Date.now().toString(36).toUpperCase()}`; manual invoices use per-tenant prefixes assembled in `InvoiceFormDialog`).
 - The only server guarantee is per-tenant uniqueness via `invoices_tenant_id_invoice_number_key`. There is no server-side counter or generator.
 
-### 9.3 Locked contract (target state)
+### 9.3 Canonical inline body — Option A, period-aware, no `MAX`/`COUNT`, no caller number
 
-1. Introduce a private helper `_finance_invoice_number_next(p_tenant_id uuid, p_domain text) RETURNS text`.
-2. Persist per-tenant per-domain counters in a new relation `finance_invoice_number_counters(tenant_id uuid, domain text, prefix text, next_seq bigint, PRIMARY KEY (tenant_id, domain))` — writes gated by row-level advisory lock `_finance_advisory_lock_key(p_tenant_id, 'invoice_number:'||p_domain, gen_random_uuid())` OR by `SELECT … FOR UPDATE` on the counter row (**preferred: `SELECT … FOR UPDATE` on the counter row** for durable serialization).
-3. `p_domain` values: `'manual'`, `'pos'`, `'housing'`, `'lab'`, `'doctor'`, `'vet'`, `'vaccination'`, `'breeding'`. Selection is by caller RPC/adapter, never by end-caller payload.
-4. Prefix policy: read from `tenants.invoice_number_config jsonb` (new column, **not created in this pass**) with fallback to `'INV-'`. **Missing configuration for tenants that currently rely on `اسط-`, `الم-`, `AL-`, `SUL-` prefixes** is the exact blocker for locking the migration.
-5. Collision handling: `INSERT INTO invoices …` catching `23505` retries up to 5× re-reading the counter; **never** `MAX(right(…))` fallback.
-6. Reject any caller-supplied `invoice_number` in payload (`FIN_PAYLOAD_UNKNOWN_KEY`).
-7. Return the server-generated number in both response and resolved snapshot.
+The following is the operative normative SQL. `PLAN-LOCK` signature of `_finance_invoice_number_next` is preserved verbatim from §10. §17.3–§17.5 are historical reconciliation evidence only; the normative SQL is this section.
 
-### 9.4 Retained blocker + per-surface authority table + decision block
+**M2 forward (schema — additive, transactional):**
 
-Per-surface format authority (live evidence, all client-generated today):
+```sql
+-- File: supabase/migrations/<ts>_stage06_m2_invoice_numbering_schema.sql
+BEGIN;
 
-| Surface | Current generator | Prefix source | Editable by user | Sequential? | Collision handling |
-|---|---|---|---|---|---|
-| Manual Finance | `InvoiceFormDialog` assembled string | client, tenant-specific | yes | no (timestamp-hash) | tenant-unique index only |
-| POS | `POS-${Date.now().toString(36).toUpperCase()}` (`usePOSCore.ts:113`) | client constant | no | no | tenant-unique index only |
-| Housing | `Create*Invoice*` dialog string | client | yes | no | tenant-unique index only |
-| Laboratory | client string, tenant-specific | client | yes | no | tenant-unique index only |
-| Doctor | client string | client | yes | no | tenant-unique index only |
-| Vet | client string | client | yes | no | tenant-unique index only |
-| Vaccination | client string | client | yes | no | tenant-unique index only |
-| Breeding | client string | client | yes | no | tenant-unique index only |
-| Demo (`useFinanceDemo`) | client seed strings | client, demo-only | yes | no | tagged out-of-scope |
+-- Authoritative per-tenant per-domain configuration. Prefix lives ONLY here.
+CREATE TABLE public.finance_invoice_number_config (
+  tenant_id       uuid   NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+  domain          text   NOT NULL,
+  prefix          text   NOT NULL,
+  reset_policy    text   NOT NULL CHECK (reset_policy IN ('never','monthly')),
+  padding_width   int    NOT NULL CHECK (padding_width BETWEEN 1 AND 12),
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (tenant_id, domain),
+  CHECK (domain IN ('manual','pos','housing','lab','doctor','vet','vaccination','breeding'))
+);
 
-Server-side infra: **zero sequences**, **zero generator functions**, **no `tenants.invoice_number_config`**, **no `branches.invoice_prefix`**. Only guarantee is the composite unique index `(tenant_id, invoice_number)`.
+GRANT SELECT ON public.finance_invoice_number_config TO authenticated;
+GRANT ALL    ON public.finance_invoice_number_config TO service_role;
 
-`INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` is retained: no persisted per-tenant counter, no persisted per-tenant prefix, and the 5 live prefix families (`INV-`, `اسط-`, `الم-`, `AL-`, `SUL-`) have no server-readable configuration.
+ALTER TABLE public.finance_invoice_number_config ENABLE ROW LEVEL SECURITY;
 
-Compact decision block (user input required — 3 options, recommended first):
+CREATE POLICY finance_invoice_number_config_read
+  ON public.finance_invoice_number_config FOR SELECT
+  TO authenticated
+  USING (public.is_active_tenant_member(auth.uid(), tenant_id));
 
-| # | Option | Exact additive consequence | Recommended |
-|---|---|---|---|
-| A | Add `tenants.invoice_number_config jsonb` + relation `finance_invoice_number_counters(tenant_id, domain, prefix, next_seq)` + private `_finance_invoice_number_next(tenant, domain)` using `SELECT … FOR UPDATE` on the counter row | 2 additive DDL statements + 1 helper; one back-fill row per existing tenant × domain; `usePOSCore.ts:113` and every `Create*Invoice*` dialog cease to emit numbers; server enforces prefix per §9.3 | **YES** — sequential, auditable, uses existing unique index |
-| B | Server-generate a collision-resistant opaque suffix (`ULID` or `gen_random_uuid()::text`) keyed by domain-specific prefix from tenant config | 1 DDL for `tenants.invoice_number_config`; no counter table; loses human-readable sequence | no — breaks tenants relying on sequential numbering |
-| C | Preserve caller-supplied numbers, add server validation only (prefix must match tenant config; reject collisions) | 1 DDL for `tenants.invoice_number_config`; keeps existing client generators | no — violates "no caller-supplied final number" rule and leaves POS timestamp identifiers |
+-- No INSERT/UPDATE/DELETE policies: config mutations are service_role-only,
+-- performed by the M4 seed and by a future admin surface (out of scope Stage 6).
 
-Retirement rule: retired only after (a) option chosen, (b) tenant-config DDL executed, (c) prefixes back-filled for every live tenant (5 families evidenced above), and (d) `_finance_invoice_number_next` merged. Until then §9.3 is a target contract, not a live one.
+-- Period-aware counters. Non-periodic domains use period_key='' ; monthly uses 'YYYYMM'.
+-- Counter rows NEVER contain the prefix — prefix is read from config at emit time.
+CREATE TABLE public.finance_invoice_number_counters (
+  tenant_id   uuid   NOT NULL,
+  domain      text   NOT NULL,
+  period_key  text   NOT NULL,
+  next_value  bigint NOT NULL CHECK (next_value >= 1),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (tenant_id, domain, period_key),
+  FOREIGN KEY (tenant_id, domain)
+    REFERENCES public.finance_invoice_number_config (tenant_id, domain)
+    ON DELETE CASCADE
+);
+
+GRANT SELECT ON public.finance_invoice_number_counters TO authenticated;
+GRANT ALL    ON public.finance_invoice_number_counters TO service_role;
+
+ALTER TABLE public.finance_invoice_number_counters ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY finance_invoice_number_counters_read
+  ON public.finance_invoice_number_counters FOR SELECT
+  TO authenticated
+  USING (public.is_active_tenant_member(auth.uid(), tenant_id));
+
+-- No user-facing write policies: counters are mutated exclusively by the
+-- SECURITY DEFINER helper _finance_invoice_number_next.
+
+COMMIT;
+```
+
+**M6 helper (verbatim, SECURITY DEFINER, private, no runtime `MAX`/`COUNT`):**
+
+```sql
+-- File: supabase/migrations/<ts>_stage06_m6_invoice_number_helper.sql
+CREATE OR REPLACE FUNCTION public._finance_invoice_number_next(
+  p_tenant_id uuid,
+  p_domain    text,
+  p_effective_date date
+) RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_cfg      public.finance_invoice_number_config%ROWTYPE;
+  v_period   text;
+  v_next     bigint;
+  v_number   text;
+  v_attempt  int := 0;
+BEGIN
+  IF p_tenant_id IS NULL OR p_domain IS NULL OR p_effective_date IS NULL THEN
+    RAISE EXCEPTION 'FIN_INVOICE_NUMBER_BAD_ARGS' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT * INTO v_cfg
+    FROM public.finance_invoice_number_config
+   WHERE tenant_id = p_tenant_id AND domain = p_domain;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'FIN_INVOICE_NUMBER_CONFIG_MISSING' USING ERRCODE = 'P0002';
+  END IF;
+
+  v_period := CASE v_cfg.reset_policy
+                WHEN 'monthly' THEN to_char(p_effective_date, 'YYYYMM')
+                ELSE ''
+              END;
+
+  -- Advisory (tenant, domain, period) — collapses concurrent emitters onto one row.
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended(p_tenant_id::text || '|' || p_domain || '|' || v_period, 0)
+  );
+
+  -- Reserve or seed the counter row atomically. Row-lock via ON CONFLICT DO UPDATE.
+  INSERT INTO public.finance_invoice_number_counters
+    (tenant_id, domain, period_key, next_value, updated_at)
+  VALUES
+    (p_tenant_id, p_domain, v_period, 1, now())
+  ON CONFLICT (tenant_id, domain, period_key)
+  DO UPDATE SET
+    next_value = public.finance_invoice_number_counters.next_value + 1,
+    updated_at = now()
+  RETURNING next_value INTO v_next;
+
+  -- Emit prefix strictly from config. Never template with '%' formatting on prefix.
+  v_number := v_cfg.prefix
+           || CASE WHEN v_cfg.reset_policy = 'monthly' THEN v_period || '-' ELSE '' END
+           || lpad(v_next::text, v_cfg.padding_width, '0');
+
+  -- Retry probe against the tenant unique index in case of an out-of-band
+  -- historical collision (never expected under this contract).
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM public.invoices
+       WHERE tenant_id = p_tenant_id AND invoice_number = v_number
+    ) THEN
+      RETURN v_number;
+    END IF;
+    v_attempt := v_attempt + 1;
+    IF v_attempt >= 5 THEN
+      RAISE EXCEPTION 'FIN_INVOICE_NUMBER_COLLISION' USING ERRCODE = '23505';
+    END IF;
+    UPDATE public.finance_invoice_number_counters
+       SET next_value = next_value + 1, updated_at = now()
+     WHERE tenant_id = p_tenant_id AND domain = p_domain AND period_key = v_period
+     RETURNING next_value INTO v_next;
+    v_number := v_cfg.prefix
+             || CASE WHEN v_cfg.reset_policy = 'monthly' THEN v_period || '-' ELSE '' END
+             || lpad(v_next::text, v_cfg.padding_width, '0');
+  END LOOP;
+END
+$$;
+
+REVOKE ALL ON FUNCTION public._finance_invoice_number_next(uuid, text, date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public._finance_invoice_number_next(uuid, text, date) TO service_role;
+-- Not granted to authenticated: only public RPCs (SECURITY DEFINER) call this helper.
+```
+
+**M4 one-time family-specific seed (no `MAX(right(...))` at runtime; runs once, transactional):**
+
+```sql
+-- File: supabase/migrations/<ts>_stage06_m4_invoice_number_seed.sql
+BEGIN;
+
+-- Seed config rows for the 5 live prefix families evidenced in §9.1.
+-- Any tenant/domain not covered here defaults to prefix 'INV-' at first use
+-- via an admin surface (out of scope Stage 6 runtime).
+INSERT INTO public.finance_invoice_number_config (tenant_id, domain, prefix, reset_policy, padding_width)
+SELECT tenant_id,
+       'manual',
+       COALESCE( (SELECT substr(invoice_number, 1, 4)
+                    FROM public.invoices i2
+                   WHERE i2.tenant_id = t.tenant_id
+                   GROUP BY substr(invoice_number, 1, 4)
+                   ORDER BY count(*) DESC
+                   LIMIT 1),
+                 'INV-'),
+       'never',
+       4
+  FROM (SELECT DISTINCT tenant_id FROM public.invoices) t
+ON CONFLICT (tenant_id, domain) DO NOTHING;
+
+-- Family-specific parsed numeric maximum, per (tenant, domain). Applied ONCE.
+-- Opaque historical suffixes that fail to parse start a distinct canonical
+-- numeric namespace at next_value = 1 (the runtime probe protects against
+-- historical string collisions).
+WITH parsed AS (
+  SELECT i.tenant_id,
+         'manual'::text AS domain,
+         CASE WHEN cfg.reset_policy = 'monthly'
+              THEN to_char(i.issue_date, 'YYYYMM')
+              ELSE ''
+         END AS period_key,
+         NULLIF(regexp_replace(
+                  substr(i.invoice_number, length(cfg.prefix) + 1),
+                  '[^0-9]', '', 'g'), '')::bigint AS parsed_num
+    FROM public.invoices i
+    JOIN public.finance_invoice_number_config cfg
+      ON cfg.tenant_id = i.tenant_id AND cfg.domain = 'manual'
+   WHERE i.invoice_number LIKE cfg.prefix || '%'
+),
+maxes AS (
+  SELECT tenant_id, domain, period_key,
+         COALESCE(max(parsed_num), 0) AS verified_max
+    FROM parsed
+   GROUP BY tenant_id, domain, period_key
+)
+INSERT INTO public.finance_invoice_number_counters
+  (tenant_id, domain, period_key, next_value, updated_at)
+SELECT tenant_id, domain, period_key, verified_max + 1, now()
+  FROM maxes
+ON CONFLICT (tenant_id, domain, period_key) DO NOTHING;
+
+COMMIT;
+```
+
+**M2/M4/M6 rollback (guarded, no `--force`, no `MAX`, no snapshot table):**
+
+```sql
+-- File: supabase/migrations/<ts>_stage06_m2_m4_m6_rollback.sql
+BEGIN;
+
+-- Abort if any counter advanced beyond its seed OR if any Stage-6-generated
+-- invoice number exists (identified by conformance to the config prefix +
+-- padding_width for its domain/period).
+DO $abort$
+DECLARE v bigint;
+BEGIN
+  SELECT count(*) INTO v
+    FROM public.finance_invoice_number_counters c
+    JOIN public.finance_invoice_number_config   f
+      ON f.tenant_id = c.tenant_id AND f.domain = c.domain
+    -- The seed set next_value = parsed_max + 1. Any advance means runtime use.
+    -- (This is exact because M4 is the only historical writer and it wrote once.)
+   WHERE c.updated_at > (SELECT max(created_at) FROM public.finance_invoice_number_config);
+  IF v > 0 THEN
+    RAISE EXCEPTION 'INVOICE_NUMBER_ROLLBACK_ABORT: % counter row(s) advanced beyond seed', v;
+  END IF;
+
+  SELECT count(*) INTO v
+    FROM public.invoices i
+    JOIN public.finance_invoice_number_config f
+      ON f.tenant_id = i.tenant_id AND f.domain = 'manual'
+   WHERE i.created_at > (SELECT max(created_at) FROM public.finance_invoice_number_config);
+  IF v > 0 THEN
+    RAISE EXCEPTION 'INVOICE_NUMBER_ROLLBACK_ABORT: % invoice(s) created after config seed', v;
+  END IF;
+END
+$abort$;
+
+DROP FUNCTION IF EXISTS public._finance_invoice_number_next(uuid, text, date);
+DROP TABLE public.finance_invoice_number_counters;
+DROP TABLE public.finance_invoice_number_config;
+
+COMMIT;
+```
+
+**Contract-level rules (locked, non-negotiable):**
+
+1. Runtime NEVER calls `MAX(...)`, `MAX(right(...))`, or scans `public.invoices` to derive a next number. The counter row is the sole source.
+2. The prefix lives only in `finance_invoice_number_config`. Counter rows do not persist a prefix column.
+3. `p_domain` is caller-selected by RPC/adapter, never by end-user payload. Any caller-supplied `invoice_number` in payload is rejected with `FIN_PAYLOAD_UNKNOWN_KEY`.
+4. Every public RPC that persists an invoice calls `_finance_invoice_number_next(tenant, domain, effective_date)` under its own transaction and writes the returned string to `invoices.invoice_number` under the tenant unique index.
+5. Client generators in `usePOSCore.ts:113` and every `Create*Invoice*` dialog are decommissioned in the corresponding adapter layer once the migration lands (Stage 7 wiring).
+
 
 ---
 
