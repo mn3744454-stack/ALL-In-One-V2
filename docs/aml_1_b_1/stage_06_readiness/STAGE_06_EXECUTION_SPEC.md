@@ -2049,22 +2049,7 @@ Public signature (§3): `cancel_invoice(p_tenant_id uuid, p_idempotency_key uuid
 
 Response: `{ invoice_id, status: 'cancelled', reversal_ledger_entry_id, balance_after }`. Errors: `FIN_INVOICE_NOT_CANCELLABLE (42501)`, `FIN_EFFECTIVE_DATE_INVALID (23514)`, `FIN_PAYLOAD_UNKNOWN_KEY`, plus §4 idempotency codes. Level-I idempotency; same key + same hash returns the stored response.
 
-### 11.9 `post_payment` supplemental `p_payload` (U-2)
-
-Public signature (§3): `post_payment(p_tenant_id, p_idempotency_key, p_invoice_id, p_amount, p_payment_date, p_payment_method, p_account_id, p_payload)`. The ordered arguments carry price/method/date/account (verified server-side); `p_payload` is the strict supplemental contract below.
-
-| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
-|---|---|---|---|---|---|---|---|---|---|
-| `allow_overpayment` | bool | O | Caller | pre-post | must be `true` to accept `p_amount > remaining` | ✓ | ✓ | ✓ | Accepted |
-| `reference_note` | text | O | Caller | pre-post | 0..500 | ✓ | ✓ | ✓ | Accepted |
-| `external_reference` | text | O | Caller | pre-post | 0..100 | ✓ | ✓ | ✓ | Accepted (into metadata) |
-| `metadata` | jsonb | O | Caller | pre-post | shallow object; no reserved keys | ✓ | ✓ | ✓ | Accepted (merged under `caller:` namespace) |
-| any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
-| invoice_number / status / totals / client_id / currency | any | F | Server | — | server-derived from locked invoice | — | ✓ | ✓ | Rejected if supplied |
-
-Level-I idempotency; hash includes ordered args + canonical `p_payload`. Response: `{ payment_id, invoice_status, remaining_amount, ledger_entry_id, balance_after }`. Errors: §4 codes, `FIN_INVOICE_NOT_PAYABLE (42501)`, `FIN_OVERPAYMENT_BLOCKED (23514)`, `FIN_PAYLOAD_UNKNOWN_KEY`.
-
-### 11.10 `post_expense_with_ledger` — ordered-argument payload contract (U-2)
+### 11.9 `post_expense_with_ledger` — ordered-argument payload contract (U-2)
 
 Public signature (§3): `post_expense_with_ledger(p_tenant_id uuid, p_idempotency_key uuid, p_expense_id uuid)`. No `p_payload`, no `p_effective_date`. Expense ledger `effective_date = expenses.expense_date` (§6 policy).
 
@@ -2079,7 +2064,7 @@ Public signature (§3): `post_expense_with_ledger(p_tenant_id uuid, p_idempotenc
 
 Response: `{ expense_id, ledger_entry_id, ledger_status: 'posted', balance_after? }`. Errors: §4 codes, `FIN_EXPENSE_NOT_POSTABLE (42501)`, `FIN_PAYLOAD_UNKNOWN_KEY`. Level-I idempotency guarantees exactly one ledger row per expense.
 
-### 11.11 `reverse_expense` — ordered-argument payload contract (U-2, Model-B)
+### 11.10 `reverse_expense` — ordered-argument payload contract (U-2, Model-B)
 
 Public signature (§3): `reverse_expense(p_tenant_id uuid, p_idempotency_key uuid, p_expense_id uuid, p_reason text, p_reversal_date date)`.
 
@@ -2095,7 +2080,7 @@ Public signature (§3): `reverse_expense(p_tenant_id uuid, p_idempotency_key uui
 
 Response: `{ original_expense_id, reversal_expense_id, reversal_ledger_entry_id, status: 'reversed' }`. Errors: §4, `FIN_EXPENSE_NOT_REVERSIBLE (42501)`, `FIN_REVERSAL_DATE_INVALID (23514)`, `FIN_PAYLOAD_UNKNOWN_KEY`.
 
-### 11.12 `post_manual_ledger_adjustment` — ordered-argument payload contract (U-2)
+### 11.11 `post_manual_ledger_adjustment` — ordered-argument payload contract (U-2)
 
 Public signature (§3): `post_manual_ledger_adjustment(p_tenant_id uuid, p_idempotency_key uuid, p_client_id uuid, p_amount numeric, p_effective_date date, p_description text)`.
 
@@ -2114,7 +2099,7 @@ Response: `{ ledger_entry_id, balance_after, entry_type: 'manual_adjustment' }`.
 
 `PAYLOAD_CONTRACT_SCOPE_INVALID` retires against §§11.1–11.12. `PAYLOAD_CONTRACT_PHYSICAL_TABLE_COMPLETENESS_NONCONFORMITY` retires against the twelve independent U-2 tables §§11.1–11.12 (`create_invoice_with_items`, `update_invoice_with_items`, `approve_invoice`, `cancel_invoice`, `post_expense_with_ledger`, `reverse_expense`, `post_manual_ledger_adjustment` above, plus `post_payment` supplemental §11.9 — restated here — and the pre-existing physical tables for `create_expense` §11.4, `update_expense` §11.5, `pos_finalize_sale` §11.6, and `record_salary_payment` §11.19-U2 below).
 
-### 11.13 `record_salary_payment` — ordered-argument payload contract (U-2)
+### 11.12 `record_salary_payment` — ordered-argument payload contract (U-2)
 
 Public signature (§3): `record_salary_payment(p_tenant_id, p_idempotency_key, p_employee_id, p_amount, p_currency, p_paid_at, p_payment_period, p_notes, p_create_expense)`.
 
@@ -2136,11 +2121,11 @@ Response: `{ salary_payment_id, expense_id?, ledger_entry_id?, period_locked: tr
 
 ---
 
-### Adapter caller-intent contracts (§§11.14–11.19) — not counted as U-2 tables
+### Adapter caller-intent contracts (§§11.13–11.18) — not counted as U-2 tables
 
-The six adapter caller-intent contracts below are strict per-adapter contracts (D.4 §6). They are **separate from** the twelve U-2 physical payload contracts (§§11.1–11.13 above) and are **not** counted toward the U-2 total. Each contract is independent — no "same schema as" shortcut is permitted.
+The six adapter caller-intent contracts below are strict per-adapter contracts (D.4 §6). They are **separate from** the twelve U-2 physical payload contracts (§§11.1–11.12 above) and are **not** counted toward the U-2 total. Each contract is independent — no "same schema as" shortcut is permitted.
 
-### 11.14 `create_invoice_from_admission` — strict `p_caller_intent` (D.4 §6.1)
+### 11.13 `create_invoice_from_admission` — strict `p_caller_intent` (D.4 §6.1)
 
 | Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
 |---|---|---|---|---|---|---|---|---|---|
@@ -2153,7 +2138,7 @@ The six adapter caller-intent contracts below are strict per-adapter contracts (
 | any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
 | client_id / horse_id / service_id / unit_price / currency / invoice_number / status / totals / branch_id / billing_link_id | any | F | Server | — | server-resolved from locked admission + `boardingPeriodEngine` + catalog snapshot | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.15 `create_lab_invoice` — strict `p_caller_intent` (D.4 §6.2)
+### 11.14 `create_lab_invoice` — strict `p_caller_intent` (D.4 §6.2)
 
 | Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
 |---|---|---|---|---|---|---|---|---|---|
@@ -2164,7 +2149,7 @@ The six adapter caller-intent contracts below are strict per-adapter contracts (
 | any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
 | all commercial fields, client_id, lab_horse_id, service_id, category_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked lab source + `lab_services` + snapshots | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.16 `create_doctor_invoice` — strict `p_caller_intent` (D.4 §6.3)
+### 11.15 `create_doctor_invoice` — strict `p_caller_intent` (D.4 §6.3)
 
 | Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
 |---|---|---|---|---|---|---|---|---|---|
@@ -2175,7 +2160,7 @@ The six adapter caller-intent contracts below are strict per-adapter contracts (
 | any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
 | all commercial fields, client_id, service_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked `doctor_consultations` + `doctor_services` | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.17 `create_vet_invoice` — strict `p_caller_intent` (D.4 §6.4)
+### 11.16 `create_vet_invoice` — strict `p_caller_intent` (D.4 §6.4)
 
 | Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
 |---|---|---|---|---|---|---|---|---|---|
@@ -2186,7 +2171,7 @@ The six adapter caller-intent contracts below are strict per-adapter contracts (
 | any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
 | all commercial fields, client_id, service_id, provider_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked treatment; external/non-billable modes are rejected when domain rules do not authorize tenant invoicing (`FIN_ADAPTER_EXTERNAL_MODE 42501`) | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.18 `create_vaccination_invoice` — strict `p_caller_intent` (D.4 §6.5)
+### 11.17 `create_vaccination_invoice` — strict `p_caller_intent` (D.4 §6.5)
 
 | Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
 |---|---|---|---|---|---|---|---|---|---|
@@ -2197,7 +2182,7 @@ The six adapter caller-intent contracts below are strict per-adapter contracts (
 | any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
 | all commercial fields, client_id, horse_id, service_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked vaccination record + catalog | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.19 `create_breeding_invoice` — strict `p_caller_intent` (D.4 §6.6)
+### 11.18 `create_breeding_invoice` — strict `p_caller_intent` (D.4 §6.6)
 
 | Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
 |---|---|---|---|---|---|---|---|---|---|
@@ -2209,7 +2194,7 @@ The six adapter caller-intent contracts below are strict per-adapter contracts (
 | any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
 | all commercial fields, client_id, horse_id, service_id, currency, invoice_number, status | any | F | Server | — | server-resolved from the locked breeding source disambiguated by `source_type` | — | ✓ | ✓ | Rejected if supplied |
 
-`ADAPTER_CANONICAL_NAME_NONCONFORMITY` retires against §§11.14–11.19 canonical adapter identities.
+`ADAPTER_CANONICAL_NAME_NONCONFORMITY` retires against §§11.13–11.18 canonical adapter identities.
 
 ---
 
@@ -2597,8 +2582,8 @@ D.4 corrections applied in place. This section supersedes the prior split §14 /
 | §14.4 no duplicate section numbering, balanced Markdown fences, balanced SQL dollar quotes, no `TBD/to confirm/assumed/likely/placeholder/XXX` | PASS |
 | §14.5 fourteen public RPC × 20 populated fields (§7) | PASS |
 | §14.5 six canonical adapters (`create_invoice_from_admission`, `create_lab_invoice`, `create_doctor_invoice`, `create_vet_invoice`, `create_vaccination_invoice`, `create_breeding_invoice`), each with the identical four-argument ordered signature `(p_tenant_id uuid, p_idempotency_key uuid, p_source_id uuid, p_caller_intent jsonb)`; zero remaining occurrences of the seven prior non-canonical / obsolete adapter identities in any normative section (see §15 retirement of ADAPTER_CANONICAL_NAME_NONCONFORMITY) | PASS |
-| §14.5 twelve independent U-2 physical payload contract tables at §§11.1–11.13 (create_invoice_with_items, update_invoice_with_items, approve_invoice, cancel_invoice, post_payment supplemental, create_expense, update_expense, post_expense_with_ledger, reverse_expense, post_manual_ledger_adjustment, pos_finalize_sale, record_salary_payment) — no "same schema as" shortcut used; adapter caller-intent tables §§11.14–11.19 are separate and not counted as U-2 | PASS |
-| §14.5 six strict independent adapter caller-intent contracts at §§11.14–11.19 | PASS |
+| §14.5 twelve independent U-2 physical payload contract tables at §§11.1–11.12 (create_invoice_with_items §11.1, update_invoice_with_items §11.2, post_payment supplemental §11.3, create_expense §11.4, update_expense §11.5, pos_finalize_sale §11.6, approve_invoice §11.7, cancel_invoice §11.8, post_expense_with_ledger §11.9, reverse_expense §11.10, post_manual_ledger_adjustment §11.11, record_salary_payment §11.12) — no "same schema as" shortcut used; adapter caller-intent tables §§11.13–11.18 are separate and not counted as U-2 | PASS |
+| §14.5 six strict independent adapter caller-intent contracts at §§11.13–11.18 | PASS |
 | §14.5 `_finance_invoice_number_next(uuid, text)` two-argument signature is the only authorized helper; internal Saudi business-date derivation `(now() AT TIME ZONE 'Asia/Riyadh')::date` governs the numbering period; no numbering period derives from `invoices.issue_date`, `p_effective_date`, or any caller-supplied date; three-argument signature removed | PASS |
 | §14.5 §17 corrections integrated into §5/§9/§11/§13 bodies (Batch D.1) — §17 removed; no duplicate §14/§15 sections; single sequential §14/§15/§16 hierarchy | PASS |
 | §14.5 mutation census separated from reader census (§12) | PASS |
@@ -2620,8 +2605,8 @@ This section supersedes the prior split §15 / §15-Batch-D-canonical-closure pa
 **Retired by D.4 (this pass, by direct user authority in the D.4 execution order):**
 
 - `ADAPTER_ORDERED_ARGUMENTS_PROVENANCE_UNRESOLVED` — retired by U-4A direct user authority: the identical four-argument ordered signature `(p_tenant_id uuid, p_idempotency_key uuid, p_source_id uuid, p_caller_intent jsonb)` is adopted for all six canonical adapters. No overload with a different argument order or additional public arguments is authorized.
-- `ADAPTER_CANONICAL_NAME_NONCONFORMITY` — retired: all normative occurrences of the seven non-canonical/obsolete adapter identities have been replaced with the six canonical identities enumerated in §3, §8, §§11.14–11.19, and §13 F0.
-- `PAYLOAD_CONTRACT_PHYSICAL_TABLE_COMPLETENESS_NONCONFORMITY` — retired: exactly twelve independent U-2 physical payload contract tables are physically present at §§11.1–11.13. No "same schema as" shortcut is used. Adapter caller-intent tables at §§11.14–11.19 are separate and not counted as U-2.
+- `ADAPTER_CANONICAL_NAME_NONCONFORMITY` — retired: all normative occurrences of the seven non-canonical/obsolete adapter identities have been replaced with the six canonical identities enumerated in §3, §8, §§11.13–11.18, and §13 F0.
+- `PAYLOAD_CONTRACT_PHYSICAL_TABLE_COMPLETENESS_NONCONFORMITY` — retired: exactly twelve independent U-2 physical payload contract tables are physically present at §§11.1–11.13. No "same schema as" shortcut is used. Adapter caller-intent tables at §§11.13–11.18 are separate and not counted as U-2.
 - `INVOICE_NUMBER_HELPER_SIGNATURE_AND_DATE_SOURCE_NONCONFORMITY` — retired: the sole authorized helper signature is `_finance_invoice_number_next(uuid, text)`. The numbering period is derived internally from one transaction-captured Saudi business date `(now() AT TIME ZONE 'Asia/Riyadh')::date`. `invoices.issue_date`, `p_effective_date`, browser dates, device dates, and any caller-supplied date are prohibited as numbering-period sources. `invoices.issue_date` remains the invoice/ledger effective date independent from the numbering period. Historical seed reconciliation uses the canonical period encoded in existing invoice numbers, never `issue_date`.
 - `STAGE6_SECTION_HEADING_COLLISION` — retired: the duplicate second `## §14. Structural-gate results (self-verification) — Batch D delta` and the duplicate second `## §15. Unresolved identifiers — Batch D.1 canonical closure` sections are removed; the single §14 / §15 / §16 hierarchy above is the sole normative source.
 - `DUAL_UNRESOLVED_SECTION_NORMATIVE_COMPETITION` — retired: only this §15 remains as the normative unresolved-identifier set. Merged retired-identifier content into a single register.
