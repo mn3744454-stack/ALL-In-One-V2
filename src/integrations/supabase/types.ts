@@ -11683,6 +11683,7 @@ export type Database = {
           name: string
           name_ar: string | null
           price_display: string | null
+          product_id: string | null
           service_kind: string
           service_type: string | null
           tenant_id: string
@@ -11700,6 +11701,7 @@ export type Database = {
           name: string
           name_ar?: string | null
           price_display?: string | null
+          product_id?: string | null
           service_kind?: string
           service_type?: string | null
           tenant_id: string
@@ -11717,6 +11719,7 @@ export type Database = {
           name?: string
           name_ar?: string | null
           price_display?: string | null
+          product_id?: string | null
           service_kind?: string
           service_type?: string | null
           tenant_id?: string
@@ -11730,6 +11733,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenant_service_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_services_product_fk"
+            columns: ["tenant_id", "product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["tenant_id", "id"]
           },
           {
             foreignKeyName: "tenant_services_tenant_id_fkey"
