@@ -1238,3 +1238,192 @@ Do not reconstruct either historical execution closure from PLAN-LOCK or from la
 ================================================================
 END POST-PLAN-LOCK USER AUTHORITY ADDENDUM
 ================================================================
+
+================================================================
+POST-PLAN-LOCK USER AUTHORITY ADDENDUM — D.4
+Appended by AML.1.b.1 Stage 6 D.4 Authority Adoption and
+Specification Correction execution turn.
+Source: direct user execution order (D.4 prompt).
+This addendum records U-4A (canonical ordered adapter signatures),
+U-4B (Stage 6 boundary), strict p_caller_intent authority, prohibited
+caller fields, exact source semantics, and retirement of the two
+D.3R gap identifiers listed below. U-1, U-2, and U-3 remain closed
+and unchanged.
+================================================================
+
+## U-4A  Canonical ordered adapter signatures
+
+Adopted by direct user authority in the D.4 execution order.
+
+The six canonical Finance domain adapters share the identical four-argument
+ordered signature and identical PostgreSQL types. No overload with a different
+argument order or additional public arguments is authorized.
+
+```text
+create_invoice_from_admission(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_lab_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_doctor_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_vet_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_vaccination_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_breeding_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+```
+
+### Binding argument semantics
+
+- `p_tenant_id` — explicit tenant-scope assertion. Server must verify against
+  `auth.uid()`, active tenant membership, the locked source record, domain
+  ownership, and all applicable Finance permissions. A valid source UUID from
+  another tenant must be rejected without leaking its existence.
+- `p_idempotency_key` — caller-generated UUIDv4 Level-I financial idempotency
+  key. Implementation contract must guarantee adapter-specific operation
+  identity, tenant-scoped idempotency, canonical request hashing, replay of
+  the stored response on same-key/same-hash, rejection on same-key/different-
+  hash, and protection against duplicate clicks, retries, reconnects, and
+  concurrent requests. No duplicate invoice header, items, billing links, or
+  ledger effects may be produced.
+- `p_source_id` — canonical source-record identity per adapter:
+  - `create_invoice_from_admission` → boarding admission.
+  - `create_lab_invoice` → the laboratory request / submission source used by
+    the current live workflow.
+  - `create_doctor_invoice` → doctor consultation.
+  - `create_vet_invoice` → vet treatment.
+  - `create_vaccination_invoice` → horse vaccination record.
+  - `create_breeding_invoice` → live supported breeding source record,
+    disambiguated by the strict `source_type` intent field.
+  The source row must be locked and re-read server-side before any financial
+  values are resolved.
+- `p_caller_intent` — strict per-adapter contract (see D.4 §6). Not generic
+  metadata; never behaves like `p_extra`. Unknown keys are rejected. Missing
+  required keys are rejected. Every value is validated against an explicit
+  PostgreSQL type. JSON arrays or unexpected nested objects are rejected. The
+  canonical representation of the intent is included in the idempotency
+  request hash. Required and optional keys are documented independently per
+  adapter. "Same as another adapter" is never used as a contract shortcut.
+
+### Prohibited caller fields (all six adapters)
+
+The following must never be accepted as public adapter arguments or
+caller-intent keys: invoice number; invoice-number period/date; invoice
+status; client identity; horse identity; branch identity; service/catalog
+identity; billing-link identity; billing-link tenant; quantity; unit price;
+taxability; tax rate; currency; subtotal; discount amount; tax amount; total
+amount; provider identity when resolvable from the source; ownership
+identity; arbitrary metadata; generic JSON extensions; `p_extra`; browser-
+calculated financial values. All such values are resolved or validated from
+locked server-side source records, pricing snapshots, catalog records,
+contracts, tenant configuration, or Finance policy.
+
+### Retirements produced by U-4A
+
+- `ADAPTER_ORDERED_ARGUMENTS_PROVENANCE_UNRESOLVED` — retired by direct user
+  authority. Not reconstructed from historical evidence.
+- `ADAPTER_CANONICAL_NAME_NONCONFORMITY` — retired against the six canonical
+  identities above; all normative occurrences of the seven non-canonical /
+  obsolete adapter identities (`housing_generate_invoice`,
+  `laboratory_generate_invoice`, `doctor_generate_invoice`,
+  `vet_generate_invoice`, `vaccination_generate_invoice`,
+  `breeding_generate_invoice`, `create_housing_invoice`) are replaced in the
+  Stage 6 specification.
+
+## U-4B  Stage 6 boundary authority
+
+Stage 6 is authorized to cover exactly, and only:
+
+1. The fourteen canonical public Finance RPCs already enumerated by this
+   PLAN_LOCK.
+2. The six canonical adapters adopted by U-4A above.
+3. Their required private helpers.
+4. `_finance_invoice_number_next(uuid, text)` — the sole authorized helper
+   signature (see U-3 confirmation below).
+5. Level-I financial idempotency.
+6. Required function ownership, hardened `search_path`, `REVOKE`, and `GRANT`
+   contracts.
+7. Canonical payload-contract documentation (twelve U-2 physical tables plus
+   the six strict adapter caller-intent contracts, tracked separately).
+8. Required migration ordering M1–M7.
+9. Application caller adaptation and generated-type updates required to
+   invoke these canonical contracts.
+10. Deterministic verification and rollback instructions for those changes.
+
+Stage 6 is NOT authorized to reconstruct Stage 3 or Stage 4 closure files;
+perform historical financial-data cleanup; cancel or adjust known orphan
+invoices; import historical customer finance data; execute later AML stages;
+redesign unrelated Finance UI; redesign unrelated domain workflows; or
+reopen U-1, U-2, U-3, or this U-4 authority.
+
+### Retirement produced by U-4B
+
+- `STAGE_BOUNDARY_EXCLUSIONS_UNPROVEN_PENDING_STAGE3_STAGE4_ARTIFACTS` —
+  retired by direct user authority.
+
+Stage 3 and Stage 4 artifact-availability markers remain evidence
+limitations, but they no longer block the Stage 6 boundary.
+
+## U-1 / U-2 / U-3 confirmation (not reopened by D.4)
+
+- U-1 (six canonical adapter identities): closed. Unchanged. Now paired with
+  the U-4A ordered signatures.
+- U-2 (twelve canonical payload-contract identities): closed. Unchanged. The
+  Stage 6 spec now physically renders all twelve as independent tables with
+  the required metadata columns. Adapter caller-intent contracts are tracked
+  separately from the twelve U-2 tables.
+- U-3 (invoice-number helper and Saudi business-date policy): closed.
+  Unchanged. The sole authorized helper signature is
+  `_finance_invoice_number_next(uuid, text)`. The numbering period is
+  derived internally from one transaction-captured Saudi business date
+  `(now() AT TIME ZONE 'Asia/Riyadh')::date`. The same captured value
+  governs the whole transaction. `invoices.issue_date`, `p_effective_date`,
+  browser dates, device dates, `p_caller_intent.issue_date`, and any other
+  caller-supplied date are prohibited as numbering-period sources.
+  `invoices.issue_date` remains the invoice and ledger effective date and is
+  independent from the invoice-number period.
+
+## Retained evidence limitations (unchanged by D.4)
+
+- `STAGE_3_CLOSURE_ARTIFACT_UNAVAILABLE`
+- `STAGE_4_CLOSURE_ARTIFACT_UNAVAILABLE`
+- `BATCH_D2_IDENTITY_CONFIRMED_EXTERNAL_SOURCE_NOT_YET_RESTORED`
+- `STAGE6_SPEC_FULL_PREIMAGE_HASH_REFERENCE_UNAVAILABLE`
+
+These are preserved as evidence limitations and are not presented as
+blockers to the U-4A / U-4B adoption, the D.4 specification correction, or
+Stage 6 execution readiness.
+
+================================================================
+END POST-PLAN-LOCK USER AUTHORITY ADDENDUM — D.4
+================================================================

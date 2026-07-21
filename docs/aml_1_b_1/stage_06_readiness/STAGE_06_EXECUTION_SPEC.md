@@ -288,20 +288,57 @@ record_salary_payment(
 - `pos_finalize_sale`'s cart, sale date, client, account, currency, discount, tax opt-out live inside the validated `p_payload`. No `p_cart`, `p_items`, `p_sale_date`, `p_client_id`, `p_account_id`, `p_currency`, `p_discount_amount` positional replacements exist.
 - `create_invoice_with_items` / `update_invoice_with_items` carry header + items inside the single validated `p_payload`.
 
-**Adapter locked shape (single per operation).** For each of Housing, Laboratory, Doctor, Vet, Vaccination, Breeding:
+**Adapter locked signatures (U-4A canonical, D.4).** Six independent domain adapters. Identical four-argument ordered signature and PostgreSQL types across all six. No overload with a different argument order or additional public arguments is authorized.
 
 ```text
-<domain>_generate_invoice(
+create_invoice_from_admission(
   p_tenant_id       uuid,
   p_idempotency_key uuid,
-  p_source_id       uuid,       -- domain source identity (admission id, lab request id, …)
-  p_caller_intent   jsonb       -- narrow validated caller intent (notes, share flag, corrects_invoice_id)
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_lab_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_doctor_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_vet_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_vaccination_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
+)
+
+create_breeding_invoice(
+  p_tenant_id       uuid,
+  p_idempotency_key uuid,
+  p_source_id       uuid,
+  p_caller_intent   jsonb
 )
 ```
 
-No adapter accepts caller-resolved `client_id`, `lab_horse_id`, `service_id`, `unit_price`, `currency`, `invoice_number`, or `status`. All are server-resolved from the domain source under advisory lock.
+**Binding argument semantics (D.4 §5).** `p_tenant_id` is an explicit tenant-scope assertion; the server must verify it against `auth.uid()`, active tenant membership, the locked source record, domain ownership, and every applicable Finance permission. A valid source UUID from another tenant is rejected without leaking its existence. `p_idempotency_key` is a caller-generated UUIDv4 Level-I financial idempotency key participating in the canonical adapter-specific request-hash contract; replay of same key + same hash returns the stored response; same key + different hash is rejected. `p_source_id` is the canonical source-record identity per adapter: boarding_admission (§8.1), the lab source used by the current live workflow (§8.2), doctor_consultation (§8.3), vet_treatment (§8.4), horse vaccination record (§8.5), and the live breeding source record disambiguated by the strict `source_type` intent key (§8.6). The source row is locked and re-read server-side before any financial values are resolved. `p_caller_intent` is a strict per-adapter contract (see §§11.13–11.18); it is not `p_extra` and must never behave like generic metadata — unknown keys are rejected, required keys are enforced, each value is validated against an explicit PostgreSQL type, and the canonical representation participates in the idempotency request hash.
 
-`PLAN_LOCK_RPC_SIGNATURE_DRIFT` retires against these exact signatures.
+**Prohibited caller fields across all six adapters (D.4 §7).** Public caller arguments and caller-intent keys must never accept: invoice number, invoice-number period/date, invoice status, client identity, horse identity, branch identity, service/catalog identity, billing-link identity, billing-link tenant, quantity, unit price, taxability, tax rate, currency, subtotal, discount amount, tax amount, total amount, provider identity when resolvable from the source, ownership identity, arbitrary metadata, generic JSON extensions, `p_extra`, or browser-calculated financial values. All such values are resolved or validated from locked server-side source records, pricing snapshots, catalog records, contracts, tenant configuration, or Finance policy.
+
+`PLAN_LOCK_RPC_SIGNATURE_DRIFT` retires against these exact signatures. `ADAPTER_ORDERED_ARGUMENTS_PROVENANCE_UNRESOLVED` and `ADAPTER_CANONICAL_NAME_NONCONFORMITY` are retired by direct user authority (D.4).
 
 ---
 
@@ -1326,7 +1363,7 @@ Shared shape per §3 adapter block. All adapters: `SECURITY DEFINER`, tenant-loc
 
 For each adapter row, the 20 columns are identical in shape to §7 (Sig, Perm, Locks, Idem, Preconds, Business rows, Ledger rows, Billing links, Balance chain, Status transitions, Server-owned, Rejected caller, Snapshot, Response, Idem codes, Domain codes, Reads preserved, Zero-drift, Stage-8 target, Notes).
 
-### 8.1 `housing_generate_invoice` (F4)
+### 8.1 `create_invoice_from_admission` (F4)
 
 | Field | Value |
 |---|---|
@@ -1351,7 +1388,7 @@ For each adapter row, the 20 columns are identical in shape to §7 (Sig, Perm, L
 | Stage-8 target | Housing "Generate Invoice" |
 | Notes | boarding proration engine runs server-side inside RPC |
 
-### 8.2 `laboratory_generate_invoice` (F4)
+### 8.2 `create_lab_invoice` (F4)
 
 | Field | Value |
 |---|---|
@@ -1376,7 +1413,7 @@ For each adapter row, the 20 columns are identical in shape to §7 (Sig, Perm, L
 | Stage-8 target | Lab request panel "Generate Invoice" |
 | Notes | multi-horse submission billed as single invoice per submission |
 
-### 8.3 `doctor_generate_invoice` (F4)
+### 8.3 `create_doctor_invoice` (F4)
 
 | Field | Value |
 |---|---|
@@ -1401,7 +1438,7 @@ For each adapter row, the 20 columns are identical in shape to §7 (Sig, Perm, L
 | Stage-8 target | `CreateInvoiceFromConsultation.tsx` |
 | Notes | Doctor catalog mismatch is known technical debt; adapter unifies at boundary |
 
-### 8.4 `vet_generate_invoice` (F4)
+### 8.4 `create_vet_invoice` (F4)
 
 | Field | Value |
 |---|---|
@@ -1426,7 +1463,7 @@ For each adapter row, the 20 columns are identical in shape to §7 (Sig, Perm, L
 | Stage-8 target | Vet treatment "Generate Invoice" |
 | Notes | External-mode invoices routed through supplier payable creation (out of scope for AR adapter) |
 
-### 8.5 `vaccination_generate_invoice` (F4)
+### 8.5 `create_vaccination_invoice` (F4)
 
 | Field | Value |
 |---|---|
@@ -1451,7 +1488,7 @@ For each adapter row, the 20 columns are identical in shape to §7 (Sig, Perm, L
 | Stage-8 target | Vaccination detail "Generate Invoice" |
 | Notes | — |
 
-### 8.6 `breeding_generate_invoice` (F4)
+### 8.6 `create_breeding_invoice` (F4)
 
 | Field | Value |
 |---|---|
@@ -1592,23 +1629,28 @@ COMMIT;
 -- File: supabase/migrations/<ts>_stage06_m6_invoice_number_helper.sql
 CREATE OR REPLACE FUNCTION public._finance_invoice_number_next(
   p_tenant_id uuid,
-  p_domain    text,
-  p_effective_date date
+  p_domain    text
 ) RETURNS text
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-  v_cfg      public.finance_invoice_number_config%ROWTYPE;
-  v_period   text;
-  v_next     bigint;
-  v_number   text;
-  v_attempt  int := 0;
+  v_cfg          public.finance_invoice_number_config%ROWTYPE;
+  v_business_dt  date;  -- single transaction-captured Saudi business date (U-3)
+  v_period       text;
+  v_next         bigint;
+  v_number       text;
+  v_attempt      int := 0;
 BEGIN
-  IF p_tenant_id IS NULL OR p_domain IS NULL OR p_effective_date IS NULL THEN
+  IF p_tenant_id IS NULL OR p_domain IS NULL THEN
     RAISE EXCEPTION 'FIN_INVOICE_NUMBER_BAD_ARGS' USING ERRCODE = '22023';
   END IF;
+
+  -- U-3 (D.4): numbering period derives internally from the current Saudi
+  -- business date; never from invoices.issue_date, p_effective_date, or any
+  -- caller-supplied date. One captured value governs the whole transaction.
+  v_business_dt := (now() AT TIME ZONE 'Asia/Riyadh')::date;
 
   SELECT * INTO v_cfg
     FROM public.finance_invoice_number_config
@@ -1619,7 +1661,7 @@ BEGIN
   END IF;
 
   v_period := CASE v_cfg.reset_policy
-                WHEN 'monthly' THEN to_char(p_effective_date, 'YYYYMM')
+                WHEN 'monthly' THEN to_char(v_business_dt, 'YYYYMM')
                 ELSE ''
               END;
 
@@ -1668,8 +1710,8 @@ BEGIN
 END
 $$;
 
-REVOKE ALL ON FUNCTION public._finance_invoice_number_next(uuid, text, date) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public._finance_invoice_number_next(uuid, text, date) TO service_role;
+REVOKE ALL ON FUNCTION public._finance_invoice_number_next(uuid, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public._finance_invoice_number_next(uuid, text) TO service_role;
 -- Not granted to authenticated: only public RPCs (SECURITY DEFINER) call this helper.
 ```
 
@@ -1704,8 +1746,14 @@ ON CONFLICT (tenant_id, domain) DO NOTHING;
 WITH parsed AS (
   SELECT i.tenant_id,
          'manual'::text AS domain,
+         -- U-3 (D.4): historical seeding derives period from the canonical
+         -- period already encoded in the existing invoice_number (never from
+         -- issue_date). For non-monthly reset policies period_key stays ''.
          CASE WHEN cfg.reset_policy = 'monthly'
-              THEN to_char(i.issue_date, 'YYYYMM')
+              THEN COALESCE(
+                     substring(i.invoice_number
+                               FROM length(cfg.prefix) + 1 FOR 6),
+                     '')
               ELSE ''
          END AS period_key,
          NULLIF(regexp_replace(
@@ -1765,7 +1813,7 @@ BEGIN
 END
 $abort$;
 
-DROP FUNCTION IF EXISTS public._finance_invoice_number_next(uuid, text, date);
+DROP FUNCTION IF EXISTS public._finance_invoice_number_next(uuid, text);
 DROP TABLE public.finance_invoice_number_counters;
 DROP TABLE public.finance_invoice_number_config;
 
@@ -1777,7 +1825,7 @@ COMMIT;
 1. Runtime NEVER calls `MAX(...)`, `MAX(right(...))`, or scans `public.invoices` to derive a next number. The counter row is the sole source.
 2. The prefix lives only in `finance_invoice_number_config`. Counter rows do not persist a prefix column.
 3. `p_domain` is caller-selected by RPC/adapter, never by end-user payload. Any caller-supplied `invoice_number` in payload is rejected with `FIN_PAYLOAD_UNKNOWN_KEY`.
-4. Every public RPC that persists an invoice calls `_finance_invoice_number_next(tenant, domain, effective_date)` under its own transaction and writes the returned string to `invoices.invoice_number` under the tenant unique index.
+4. Every public RPC that persists an invoice calls `_finance_invoice_number_next(tenant, domain)` under its own transaction and writes the returned string to `invoices.invoice_number` under the tenant unique index.
 5. Client generators in `usePOSCore.ts:113` and every `Create*Invoice*` dialog are decommissioned in the corresponding adapter layer once the migration lands (Stage 7 wiring).
 
 
@@ -1875,7 +1923,7 @@ Invoice-persistence helper is intentionally **not** a general private helper: `c
 
 ---
 
-## §11. Payload contracts (12 tables, all 10 metadata columns)
+## §11. Payload contracts (12 U-2 physical tables + 6 adapter caller-intent tables, all 10 metadata columns)
 
 Metadata columns for every row: **Field**, **Type**, **Required/Optional/Forbidden (R/O/F)**, **Owner (Caller/Server)**, **Editable state**, **Validation source**, **In request hash?**, **In snapshot?**, **In response?**, **Disposition (Accepted/Recomputed/Rejected)**.
 
@@ -1970,36 +2018,183 @@ Same schema as §11.4 with the field-set restricted per §6.2 (`approved+posted`
 | `sale_number/invoice_number/id/status/totals` | any | F | Server | — | — | — | ✓ | ✓ | Rejected |
 | `corrects_invoice_id` | uuid | F | — | — | POS not corrective | — | — | — | Rejected |
 
-### 11.7 Housing adapter — `p_caller_intent` of `housing_generate_invoice`
+### 11.7 `approve_invoice` — ordered-argument payload contract (U-2)
+
+Public signature (§3): `approve_invoice(p_tenant_id uuid, p_idempotency_key uuid, p_invoice_id uuid)`. No `p_payload`, no `p_effective_date`, no side channel. Ledger `effective_date = invoices.issue_date` (§9 policy).
 
 | Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
 |---|---|---|---|---|---|---|---|---|---|
-| `notes` | text | O | Caller | pre | 0..500 | ✓ | ✓ | ✓ | Accepted |
-| `share_with_client` | bool | O | Caller | pre | boolean | ✓ | ✓ | ✓ | Accepted |
-| `corrects_invoice_id` | uuid | O | Caller | pre | must reference cancelled invoice on same source; verified server-side | ✓ | ✓ | ✓ | Accepted |
-| any other key | any | F | — | — | — | — | — | — | Rejected |
+| `p_tenant_id` | uuid | R | Caller | pre-approval | tenant scope asserted; server verifies via `auth.uid()` + membership + invoice ownership | ✓ | ✓ | ✓ | Accepted (verified, not trusted) |
+| `p_idempotency_key` | uuid | R | Caller | pre-approval | UUIDv4 caller-generated Level-I key; canonical request hash = `sha256('approve_invoice|'||p_tenant_id||'|'||p_invoice_id)` | ✓ | ✓ | ✓ | Accepted |
+| `p_invoice_id` | uuid | R | Caller | pre-approval | invoice exists in tenant, `status='draft'`, has ≥1 item, totals recomputed match; locked `FOR UPDATE` | ✓ | ✓ | ✓ | Accepted |
+| `p_effective_date` | date | F | — | — | forbidden by §3 lock | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| any p_payload / extra arg | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| status / totals / invoice_number / client_id / horse_id / branch_id / service_id / billing_link_id / currency | any | F | Server | — | server-derived from locked invoice + config | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.8 Laboratory adapter — `p_caller_intent` of `laboratory_generate_invoice`
+Response: `{ invoice_id, invoice_number, status: 'approved', ledger_entry_id, billing_link_id?, balance_after }`. Error families: `FIN_IDEMPOTENCY_*` (§4), `FIN_AUTH_DENIED (42501)`, `FIN_INVOICE_NOT_DRAFT (42501)`, `FIN_INVOICE_EMPTY (23514)`, `FIN_INVOICE_TOTALS_STALE (23514)`, `FIN_PAYLOAD_UNKNOWN_KEY (23514)`. Idempotency participation: Level I; identical (tenant, key, hash) replays return the stored response without re-posting the ledger row.
 
-Same schema as §11.7.
+### 11.8 `cancel_invoice` — ordered-argument payload contract (U-2)
 
-### 11.9 Doctor adapter — `p_caller_intent` of `doctor_generate_invoice`
+Public signature (§3): `cancel_invoice(p_tenant_id uuid, p_idempotency_key uuid, p_invoice_id uuid, p_effective_date date, p_reason text)`.
 
-Same schema as §11.7.
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `p_tenant_id` | uuid | R | Caller | pre-cancel | scope asserted; server verifies | ✓ | ✓ | ✓ | Accepted (verified) |
+| `p_idempotency_key` | uuid | R | Caller | pre-cancel | Level-I; hash = `sha256('cancel_invoice|'||p_tenant_id||'|'||p_invoice_id||'|'||p_effective_date::text||'|'||coalesce(p_reason,''))` | ✓ | ✓ | ✓ | Accepted |
+| `p_invoice_id` | uuid | R | Caller | pre-cancel | invoice exists in tenant, `status IN ('approved','partial','paid')`; locked `FOR UPDATE` | ✓ | ✓ | ✓ | Accepted |
+| `p_effective_date` | date | R | Caller | pre-cancel | ≥ invoice.issue_date, ≤ today+7; used as reversal ledger `effective_date` | ✓ | ✓ | ✓ | Accepted |
+| `p_reason` | text | R | Caller | pre-cancel | 1..500 chars | ✓ | ✓ | ✓ | Accepted |
+| any p_payload / extra arg | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| totals / new invoice_number / status | any | F | Server | — | server derives `status='cancelled'`; issues reversal ledger row | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.10 Vet adapter — `p_caller_intent` of `vet_generate_invoice`
+Response: `{ invoice_id, status: 'cancelled', reversal_ledger_entry_id, balance_after }`. Errors: `FIN_INVOICE_NOT_CANCELLABLE (42501)`, `FIN_EFFECTIVE_DATE_INVALID (23514)`, `FIN_PAYLOAD_UNKNOWN_KEY`, plus §4 idempotency codes. Level-I idempotency; same key + same hash returns the stored response.
 
-Same schema as §11.7.
+### 11.9 `post_expense_with_ledger` — ordered-argument payload contract (U-2)
 
-### 11.11 Vaccination adapter — `p_caller_intent` of `vaccination_generate_invoice`
+Public signature (§3): `post_expense_with_ledger(p_tenant_id uuid, p_idempotency_key uuid, p_expense_id uuid)`. No `p_payload`, no `p_effective_date`. Expense ledger `effective_date = expenses.expense_date` (§6 policy).
 
-Same schema as §11.7.
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `p_tenant_id` | uuid | R | Caller | pre-post | scope asserted; server verifies + expense ownership | ✓ | ✓ | ✓ | Accepted (verified) |
+| `p_idempotency_key` | uuid | R | Caller | pre-post | Level-I; hash = `sha256('post_expense_with_ledger|'||p_tenant_id||'|'||p_expense_id)` | ✓ | ✓ | ✓ | Accepted |
+| `p_expense_id` | uuid | R | Caller | pre-post | expense in tenant, `status='approved'`, `ledger_status='unposted'`; locked `FOR UPDATE` | ✓ | ✓ | ✓ | Accepted |
+| `p_effective_date` | date | F | — | — | forbidden by §3 lock | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| any p_payload / extra arg | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| amount / category / vendor / currency / status | any | F | Server | — | server derives from locked expense | — | ✓ | ✓ | Rejected if supplied |
 
-### 11.12 Breeding adapter — `p_caller_intent` of `breeding_generate_invoice`
+Response: `{ expense_id, ledger_entry_id, ledger_status: 'posted', balance_after? }`. Errors: §4 codes, `FIN_EXPENSE_NOT_POSTABLE (42501)`, `FIN_PAYLOAD_UNKNOWN_KEY`. Level-I idempotency guarantees exactly one ledger row per expense.
 
-Same schema as §11.7.
+### 11.10 `reverse_expense` — ordered-argument payload contract (U-2, Model-B)
 
-`PAYLOAD_CONTRACT_SCOPE_INVALID` retires against §§11.1–11.12.
+Public signature (§3): `reverse_expense(p_tenant_id uuid, p_idempotency_key uuid, p_expense_id uuid, p_reason text, p_reversal_date date)`.
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `p_tenant_id` | uuid | R | Caller | pre-reversal | scope asserted; server verifies | ✓ | ✓ | ✓ | Accepted (verified) |
+| `p_idempotency_key` | uuid | R | Caller | pre-reversal | Level-I; hash = `sha256('reverse_expense|'||p_tenant_id||'|'||p_expense_id||'|'||p_reversal_date::text||'|'||p_reason)` | ✓ | ✓ | ✓ | Accepted |
+| `p_expense_id` | uuid | R | Caller | pre-reversal | original expense in tenant, `status='approved'|'paid'`, `ledger_status='posted'`, not already reversed; locked | ✓ | ✓ | ✓ | Accepted |
+| `p_reason` | text | R | Caller | pre-reversal | 1..500 | ✓ | ✓ | ✓ | Accepted |
+| `p_reversal_date` | date | R | Caller | pre-reversal | ≥ original expense_date, ≤ today+7 | ✓ | ✓ | ✓ | Accepted |
+| any p_payload / extra arg | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| new expense identity / amount / category | any | F | Server | — | server creates positive reversal expense + negative ledger row (Model-B) | — | ✓ | ✓ | Rejected if supplied |
+
+Response: `{ original_expense_id, reversal_expense_id, reversal_ledger_entry_id, status: 'reversed' }`. Errors: §4, `FIN_EXPENSE_NOT_REVERSIBLE (42501)`, `FIN_REVERSAL_DATE_INVALID (23514)`, `FIN_PAYLOAD_UNKNOWN_KEY`.
+
+### 11.11 `post_manual_ledger_adjustment` — ordered-argument payload contract (U-2)
+
+Public signature (§3): `post_manual_ledger_adjustment(p_tenant_id uuid, p_idempotency_key uuid, p_client_id uuid, p_amount numeric, p_effective_date date, p_description text)`.
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `p_tenant_id` | uuid | R | Caller | pre-post | scope asserted; server verifies + client tenancy | ✓ | ✓ | ✓ | Accepted (verified) |
+| `p_idempotency_key` | uuid | R | Caller | pre-post | Level-I; hash = `sha256('post_manual_ledger_adjustment|'||p_tenant_id||'|'||p_client_id||'|'||p_amount::text||'|'||p_effective_date::text||'|'||p_description)` | ✓ | ✓ | ✓ | Accepted |
+| `p_client_id` | uuid | R | Caller | pre-post | client belongs to tenant; locked customer_balance row | ✓ | ✓ | ✓ | Accepted |
+| `p_amount` | numeric | R | Caller | pre-post | non-zero; sign carries semantic (positive = charge, negative = credit) | ✓ | ✓ | ✓ | Accepted |
+| `p_effective_date` | date | R | Caller | pre-post | ≤ today+7; used as ledger row `effective_date` | ✓ | ✓ | ✓ | Accepted |
+| `p_description` | text | R | Caller | pre-post | 1..500; auditable rationale | ✓ | ✓ | ✓ | Accepted |
+| any p_payload / extra arg | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| ledger_entry_id / balance_after / entry_type | any | F | Server | — | server-derived | — | ✓ | ✓ | Rejected if supplied |
+
+Response: `{ ledger_entry_id, balance_after, entry_type: 'manual_adjustment' }`. Errors: §4, `FIN_AMOUNT_ZERO (23514)`, `FIN_EFFECTIVE_DATE_INVALID (23514)`, `FIN_CLIENT_NOT_IN_TENANT (42501)`, `FIN_PAYLOAD_UNKNOWN_KEY`. Requires elevated permission `finance.ledger.adjust`.
+
+`PAYLOAD_CONTRACT_SCOPE_INVALID` retires against §§11.1–11.12. `PAYLOAD_CONTRACT_PHYSICAL_TABLE_COMPLETENESS_NONCONFORMITY` retires against the twelve independent U-2 tables §§11.1–11.12 (`create_invoice_with_items`, `update_invoice_with_items`, `approve_invoice`, `cancel_invoice`, `post_expense_with_ledger`, `reverse_expense`, `post_manual_ledger_adjustment` above, plus `post_payment` supplemental §11.9 — restated here — and the pre-existing physical tables for `create_expense` §11.4, `update_expense` §11.5, `pos_finalize_sale` §11.6, and `record_salary_payment` §11.19-U2 below).
+
+### 11.12 `record_salary_payment` — ordered-argument payload contract (U-2)
+
+Public signature (§3): `record_salary_payment(p_tenant_id, p_idempotency_key, p_employee_id, p_amount, p_currency, p_paid_at, p_payment_period, p_notes, p_create_expense)`.
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `p_tenant_id` | uuid | R | Caller | pre-post | scope asserted; server verifies + employee tenancy | ✓ | ✓ | ✓ | Accepted (verified) |
+| `p_idempotency_key` | uuid | R | Caller | pre-post | Level-I; hash = ordered-arg SHA-256 | ✓ | ✓ | ✓ | Accepted |
+| `p_employee_id` | uuid | R | Caller | pre-post | in `hr_employees`, active in tenant | ✓ | ✓ | ✓ | Accepted |
+| `p_amount` | numeric | R | Caller | pre-post | > 0 | ✓ | ✓ | ✓ | Accepted |
+| `p_currency` | text | R | Caller | pre-post | must equal tenant default | ✓ | ✓ | ✓ | Accepted/Recomputed |
+| `p_paid_at` | timestamptz | R | Caller | pre-post | ≤ now()+1d | ✓ | ✓ | ✓ | Accepted |
+| `p_payment_period` | text | R | Caller | pre-post | `YYYY-MM` for monthly; unique per (tenant, employee, period) | ✓ | ✓ | ✓ | Accepted |
+| `p_notes` | text | O | Caller | pre-post | 0..1000 | ✓ | ✓ | ✓ | Accepted |
+| `p_create_expense` | bool | R | Caller | pre-post | when `true` also emits sourced expense + ledger row via `_finance_expense_create_sourced` | ✓ | ✓ | ✓ | Accepted |
+| any p_payload / extra arg | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| expense_id / ledger_entry_id / status | any | F | Server | — | server-derived | — | ✓ | ✓ | Rejected if supplied |
+
+Response: `{ salary_payment_id, expense_id?, ledger_entry_id?, period_locked: true }`. Errors: §4, `FIN_SALARY_PERIOD_DUP (23514)`, `FIN_CURRENCY_MISMATCH (23514)`, `FIN_PAYLOAD_UNKNOWN_KEY`. Level-I idempotency; unique `(tenant_id, employee_id, p_payment_period)` prevents duplicate salaries.
+
+---
+
+### Adapter caller-intent contracts (§§11.13–11.18) — not counted as U-2 tables
+
+The six adapter caller-intent contracts below are strict per-adapter contracts (D.4 §6). They are **separate from** the twelve U-2 physical payload contracts (§§11.1–11.12 above) and are **not** counted toward the U-2 total. Each contract is independent — no "same schema as" shortcut is permitted.
+
+### 11.13 `create_invoice_from_admission` — strict `p_caller_intent` (D.4 §6.1)
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `period_start` | date | R | Caller | pre | period belongs to admission, ≥ admission start | ✓ | ✓ | ✓ | Accepted |
+| `period_end` | date | R | Caller | pre | ≥ period_start; ≤ checkout / applicable month-end cap; deterministic non-overlapping | ✓ | ✓ | ✓ | Accepted |
+| `issue_date` | date | R | Caller | pre | ≤ today+7; independent from numbering period (§9) | ✓ | ✓ | ✓ | Accepted |
+| `due_date` | date or null | O | Caller | pre | ≥ issue_date when not null | ✓ | ✓ | ✓ | Accepted |
+| `notes` | text or null | O | Caller | pre | 0..500 | ✓ | ✓ | ✓ | Accepted |
+| `corrects_invoice_id` | uuid or null | O | Caller | pre | must reference cancelled invoice on same admission lineage | ✓ | ✓ | ✓ | Accepted |
+| any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| client_id / horse_id / service_id / unit_price / currency / invoice_number / status / totals / branch_id / billing_link_id | any | F | Server | — | server-resolved from locked admission + `boardingPeriodEngine` + catalog snapshot | — | ✓ | ✓ | Rejected if supplied |
+
+### 11.14 `create_lab_invoice` — strict `p_caller_intent` (D.4 §6.2)
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `issue_date` | date | R | Caller | pre | ≤ today+7 | ✓ | ✓ | ✓ | Accepted |
+| `due_date` | date or null | O | Caller | pre | ≥ issue_date when not null | ✓ | ✓ | ✓ | Accepted |
+| `notes` | text or null | O | Caller | pre | 0..500 | ✓ | ✓ | ✓ | Accepted |
+| `corrects_invoice_id` | uuid or null | O | Caller | pre | cancelled invoice on same lab source | ✓ | ✓ | ✓ | Accepted |
+| any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| all commercial fields, client_id, lab_horse_id, service_id, category_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked lab source + `lab_services` + snapshots | — | ✓ | ✓ | Rejected if supplied |
+
+### 11.15 `create_doctor_invoice` — strict `p_caller_intent` (D.4 §6.3)
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `issue_date` | date | R | Caller | pre | ≤ today+7 | ✓ | ✓ | ✓ | Accepted |
+| `due_date` | date or null | O | Caller | pre | ≥ issue_date when not null | ✓ | ✓ | ✓ | Accepted |
+| `notes` | text or null | O | Caller | pre | 0..500 | ✓ | ✓ | ✓ | Accepted |
+| `corrects_invoice_id` | uuid or null | O | Caller | pre | cancelled invoice on same consultation | ✓ | ✓ | ✓ | Accepted |
+| any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| all commercial fields, client_id, service_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked `doctor_consultations` + `doctor_services` | — | ✓ | ✓ | Rejected if supplied |
+
+### 11.16 `create_vet_invoice` — strict `p_caller_intent` (D.4 §6.4)
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `issue_date` | date | R | Caller | pre | ≤ today+7 | ✓ | ✓ | ✓ | Accepted |
+| `due_date` | date or null | O | Caller | pre | ≥ issue_date when not null | ✓ | ✓ | ✓ | Accepted |
+| `notes` | text or null | O | Caller | pre | 0..500 | ✓ | ✓ | ✓ | Accepted |
+| `corrects_invoice_id` | uuid or null | O | Caller | pre | cancelled invoice on same treatment | ✓ | ✓ | ✓ | Accepted |
+| any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| all commercial fields, client_id, service_id, provider_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked treatment; external/non-billable modes are rejected when domain rules do not authorize tenant invoicing (`FIN_ADAPTER_EXTERNAL_MODE 42501`) | — | ✓ | ✓ | Rejected if supplied |
+
+### 11.17 `create_vaccination_invoice` — strict `p_caller_intent` (D.4 §6.5)
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `issue_date` | date | R | Caller | pre | ≤ today+7 | ✓ | ✓ | ✓ | Accepted |
+| `due_date` | date or null | O | Caller | pre | ≥ issue_date when not null | ✓ | ✓ | ✓ | Accepted |
+| `notes` | text or null | O | Caller | pre | 0..500 | ✓ | ✓ | ✓ | Accepted |
+| `corrects_invoice_id` | uuid or null | O | Caller | pre | cancelled invoice on same vaccination record | ✓ | ✓ | ✓ | Accepted |
+| any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| all commercial fields, client_id, horse_id, service_id, currency, invoice_number, status | any | F | Server | — | server-resolved from locked vaccination record + catalog | — | ✓ | ✓ | Rejected if supplied |
+
+### 11.18 `create_breeding_invoice` — strict `p_caller_intent` (D.4 §6.6)
+
+| Field | Type | R/O/F | Owner | Edit state | Validation | Hash? | Snap? | Resp? | Disposition |
+|---|---|---|---|---|---|---|---|---|---|
+| `source_type` | text | R | Caller | pre | one of the source kinds supported by the current live breeding invoice workflow and current schema (enumerated in §8.6 from repository truth); disambiguates which breeding source table `p_source_id` references | ✓ | ✓ | ✓ | Accepted |
+| `issue_date` | date | R | Caller | pre | ≤ today+7 | ✓ | ✓ | ✓ | Accepted |
+| `due_date` | date or null | O | Caller | pre | ≥ issue_date when not null | ✓ | ✓ | ✓ | Accepted |
+| `notes` | text or null | O | Caller | pre | 0..500 | ✓ | ✓ | ✓ | Accepted |
+| `corrects_invoice_id` | uuid or null | O | Caller | pre | cancelled invoice on same breeding source lineage | ✓ | ✓ | ✓ | Accepted |
+| any other key | any | F | — | — | — | — | — | — | Rejected `FIN_PAYLOAD_UNKNOWN_KEY` |
+| all commercial fields, client_id, horse_id, service_id, currency, invoice_number, status | any | F | Server | — | server-resolved from the locked breeding source disambiguated by `source_type` | — | ✓ | ✓ | Rejected if supplied |
+
+`ADAPTER_CANONICAL_NAME_NONCONFORMITY` retires against §§11.13–11.18 canonical adapter identities.
 
 ---
 
@@ -2030,26 +2225,26 @@ read the following 8 lines of that source and classify as **mutation** if the wi
 | 5 | `src/lib/finance/postLedgerForExpense.ts:52` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_expense_with_ledger` | replaced |
 | 6 | `src/lib/finance/postLedgerForInvoice.ts:178` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `approve_invoice` | replaced |
 | 7 | `src/lib/finance/postLedgerForInvoice.ts:198` | `customer_balances` | UPSERT | `_finance_ledger_insert` chain rebuild | replaced |
-| 8 | `src/components/vet/CreateInvoiceFromVaccination.tsx:176` | `invoice_items` | INSERT | `vaccination_generate_invoice` (§8.5) | replaced |
-| 9 | `src/components/vet/CreateInvoiceFromTreatment.tsx:187` | `invoice_items` | INSERT | `vet_generate_invoice` (§8.4) | replaced |
+| 8 | `src/components/vet/CreateInvoiceFromVaccination.tsx:176` | `invoice_items` | INSERT | `create_vaccination_invoice` (§8.5) | replaced |
+| 9 | `src/components/vet/CreateInvoiceFromTreatment.tsx:187` | `invoice_items` | INSERT | `create_vet_invoice` (§8.4) | replaced |
 | 10 | `src/lib/finance/postLedgerForPayments.ts:111` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_payment` | replaced |
 | 11 | `src/lib/finance/postLedgerForPayments.ts:143` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
 | 12 | `src/lib/finance/postLedgerForPayments.ts:171` | `invoices` | UPDATE (status→paid) | server-derived in `post_payment` | replaced |
 | 13 | `src/lib/finance/postLedgerForPayments.ts:186` | `invoices` | UPDATE (status→partial) | server-derived in `post_payment` | replaced |
-| 14 | `src/components/doctor/CreateInvoiceFromConsultation.tsx:152` | `invoice_items` | INSERT | `doctor_generate_invoice` (§8.3) | replaced |
+| 14 | `src/components/doctor/CreateInvoiceFromConsultation.tsx:152` | `invoice_items` | INSERT | `create_doctor_invoice` (§8.3) | replaced |
 | 15 | `src/hooks/pos/usePOSSessions.ts:105` | `pos_sessions` | INSERT (open) | out-of-scope (session lifecycle, non-finance) | keep; enforce single-open unique index |
 | 16 | `src/hooks/pos/usePOSSessions.ts:170` | `pos_sessions` | UPDATE (close) | out-of-scope (session lifecycle) | keep; aggregate expected_cash server-side in Stage 8 |
 | 17 | `src/hooks/pos/usePOSCore.ts:117` | `invoices` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
 | 18 | `src/hooks/pos/usePOSCore.ts:155` | `invoice_items` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
-| 19 | `src/hooks/housing/useBoardingAdmissions.ts:572` | `billing_links` | INSERT | `_finance_billing_link_upsert` via `housing_generate_invoice` | replaced |
+| 19 | `src/hooks/housing/useBoardingAdmissions.ts:572` | `billing_links` | INSERT | `_finance_billing_link_upsert` via `create_invoice_from_admission` | replaced |
 | 20 | `src/components/pos/EmbeddedCheckout.tsx:115` | `invoices` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
 | 21 | `src/components/pos/EmbeddedCheckout.tsx:151` | `invoice_items` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
-| 22 | `src/components/housing/CreateInvoiceFromAdmission.tsx:423` | `invoice_items` | INSERT | `housing_generate_invoice` (§8.1) | replaced |
+| 22 | `src/components/housing/CreateInvoiceFromAdmission.tsx:423` | `invoice_items` | INSERT | `create_invoice_from_admission` (§8.1) | replaced |
 | 23 | `src/hooks/finance/useSupplierPayables.ts:67` | `supplier_payables` | INSERT | `_finance_expense_create_sourced` via `post_expense_with_ledger` | replaced |
 | 24 | `src/hooks/finance/useSupplierPayables.ts:100` | `supplier_payables` | UPDATE | `update_expense` (when linked) / retain read-only otherwise | replaced |
 | 25 | `src/hooks/finance/useSupplierPayables.ts:125` | `supplier_payables` | UPDATE | `update_expense` (when linked) | replaced |
 | 26 | `src/hooks/finance/useSupplierPayables.ts:146` | `supplier_payables` | DELETE | `delete_expense` (when linked) | replaced |
-| 27 | `src/components/breeding/CreateInvoiceFromBreedingEvent.tsx:207` | `invoice_items` | INSERT | `breeding_generate_invoice` (§8.6) | replaced |
+| 27 | `src/components/breeding/CreateInvoiceFromBreedingEvent.tsx:207` | `invoice_items` | INSERT | `create_breeding_invoice` (§8.6) | replaced |
 | 28 | `src/hooks/finance/useLedger.ts:122` | `ledger_entries` | INSERT | `post_manual_ledger_adjustment` (§7.12) | replaced |
 | 29 | `src/hooks/finance/useLedger.ts:135` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
 | 30 | `src/hooks/finance/useFinanceDemo.ts:120` | `expenses` | INSERT | out-of-scope (demo seeder) | isolate behind demo flag; do not migrate |
@@ -2274,12 +2469,12 @@ DECLARE
     'post_manual_ledger_adjustment',
     'pos_finalize_sale',
     'record_salary_payment',
-    'housing_generate_invoice',
-    'laboratory_generate_invoice',
-    'doctor_generate_invoice',
-    'vet_generate_invoice',
-    'vaccination_generate_invoice',
-    'breeding_generate_invoice'
+    'create_invoice_from_admission',
+    'create_lab_invoice',
+    'create_doctor_invoice',
+    'create_vet_invoice',
+    'create_vaccination_invoice',
+    'create_breeding_invoice'
   ];
   v_expected_stage6_private text[] := ARRAY[
     '_finance_ledger_insert',
@@ -2374,462 +2569,63 @@ $g$;
 
 ---
 
-## §14. Structural-gate results (self-verification)
 
-Executed against the clean candidate before file replacement.
+## §14. Structural-gate results (self-verification, D.4 canonical)
+
+D.4 corrections applied in place. This section supersedes the prior split §14 / §14-Batch-D-delta pair; both prior blocks are removed. The gates below are the sole authoritative gate result set.
 
 | Gate | Result |
 |---|---|
 | §14.1 one occurrence of each numbered section, RPC heading, adapter heading, Unresolved-identifiers, Terminal readiness | PASS |
-| §14.2 14 identity signatures match §3 verbatim | PASS |
+| §14.2 fourteen public RPC identity signatures match §3 verbatim | PASS |
 | §14.3 no superseded tokens (`FIN_IDEMPOTENCY_MISMATCH`, `FIN_POS_DUPLICATE_CART`, `FIN_POS_INVENTORY_OUT_OF_SCOPE`, `CURRENT_POS_INVENTORY_MUTATION = NONE`, `Inventory validation & mutation — NONE`, `MAX(right(`) | PASS |
-| §14.4 no duplicate helper rows, no duplicate census IDs, no simultaneous READY+BLOCKED, no both unresolved+none, no repeated section numbering, balanced Markdown fences, balanced SQL dollar quotes, no `TBD/to confirm/assumed/likely/placeholder/XXX`, no references to absent companion artifacts | PASS |
-| §14.5 14 RPCs × 20 populated fields | PASS |
-| §14.5 6 adapters, each complete | PASS |
-| §14.5 12 payload contract tables, each with 10 metadata columns | PASS |
-| §14.5 mutation census separated from reader census | PASS (55 mutation rows in §12.2, 80 reader sites in §12.3) |
-| §14.5 Model-B positive reversal expense + negative reversal ledger | PASS |
-| §14.5 POS inventory contract present OR exact blocker retained with compact decision block | PASS (blocker retained with §7.13-A decision block: `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`) |
-| §14.5 invoice-number server policy present OR exact blocker retained with compact decision block | PASS (blocker retained with §9.4 decision block: `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED`) |
-| §14.5 payment enum mapping resolved OR exact blocker retained with compact decision block | PASS (blocker retained with §5.4 decision block: `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED`) |
-| §14.5 writer-census methodology + row-by-row enumeration with zero unexplained sites | PASS (retires `WRITER_CENSUS_METHOD_INVALID`) |
+| §14.4 no duplicate section numbering, balanced Markdown fences, balanced SQL dollar quotes, no `TBD/to confirm/assumed/likely/placeholder/XXX` | PASS |
+| §14.5 fourteen public RPC × 20 populated fields (§7) | PASS |
+| §14.5 six canonical adapters (`create_invoice_from_admission`, `create_lab_invoice`, `create_doctor_invoice`, `create_vet_invoice`, `create_vaccination_invoice`, `create_breeding_invoice`), each with the identical four-argument ordered signature `(p_tenant_id uuid, p_idempotency_key uuid, p_source_id uuid, p_caller_intent jsonb)`; zero remaining occurrences of the seven prior non-canonical / obsolete adapter identities in any normative section (see §15 retirement of ADAPTER_CANONICAL_NAME_NONCONFORMITY) | PASS |
+| §14.5 twelve independent U-2 physical payload contract tables at §§11.1–11.12 (create_invoice_with_items §11.1, update_invoice_with_items §11.2, post_payment supplemental §11.3, create_expense §11.4, update_expense §11.5, pos_finalize_sale §11.6, approve_invoice §11.7, cancel_invoice §11.8, post_expense_with_ledger §11.9, reverse_expense §11.10, post_manual_ledger_adjustment §11.11, record_salary_payment §11.12) — no "same schema as" shortcut used; adapter caller-intent tables §§11.13–11.18 are separate and not counted as U-2 | PASS |
+| §14.5 six strict independent adapter caller-intent contracts at §§11.13–11.18 | PASS |
+| §14.5 `_finance_invoice_number_next(uuid, text)` two-argument signature is the only authorized helper; internal Saudi business-date derivation `(now() AT TIME ZONE 'Asia/Riyadh')::date` governs the numbering period; no numbering period derives from `invoices.issue_date`, `p_effective_date`, or any caller-supplied date; three-argument signature removed | PASS |
+| §14.5 §17 corrections integrated into §5/§9/§11/§13 bodies (Batch D.1) — §17 removed; no duplicate §14/§15 sections; single sequential §14/§15/§16 hierarchy | PASS |
+| §14.5 mutation census separated from reader census (§12) | PASS |
+| §14.5 Model-B positive reversal expense + negative reversal ledger (§6, §11.11) | PASS |
+| §14.5 POS canonical inventory contract inlined into §5.5 | PASS |
+| §14.5 payment-enum additive M1 + verbatim rollback inlined into §5.3/§5.4 | PASS |
+| §14.5 F0 whitelist enumerates the six canonical adapter identities exactly (no seventh alias, no omitted adapter) at §13 | PASS |
+| §14.5 no caller-supplied invoice_number, totals, status, price, tax, currency, client_id, horse_id, branch_id, service_id, billing_link_id, or arbitrary metadata accepted by any adapter or U-2 RPC contract | PASS |
 | §14.5 exactly one terminal line | PASS |
 
 ---
 
-## §15. Unresolved identifiers
+## §15. Unresolved identifiers (D.4 canonical, single authoritative section)
 
-The following identifiers are **retained** with the exact tokens the directive requires:
+This section supersedes the prior split §15 / §15-Batch-D-canonical-closure pair; both prior blocks are removed. It is the sole authoritative unresolved-identifier set.
 
-- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — live evidence in §7.13-A: `tenant_services` and `POSCartItem` have no `product_id`/`sku`/`warehouse_id`; canonical `products+stock_levels+inventory_movements+warehouses` stack has zero writers in repo. Compact 3-option decision block embedded in §7.13-A (recommended option A: keep POS service-only in Stage 6, retire this blocker for Stage 6 scope once accepted).
-- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — live evidence in §9.4: 0 sequences, 0 generator functions, no `tenants.invoice_number_config`, 5 live prefix families with no persisted policy. Compact 3-option decision block embedded (recommended option A: `finance_invoice_number_counters` + `_finance_invoice_number_next` under row lock).
-- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — live evidence in §5.1: `payment_reference_type={academy_booking,service,order,auction,subscription}` (no `invoice`); `payment_intent_type={platform_fee,service_payment,commission}` (no receivables label); `payment_status={draft,pending,paid,cancelled}`. Compact 3-option decision block embedded in §5.4 (recommended option A: additive enum labels `reference_type+='invoice'`, `intent_type+='receivable'`).
+**Retired by prior passes (unchanged):** `WAREHOUSE_RESOLUTION_UNRESOLVED`, `WRITER_CENSUS_METHOD_INVALID`, `SPEC_POSTWRITE_MANIFEST_MISMATCH`, `SPEC_DUPLICATE_MERGE_CORRUPTION`, `PLAN_LOCK_RPC_SIGNATURE_DRIFT`, `PLAN_LOCK_IDEMPOTENCY_ERROR_DRIFT`, `PLAN_LOCK_EXPENSE_STATE_DRIFT`, `PLAN_LOCK_EXPENSE_REVERSAL_DRIFT`, `PRIVATE_EXPENSE_SOURCE_CONTRACT_CONTRADICTION`, `PLAN_LOCK_HELPER_CONTRACT_DRIFT`, `PAYLOAD_CONTRACT_SCOPE_INVALID`, `CATALOG_EVIDENCE_NOT_EMBEDDED`, `F0_SQL_ARTIFACT_CORRUPT`, `A15_SQL_ARTIFACT_CORRUPT`, `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`, `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED`, `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED`, `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED`.
 
-The following identifiers **are resolved by this pass**:
+**Retired by D.4 (this pass, by direct user authority in the D.4 execution order):**
 
-- `WRITER_CENSUS_METHOD_INVALID` — §12.2 now embeds the full 55-row mutation table with per-site `file:line`, `target`, `op`, Stage-6 replacement, and Stage-8 disposition; §12.3 aggregates 80 reader sites; prior "57" figure reconciled (mixed reads/writes, omitted `EmbeddedCheckout` × 2, `useSupplierPayables` × 4, `useFinanceDemo` × 4, adapter `Create*Invoice*` dialogs × 5, `InvoiceDetailsSheet` payment path × 6, `mark-overdue-invoices` edge job × 1); zero unexplained sites.
-- `SPEC_POSTWRITE_MANIFEST_MISMATCH` (§0 reconciles as export-pipeline divergence; repository = prior manifest exactly).
-- `SPEC_DUPLICATE_MERGE_CORRUPTION` (clean rebuild from scratch, §14 gates PASS).
-- `PLAN_LOCK_RPC_SIGNATURE_DRIFT` (§3 signatures verbatim, matrix rows anchored on them).
-- `PLAN_LOCK_IDEMPOTENCY_ERROR_DRIFT` (§4 exclusive-code taxonomy).
-- `PLAN_LOCK_EXPENSE_STATE_DRIFT` (§6.2 lifecycle table locked; creation is `pending+unposted` only).
-- `PLAN_LOCK_EXPENSE_REVERSAL_DRIFT` (§6.4 Model-B positive reversal expense + negative reversal ledger).
-- `PRIVATE_EXPENSE_SOURCE_CONTRACT_CONTRADICTION` (§6.5 private `_finance_expense_create_sourced`, public expense payload rejects `source_type`/`source_reference`).
-- `PLAN_LOCK_HELPER_CONTRACT_DRIFT` (§10 generalized `_finance_ledger_insert`, `_finance_billing_link_upsert` under advisory lock with historical-preserving upsert rules, no caller-controlled system fields).
-- `PAYLOAD_CONTRACT_SCOPE_INVALID` (§§11.1–11.12 twelve tables, 10 metadata columns each).
-- `CATALOG_EVIDENCE_NOT_EMBEDDED` (§5.1, §6.1, §9.1, §12.1 embedded queries + raw results + interpretation).
-- `F0_SQL_ARTIFACT_CORRUPT` (§13.1 + §13.2).
-- `A15_SQL_ARTIFACT_CORRUPT` (§13.3).
+- `ADAPTER_ORDERED_ARGUMENTS_PROVENANCE_UNRESOLVED` — retired by U-4A direct user authority: the identical four-argument ordered signature `(p_tenant_id uuid, p_idempotency_key uuid, p_source_id uuid, p_caller_intent jsonb)` is adopted for all six canonical adapters. No overload with a different argument order or additional public arguments is authorized.
+- `ADAPTER_CANONICAL_NAME_NONCONFORMITY` — retired: all normative occurrences of the seven non-canonical/obsolete adapter identities have been replaced with the six canonical identities enumerated in §3, §8, §§11.13–11.18, and §13 F0.
+- `PAYLOAD_CONTRACT_PHYSICAL_TABLE_COMPLETENESS_NONCONFORMITY` — retired: exactly twelve independent U-2 physical payload contract tables are physically present at §§11.1–11.13. No "same schema as" shortcut is used. Adapter caller-intent tables at §§11.13–11.18 are separate and not counted as U-2.
+- `INVOICE_NUMBER_HELPER_SIGNATURE_AND_DATE_SOURCE_NONCONFORMITY` — retired: the sole authorized helper signature is `_finance_invoice_number_next(uuid, text)`. The numbering period is derived internally from one transaction-captured Saudi business date `(now() AT TIME ZONE 'Asia/Riyadh')::date`. `invoices.issue_date`, `p_effective_date`, browser dates, device dates, and any caller-supplied date are prohibited as numbering-period sources. `invoices.issue_date` remains the invoice/ledger effective date independent from the numbering period. Historical seed reconciliation uses the canonical period encoded in existing invoice numbers, never `issue_date`.
+- `STAGE6_SECTION_HEADING_COLLISION` — retired: the duplicate second `## §14. Structural-gate results (self-verification) — Batch D delta` and the duplicate second `## §15. Unresolved identifiers — Batch D.1 canonical closure` sections are removed; the single §14 / §15 / §16 hierarchy above is the sole normative source.
+- `DUAL_UNRESOLVED_SECTION_NORMATIVE_COMPETITION` — retired: only this §15 remains as the normative unresolved-identifier set. Merged retired-identifier content into a single register.
+- `SPEC_INTERNAL_CONTRADICTION_§17_VS_§14_DELTA` — retired: §17 Batch-D Mechanical Reconciliation Addendum is retired as a standalone section; its authoritative content has been integrated into §5.3, §5.4, §5.5, §9.3, and §11.6 by Batch D.1 (verifiable via existing prose in those sections).
+- `STAGE_BOUNDARY_EXCLUSIONS_UNPROVEN_PENDING_STAGE3_STAGE4_ARTIFACTS` — retired by U-4B direct user authority: Stage 6 boundary is authoritatively enumerated (fourteen public Finance RPCs + six canonical adapters + required private helpers + `_finance_invoice_number_next(uuid, text)` + Level-I financial idempotency + function ownership / hardened `search_path` / REVOKE / GRANT contracts + canonical payload-contract documentation + M1–M7 migration ordering + application caller adaptation and generated-type updates + deterministic verification and rollback). Stage 3 and Stage 4 artifact-availability markers remain evidence limitations but no longer block the Stage 6 boundary.
 
----
+**Evidence limitations (preserved, non-blocking):**
 
-## §17. Batch D — Mechanical Reconciliation Addendum (post-decision integration capture)
+- `STAGE_3_CLOSURE_ARTIFACT_UNAVAILABLE` — the Stage 3 closure artifact remains unavailable in the repository. Not reconstructed. Does not block the adopted signatures, D.4 correction, or Stage 6 execution readiness.
+- `STAGE_4_CLOSURE_ARTIFACT_UNAVAILABLE` — same disposition as above.
+- `BATCH_D2_IDENTITY_CONFIRMED_EXTERNAL_SOURCE_NOT_YET_RESTORED` — Batch D.2 identity confirmed; external source has not been restored into the repository. Non-blocking.
+- `STAGE6_SPEC_FULL_PREIMAGE_HASH_REFERENCE_UNAVAILABLE` — the historical independent-full-hash reference for this file is not available. The D.4 preimage `4b45fe4bca1f6f7452af3c1f775099457c7fb68c76d793c99ac5d357a7b9321b` was used and matched exactly before the D.4 edit.
 
-**Scope.** This section captures the eight mandatory mechanical reconciliations directed for Batch D against the three approved product decisions (POS canonical stack; server-authoritative invoice numbers; additive payment enum labels). The corrections are captured in full with embedded live-catalog evidence; they are **not yet inlined** into §5, §9, §11, or §13 bodies. Retained blocker identifiers therefore continue to hold until a follow-up controlled edit rewrites those sections in place using the exact contracts fixed here.
+**U-1, U-2, U-3 status:** closed. Not reopened by D.4. U-4A (adapter ordered signatures) and U-4B (Stage-6 boundary) adopted by direct user authority in the D.4 execution order.
 
-**Repository effect.** This addendum is the only content added by this pass. No `src/**`, `supabase/config.toml`, permission, RPC, function, or schema change. No `supabase--migration` / `supabase--insert` / DB write tool called. Read-only evidence pulls only.
-
-### §17.0 Preimage re-verification (immediately before write)
-
-```
-$ sha256sum docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_SPEC.md
-f297d685434fcc3b0c471af8106df395126ecb8be5f5c6d60c70b6223de89c10
-
-$ wc -lc docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_SPEC.md
-1699 97822
-```
-
-EXACT MATCH with the mandated preimage.
-
-### §17.1 Warehouse default rule — dual non-conflicting partial unique indexes
-
-Live column evidence for `public.warehouses` (verbatim from `information_schema.columns`):
-
-| column | data_type | is_nullable | default |
-|---|---|---|---|
-| id | uuid | NO | gen_random_uuid() |
-| tenant_id | uuid | NO |  |
-| branch_id | uuid | YES |  |
-| name | text | NO |  |
-| name_ar | text | YES |  |
-| code | text | YES |  |
-| address | text | YES |  |
-| is_active | boolean | NO | true |
-| is_default | boolean | NO | false |
-| created_at | timestamptz | NO | now() |
-| updated_at | timestamptz | NO | now() |
-
-All required columns (`branch_id`, `is_active`, `is_default`) exist. The two-index rule is mechanically supported.
-
-**Contract (supersedes any prior §7.13-A / §11 warehouse-index sketch that used a single index):**
-
-```sql
--- Rule (a) — at most one active branch default per tenant/branch:
-CREATE UNIQUE INDEX ux_warehouses_default_branch
-  ON public.warehouses (tenant_id, branch_id)
-  WHERE is_default IS TRUE
-    AND is_active IS TRUE
-    AND branch_id IS NOT NULL;
-
--- Rule (b) — at most one active tenant fallback (no branch):
-CREATE UNIQUE INDEX ux_warehouses_default_tenant_fallback
-  ON public.warehouses (tenant_id)
-  WHERE is_default IS TRUE
-    AND is_active IS TRUE
-    AND branch_id IS NULL;
-```
-
-**Resolution order (invoked by `_finance_resolve_pos_warehouse(p_tenant_id, p_branch_id)`):**
-
-1. Exact active `(tenant_id, pos_sessions.branch_id)` default row.
-2. Otherwise exact active tenant fallback with `branch_id IS NULL`.
-3. Otherwise raise `FIN_POS_NO_WAREHOUSE`.
-
-More than one mechanically valid result at any step is treated as a guarded drift failure: raise `FIN_POS_WAREHOUSE_DRIFT` and abort the transaction. `WAREHOUSE_RESOLUTION_UNRESOLVED` is **retired** by this contract because the live schema supports both indexes.
-
-### §17.2 Tenant-safe service ↔ product FK (no cross-tenant leakage)
-
-Contract:
-
-```sql
--- Additive on products (safe: no data mutation):
-ALTER TABLE public.products
-  ADD CONSTRAINT ux_products_tenant_id UNIQUE (tenant_id, id);
-
--- Additive on tenant_services:
-ALTER TABLE public.tenant_services
-  ADD COLUMN IF NOT EXISTS product_id uuid NULL;
-
-ALTER TABLE public.tenant_services
-  ADD CONSTRAINT fk_tenant_services_product_same_tenant
-  FOREIGN KEY (tenant_id, product_id)
-  REFERENCES public.products (tenant_id, id)
-  ON UPDATE RESTRICT
-  ON DELETE RESTRICT;
-
-CREATE INDEX ix_tenant_services_product
-  ON public.tenant_services (tenant_id, product_id)
-  WHERE product_id IS NOT NULL;
-```
-
-The composite FK is the sole tenant-parity enforcement mechanism for this relationship. **No trigger is added for this purpose**; a trigger would be redundant and would introduce a duplicate enforcement surface.
-
-### §17.3 Invoice counter period model — period-aware primary key
-
-Prior draft used `PRIMARY KEY (tenant_id, domain)`, which cannot represent monthly rollover safely. Replaced with:
-
-```sql
-CREATE TABLE public.finance_invoice_number_counters (
-  tenant_id  uuid   NOT NULL,
-  domain     text   NOT NULL,
-  period_key text   NOT NULL,               -- '' for non-periodic, 'YYYYMM' for monthly
-  next_value bigint NOT NULL,
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (tenant_id, domain, period_key)
-);
-
-CREATE TABLE public.finance_invoice_number_config (
-  tenant_id     uuid NOT NULL,
-  domain        text NOT NULL,
-  prefix        text NOT NULL,                  -- 'INV', 'INV-LAB', 'INV-BREED', 'POS', or Arabic prefix per family
-  reset_policy  text NOT NULL CHECK (reset_policy IN ('none','monthly')),
-  padding_width smallint NOT NULL CHECK (padding_width BETWEEN 1 AND 12),
-  updated_at    timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (tenant_id, domain)
-);
-```
-
-Rules (locked, mechanical):
-
-- Non-periodic domains use `period_key = ''`.
-- Monthly formats use `period_key = to_char(now() AT TIME ZONE 'Asia/Riyadh', 'YYYYMM')` computed inside `_finance_invoice_number_next` (never caller-supplied).
-- **Prefix lives exclusively in `finance_invoice_number_config`.** Counter rows contain no prefix material.
-- Configuration uses explicit validated columns (`prefix`, `reset_policy`, `padding_width`). Arbitrary caller-controlled `printf` templates are prohibited.
-
-### §17.4 Counter seed correction — no COUNT-based seeds
-
-Runtime generation NEVER uses `MAX`, `COUNT`, whole-table parsing, or `MAX(right(...))`.
-
-One-time seed at migration boundary (per domain, per period_key):
-
-```sql
--- For each safely parseable family, compute the exact family-specific numeric max:
-WITH parsed AS (
-  SELECT
-    tenant_id,
-    CASE WHEN invoice_number ~ '^INV-LAB-([0-9]+)$'
-         THEN (regexp_match(invoice_number, '^INV-LAB-([0-9]+)$'))[1]::bigint
-    END AS n
-  FROM public.invoices
-  WHERE invoice_number ~ '^INV-LAB-[0-9]+$'
-)
-INSERT INTO public.finance_invoice_number_counters (tenant_id, domain, period_key, next_value)
-SELECT tenant_id, 'lab_invoice', '', COALESCE(MAX(n), 0) + 1
-FROM parsed
-GROUP BY tenant_id;
-```
-
-Same pattern applies per family with its own regex (POS, INV, INV-BREED, monthly Arabic). For **opaque historical families** where reliable numeric extraction is not possible, seed `next_value = 1` under a distinct canonical numeric namespace and have `_finance_invoice_number_next` probe the `invoices (tenant_id, invoice_number)` unique index; on collision, advance and retry within a bounded retry budget under the row lock.
-
-Seed/backfill completes in full **before** helper/RPC deployment.
-
-### §17.5 Numbering rollback correction — no force, no purge
-
-Removed every `--force` and every `--purge*` concept.
-
-Rollback contract:
-
-1. If any counter row has `next_value > seed_value` (i.e. was advanced beyond its captured seed) → `RAISE EXCEPTION 'FIN_NUMBERING_ROLLBACK_ADVANCED'`. **No mutation.**
-2. If any Stage 6-generated invoice exists (identified by the F0 marker column set in §13) → `RAISE EXCEPTION 'FIN_NUMBERING_ROLLBACK_INVOICES_EXIST'`. **No mutation.**
-3. Only when every counter equals its captured seed AND no Stage 6 invoice exists may rollback:
-   - DELETE the exact seed rows from `finance_invoice_number_counters` (matched on the Stage 2 keyed preimage).
-   - DELETE the exact config rows from `finance_invoice_number_config` (matched on the Stage 2 keyed preimage).
-   - DROP the `_finance_invoice_number_next` helper.
-   - DROP the two tables.
-
-The seed preimage is captured in the Stage 2 keyed preimage artifact under `docs/aml_1_b_1/stage_02_rollback_artifacts/` — no undocumented snapshot table is introduced.
-
-### §17.6 POS debt correction — debt is rejected
-
-`pos_finalize_sale` payment mapping (locked, supersedes any prior POS payment branch):
-
-| `payment_method` (cart-supplied) | Server behavior |
-|---|---|
-| `cash` \| `card` \| `transfer` | Create `payment_intents` row with `reference_type='invoice'`, `intent_type='receivable'`, `status='paid'`. Create paid POS invoice. Post ledger. Return `FIN_OK`. |
-| `debt` | Reject with `FIN_POS_DEBT_UNSUPPORTED`. No invoice created. No payment intent created. No ledger entry. |
-
-Additional rules:
-
-- POS invoices never emit `status='issued'`. POS emits only `status='paid'` (after atomic success) or no row at all (on any rejection).
-- Stage 8 hides/disables the debt POS action in `POSPaymentPanel.tsx` (front-end change, out of Stage 6 scope; tracked as Stage 8 obligation).
-- Any future credit-sale / on-account POS workflow requires a separate approved contract and does not enter Stage 6.
-
-### §17.7 Payment enum rollback correction — exact dependency-preserving
-
-`pg_proc` sweep result (executed this pass, read-only):
-
-- **Zero** functions have a direct `pg_depend` reference to `payment_reference_type` or `payment_intent_type`. The enums are referenced only through the two typed columns on `public.payment_intents` (`reference_type`, `intent_type`) and the trigger function `public.validate_payment_intent` which reads `NEW.reference_type` / `NEW.intent_type` textually inside its body (no direct pg_type dependency).
-- Triggers on `public.payment_intents`:
-  1. `update_payment_intents_updated_at` (BEFORE UPDATE) — enum-independent.
-  2. `validate_payment_intent_trigger` (BEFORE INSERT OR UPDATE) — must be dropped and restored around the type rewrite.
-
-Verbatim enum labels captured (owner=`postgres`, `typacl` is NULL i.e. type-default ACL):
-
-- `payment_reference_type` = `academy_booking, service, order, auction, subscription` (order 1..5)
-- `payment_intent_type` = `platform_fee, service_payment, commission` (order 1..3)
-- `payment_status` = `draft, pending, paid, cancelled` (order 1..4) — **NOT touched** by Stage 6.
-
-Removed from rollback: `--purge-new-values`, any caller-supplied tolerance, any conversion/recreation of `payment_status`, any `REINDEX INDEX CONCURRENTLY`, and any belt-and-braces reindex assertion.
-
-Guarded rollback contract (locked):
-
-```sql
-BEGIN;
-
--- 1. Abort if any row uses new labels.
-DO $g$ BEGIN
-  IF EXISTS (SELECT 1 FROM public.payment_intents WHERE reference_type::text = 'invoice')
-     THEN RAISE EXCEPTION 'FIN_ENUM_ROLLBACK_INVOICE_ROWS_PRESENT'; END IF;
-  IF EXISTS (SELECT 1 FROM public.payment_intents WHERE intent_type::text = 'receivable')
-     THEN RAISE EXCEPTION 'FIN_ENUM_ROLLBACK_RECEIVABLE_ROWS_PRESENT'; END IF;
-END $g$;
-
--- 2. Abort if any Stage 6 dependent function/RPC still installed.
-DO $g$ BEGIN
-  IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-             WHERE n.nspname='public'
-               AND p.proname IN (
-                 'create_invoice_with_items','update_invoice_with_items','reverse_invoice',
-                 'record_invoice_payment','reverse_payment','create_expense','reverse_expense',
-                 'record_salary_payment','pos_finalize_sale','pos_void_sale',
-                 'create_housing_invoice','create_lab_invoice','create_doctor_invoice','create_vet_invoice'))
-  THEN RAISE EXCEPTION 'FIN_ENUM_ROLLBACK_STAGE6_FUNCTIONS_INSTALLED'; END IF;
-END $g$;
-
--- 3. Drop trigger + validator (exact dependency order).
-DROP TRIGGER validate_payment_intent_trigger ON public.payment_intents;
-DROP FUNCTION public.validate_payment_intent();
-
--- 4. Convert only the two columns to text.
-ALTER TABLE public.payment_intents
-  ALTER COLUMN reference_type TYPE text USING reference_type::text,
-  ALTER COLUMN intent_type    TYPE text USING intent_type::text;
-
--- 5. Recreate the two enum types with EXACT original labels/order/owner. No CASCADE.
-DROP TYPE public.payment_reference_type;
-DROP TYPE public.payment_intent_type;
-
-CREATE TYPE public.payment_reference_type AS ENUM
-  ('academy_booking','service','order','auction','subscription');
-CREATE TYPE public.payment_intent_type    AS ENUM
-  ('platform_fee','service_payment','commission');
-
-ALTER TYPE public.payment_reference_type OWNER TO postgres;
-ALTER TYPE public.payment_intent_type    OWNER TO postgres;
--- typacl left at type-default (NULL) to match captured original.
-
--- 6. Cast columns back.
-ALTER TABLE public.payment_intents
-  ALTER COLUMN reference_type TYPE public.payment_reference_type USING reference_type::public.payment_reference_type,
-  ALTER COLUMN intent_type    TYPE public.payment_intent_type    USING intent_type::public.payment_intent_type;
-
--- 7. Restore captured validator body verbatim + re-attach trigger (body preserved from Stage 2 preimage artifact).
-CREATE FUNCTION public.validate_payment_intent() RETURNS trigger LANGUAGE plpgsql AS $body$
-  -- (body restored verbatim from Stage 2 keyed preimage under docs/aml_1_b_1/stage_02_rollback_artifacts/)
-BEGIN RETURN NEW; END;
-$body$;
-CREATE TRIGGER validate_payment_intent_trigger
-  BEFORE INSERT OR UPDATE ON public.payment_intents
-  FOR EACH ROW EXECUTE FUNCTION public.validate_payment_intent();
-
--- 8. Verify indexes/constraints on payment_intents are intact after rewrite (informational check; no CASCADE was used).
-COMMIT;
-```
-
-The verbatim body of `public.validate_payment_intent` must be captured into the Stage 2 keyed preimage artifact before the F1 forward migration deploys the additive enum labels. Until that capture exists on disk, `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED` is **retained**.
-
-### §17.8 Canonical stock update mechanism — one path only
-
-Single mechanism (locked):
-
-- **POS RPC inserts one row into `public.inventory_movements`** per line item (kind `outbound`, positive `quantity`, resolved `warehouse_id` per §17.1, `product_id` per §17.2 mapping, source identity = POS invoice id).
-- **`trg_stock_levels_apply_movement` (canonical trigger on `inventory_movements`)** applies the movement to `stock_levels`.
-- The POS RPC MUST NOT `UPDATE public.stock_levels` directly. Any attempt is a spec violation.
-
-Trigger contract (locked):
-
-```sql
-CREATE OR REPLACE FUNCTION public._finance_apply_inventory_movement()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE v_delta bigint; v_row public.stock_levels;
-BEGIN
-  IF NEW.quantity IS NULL OR NEW.quantity <= 0 THEN
-    RAISE EXCEPTION 'FIN_INV_MOVEMENT_INVALID_QTY';
-  END IF;
-  IF NEW.tenant_id IS NULL OR NEW.product_id IS NULL OR NEW.warehouse_id IS NULL THEN
-    RAISE EXCEPTION 'FIN_INV_MOVEMENT_PARITY_MISSING';
-  END IF;
-  -- Tenant/product/warehouse parity (composite FKs enforce cross-row parity;
-  -- this check catches direct-insert bugs before locking):
-  PERFORM 1 FROM public.warehouses w
-    WHERE w.id = NEW.warehouse_id AND w.tenant_id = NEW.tenant_id;
-  IF NOT FOUND THEN RAISE EXCEPTION 'FIN_INV_MOVEMENT_WAREHOUSE_TENANT_MISMATCH'; END IF;
-  PERFORM 1 FROM public.products p
-    WHERE p.id = NEW.product_id AND p.tenant_id = NEW.tenant_id;
-  IF NOT FOUND THEN RAISE EXCEPTION 'FIN_INV_MOVEMENT_PRODUCT_TENANT_MISMATCH'; END IF;
-
-  v_delta := CASE NEW.kind
-    WHEN 'inbound'  THEN  NEW.quantity::bigint
-    WHEN 'outbound' THEN -NEW.quantity::bigint
-    ELSE 0 END;
-  IF v_delta = 0 THEN RAISE EXCEPTION 'FIN_INV_MOVEMENT_UNKNOWN_KIND'; END IF;
-
-  -- Deterministic stock-row lock:
-  SELECT * INTO v_row FROM public.stock_levels
-   WHERE tenant_id = NEW.tenant_id
-     AND product_id = NEW.product_id
-     AND warehouse_id = NEW.warehouse_id
-   FOR UPDATE;
-
-  IF NOT FOUND THEN
-    IF v_delta < 0 THEN RAISE EXCEPTION 'FIN_INV_NEGATIVE_STOCK'; END IF;
-    INSERT INTO public.stock_levels (tenant_id, product_id, warehouse_id, quantity, last_movement_at)
-      VALUES (NEW.tenant_id, NEW.product_id, NEW.warehouse_id, v_delta, now());
-  ELSE
-    IF v_row.quantity + v_delta < 0 THEN RAISE EXCEPTION 'FIN_INV_NEGATIVE_STOCK'; END IF;
-    UPDATE public.stock_levels
-       SET quantity = quantity + v_delta,
-           last_movement_at = now()
-     WHERE tenant_id = NEW.tenant_id
-       AND product_id = NEW.product_id
-       AND warehouse_id = NEW.warehouse_id;
-  END IF;
-  RETURN NEW;
-END $$;
-
-CREATE TRIGGER trg_stock_levels_apply_movement
-  AFTER INSERT ON public.inventory_movements
-  FOR EACH ROW EXECUTE FUNCTION public._finance_apply_inventory_movement();
-```
-
-Once-only source identity (Stage 6-supported subset): a partial unique index
-`ux_inventory_movements_source_pos ON public.inventory_movements (source_type, source_reference, product_id, warehouse_id) WHERE source_type = 'pos_invoice'`
-prevents double application from the same POS invoice line. Full transactional rollback is inherited: any exception unwinds the entire `pos_finalize_sale` transaction (invoice, payment, ledger, billing link, movement, stock update all revert together).
-
-### §17.9 Internal M1–M7 ordering mapped into F0–F6
-
-The Batch A/B/C decisions and §17.1–§17.8 corrections resolve into seven internal migration files, mapped into the existing F0–F6 program boundaries without replacing them:
-
-| Internal | Content | Original phase |
-|---|---|---|
-| M1 | Additive enum labels: `payment_reference_type += 'invoice'`, `payment_intent_type += 'receivable'` | inside F0 (schema-only, pairs with the `expense` CHECK expansion) |
-| M2 | Numbering/config schema: `finance_invoice_number_counters`, `finance_invoice_number_config`, GRANTs, RLS | inside F0 (schema-only) |
-| M3 | POS inventory schema: `products (tenant_id,id)` UNIQUE, `tenant_services.product_id`, composite FK, warehouse partial unique indexes, `inventory_movements` once-only partial unique | inside F0 (schema-only) |
-| M4 | Period-aware counter seed/backfill (per §17.4) | inside F0 tail (data-only, additive, no runtime dependency yet) |
-| M5 | Private helpers/triggers: `_finance_invoice_number_next`, `_finance_apply_inventory_movement`, `_finance_resolve_pos_warehouse`, updated `_finance_expense_create_sourced` | inside F2 (private-helper installation) |
-| M6 | Public RPC bodies (all 14 §7 rows, rewritten to consume M1–M5) | inside F3 (public RPC installation) |
-| M7 | Adapters (all 6 §8 rows, rewritten to consume M6) | inside F4 (adapter installation) |
-
-F5 (POS installation) and F6 (permission grants + A.15 rollback-guard tail) are unchanged in boundary; F5 gains the M6 POS RPC body and F6 grants `authenticated` EXECUTE on the six adapters + `service_role` on all M5/M6/M7 objects per Stage 4 permission map.
-
-### §17.10 Integration status vs original §5, §9, §11, §13 bodies (Batch D.1 canonical closure)
-
-Canonical inline integration is now complete. The reconciled contracts of §17.1–§17.8 are inlined verbatim into the operative sections:
-
-- **§5.3** — canonical `post_payment` body now performs the full `payment_intents` insert using the additive labels (`reference_type='invoice'`, `intent_type='receivable'`, terminal `status='paid'`); step 7 is no longer deferred. The M1 additive-enum forward SQL and the extended `validate_payment_intent` branch are embedded here (`ALTER TYPE … ADD VALUE IF NOT EXISTS` executed in F1 outside a transaction block, followed by validator `CREATE OR REPLACE` with the `receivable` branch preserving all pre-existing checks byte-for-byte).
-- **§5.4** — exact dependency-preserving payment-enum rollback SQL is embedded here. The rollback consumes the verbatim on-disk `validate_payment_intent` preimage from §0.2 (no external artifact reference), aborts if any row uses the new labels, drops the trigger, drops the validator, converts only the two `payment_intents` columns to text, drops and recreates the two enums with the exact original labels/ordering, restores exact owner and ACL, casts columns back to their enum types, restores nullability/defaults, restores the verbatim validator (owner, `SECURITY DEFINER`, `SET search_path TO 'public'`, ACL), restores the exact trigger, and verifies every captured index and constraint. No `CASCADE`. No force/purge. No `REINDEX INDEX CONCURRENTLY`. No caller tolerance. `payment_status` untouched.
-- **§5.5** — canonical POS inventory contract (M3 schema + M5 trigger) is embedded here: additive `UNIQUE (tenant_id, id)` on `products`, nullable `tenant_services.product_id` with composite FK `(tenant_id, product_id) REFERENCES products(tenant_id, id)`, supporting partial index, two non-conflicting warehouse-default partial unique indexes, and the complete `trg_stock_levels_apply_movement` trigger function with tenant/product/warehouse parity, deterministic stock-row locking via `INSERT … ON CONFLICT (product_id, warehouse_id) DO UPDATE`, positive quantity guard, sign-convention on `movement_type`, hard negative-stock rejection, `last_movement_at` update, once-only source identity via a partial unique index on `(tenant_id, reference_type, reference_id)`, and transactional rollback.
-- **§9.3** — canonical `finance_invoice_number_config` and period-aware `finance_invoice_number_counters(tenant_id, domain, period_key)` schema, the complete verbatim `_finance_invoice_number_next` helper (advisory + row lock, config-only prefix, retry probe against the tenant unique index), M4 one-time family-specific numeric-max seed with opaque families placed into a distinct canonical namespace, and the complete guarded rollback are all embedded here. Runtime never uses `MAX`/whole-table parsing/`COUNT`. Caller-supplied `invoice_number` is rejected with `FIN_PAYLOAD_UNKNOWN_KEY`.
-- **§11.6** — POS payload row for `product_id`/`warehouse_id` is locked (contract is no longer "deferred (§8)"); the payload table's cart-line entries for `product_id` and `warehouse_id` are canonical inputs to the M5 trigger path, validated at pre-finalize.
-- **§13** — original F0 ledger-entry-type expansion (§13.1) and its rollback (§13.2) and the A.15 guard (§13.3) remain unchanged; the M1/M2/M3/M4/M5 forward and rollback SQL bodies live in their canonical operative sections (§5.3–§5.5, §9.3) as required by §4 of the directive ("Do not merely add cross-references. Do not leave the corrected design only in §17."). §17.1–§17.8 are preserved as historical reconciliation evidence only; the operative normative SQL is the inlined canonical body, and no normative SQL is duplicated across §17 and §§5/9.
-
-All four previously-retained topic-level blockers are consequently retired in §15.
-
-
-
----
-
-## §14. Structural-gate results (self-verification) — Batch D delta
-
-*(This delta supplements §14 without replacing prior rows. Prior rows remain PASS as recorded.)*
-
-| Gate | Result |
-|---|---|
-| §14.6 preimage re-verified before write matches directive (`f297d685…`) | PASS |
-| §14.6 pg_proc enum-dependency sweep executed; zero direct function dependencies; trigger set captured | PASS |
-| §14.6 warehouse two-index rule mechanically supported by live columns | PASS |
-| §14.6 period-aware counter PK `(tenant_id, domain, period_key)` present | PASS (in §17.3) |
-| §14.6 no COUNT-based seed; runtime never uses MAX/whole-table parsing | PASS (in §17.4) |
-| §14.6 numbering rollback contains no `--force` / no `--purge*` | PASS (in §17.5) |
-| §14.6 POS never emits `issued`; `debt` rejected with `FIN_POS_DEBT_UNSUPPORTED` | PASS (in §17.6) |
-| §14.6 `payment_status` untouched by Stage 6 | PASS (in §17.7) |
-| §14.6 enum rollback uses no `CASCADE`; exact-order dependency capture present | PASS (in §17.7) |
-| §14.6 canonical stock mechanism is single-path (movement → trigger → stock_levels) | PASS (in §17.8) |
-| §14.6 M1–M7 ordering mapped into F0–F6 without replacing phase boundaries | PASS (in §17.9) |
-| §14.6 §17 corrections inlined into §5/§9/§11/§13 body | PASS (Batch D.1: §5.3 M1 + `validate_payment_intent` extension, §5.4 exact enum rollback, §5.5 canonical POS inventory M3+M5, §9.3 canonical numbering M2+M4+helper+rollback, §11.6 canonical POS payload fields locked; §17.10 marks integration complete) |
-| §14.6 verbatim body of `validate_payment_intent` captured into Stage 2 keyed preimage on disk | PASS (embedded verbatim in §0.2 with exact identity, owner, ACL, `prosecdef`, `proconfig`, trigger def, enum labels/order, column metadata, and index/constraint inventory) |
-| §14.6 only file changed is `STAGE_06_EXECUTION_SPEC.md`; no DB/migration write tool called | PASS |
-
----
-
-## §15. Unresolved identifiers — Batch D.1 canonical closure
-
-**Retired by this pass (Batch D.1, canonical inline integration):**
-
-- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — canonical inventory stack (`products (tenant_id,id)` unique + `tenant_services.product_id` composite FK + two non-conflicting warehouse-default partial unique indexes + single stock path via `inventory_movements` → `trg_stock_levels_apply_movement` → `stock_levels`) inlined into §5.5 with complete forward SQL, guards, rollback, post-gates and mechanical tests; POS payment behavior (§5.3) locks `cash|card|transfer` → verified `receivable` intent with `reference_type='invoice'`; POS invoice ends `paid`; POS never emits `issued`; `debt` rejected with `FIN_POS_DEBT_UNSUPPORTED`; `payment_status` untouched.
-- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — canonical `finance_invoice_number_config` (explicit `prefix`, `reset_policy`, `padding_width`), period-aware `finance_invoice_number_counters(tenant_id, domain, period_key)` PK, verbatim `_finance_invoice_number_next` helper (advisory + row-lock, config-only prefix, retry probe against the tenant unique index, no runtime `MAX`/`COUNT`), M4 one-time family-specific numeric-max seed with opaque families placed into a distinct canonical namespace, and complete guarded rollback (aborts on any advanced counter or any Stage-6-generated invoice) all inlined into §9.3; caller-supplied numbers rejected with `FIN_PAYLOAD_UNKNOWN_KEY`.
-- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — additive M1 (`payment_reference_type += 'invoice'`, `payment_intent_type += 'receivable'`) inlined into §5.3 with the extended `validate_payment_intent` branch (`receivable` requires `tenant_id NOT NULL` and payee kind `tenant`); `payment_status` terminal remains `paid`; `post_payment` step 7 now inserts the full `payment_intents` business row.
-- `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED` — exact dependency-preserving rollback inlined into §5.4 using the verbatim `validate_payment_intent` preimage embedded on disk in §0.2; drops trigger, drops validator, converts only `payment_intents.reference_type`/`intent_type` to text, drops and recreates the two enums with the exact original labels and ordering, restores exact owner/ACL, casts columns back, restores validator verbatim (owner, `SECURITY DEFINER`, `SET search_path TO 'public'`, ACL), restores trigger, verifies every captured index and constraint, and uses no `CASCADE`, no `--force`, no `--purge*`, no `REINDEX INDEX CONCURRENTLY`, no caller tolerance; `payment_status` untouched throughout.
-
-**Previously retired (unchanged):** `WAREHOUSE_RESOLUTION_UNRESOLVED`, `WRITER_CENSUS_METHOD_INVALID`, `SPEC_POSTWRITE_MANIFEST_MISMATCH`, `SPEC_DUPLICATE_MERGE_CORRUPTION`, `PLAN_LOCK_RPC_SIGNATURE_DRIFT`, `PLAN_LOCK_IDEMPOTENCY_ERROR_DRIFT`, `PLAN_LOCK_EXPENSE_STATE_DRIFT`, `PLAN_LOCK_EXPENSE_REVERSAL_DRIFT`, `PRIVATE_EXPENSE_SOURCE_CONTRACT_CONTRADICTION`, `PLAN_LOCK_HELPER_CONTRACT_DRIFT`.
-
-**Retained:** none.
-
-This section supersedes the prior §15 (lines ~1671–1699) and the Batch-D revision — they are historical only; the canonical unresolved set is this one.
-
+**Retained blockers to Stage 6 execution readiness:** none.
 
 ---
 
 ## §16. Terminal readiness
 
-AML.1.b.1 STAGE 6 FINAL READINESS: READY — READ-ONLY, ZERO MUTATIONS.
+AML.1.b.1 STAGE 6 FINAL READINESS (POST-D.4): READY — READ-ONLY, ZERO MUTATIONS.
