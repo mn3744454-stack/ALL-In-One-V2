@@ -759,7 +759,31 @@ Column key: **Sig** (§3 reference), **Perm** (Stage 4 permission key), **Locks*
 | Reads preserved | POS session panel |
 | Zero-drift | Stage 3 |
 | Stage-8 target | `usePOSCore.createSale` |
-| Notes | Inventory contract retained as blocker `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — see §8; session-totals materialization retained as sub-item of the same blocker |
+| Notes | See §7.13-A below for the POS inventory decision block (`POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`). Session totals are aggregate-on-read from `invoices` filtered by `pos_session_id` + `payment_method` (evidenced in `usePOSSessions.ts:135–160`); `pos_sessions` has no `sales_count/total_amount` columns and Stage 6 introduces none. |
+
+**§7.13-A POS inventory decision block (retained blocker).**
+
+Live catalog evidence: two independent inventory stacks exist.
+
+| Stack | Tables | Writer sites in repo | Reader sites | Product/SKU identity | Warehouse relation | Quantity source | Reservation |
+|---|---|---|---|---|---|---|---|
+| Legacy (single-warehouse) | `inventory_items`, `inventory_transactions` | 6 writers in `src/hooks/inventory/*` (INSERT on both, plus items CRUD) | 1 read | `inventory_items.sku` (nullable) | none | `inventory_items.current_quantity` (trigger-updated from transactions) | none |
+| Canonical (multi-warehouse) | `products`, `stock_levels`, `inventory_movements`, `warehouses` | **0 writers** in repo (only `src/lib/pricing/resolver.ts` reads `products`) | 1 read | `products.sku` + `barcode` | `warehouses` (branch-scoped, `is_default` flag) | `stock_levels.quantity` / `reserved_quantity` / generated `available_quantity` | `stock_levels.reserved_quantity` |
+
+POS cart shape (`usePOSCore.ts` `POSCartItem`): `{id, name, unit_price, quantity, service_id, entity_type, entity_id}` — **no `product_id`, no `sku`, no `warehouse_id`**. `tenant_services` (POS catalog) has columns `{id, tenant_id, name, service_type, price_display, unit_price, service_kind, category_id, is_taxable, is_active, is_public}` — **no `product_id`, no `sku`, no `warehouse_id`**.
+
+Consequence: there is **no mechanically valid cart → product → warehouse path**. POS cannot atomically bind stocked-goods lines under the current schema. Every POS line today is a service-only line.
+
+`POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` is retained. Compact decision block (user input required — 3 options, recommended first):
+
+| # | Option | Exact additive consequence | Recommended |
+|---|---|---|---|
+| A | Keep POS strictly service-only in Stage 6. Add `tenant_services.stockable boolean default false CHECK (NOT stockable)` guard and lock `pos_finalize_sale` line validation to `service_kind IN ('service','free_text')`. Introduce a separate `pos_stocked_sale` RPC in a later stage bound to the canonical `products+stock_levels+inventory_movements+warehouses` stack once cart shape gains `product_id`+`warehouse_id`. | 1 additive CHECK; POS `resolved_snapshot` records `zero_stock_effect=true` per line; no inventory locks in `pos_finalize_sale`; retires the blocker for Stage 6 scope. | **YES** — matches live reality, zero data risk |
+| B | Bridge POS cart to canonical stack now: add `tenant_services.product_id uuid REFERENCES products(id)`, add cart `product_id`+`warehouse_id`, resolve warehouse from `pos_sessions.branch_id → warehouses.branch_id AND is_default`, lock `stock_levels FOR UPDATE`, insert `inventory_movements`, deny negative stock unless `tenants.allow_negative_stock=true`. | 1 additive FK on `tenant_services`; cart-shape change + POS UI change; `pos_finalize_sale` gains 4 new steps between cart validation and invoice creation. Retires the blocker but expands Stage 6 scope materially. | no — largest surface, delays Stage 6 |
+| C | Bind POS to legacy `inventory_items+inventory_transactions` (single-warehouse) via `tenant_services.inventory_item_id uuid REFERENCES inventory_items(id)`. | 1 additive FK; no warehouse concept; conflicts with canonical stack already present. | no — locks in the deprecated stack |
+
+Retirement rule: retired only when the user selects an option and the corresponding additive DDL is authored. Until then `pos_finalize_sale` (§7.13) treats every cart line as a service line and records `zero_stock_effect=true` in the resolved snapshot.
+
 
 ### 7.14 `record_salary_payment` (F3, private HR path)
 
