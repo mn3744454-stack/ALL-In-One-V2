@@ -1694,6 +1694,407 @@ The following identifiers **are resolved by this pass**:
 
 ---
 
+## §17. Batch D — Mechanical Reconciliation Addendum (post-decision integration capture)
+
+**Scope.** This section captures the eight mandatory mechanical reconciliations directed for Batch D against the three approved product decisions (POS canonical stack; server-authoritative invoice numbers; additive payment enum labels). The corrections are captured in full with embedded live-catalog evidence; they are **not yet inlined** into §5, §9, §11, or §13 bodies. Retained blocker identifiers therefore continue to hold until a follow-up controlled edit rewrites those sections in place using the exact contracts fixed here.
+
+**Repository effect.** This addendum is the only content added by this pass. No `src/**`, `supabase/config.toml`, permission, RPC, function, or schema change. No `supabase--migration` / `supabase--insert` / DB write tool called. Read-only evidence pulls only.
+
+### §17.0 Preimage re-verification (immediately before write)
+
+```
+$ sha256sum docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_SPEC.md
+f297d685434fcc3b0c471af8106df395126ecb8be5f5c6d60c70b6223de89c10
+
+$ wc -lc docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_SPEC.md
+1699 97822
+```
+
+EXACT MATCH with the mandated preimage.
+
+### §17.1 Warehouse default rule — dual non-conflicting partial unique indexes
+
+Live column evidence for `public.warehouses` (verbatim from `information_schema.columns`):
+
+| column | data_type | is_nullable | default |
+|---|---|---|---|
+| id | uuid | NO | gen_random_uuid() |
+| tenant_id | uuid | NO |  |
+| branch_id | uuid | YES |  |
+| name | text | NO |  |
+| name_ar | text | YES |  |
+| code | text | YES |  |
+| address | text | YES |  |
+| is_active | boolean | NO | true |
+| is_default | boolean | NO | false |
+| created_at | timestamptz | NO | now() |
+| updated_at | timestamptz | NO | now() |
+
+All required columns (`branch_id`, `is_active`, `is_default`) exist. The two-index rule is mechanically supported.
+
+**Contract (supersedes any prior §7.13-A / §11 warehouse-index sketch that used a single index):**
+
+```sql
+-- Rule (a) — at most one active branch default per tenant/branch:
+CREATE UNIQUE INDEX ux_warehouses_default_branch
+  ON public.warehouses (tenant_id, branch_id)
+  WHERE is_default IS TRUE
+    AND is_active IS TRUE
+    AND branch_id IS NOT NULL;
+
+-- Rule (b) — at most one active tenant fallback (no branch):
+CREATE UNIQUE INDEX ux_warehouses_default_tenant_fallback
+  ON public.warehouses (tenant_id)
+  WHERE is_default IS TRUE
+    AND is_active IS TRUE
+    AND branch_id IS NULL;
+```
+
+**Resolution order (invoked by `_finance_resolve_pos_warehouse(p_tenant_id, p_branch_id)`):**
+
+1. Exact active `(tenant_id, pos_sessions.branch_id)` default row.
+2. Otherwise exact active tenant fallback with `branch_id IS NULL`.
+3. Otherwise raise `FIN_POS_NO_WAREHOUSE`.
+
+More than one mechanically valid result at any step is treated as a guarded drift failure: raise `FIN_POS_WAREHOUSE_DRIFT` and abort the transaction. `WAREHOUSE_RESOLUTION_UNRESOLVED` is **retired** by this contract because the live schema supports both indexes.
+
+### §17.2 Tenant-safe service ↔ product FK (no cross-tenant leakage)
+
+Contract:
+
+```sql
+-- Additive on products (safe: no data mutation):
+ALTER TABLE public.products
+  ADD CONSTRAINT ux_products_tenant_id UNIQUE (tenant_id, id);
+
+-- Additive on tenant_services:
+ALTER TABLE public.tenant_services
+  ADD COLUMN IF NOT EXISTS product_id uuid NULL;
+
+ALTER TABLE public.tenant_services
+  ADD CONSTRAINT fk_tenant_services_product_same_tenant
+  FOREIGN KEY (tenant_id, product_id)
+  REFERENCES public.products (tenant_id, id)
+  ON UPDATE RESTRICT
+  ON DELETE RESTRICT;
+
+CREATE INDEX ix_tenant_services_product
+  ON public.tenant_services (tenant_id, product_id)
+  WHERE product_id IS NOT NULL;
+```
+
+The composite FK is the sole tenant-parity enforcement mechanism for this relationship. **No trigger is added for this purpose**; a trigger would be redundant and would introduce a duplicate enforcement surface.
+
+### §17.3 Invoice counter period model — period-aware primary key
+
+Prior draft used `PRIMARY KEY (tenant_id, domain)`, which cannot represent monthly rollover safely. Replaced with:
+
+```sql
+CREATE TABLE public.finance_invoice_number_counters (
+  tenant_id  uuid   NOT NULL,
+  domain     text   NOT NULL,
+  period_key text   NOT NULL,               -- '' for non-periodic, 'YYYYMM' for monthly
+  next_value bigint NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (tenant_id, domain, period_key)
+);
+
+CREATE TABLE public.finance_invoice_number_config (
+  tenant_id     uuid NOT NULL,
+  domain        text NOT NULL,
+  prefix        text NOT NULL,                  -- 'INV', 'INV-LAB', 'INV-BREED', 'POS', or Arabic prefix per family
+  reset_policy  text NOT NULL CHECK (reset_policy IN ('none','monthly')),
+  padding_width smallint NOT NULL CHECK (padding_width BETWEEN 1 AND 12),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (tenant_id, domain)
+);
+```
+
+Rules (locked, mechanical):
+
+- Non-periodic domains use `period_key = ''`.
+- Monthly formats use `period_key = to_char(now() AT TIME ZONE 'Asia/Riyadh', 'YYYYMM')` computed inside `_finance_invoice_number_next` (never caller-supplied).
+- **Prefix lives exclusively in `finance_invoice_number_config`.** Counter rows contain no prefix material.
+- Configuration uses explicit validated columns (`prefix`, `reset_policy`, `padding_width`). Arbitrary caller-controlled `printf` templates are prohibited.
+
+### §17.4 Counter seed correction — no COUNT-based seeds
+
+Runtime generation NEVER uses `MAX`, `COUNT`, whole-table parsing, or `MAX(right(...))`.
+
+One-time seed at migration boundary (per domain, per period_key):
+
+```sql
+-- For each safely parseable family, compute the exact family-specific numeric max:
+WITH parsed AS (
+  SELECT
+    tenant_id,
+    CASE WHEN invoice_number ~ '^INV-LAB-([0-9]+)$'
+         THEN (regexp_match(invoice_number, '^INV-LAB-([0-9]+)$'))[1]::bigint
+    END AS n
+  FROM public.invoices
+  WHERE invoice_number ~ '^INV-LAB-[0-9]+$'
+)
+INSERT INTO public.finance_invoice_number_counters (tenant_id, domain, period_key, next_value)
+SELECT tenant_id, 'lab_invoice', '', COALESCE(MAX(n), 0) + 1
+FROM parsed
+GROUP BY tenant_id;
+```
+
+Same pattern applies per family with its own regex (POS, INV, INV-BREED, monthly Arabic). For **opaque historical families** where reliable numeric extraction is not possible, seed `next_value = 1` under a distinct canonical numeric namespace and have `_finance_invoice_number_next` probe the `invoices (tenant_id, invoice_number)` unique index; on collision, advance and retry within a bounded retry budget under the row lock.
+
+Seed/backfill completes in full **before** helper/RPC deployment.
+
+### §17.5 Numbering rollback correction — no force, no purge
+
+Removed every `--force` and every `--purge*` concept.
+
+Rollback contract:
+
+1. If any counter row has `next_value > seed_value` (i.e. was advanced beyond its captured seed) → `RAISE EXCEPTION 'FIN_NUMBERING_ROLLBACK_ADVANCED'`. **No mutation.**
+2. If any Stage 6-generated invoice exists (identified by the F0 marker column set in §13) → `RAISE EXCEPTION 'FIN_NUMBERING_ROLLBACK_INVOICES_EXIST'`. **No mutation.**
+3. Only when every counter equals its captured seed AND no Stage 6 invoice exists may rollback:
+   - DELETE the exact seed rows from `finance_invoice_number_counters` (matched on the Stage 2 keyed preimage).
+   - DELETE the exact config rows from `finance_invoice_number_config` (matched on the Stage 2 keyed preimage).
+   - DROP the `_finance_invoice_number_next` helper.
+   - DROP the two tables.
+
+The seed preimage is captured in the Stage 2 keyed preimage artifact under `docs/aml_1_b_1/stage_02_rollback_artifacts/` — no undocumented snapshot table is introduced.
+
+### §17.6 POS debt correction — debt is rejected
+
+`pos_finalize_sale` payment mapping (locked, supersedes any prior POS payment branch):
+
+| `payment_method` (cart-supplied) | Server behavior |
+|---|---|
+| `cash` \| `card` \| `transfer` | Create `payment_intents` row with `reference_type='invoice'`, `intent_type='receivable'`, `status='paid'`. Create paid POS invoice. Post ledger. Return `FIN_OK`. |
+| `debt` | Reject with `FIN_POS_DEBT_UNSUPPORTED`. No invoice created. No payment intent created. No ledger entry. |
+
+Additional rules:
+
+- POS invoices never emit `status='issued'`. POS emits only `status='paid'` (after atomic success) or no row at all (on any rejection).
+- Stage 8 hides/disables the debt POS action in `POSPaymentPanel.tsx` (front-end change, out of Stage 6 scope; tracked as Stage 8 obligation).
+- Any future credit-sale / on-account POS workflow requires a separate approved contract and does not enter Stage 6.
+
+### §17.7 Payment enum rollback correction — exact dependency-preserving
+
+`pg_proc` sweep result (executed this pass, read-only):
+
+- **Zero** functions have a direct `pg_depend` reference to `payment_reference_type` or `payment_intent_type`. The enums are referenced only through the two typed columns on `public.payment_intents` (`reference_type`, `intent_type`) and the trigger function `public.validate_payment_intent` which reads `NEW.reference_type` / `NEW.intent_type` textually inside its body (no direct pg_type dependency).
+- Triggers on `public.payment_intents`:
+  1. `update_payment_intents_updated_at` (BEFORE UPDATE) — enum-independent.
+  2. `validate_payment_intent_trigger` (BEFORE INSERT OR UPDATE) — must be dropped and restored around the type rewrite.
+
+Verbatim enum labels captured (owner=`postgres`, `typacl` is NULL i.e. type-default ACL):
+
+- `payment_reference_type` = `academy_booking, service, order, auction, subscription` (order 1..5)
+- `payment_intent_type` = `platform_fee, service_payment, commission` (order 1..3)
+- `payment_status` = `draft, pending, paid, cancelled` (order 1..4) — **NOT touched** by Stage 6.
+
+Removed from rollback: `--purge-new-values`, any caller-supplied tolerance, any conversion/recreation of `payment_status`, any `REINDEX INDEX CONCURRENTLY`, and any belt-and-braces reindex assertion.
+
+Guarded rollback contract (locked):
+
+```sql
+BEGIN;
+
+-- 1. Abort if any row uses new labels.
+DO $g$ BEGIN
+  IF EXISTS (SELECT 1 FROM public.payment_intents WHERE reference_type::text = 'invoice')
+     THEN RAISE EXCEPTION 'FIN_ENUM_ROLLBACK_INVOICE_ROWS_PRESENT'; END IF;
+  IF EXISTS (SELECT 1 FROM public.payment_intents WHERE intent_type::text = 'receivable')
+     THEN RAISE EXCEPTION 'FIN_ENUM_ROLLBACK_RECEIVABLE_ROWS_PRESENT'; END IF;
+END $g$;
+
+-- 2. Abort if any Stage 6 dependent function/RPC still installed.
+DO $g$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+             WHERE n.nspname='public'
+               AND p.proname IN (
+                 'create_invoice_with_items','update_invoice_with_items','reverse_invoice',
+                 'record_invoice_payment','reverse_payment','create_expense','reverse_expense',
+                 'record_salary_payment','pos_finalize_sale','pos_void_sale',
+                 'create_housing_invoice','create_lab_invoice','create_doctor_invoice','create_vet_invoice'))
+  THEN RAISE EXCEPTION 'FIN_ENUM_ROLLBACK_STAGE6_FUNCTIONS_INSTALLED'; END IF;
+END $g$;
+
+-- 3. Drop trigger + validator (exact dependency order).
+DROP TRIGGER validate_payment_intent_trigger ON public.payment_intents;
+DROP FUNCTION public.validate_payment_intent();
+
+-- 4. Convert only the two columns to text.
+ALTER TABLE public.payment_intents
+  ALTER COLUMN reference_type TYPE text USING reference_type::text,
+  ALTER COLUMN intent_type    TYPE text USING intent_type::text;
+
+-- 5. Recreate the two enum types with EXACT original labels/order/owner. No CASCADE.
+DROP TYPE public.payment_reference_type;
+DROP TYPE public.payment_intent_type;
+
+CREATE TYPE public.payment_reference_type AS ENUM
+  ('academy_booking','service','order','auction','subscription');
+CREATE TYPE public.payment_intent_type    AS ENUM
+  ('platform_fee','service_payment','commission');
+
+ALTER TYPE public.payment_reference_type OWNER TO postgres;
+ALTER TYPE public.payment_intent_type    OWNER TO postgres;
+-- typacl left at type-default (NULL) to match captured original.
+
+-- 6. Cast columns back.
+ALTER TABLE public.payment_intents
+  ALTER COLUMN reference_type TYPE public.payment_reference_type USING reference_type::public.payment_reference_type,
+  ALTER COLUMN intent_type    TYPE public.payment_intent_type    USING intent_type::public.payment_intent_type;
+
+-- 7. Restore captured validator body verbatim + re-attach trigger (body preserved from Stage 2 preimage artifact).
+CREATE FUNCTION public.validate_payment_intent() RETURNS trigger LANGUAGE plpgsql AS $body$
+  -- (body restored verbatim from Stage 2 keyed preimage under docs/aml_1_b_1/stage_02_rollback_artifacts/)
+BEGIN RETURN NEW; END;
+$body$;
+CREATE TRIGGER validate_payment_intent_trigger
+  BEFORE INSERT OR UPDATE ON public.payment_intents
+  FOR EACH ROW EXECUTE FUNCTION public.validate_payment_intent();
+
+-- 8. Verify indexes/constraints on payment_intents are intact after rewrite (informational check; no CASCADE was used).
+COMMIT;
+```
+
+The verbatim body of `public.validate_payment_intent` must be captured into the Stage 2 keyed preimage artifact before the F1 forward migration deploys the additive enum labels. Until that capture exists on disk, `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED` is **retained**.
+
+### §17.8 Canonical stock update mechanism — one path only
+
+Single mechanism (locked):
+
+- **POS RPC inserts one row into `public.inventory_movements`** per line item (kind `outbound`, positive `quantity`, resolved `warehouse_id` per §17.1, `product_id` per §17.2 mapping, source identity = POS invoice id).
+- **`trg_stock_levels_apply_movement` (canonical trigger on `inventory_movements`)** applies the movement to `stock_levels`.
+- The POS RPC MUST NOT `UPDATE public.stock_levels` directly. Any attempt is a spec violation.
+
+Trigger contract (locked):
+
+```sql
+CREATE OR REPLACE FUNCTION public._finance_apply_inventory_movement()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE v_delta bigint; v_row public.stock_levels;
+BEGIN
+  IF NEW.quantity IS NULL OR NEW.quantity <= 0 THEN
+    RAISE EXCEPTION 'FIN_INV_MOVEMENT_INVALID_QTY';
+  END IF;
+  IF NEW.tenant_id IS NULL OR NEW.product_id IS NULL OR NEW.warehouse_id IS NULL THEN
+    RAISE EXCEPTION 'FIN_INV_MOVEMENT_PARITY_MISSING';
+  END IF;
+  -- Tenant/product/warehouse parity (composite FKs enforce cross-row parity;
+  -- this check catches direct-insert bugs before locking):
+  PERFORM 1 FROM public.warehouses w
+    WHERE w.id = NEW.warehouse_id AND w.tenant_id = NEW.tenant_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'FIN_INV_MOVEMENT_WAREHOUSE_TENANT_MISMATCH'; END IF;
+  PERFORM 1 FROM public.products p
+    WHERE p.id = NEW.product_id AND p.tenant_id = NEW.tenant_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'FIN_INV_MOVEMENT_PRODUCT_TENANT_MISMATCH'; END IF;
+
+  v_delta := CASE NEW.kind
+    WHEN 'inbound'  THEN  NEW.quantity::bigint
+    WHEN 'outbound' THEN -NEW.quantity::bigint
+    ELSE 0 END;
+  IF v_delta = 0 THEN RAISE EXCEPTION 'FIN_INV_MOVEMENT_UNKNOWN_KIND'; END IF;
+
+  -- Deterministic stock-row lock:
+  SELECT * INTO v_row FROM public.stock_levels
+   WHERE tenant_id = NEW.tenant_id
+     AND product_id = NEW.product_id
+     AND warehouse_id = NEW.warehouse_id
+   FOR UPDATE;
+
+  IF NOT FOUND THEN
+    IF v_delta < 0 THEN RAISE EXCEPTION 'FIN_INV_NEGATIVE_STOCK'; END IF;
+    INSERT INTO public.stock_levels (tenant_id, product_id, warehouse_id, quantity, last_movement_at)
+      VALUES (NEW.tenant_id, NEW.product_id, NEW.warehouse_id, v_delta, now());
+  ELSE
+    IF v_row.quantity + v_delta < 0 THEN RAISE EXCEPTION 'FIN_INV_NEGATIVE_STOCK'; END IF;
+    UPDATE public.stock_levels
+       SET quantity = quantity + v_delta,
+           last_movement_at = now()
+     WHERE tenant_id = NEW.tenant_id
+       AND product_id = NEW.product_id
+       AND warehouse_id = NEW.warehouse_id;
+  END IF;
+  RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_stock_levels_apply_movement
+  AFTER INSERT ON public.inventory_movements
+  FOR EACH ROW EXECUTE FUNCTION public._finance_apply_inventory_movement();
+```
+
+Once-only source identity (Stage 6-supported subset): a partial unique index
+`ux_inventory_movements_source_pos ON public.inventory_movements (source_type, source_reference, product_id, warehouse_id) WHERE source_type = 'pos_invoice'`
+prevents double application from the same POS invoice line. Full transactional rollback is inherited: any exception unwinds the entire `pos_finalize_sale` transaction (invoice, payment, ledger, billing link, movement, stock update all revert together).
+
+### §17.9 Internal M1–M7 ordering mapped into F0–F6
+
+The Batch A/B/C decisions and §17.1–§17.8 corrections resolve into seven internal migration files, mapped into the existing F0–F6 program boundaries without replacing them:
+
+| Internal | Content | Original phase |
+|---|---|---|
+| M1 | Additive enum labels: `payment_reference_type += 'invoice'`, `payment_intent_type += 'receivable'` | inside F0 (schema-only, pairs with the `expense` CHECK expansion) |
+| M2 | Numbering/config schema: `finance_invoice_number_counters`, `finance_invoice_number_config`, GRANTs, RLS | inside F0 (schema-only) |
+| M3 | POS inventory schema: `products (tenant_id,id)` UNIQUE, `tenant_services.product_id`, composite FK, warehouse partial unique indexes, `inventory_movements` once-only partial unique | inside F0 (schema-only) |
+| M4 | Period-aware counter seed/backfill (per §17.4) | inside F0 tail (data-only, additive, no runtime dependency yet) |
+| M5 | Private helpers/triggers: `_finance_invoice_number_next`, `_finance_apply_inventory_movement`, `_finance_resolve_pos_warehouse`, updated `_finance_expense_create_sourced` | inside F2 (private-helper installation) |
+| M6 | Public RPC bodies (all 14 §7 rows, rewritten to consume M1–M5) | inside F3 (public RPC installation) |
+| M7 | Adapters (all 6 §8 rows, rewritten to consume M6) | inside F4 (adapter installation) |
+
+F5 (POS installation) and F6 (permission grants + A.15 rollback-guard tail) are unchanged in boundary; F5 gains the M6 POS RPC body and F6 grants `authenticated` EXECUTE on the six adapters + `service_role` on all M5/M6/M7 objects per Stage 4 permission map.
+
+### §17.10 Integration status vs original §5, §9, §11, §13 bodies
+
+The corrections in §17.1–§17.8 are **not yet inlined** into:
+
+- **§5.4** payment mechanical decision block (still shows the 3-option compact block rather than option A executed with §17.7 rollback contract).
+- **§9.3–§9.5** invoice-number policy body (still shows the flat `(tenant_id,domain)` PK rather than the §17.3 period-aware PK, and still lacks the §17.4 seed / §17.5 rollback contracts inline).
+- **§11** payload contract tables — no dedicated payload row exists yet for `pos_finalize_sale`'s inventory line-level fields (`product_id`, `warehouse_id`) required by §17.8.
+- **§13** F0 SQL block — does not yet contain the M1/M2/M3/M4 SQL bodies mandated above.
+
+Until those four sections are rewritten in place using the §17.1–§17.8 contracts verbatim, the corresponding topic-level blockers remain retained per §15.
+
+---
+
+## §14. Structural-gate results (self-verification) — Batch D delta
+
+*(This delta supplements §14 without replacing prior rows. Prior rows remain PASS as recorded.)*
+
+| Gate | Result |
+|---|---|
+| §14.6 preimage re-verified before write matches directive (`f297d685…`) | PASS |
+| §14.6 pg_proc enum-dependency sweep executed; zero direct function dependencies; trigger set captured | PASS |
+| §14.6 warehouse two-index rule mechanically supported by live columns | PASS |
+| §14.6 period-aware counter PK `(tenant_id, domain, period_key)` present | PASS (in §17.3) |
+| §14.6 no COUNT-based seed; runtime never uses MAX/whole-table parsing | PASS (in §17.4) |
+| §14.6 numbering rollback contains no `--force` / no `--purge*` | PASS (in §17.5) |
+| §14.6 POS never emits `issued`; `debt` rejected with `FIN_POS_DEBT_UNSUPPORTED` | PASS (in §17.6) |
+| §14.6 `payment_status` untouched by Stage 6 | PASS (in §17.7) |
+| §14.6 enum rollback uses no `CASCADE`; exact-order dependency capture present | PASS (in §17.7) |
+| §14.6 canonical stock mechanism is single-path (movement → trigger → stock_levels) | PASS (in §17.8) |
+| §14.6 M1–M7 ordering mapped into F0–F6 without replacing phase boundaries | PASS (in §17.9) |
+| §14.6 §17 corrections inlined into §5/§9/§11/§13 body | **FAIL** (documented in §17.10 — follow-up controlled edit required) |
+| §14.6 verbatim body of `validate_payment_intent` captured into Stage 2 keyed preimage on disk | **FAIL** (must be captured before F1 deploys additive enum labels) |
+| §14.6 only file changed is `STAGE_06_EXECUTION_SPEC.md`; no DB/migration write tool called | PASS |
+
+---
+
+## §15. Unresolved identifiers — Batch D revision
+
+**Retired by this pass (Batch D):**
+
+- `WAREHOUSE_RESOLUTION_UNRESOLVED` — §17.1 live-column evidence supports the two-index rule; contract embedded.
+- `WRITER_CENSUS_METHOD_INVALID` — retired in the prior pass; unchanged.
+
+**Retained (require inline body integration per §17.10):**
+
+- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — canonical stack contract fixed in §17.2/§17.8 but not inlined into §11 payload and §13 F0 SQL body.
+- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — period-aware counter/config/seed/rollback fixed in §17.3–§17.5 but not inlined into §9.3–§9.5 body.
+- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — additive-label decision fixed in §17.7 introduction but not inlined into §5.4 decision block; also see next identifier.
+- `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED` — new. §17.7 defines the exact dependency-preserving rollback but requires the verbatim `validate_payment_intent` body captured into the Stage 2 keyed preimage on disk before F1 deploys additive labels.
+
+---
+
 ## §16. Terminal readiness
 
-AML.1.b.1 STAGE 6 FINAL READINESS: BLOCKED — [POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED, INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED, PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED], READ-ONLY, ZERO MUTATIONS.
+AML.1.b.1 STAGE 6 FINAL READINESS: BLOCKED — [POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED, INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED, PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED, PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED], READ-ONLY, ZERO MUTATIONS.
