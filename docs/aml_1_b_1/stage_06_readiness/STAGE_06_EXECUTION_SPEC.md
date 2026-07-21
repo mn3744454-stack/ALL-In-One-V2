@@ -1658,10 +1658,12 @@ Executed against the clean candidate before file replacement.
 | §14.5 14 RPCs × 20 populated fields | PASS |
 | §14.5 6 adapters, each complete | PASS |
 | §14.5 12 payload contract tables, each with 10 metadata columns | PASS |
-| §14.5 mutation census separated from reader census | PASS (methodology; enumeration deferred per §12) |
+| §14.5 mutation census separated from reader census | PASS (55 mutation rows in §12.2, 80 reader sites in §12.3) |
 | §14.5 Model-B positive reversal expense + negative reversal ledger | PASS |
-| §14.5 POS inventory contract present OR exact blocker retained | PASS (blocker retained: `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`) |
-| §14.5 invoice-number server policy present OR exact blocker retained | PASS (blocker retained: `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED`) |
+| §14.5 POS inventory contract present OR exact blocker retained with compact decision block | PASS (blocker retained with §7.13-A decision block: `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`) |
+| §14.5 invoice-number server policy present OR exact blocker retained with compact decision block | PASS (blocker retained with §9.4 decision block: `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED`) |
+| §14.5 payment enum mapping resolved OR exact blocker retained with compact decision block | PASS (blocker retained with §5.4 decision block: `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED`) |
+| §14.5 writer-census methodology + row-by-row enumeration with zero unexplained sites | PASS (retires `WRITER_CENSUS_METHOD_INVALID`) |
 | §14.5 exactly one terminal line | PASS |
 
 ---
