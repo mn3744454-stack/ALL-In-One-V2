@@ -12721,6 +12721,10 @@ export type Database = {
         Args: { p_cutoff: string }
         Returns: number
       }
+      _finance_invoice_number_next: {
+        Args: { p_domain: string; p_tenant_id: string }
+        Returns: string
+      }
       _finance_request_hash: {
         Args: {
           p_actor_id: string
