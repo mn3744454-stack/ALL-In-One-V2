@@ -71,7 +71,7 @@ Stage 6 execution is decomposed into F1 (schema-only F0 CHECK expansion), F2 (pr
 
 ## §2. Clean-rebuild declaration
 
-This file was generated from an out-of-tree candidate at `/tmp/STAGE_06_EXECUTION_SPEC.clean.md`, validated against every §14 gate, then copied to the authorized path. It contains:
+This file was generated as an out-of-tree candidate, validated against every §14 gate, then written to the authorized path. It contains:
 
 - Exactly one title, one pass declaration, one repo-effect declaration.
 - Exactly one instance of each numbered section (§0–§16).
