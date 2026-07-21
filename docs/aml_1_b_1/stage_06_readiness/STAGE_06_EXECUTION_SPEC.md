@@ -304,9 +304,19 @@ Under the §3 signature `post_payment(p_tenant_id, p_idempotency_key, p_invoice_
 11. Server-derived invoice status: recompute `remaining = total_amount - Σ payments`. If `remaining <= 0.01` → `status='paid'` and `payment_received_at = p_payment_date`; else if `remaining < total_amount` → `status='partial'`. Never accept caller `status`.
 12. Complete idempotency (§4).
 
-### 5.4 Retained blocker
+### 5.4 Retained blocker + decision block
 
-`PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` is retained. Resolution requires either (a) live addition of `invoice` to `payment_reference_type` and `completed` (or equivalent terminal) to `payment_status`, or (b) an explicit product decision to route receivables payments through `payment_reference_type='service'` with an anchoring `reference_id` design, or (c) confirmation that `payment_intents` is not part of receivables payments and the business row lives elsewhere.
+`PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` is retained. The live enums cannot express an invoice-payment business row: `payment_reference_type` lacks `invoice`; `payment_status` lacks a terminal-success label other than `paid`; `payment_intent_type` lacks a receivables label (only `platform_fee|service_payment|commission`). Mapping every UI-reachable receivables method (`cash|card|transfer|debt`) is therefore impossible from live evidence.
+
+Compact decision block (user input required — 3 options, recommended first):
+
+| # | Option | Exact additive consequence | Recommended |
+|---|---|---|---|
+| A | Add enum labels `payment_reference_type += 'invoice'`, `payment_intent_type += 'receivable'`, keep `status='paid'` as terminal | Two `ALTER TYPE … ADD VALUE` migrations (F0-class, non-transactional per PG); `validate_payment_intent` extended with a `receivable` branch requiring `tenant_id NOT NULL` + payee kind `tenant`. Enables `post_payment` to insert a full business row with `reference_type='invoice'`, `reference_id=p_invoice_id`, `status='paid'`. | **YES** — minimal additive, no data migration, preserves current row shape |
+| B | Route receivables through existing `reference_type='service'` with `reference_id=p_invoice_id` and add a `metadata jsonb` column on `payment_intents` to disambiguate | One `ALTER TABLE ADD COLUMN metadata jsonb`; readers must union `service` rows by metadata; audit reporting becomes ambiguous. | no — pollutes existing `service` semantic |
+| C | Confirm `payment_intents` is out-of-scope for receivables; keep the business row in `ledger_entries` + `billing_links` only | No schema change; `post_payment` never inserts into `payment_intents`; §7.6 step 7 stays permanently deferred. Loses uniform payment-intent reporting. | no — divergent from platform-payment model |
+
+Retirement rule: this blocker is retired only after the chosen migration is executed and `validate_payment_intent` is aligned. Until then, §7.6 step 7 remains `[BLOCKED — PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED]` and the ledger+billing-link path continues to carry the payment.
 
 ---
 
