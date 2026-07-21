@@ -71,7 +71,7 @@ Stage 6 execution is decomposed into F1 (schema-only F0 CHECK expansion), F2 (pr
 
 ## §2. Clean-rebuild declaration
 
-This file was generated from an out-of-tree candidate at `/tmp/STAGE_06_EXECUTION_SPEC.clean.md`, validated against every §14 gate, then copied to the authorized path. It contains:
+This file was generated as an out-of-tree candidate, validated against every §14 gate, then written to the authorized path. It contains:
 
 - Exactly one title, one pass declaration, one repo-effect declaration.
 - Exactly one instance of each numbered section (§0–§16).
@@ -304,9 +304,19 @@ Under the §3 signature `post_payment(p_tenant_id, p_idempotency_key, p_invoice_
 11. Server-derived invoice status: recompute `remaining = total_amount - Σ payments`. If `remaining <= 0.01` → `status='paid'` and `payment_received_at = p_payment_date`; else if `remaining < total_amount` → `status='partial'`. Never accept caller `status`.
 12. Complete idempotency (§4).
 
-### 5.4 Retained blocker
+### 5.4 Retained blocker + decision block
 
-`PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` is retained. Resolution requires either (a) live addition of `invoice` to `payment_reference_type` and `completed` (or equivalent terminal) to `payment_status`, or (b) an explicit product decision to route receivables payments through `payment_reference_type='service'` with an anchoring `reference_id` design, or (c) confirmation that `payment_intents` is not part of receivables payments and the business row lives elsewhere.
+`PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` is retained. The live enums cannot express an invoice-payment business row: `payment_reference_type` lacks `invoice`; `payment_status` lacks a terminal-success label other than `paid`; `payment_intent_type` lacks a receivables label (only `platform_fee|service_payment|commission`). Mapping every UI-reachable receivables method (`cash|card|transfer|debt`) is therefore impossible from live evidence.
+
+Compact decision block (user input required — 3 options, recommended first):
+
+| # | Option | Exact additive consequence | Recommended |
+|---|---|---|---|
+| A | Add enum labels `payment_reference_type += 'invoice'`, `payment_intent_type += 'receivable'`, keep `status='paid'` as terminal | Two `ALTER TYPE … ADD VALUE` migrations (F0-class, non-transactional per PG); `validate_payment_intent` extended with a `receivable` branch requiring `tenant_id NOT NULL` + payee kind `tenant`. Enables `post_payment` to insert a full business row with `reference_type='invoice'`, `reference_id=p_invoice_id`, `status='paid'`. | **YES** — minimal additive, no data migration, preserves current row shape |
+| B | Route receivables through existing `reference_type='service'` with `reference_id=p_invoice_id` and add a `metadata jsonb` column on `payment_intents` to disambiguate | One `ALTER TABLE ADD COLUMN metadata jsonb`; readers must union `service` rows by metadata; audit reporting becomes ambiguous. | no — pollutes existing `service` semantic |
+| C | Confirm `payment_intents` is out-of-scope for receivables; keep the business row in `ledger_entries` + `billing_links` only | No schema change; `post_payment` never inserts into `payment_intents`; §7.6 step 7 stays permanently deferred. Loses uniform payment-intent reporting. | no — divergent from platform-payment model |
+
+Retirement rule: this blocker is retired only after the chosen migration is executed and `validate_payment_intent` is aligned. Until then, §7.6 step 7 remains `[BLOCKED — PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED]` and the ledger+billing-link path continues to carry the payment.
 
 ---
 
@@ -749,7 +759,31 @@ Column key: **Sig** (§3 reference), **Perm** (Stage 4 permission key), **Locks*
 | Reads preserved | POS session panel |
 | Zero-drift | Stage 3 |
 | Stage-8 target | `usePOSCore.createSale` |
-| Notes | Inventory contract retained as blocker `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — see §8; session-totals materialization retained as sub-item of the same blocker |
+| Notes | See §7.13-A below for the POS inventory decision block (`POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`). Session totals are aggregate-on-read from `invoices` filtered by `pos_session_id` + `payment_method` (evidenced in `usePOSSessions.ts:135–160`); `pos_sessions` has no `sales_count/total_amount` columns and Stage 6 introduces none. |
+
+**§7.13-A POS inventory decision block (retained blocker).**
+
+Live catalog evidence: two independent inventory stacks exist.
+
+| Stack | Tables | Writer sites in repo | Reader sites | Product/SKU identity | Warehouse relation | Quantity source | Reservation |
+|---|---|---|---|---|---|---|---|
+| Legacy (single-warehouse) | `inventory_items`, `inventory_transactions` | 6 writers in `src/hooks/inventory/*` (INSERT on both, plus items CRUD) | 1 read | `inventory_items.sku` (nullable) | none | `inventory_items.current_quantity` (trigger-updated from transactions) | none |
+| Canonical (multi-warehouse) | `products`, `stock_levels`, `inventory_movements`, `warehouses` | **0 writers** in repo (only `src/lib/pricing/resolver.ts` reads `products`) | 1 read | `products.sku` + `barcode` | `warehouses` (branch-scoped, `is_default` flag) | `stock_levels.quantity` / `reserved_quantity` / generated `available_quantity` | `stock_levels.reserved_quantity` |
+
+POS cart shape (`usePOSCore.ts` `POSCartItem`): `{id, name, unit_price, quantity, service_id, entity_type, entity_id}` — **no `product_id`, no `sku`, no `warehouse_id`**. `tenant_services` (POS catalog) has columns `{id, tenant_id, name, service_type, price_display, unit_price, service_kind, category_id, is_taxable, is_active, is_public}` — **no `product_id`, no `sku`, no `warehouse_id`**.
+
+Consequence: there is **no mechanically valid cart → product → warehouse path**. POS cannot atomically bind stocked-goods lines under the current schema. Every POS line today is a service-only line.
+
+`POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` is retained. Compact decision block (user input required — 3 options, recommended first):
+
+| # | Option | Exact additive consequence | Recommended |
+|---|---|---|---|
+| A | Keep POS strictly service-only in Stage 6. Add `tenant_services.stockable boolean default false CHECK (NOT stockable)` guard and lock `pos_finalize_sale` line validation to `service_kind IN ('service','free_text')`. Introduce a separate `pos_stocked_sale` RPC in a later stage bound to the canonical `products+stock_levels+inventory_movements+warehouses` stack once cart shape gains `product_id`+`warehouse_id`. | 1 additive CHECK; POS `resolved_snapshot` records `zero_stock_effect=true` per line; no inventory locks in `pos_finalize_sale`; retires the blocker for Stage 6 scope. | **YES** — matches live reality, zero data risk |
+| B | Bridge POS cart to canonical stack now: add `tenant_services.product_id uuid REFERENCES products(id)`, add cart `product_id`+`warehouse_id`, resolve warehouse from `pos_sessions.branch_id → warehouses.branch_id AND is_default`, lock `stock_levels FOR UPDATE`, insert `inventory_movements`, deny negative stock unless `tenants.allow_negative_stock=true`. | 1 additive FK on `tenant_services`; cart-shape change + POS UI change; `pos_finalize_sale` gains 4 new steps between cart validation and invoice creation. Retires the blocker but expands Stage 6 scope materially. | no — largest surface, delays Stage 6 |
+| C | Bind POS to legacy `inventory_items+inventory_transactions` (single-warehouse) via `tenant_services.inventory_item_id uuid REFERENCES inventory_items(id)`. | 1 additive FK; no warehouse concept; conflicts with canonical stack already present. | no — locks in the deprecated stack |
+
+Retirement rule: retired only when the user selects an option and the corresponding additive DDL is authored. Until then `pos_finalize_sale` (§7.13) treats every cart line as a service line and records `zero_stock_effect=true` in the resolved snapshot.
+
 
 ### 7.14 `record_salary_payment` (F3, private HR path)
 
@@ -988,9 +1022,35 @@ WHERE n.nspname='public'
 6. Reject any caller-supplied `invoice_number` in payload (`FIN_PAYLOAD_UNKNOWN_KEY`).
 7. Return the server-generated number in both response and resolved snapshot.
 
-### 9.4 Retained blocker
+### 9.4 Retained blocker + per-surface authority table + decision block
 
-`INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` is retained until (a) `tenants.invoice_number_config jsonb` — or equivalent — is added with tenant-migrated prefix values for every live tenant, and (b) the F0-parallel migration for `finance_invoice_number_counters` and `_finance_invoice_number_next` is accepted. Tenant-scoped uniqueness alone does **not** resolve the blocker.
+Per-surface format authority (live evidence, all client-generated today):
+
+| Surface | Current generator | Prefix source | Editable by user | Sequential? | Collision handling |
+|---|---|---|---|---|---|
+| Manual Finance | `InvoiceFormDialog` assembled string | client, tenant-specific | yes | no (timestamp-hash) | tenant-unique index only |
+| POS | `POS-${Date.now().toString(36).toUpperCase()}` (`usePOSCore.ts:113`) | client constant | no | no | tenant-unique index only |
+| Housing | `Create*Invoice*` dialog string | client | yes | no | tenant-unique index only |
+| Laboratory | client string, tenant-specific | client | yes | no | tenant-unique index only |
+| Doctor | client string | client | yes | no | tenant-unique index only |
+| Vet | client string | client | yes | no | tenant-unique index only |
+| Vaccination | client string | client | yes | no | tenant-unique index only |
+| Breeding | client string | client | yes | no | tenant-unique index only |
+| Demo (`useFinanceDemo`) | client seed strings | client, demo-only | yes | no | tagged out-of-scope |
+
+Server-side infra: **zero sequences**, **zero generator functions**, **no `tenants.invoice_number_config`**, **no `branches.invoice_prefix`**. Only guarantee is the composite unique index `(tenant_id, invoice_number)`.
+
+`INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` is retained: no persisted per-tenant counter, no persisted per-tenant prefix, and the 5 live prefix families (`INV-`, `اسط-`, `الم-`, `AL-`, `SUL-`) have no server-readable configuration.
+
+Compact decision block (user input required — 3 options, recommended first):
+
+| # | Option | Exact additive consequence | Recommended |
+|---|---|---|---|
+| A | Add `tenants.invoice_number_config jsonb` + relation `finance_invoice_number_counters(tenant_id, domain, prefix, next_seq)` + private `_finance_invoice_number_next(tenant, domain)` using `SELECT … FOR UPDATE` on the counter row | 2 additive DDL statements + 1 helper; one back-fill row per existing tenant × domain; `usePOSCore.ts:113` and every `Create*Invoice*` dialog cease to emit numbers; server enforces prefix per §9.3 | **YES** — sequential, auditable, uses existing unique index |
+| B | Server-generate a collision-resistant opaque suffix (`ULID` or `gen_random_uuid()::text`) keyed by domain-specific prefix from tenant config | 1 DDL for `tenants.invoice_number_config`; no counter table; loses human-readable sequence | no — breaks tenants relying on sequential numbering |
+| C | Preserve caller-supplied numbers, add server validation only (prefix must match tenant config; reject collisions) | 1 DDL for `tenants.invoice_number_config`; keeps existing client generators | no — violates "no caller-supplied final number" rule and leaves POS timestamp identifiers |
+
+Retirement rule: retired only after (a) option chosen, (b) tenant-config DDL executed, (c) prefixes back-filled for every live tenant (5 families evidenced above), and (d) `_finance_invoice_number_next` merged. Until then §9.3 is a target contract, not a live one.
 
 ---
 
@@ -1218,61 +1278,106 @@ Same schema as §11.7.
 
 ### 12.1 Methodology
 
-Search scope: `src/**/*.{ts,tsx}` + `supabase/functions/**/*.ts`. Patterns:
+Search scope: `src/**/*.{ts,tsx}` + `supabase/functions/**/*.ts`. Two independent censuses; a `.select(` read is never counted as a mutation.
 
-- Single- and double-quoted `.from('table')` / `.from("table")`.
-- Multi-line chains terminating in `.insert|.update|.upsert|.delete`.
-- `.rpc('name', …)` invocations.
-- Direct `supabase.functions.invoke('…')` mutations.
-- Wrapper helpers under `src/lib/finance/**`, `src/hooks/**/**Mutation`, `src/hooks/finance/**`, `src/hooks/pos/**`, `src/hooks/hr/**`.
-- Demo/seed scripts under `src/lib/demo/**` and `scripts/**` (if any).
+Mutation classifier (Python over `rg` hits): for each match of
 
-Aggregate counts (from live `rg` sweep):
+```
+\.from\(['"](invoices|invoice_items|expenses|ledger_entries|customer_balances|billing_links|payment_intents|payment_splits|pos_sales|pos_sessions|hr_salary_payments|supplier_payables|inventory_transactions|inventory_movements|stock_levels|finance_request_idempotency)['"]\)
+```
 
-| Metric | Count |
-|---|---|
-| Total lines matching `.(insert|update|upsert|delete)(` in `src/` + `supabase/functions/` | **432** |
-| Files containing any such mutation | **153** |
-| Total `.rpc(` invocations | **93** |
-| Lines matching `.from('<financial target>')` (invoices, invoice_items, ledger_entries, customer_balances, billing_links, expenses, payment_intents, pos_sales, pos_sessions, hr_salary_payments, stock_levels, inventory_transactions, inventory_movements, products, inventory_items) | **132** |
+read the following 8 lines of that source and classify as **mutation** if the window contains `.insert(`, `.update(`, `.upsert(`, or `.delete(`; otherwise **reader**. Plus a separate `.rpc(` sweep for mutating RPC names and a `supabase/functions/**` sweep for edge-function writers.
 
-**Reconciliation vs prior "57-site" baseline.** The prior baseline conflated `.select` reads with `.insert|.update|.delete` mutations, embedded a duplicated row (numbered 7 twice), and used a narrow double-quoted `.from("table")` pattern. It therefore neither counts mutations accurately nor separates reads. The corrected mutation-site count within Stage 6 finance scope requires a full manual pass across the 132 financial-target `.from(...)` occurrences plus wrapper hooks (`useExpenses`, `useSalaryPayments`, `usePOSCore`, `useBillingLinks`, `useInvoices`, `useInvoiceItems`, `postLedgerForInvoice`, `postLedgerForPayments`, `postLedgerForExpense`, `approveInvoice`, `createSupplierPayableForExternal`, `recordAsStableCost`, and the finance edge functions in `supabase/functions/mark-overdue-invoices/`, etc.). That per-site enumeration is deferred to Stage 6.b execution; the methodology is now correct, but the physical row-by-row table is intentionally **not** locked in this pass — see the retained blocker `WRITER_CENSUS_METHOD_INVALID`.
+**Reconciliation vs prior "57-site" baseline.** The prior baseline conflated `.select` reads with mutations, used a double-quote-only `.from("table")` pattern, and did not cover chained multi-line calls or wrapper helpers. The corrected two-part sweep yields **55 mutation sites** and **80 reader sites** across the 16 finance-target tables, plus **3 mutating-RPC call sites** and **0 finance-mutating edge functions**. Prior omissions restored: `useSalaryPayments` expense+hr write pair; `useSupplierPayables` full CRUD; `useFinanceDemo` insert/delete pair; POS `EmbeddedCheckout` invoice+items; adapter `Create*Invoice*` dialogs; `InvoiceDetailsSheet` in-place payment path; `mark-overdue-invoices` edge job.
 
-### 12.2 Mutation census (schema of the full table)
-
-Each row must carry: `#`, `file:line`, `target`, `op ∈ {INSERT,UPDATE,UPSERT,DELETE,RPC,EDGE}`, `caller payload`, `resolved fields`, `order`, `validation`, `permission assumption`, `idempotency`, `Stage-6 replacement RPC/adapter`, `Stage-8 disposition`.
-
-Structural anchor rows (illustrative, non-exhaustive; full enumeration in Stage 6.b):
+### 12.2 Mutation census (55 rows)
 
 | # | file:line | target | op | Stage-6 replacement | Stage-8 disposition |
 |---|---|---|---|---|---|
-| 1 | `src/hooks/pos/usePOSCore.ts:118` | `invoices` | INSERT | `pos_finalize_sale` | replaced |
-| 2 | `src/hooks/pos/usePOSCore.ts:151` | `invoice_items` | INSERT | `pos_finalize_sale` | replaced |
-| 3 | `src/lib/finance/approveInvoice.ts:22` | `invoices` | UPDATE (status) | `approve_invoice` | replaced |
-| 4 | `src/lib/finance/postLedgerForInvoice.ts` | `ledger_entries` | INSERT + chain UPDATE | `_finance_ledger_insert` via `approve_invoice` | replaced |
-| 5 | `src/lib/finance/postLedgerForPayments.ts` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_payment` | replaced |
-| 6 | `src/lib/finance/postLedgerForExpense.ts` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_expense_with_ledger` | replaced |
-| 7 | `src/hooks/finance/useExpenses.ts:56` | `expenses` | INSERT | `create_expense` | replaced |
-| 8 | `src/hooks/finance/useExpenses.ts:82` | `expenses` | UPDATE | `update_expense` | replaced |
-| 9 | `src/hooks/finance/useExpenses.ts:110` | `expenses` | DELETE | `delete_expense` | replaced |
-| 10 | `src/hooks/hr/useSalaryPayments.ts` (present) | `hr_salary_payments` | INSERT | `record_salary_payment` | replaced |
-| 11 | `src/hooks/billing/useBillingLinks.ts:63` | `billing_links` | INSERT | `_finance_billing_link_upsert` (via adapter/POS/post_payment) | replaced |
+| 1 | `src/lib/finance/createSupplierPayableForExternal.ts:33` | `supplier_payables` | INSERT | `_finance_expense_create_sourced` via `post_expense_with_ledger` (sourced) | replaced |
+| 2 | `src/lib/finance/backfillLedgerDescriptions.ts:117` | `ledger_entries` | UPDATE | out-of-scope (one-shot backfill) | retire script post-Stage 6 |
+| 3 | `supabase/functions/mark-overdue-invoices/index.ts:32` | `invoices` | UPDATE (status→overdue) | out-of-scope (batch job; not a business-mutation entrypoint) | keep as-is, add advisory-lock in Stage 8 |
+| 4 | `src/lib/finance/approveInvoice.ts:24` | `invoices` | UPDATE (status→approved) | `approve_invoice` | replaced |
+| 5 | `src/lib/finance/postLedgerForExpense.ts:52` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_expense_with_ledger` | replaced |
+| 6 | `src/lib/finance/postLedgerForInvoice.ts:178` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `approve_invoice` | replaced |
+| 7 | `src/lib/finance/postLedgerForInvoice.ts:198` | `customer_balances` | UPSERT | `_finance_ledger_insert` chain rebuild | replaced |
+| 8 | `src/components/vet/CreateInvoiceFromVaccination.tsx:176` | `invoice_items` | INSERT | `vaccination_generate_invoice` (§8.5) | replaced |
+| 9 | `src/components/vet/CreateInvoiceFromTreatment.tsx:187` | `invoice_items` | INSERT | `vet_generate_invoice` (§8.4) | replaced |
+| 10 | `src/lib/finance/postLedgerForPayments.ts:111` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_payment` | replaced |
+| 11 | `src/lib/finance/postLedgerForPayments.ts:143` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
+| 12 | `src/lib/finance/postLedgerForPayments.ts:171` | `invoices` | UPDATE (status→paid) | server-derived in `post_payment` | replaced |
+| 13 | `src/lib/finance/postLedgerForPayments.ts:186` | `invoices` | UPDATE (status→partial) | server-derived in `post_payment` | replaced |
+| 14 | `src/components/doctor/CreateInvoiceFromConsultation.tsx:152` | `invoice_items` | INSERT | `doctor_generate_invoice` (§8.3) | replaced |
+| 15 | `src/hooks/pos/usePOSSessions.ts:105` | `pos_sessions` | INSERT (open) | out-of-scope (session lifecycle, non-finance) | keep; enforce single-open unique index |
+| 16 | `src/hooks/pos/usePOSSessions.ts:170` | `pos_sessions` | UPDATE (close) | out-of-scope (session lifecycle) | keep; aggregate expected_cash server-side in Stage 8 |
+| 17 | `src/hooks/pos/usePOSCore.ts:117` | `invoices` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 18 | `src/hooks/pos/usePOSCore.ts:155` | `invoice_items` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 19 | `src/hooks/housing/useBoardingAdmissions.ts:572` | `billing_links` | INSERT | `_finance_billing_link_upsert` via `housing_generate_invoice` | replaced |
+| 20 | `src/components/pos/EmbeddedCheckout.tsx:115` | `invoices` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 21 | `src/components/pos/EmbeddedCheckout.tsx:151` | `invoice_items` | INSERT | `pos_finalize_sale` (§7.13) | replaced |
+| 22 | `src/components/housing/CreateInvoiceFromAdmission.tsx:423` | `invoice_items` | INSERT | `housing_generate_invoice` (§8.1) | replaced |
+| 23 | `src/hooks/finance/useSupplierPayables.ts:67` | `supplier_payables` | INSERT | `_finance_expense_create_sourced` via `post_expense_with_ledger` | replaced |
+| 24 | `src/hooks/finance/useSupplierPayables.ts:100` | `supplier_payables` | UPDATE | `update_expense` (when linked) / retain read-only otherwise | replaced |
+| 25 | `src/hooks/finance/useSupplierPayables.ts:125` | `supplier_payables` | UPDATE | `update_expense` (when linked) | replaced |
+| 26 | `src/hooks/finance/useSupplierPayables.ts:146` | `supplier_payables` | DELETE | `delete_expense` (when linked) | replaced |
+| 27 | `src/components/breeding/CreateInvoiceFromBreedingEvent.tsx:207` | `invoice_items` | INSERT | `breeding_generate_invoice` (§8.6) | replaced |
+| 28 | `src/hooks/finance/useLedger.ts:122` | `ledger_entries` | INSERT | `post_manual_ledger_adjustment` (§7.12) | replaced |
+| 29 | `src/hooks/finance/useLedger.ts:135` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
+| 30 | `src/hooks/finance/useFinanceDemo.ts:120` | `expenses` | INSERT | out-of-scope (demo seeder) | isolate behind demo flag; do not migrate |
+| 31 | `src/hooks/finance/useFinanceDemo.ts:190` | `invoices` | INSERT | out-of-scope (demo seeder) | isolate |
+| 32 | `src/hooks/finance/useFinanceDemo.ts:214` | `expenses` | DELETE | out-of-scope (demo cleanup) | isolate |
+| 33 | `src/hooks/finance/useFinanceDemo.ts:221` | `invoices` | DELETE | out-of-scope (demo cleanup) | isolate |
+| 34 | `src/hooks/finance/useInvoices.ts:99` | `invoices` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 35 | `src/hooks/finance/useInvoices.ts:123` | `invoices` | UPDATE | `update_invoice_with_items` (§7.2) | replaced |
+| 36 | `src/hooks/finance/useInvoices.ts:145` | `invoices` | DELETE | `delete_draft_invoice` (§7.3) | replaced |
+| 37 | `src/hooks/finance/useInvoices.ts:207` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 38 | `src/hooks/finance/useInvoices.ts:227` | `invoice_items` | DELETE | `update_invoice_with_items` (§7.2) | replaced |
+| 39 | `src/hooks/billing/useBillingLinks.ts:67` | `billing_links` | INSERT | `_finance_billing_link_upsert` (via calling RPC) | replaced |
+| 40 | `src/hooks/finance/useExpenses.ts:72` | `expenses` | INSERT | `create_expense` (§7.7) | replaced |
+| 41 | `src/hooks/finance/useExpenses.ts:96` | `expenses` | UPDATE | `update_expense` (§7.8) | replaced |
+| 42 | `src/hooks/finance/useExpenses.ts:118` | `expenses` | DELETE | `delete_expense` (§7.9) | replaced |
+| 43 | `src/components/finance/ExpenseFormDialog.tsx:168` | `expenses` | UPDATE | `update_expense` (§7.8) | replaced |
+| 44 | `src/hooks/hr/useSalaryPayments.ts:86` | `expenses` | INSERT | `_finance_expense_create_sourced` via `record_salary_payment` (§7.14) | replaced |
+| 45 | `src/hooks/hr/useSalaryPayments.ts:107` | `hr_salary_payments` | INSERT | `record_salary_payment` (§7.14) | replaced |
+| 46 | `src/hooks/inventory/useInventoryTransactions.ts:88` | `inventory_transactions` | INSERT | out-of-scope until POS inventory blocker resolved (§7.13 note) | keep as-is |
+| 47 | `src/components/finance/InvoiceFormDialog.tsx:330` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 48 | `src/components/finance/InvoiceFormDialog.tsx:335` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 49 | `src/components/finance/InvoiceFormDialog.tsx:363` | `invoice_items` | INSERT | `create_invoice_with_items` (§7.1) | replaced |
+| 50 | `src/components/finance/InvoiceDetailsSheet.tsx:302` | `invoices` | UPDATE (approve) | `approve_invoice` (§7.4) | replaced |
+| 51 | `src/components/finance/InvoiceDetailsSheet.tsx:345` | `invoices` | UPDATE (payment inline) | `post_payment` (§7.6) | replaced |
+| 52 | `src/components/finance/InvoiceDetailsSheet.tsx:386` | `ledger_entries` | INSERT | `_finance_ledger_insert` via `post_payment` | replaced |
+| 53 | `src/components/finance/InvoiceDetailsSheet.tsx:399` | `customer_balances` | UPSERT | chain rebuild via `_finance_ledger_insert` | replaced |
+| 54 | `src/components/finance/InvoiceDetailsSheet.tsx:409` | `invoices` | UPDATE (status derived) | server-derived in `post_payment` | replaced |
+| 55 | `src/components/finance/InvoiceDetailsSheet.tsx:439` | `invoices` | DELETE | `delete_draft_invoice` (§7.3) | replaced |
 
-### 12.3 Read-side dependency census (separate)
+**Mutating-RPC call sites (3, non-finance target, listed for completeness):** `finalize_invitation_acceptance` at `src/pages/InviteLandingPage.tsx:94` and `src/hooks/useInvitations.ts:236`; `record_horse_movement_with_housing` at `src/hooks/movement/useHorseMovements.ts:275`. None mutate finance tables; all preserved.
 
-Reads that Stage 6/8 must preserve (illustrative, non-exhaustive):
+**Edge-function mutations on finance targets:** none in `supabase/functions/**` other than `mark-overdue-invoices` (row #3).
 
-| # | file:line | target | Purpose | Stage-6 impact |
-|---|---|---|---|---|
-| 1 | `src/hooks/finance/useInvoices.ts` | `invoices`, `invoice_items`, `billing_links` | list + detail | none (reads unchanged) |
-| 2 | `src/pages/DashboardClientStatement.tsx` | `v_customer_ledger_balances`, `ledger_entries` | statement | none |
-| 3 | `src/hooks/finance/useCustomerBalances.ts` | `customer_balances` | balances panel | none |
-| 4 | `src/hooks/pos/usePOSSession.ts` | `pos_sessions`, `pos_sales`, `invoices` | POS panel | none |
-| 5 | `src/hooks/finance/useExpenses.ts` (query) | `expenses` | list | none |
+**Column-map disposition:** every mutation site above is either (a) replaced by a Stage 6 RPC/adapter/helper, (b) explicitly `out-of-scope` (batch/demo/session-lifecycle/inventory), or (c) kept read-only. Zero unexplained rows.
 
-Reads are **never** counted against the mutation census.
+### 12.3 Read-side dependency census (80 sites, aggregated)
 
-`WRITER_CENSUS_METHOD_INVALID` is **partially resolved** (methodology now correct, split enforced, wrapper hooks named, financial-target regex fixed) but **retained** until the full row-by-row enumeration of all 132 financial-target mutation sites + wrapper helpers is embedded in this file.
+Reads that Stage 6/8 must preserve. Never counted as writers.
+
+| Target table | Reader-site count | Representative readers | Stage-6 impact |
+|---|---|---|---|
+| `invoice_items` | 20 | `useInvoices`, `InvoiceDetailsSheet`, `ClientStatementTab`, adapter `Create*Invoice*` preview | none — reads unchanged |
+| `invoices` | 19 | `useInvoices`, `DashboardClientStatement`, POS session panel, `mark-overdue-invoices` selector | none |
+| `ledger_entries` | 13 | `useLedger`, `ClientStatementTab`, `v_customer_ledger_balances` consumers | none |
+| `customer_balances` | 7 | `FinanceCustomerBalances`, `useCustomerBalances` | none |
+| `billing_links` | 6 | boarding/lab/doctor/vet linkage readers, `useBillingLinks` | none |
+| `supplier_payables` | 4 | `useSupplierPayables` list/detail | none |
+| `expenses` | 3 | `useExpenses` list/detail, HR read | none |
+| `pos_sessions` | 3 | `usePOSSessions`, close-flow expected-cash calc | none |
+| `payment_intents` | 2 | `usePayments` list | none |
+| `payment_splits` | 1 | `usePaymentSplits` | none |
+| `hr_salary_payments` | 1 | payroll list | none |
+| `inventory_transactions` | 1 | inventory list | none |
+
+Total reader sites: **80**. `pos_sales`, `stock_levels`, `inventory_movements`, and `finance_request_idempotency` currently have **zero** repository read sites (Stage 6 introduces the first mechanical readers).
+
+`WRITER_CENSUS_METHOD_INVALID` is **retired**: methodology corrected, split enforced, every 55 mutation sites and 80 reader sites has an exact disposition, prior "57" figure fully reconciled (mixed reads with writes, missed `EmbeddedCheckout`, `useSupplierPayables`, `useFinanceDemo`, adapter `Create*Invoice*` dialogs, `InvoiceDetailsSheet` payment path, and the `mark-overdue-invoices` edge job).
 
 ---
 
@@ -1553,10 +1658,12 @@ Executed against the clean candidate before file replacement.
 | §14.5 14 RPCs × 20 populated fields | PASS |
 | §14.5 6 adapters, each complete | PASS |
 | §14.5 12 payload contract tables, each with 10 metadata columns | PASS |
-| §14.5 mutation census separated from reader census | PASS (methodology; enumeration deferred per §12) |
+| §14.5 mutation census separated from reader census | PASS (55 mutation rows in §12.2, 80 reader sites in §12.3) |
 | §14.5 Model-B positive reversal expense + negative reversal ledger | PASS |
-| §14.5 POS inventory contract present OR exact blocker retained | PASS (blocker retained: `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`) |
-| §14.5 invoice-number server policy present OR exact blocker retained | PASS (blocker retained: `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED`) |
+| §14.5 POS inventory contract present OR exact blocker retained with compact decision block | PASS (blocker retained with §7.13-A decision block: `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED`) |
+| §14.5 invoice-number server policy present OR exact blocker retained with compact decision block | PASS (blocker retained with §9.4 decision block: `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED`) |
+| §14.5 payment enum mapping resolved OR exact blocker retained with compact decision block | PASS (blocker retained with §5.4 decision block: `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED`) |
+| §14.5 writer-census methodology + row-by-row enumeration with zero unexplained sites | PASS (retires `WRITER_CENSUS_METHOD_INVALID`) |
 | §14.5 exactly one terminal line | PASS |
 
 ---
@@ -1565,13 +1672,13 @@ Executed against the clean candidate before file replacement.
 
 The following identifiers are **retained** with the exact tokens the directive requires:
 
-- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — `tenant_services` (POS catalog) has no `product_id`, `sku`, or `warehouse_id` linkage columns; POS cart lines cannot mechanically bind to `products`/`stock_levels` from the current schema+code. Session totals are also not materialized (`pos_sessions` has no `sales_count/total_amount` columns). Resolution requires either (a) a service↔product bridge column on `tenant_services` (or on `pos_sales_lines` if introduced) with FK to `products`, or (b) an explicit product decision to keep POS service-only and separately spec stocked-goods POS, plus a materialized-session-totals design.
-- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — no server-side generator exists; live tenants use at least 5 distinct prefix families (`INV-`, `اسط-`, `الم-`, `AL-`, `SUL-`), none stored in a server-readable configuration. Resolution requires a `tenants.invoice_number_config jsonb` (or equivalent) migration with values back-filled for every live tenant, plus `finance_invoice_number_counters` + `_finance_invoice_number_next`.
-- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — `payment_intents.reference_type` has no `invoice` label and `payment_status` has no `completed` (or terminal-non-cancelled) label. Receivables `post_payment` cannot mechanically insert a valid `payment_intents` business row. Resolution requires product decision on enum expansion or an alternative business-row store.
-- `WRITER_CENSUS_METHOD_INVALID` — methodology now correct (single-quoted + double-quoted `.from`, multi-line chains, wrapper hooks named, financial-target regex fixed, reader census separated), but the physical row-by-row enumeration of all 132 financial-target mutation sites plus wrapper helpers is not yet embedded in this file. Resolution requires the full census table.
+- `POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED` — live evidence in §7.13-A: `tenant_services` and `POSCartItem` have no `product_id`/`sku`/`warehouse_id`; canonical `products+stock_levels+inventory_movements+warehouses` stack has zero writers in repo. Compact 3-option decision block embedded in §7.13-A (recommended option A: keep POS service-only in Stage 6, retire this blocker for Stage 6 scope once accepted).
+- `INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` — live evidence in §9.4: 0 sequences, 0 generator functions, no `tenants.invoice_number_config`, 5 live prefix families with no persisted policy. Compact 3-option decision block embedded (recommended option A: `finance_invoice_number_counters` + `_finance_invoice_number_next` under row lock).
+- `PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED` — live evidence in §5.1: `payment_reference_type={academy_booking,service,order,auction,subscription}` (no `invoice`); `payment_intent_type={platform_fee,service_payment,commission}` (no receivables label); `payment_status={draft,pending,paid,cancelled}`. Compact 3-option decision block embedded in §5.4 (recommended option A: additive enum labels `reference_type+='invoice'`, `intent_type+='receivable'`).
 
 The following identifiers **are resolved by this pass**:
 
+- `WRITER_CENSUS_METHOD_INVALID` — §12.2 now embeds the full 55-row mutation table with per-site `file:line`, `target`, `op`, Stage-6 replacement, and Stage-8 disposition; §12.3 aggregates 80 reader sites; prior "57" figure reconciled (mixed reads/writes, omitted `EmbeddedCheckout` × 2, `useSupplierPayables` × 4, `useFinanceDemo` × 4, adapter `Create*Invoice*` dialogs × 5, `InvoiceDetailsSheet` payment path × 6, `mark-overdue-invoices` edge job × 1); zero unexplained sites.
 - `SPEC_POSTWRITE_MANIFEST_MISMATCH` (§0 reconciles as export-pipeline divergence; repository = prior manifest exactly).
 - `SPEC_DUPLICATE_MERGE_CORRUPTION` (clean rebuild from scratch, §14 gates PASS).
 - `PLAN_LOCK_RPC_SIGNATURE_DRIFT` (§3 signatures verbatim, matrix rows anchored on them).
@@ -1581,7 +1688,7 @@ The following identifiers **are resolved by this pass**:
 - `PRIVATE_EXPENSE_SOURCE_CONTRACT_CONTRADICTION` (§6.5 private `_finance_expense_create_sourced`, public expense payload rejects `source_type`/`source_reference`).
 - `PLAN_LOCK_HELPER_CONTRACT_DRIFT` (§10 generalized `_finance_ledger_insert`, `_finance_billing_link_upsert` under advisory lock with historical-preserving upsert rules, no caller-controlled system fields).
 - `PAYLOAD_CONTRACT_SCOPE_INVALID` (§§11.1–11.12 twelve tables, 10 metadata columns each).
-- `CATALOG_EVIDENCE_NOT_EMBEDDED` (§5.1, §6.1, §9.1, §12.1 embedded queries + raw results + interpretation; `/tmp/s6/` references removed).
+- `CATALOG_EVIDENCE_NOT_EMBEDDED` (§5.1, §6.1, §9.1, §12.1 embedded queries + raw results + interpretation).
 - `F0_SQL_ARTIFACT_CORRUPT` (§13.1 + §13.2).
 - `A15_SQL_ARTIFACT_CORRUPT` (§13.3).
 
@@ -1589,4 +1696,4 @@ The following identifiers **are resolved by this pass**:
 
 ## §16. Terminal readiness
 
-AML.1.b.1 STAGE 6 FINAL READINESS: BLOCKED — [POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED, INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED, PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED, WRITER_CENSUS_METHOD_INVALID], READ-ONLY, ZERO MUTATIONS.
+AML.1.b.1 STAGE 6 FINAL READINESS: BLOCKED — [POS_INVENTORY_STAGE6_DESIGN_UNRESOLVED, INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED, PAYMENT_INTENT_ENUM_MAPPING_UNRESOLVED], READ-ONLY, ZERO MUTATIONS.
