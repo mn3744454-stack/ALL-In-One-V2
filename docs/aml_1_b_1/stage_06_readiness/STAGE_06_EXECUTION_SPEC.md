@@ -998,9 +998,35 @@ WHERE n.nspname='public'
 6. Reject any caller-supplied `invoice_number` in payload (`FIN_PAYLOAD_UNKNOWN_KEY`).
 7. Return the server-generated number in both response and resolved snapshot.
 
-### 9.4 Retained blocker
+### 9.4 Retained blocker + per-surface authority table + decision block
 
-`INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` is retained until (a) `tenants.invoice_number_config jsonb` — or equivalent — is added with tenant-migrated prefix values for every live tenant, and (b) the F0-parallel migration for `finance_invoice_number_counters` and `_finance_invoice_number_next` is accepted. Tenant-scoped uniqueness alone does **not** resolve the blocker.
+Per-surface format authority (live evidence, all client-generated today):
+
+| Surface | Current generator | Prefix source | Editable by user | Sequential? | Collision handling |
+|---|---|---|---|---|---|
+| Manual Finance | `InvoiceFormDialog` assembled string | client, tenant-specific | yes | no (timestamp-hash) | tenant-unique index only |
+| POS | `POS-${Date.now().toString(36).toUpperCase()}` (`usePOSCore.ts:113`) | client constant | no | no | tenant-unique index only |
+| Housing | `Create*Invoice*` dialog string | client | yes | no | tenant-unique index only |
+| Laboratory | client string, tenant-specific | client | yes | no | tenant-unique index only |
+| Doctor | client string | client | yes | no | tenant-unique index only |
+| Vet | client string | client | yes | no | tenant-unique index only |
+| Vaccination | client string | client | yes | no | tenant-unique index only |
+| Breeding | client string | client | yes | no | tenant-unique index only |
+| Demo (`useFinanceDemo`) | client seed strings | client, demo-only | yes | no | tagged out-of-scope |
+
+Server-side infra: **zero sequences**, **zero generator functions**, **no `tenants.invoice_number_config`**, **no `branches.invoice_prefix`**. Only guarantee is the composite unique index `(tenant_id, invoice_number)`.
+
+`INVOICE_NUMBER_SERVER_POLICY_UNRESOLVED` is retained: no persisted per-tenant counter, no persisted per-tenant prefix, and the 5 live prefix families (`INV-`, `اسط-`, `الم-`, `AL-`, `SUL-`) have no server-readable configuration.
+
+Compact decision block (user input required — 3 options, recommended first):
+
+| # | Option | Exact additive consequence | Recommended |
+|---|---|---|---|
+| A | Add `tenants.invoice_number_config jsonb` + relation `finance_invoice_number_counters(tenant_id, domain, prefix, next_seq)` + private `_finance_invoice_number_next(tenant, domain)` using `SELECT … FOR UPDATE` on the counter row | 2 additive DDL statements + 1 helper; one back-fill row per existing tenant × domain; `usePOSCore.ts:113` and every `Create*Invoice*` dialog cease to emit numbers; server enforces prefix per §9.3 | **YES** — sequential, auditable, uses existing unique index |
+| B | Server-generate a collision-resistant opaque suffix (`ULID` or `gen_random_uuid()::text`) keyed by domain-specific prefix from tenant config | 1 DDL for `tenants.invoice_number_config`; no counter table; loses human-readable sequence | no — breaks tenants relying on sequential numbering |
+| C | Preserve caller-supplied numbers, add server validation only (prefix must match tenant config; reject collisions) | 1 DDL for `tenants.invoice_number_config`; keeps existing client generators | no — violates "no caller-supplied final number" rule and leaves POS timestamp identifiers |
+
+Retirement rule: retired only after (a) option chosen, (b) tenant-config DDL executed, (c) prefixes back-filled for every live tenant (5 families evidenced above), and (d) `_finance_invoice_number_next` merged. Until then §9.3 is a target contract, not a live one.
 
 ---
 
