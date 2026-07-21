@@ -3089,6 +3089,83 @@ export type Database = {
           },
         ]
       }
+      finance_invoice_number_config: {
+        Row: {
+          created_at: string
+          domain: string
+          padding_width: number
+          prefix: string
+          reset_policy: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          padding_width: number
+          prefix: string
+          reset_policy: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          padding_width?: number
+          prefix?: string
+          reset_policy?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_invoice_number_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_invoice_number_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_invoice_number_counters: {
+        Row: {
+          domain: string
+          next_value: number
+          period_key: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          domain: string
+          next_value: number
+          period_key: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          domain?: string
+          next_value?: number
+          period_key?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_invoice_number_counters_tenant_id_domain_fkey"
+            columns: ["tenant_id", "domain"]
+            isOneToOne: false
+            referencedRelation: "finance_invoice_number_config"
+            referencedColumns: ["tenant_id", "domain"]
+          },
+        ]
+      }
       finance_request_idempotency: {
         Row: {
           actor_id: string
