@@ -2043,16 +2043,20 @@ The Batch A/B/C decisions and §17.1–§17.8 corrections resolve into seven int
 
 F5 (POS installation) and F6 (permission grants + A.15 rollback-guard tail) are unchanged in boundary; F5 gains the M6 POS RPC body and F6 grants `authenticated` EXECUTE on the six adapters + `service_role` on all M5/M6/M7 objects per Stage 4 permission map.
 
-### §17.10 Integration status vs original §5, §9, §11, §13 bodies
+### §17.10 Integration status vs original §5, §9, §11, §13 bodies (Batch D.1 canonical closure)
 
-The corrections in §17.1–§17.8 are **not yet inlined** into:
+Canonical inline integration is now complete. The reconciled contracts of §17.1–§17.8 are inlined verbatim into the operative sections:
 
-- **§5.4** payment mechanical decision block (still shows the 3-option compact block rather than option A executed with §17.7 rollback contract).
-- **§9.3–§9.5** invoice-number policy body (still shows the flat `(tenant_id,domain)` PK rather than the §17.3 period-aware PK, and still lacks the §17.4 seed / §17.5 rollback contracts inline).
-- **§11** payload contract tables — no dedicated payload row exists yet for `pos_finalize_sale`'s inventory line-level fields (`product_id`, `warehouse_id`) required by §17.8.
-- **§13** F0 SQL block — does not yet contain the M1/M2/M3/M4 SQL bodies mandated above.
+- **§5.3** — canonical `post_payment` body now performs the full `payment_intents` insert using the additive labels (`reference_type='invoice'`, `intent_type='receivable'`, terminal `status='paid'`); step 7 is no longer deferred. The M1 additive-enum forward SQL and the extended `validate_payment_intent` branch are embedded here (`ALTER TYPE … ADD VALUE IF NOT EXISTS` executed in F1 outside a transaction block, followed by validator `CREATE OR REPLACE` with the `receivable` branch preserving all pre-existing checks byte-for-byte).
+- **§5.4** — exact dependency-preserving payment-enum rollback SQL is embedded here. The rollback consumes the verbatim on-disk `validate_payment_intent` preimage from §0.2 (no external artifact reference), aborts if any row uses the new labels, drops the trigger, drops the validator, converts only the two `payment_intents` columns to text, drops and recreates the two enums with the exact original labels/ordering, restores exact owner and ACL, casts columns back to their enum types, restores nullability/defaults, restores the verbatim validator (owner, `SECURITY DEFINER`, `SET search_path TO 'public'`, ACL), restores the exact trigger, and verifies every captured index and constraint. No `CASCADE`. No force/purge. No `REINDEX INDEX CONCURRENTLY`. No caller tolerance. `payment_status` untouched.
+- **§5.5** — canonical POS inventory contract (M3 schema + M5 trigger) is embedded here: additive `UNIQUE (tenant_id, id)` on `products`, nullable `tenant_services.product_id` with composite FK `(tenant_id, product_id) REFERENCES products(tenant_id, id)`, supporting partial index, two non-conflicting warehouse-default partial unique indexes, and the complete `trg_stock_levels_apply_movement` trigger function with tenant/product/warehouse parity, deterministic stock-row locking via `INSERT … ON CONFLICT (product_id, warehouse_id) DO UPDATE`, positive quantity guard, sign-convention on `movement_type`, hard negative-stock rejection, `last_movement_at` update, once-only source identity via a partial unique index on `(tenant_id, reference_type, reference_id)`, and transactional rollback.
+- **§9.3** — canonical `finance_invoice_number_config` and period-aware `finance_invoice_number_counters(tenant_id, domain, period_key)` schema, the complete verbatim `_finance_invoice_number_next` helper (advisory + row lock, config-only prefix, retry probe against the tenant unique index), M4 one-time family-specific numeric-max seed with opaque families placed into a distinct canonical namespace, and the complete guarded rollback are all embedded here. Runtime never uses `MAX`/whole-table parsing/`COUNT`. Caller-supplied `invoice_number` is rejected with `FIN_PAYLOAD_UNKNOWN_KEY`.
+- **§11.6** — POS payload row for `product_id`/`warehouse_id` is locked (contract is no longer "deferred (§8)"); the payload table's cart-line entries for `product_id` and `warehouse_id` are canonical inputs to the M5 trigger path, validated at pre-finalize.
+- **§13** — original F0 ledger-entry-type expansion (§13.1) and its rollback (§13.2) and the A.15 guard (§13.3) remain unchanged; the M1/M2/M3/M4/M5 forward and rollback SQL bodies live in their canonical operative sections (§5.3–§5.5, §9.3) as required by §4 of the directive ("Do not merely add cross-references. Do not leave the corrected design only in §17."). §17.1–§17.8 are preserved as historical reconciliation evidence only; the operative normative SQL is the inlined canonical body, and no normative SQL is duplicated across §17 and §§5/9.
 
-Until those four sections are rewritten in place using the §17.1–§17.8 contracts verbatim, the corresponding topic-level blockers remain retained per §15.
+All four previously-retained topic-level blockers are consequently retired in §15.
+
+
 
 ---
 
