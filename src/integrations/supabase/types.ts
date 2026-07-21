@@ -13632,7 +13632,11 @@ export type Database = {
       lab_template_decision: "pending" | "accepted" | "rejected"
       movement_type: "in" | "out" | "transfer"
       occupancy_mode: "single" | "group"
-      payment_intent_type: "platform_fee" | "service_payment" | "commission"
+      payment_intent_type:
+        | "platform_fee"
+        | "service_payment"
+        | "commission"
+        | "receivable"
       payment_owner_type: "platform" | "tenant"
       payment_reference_type:
         | "academy_booking"
@@ -13640,6 +13644,7 @@ export type Database = {
         | "order"
         | "auction"
         | "subscription"
+        | "invoice"
       payment_split_role: "platform" | "tenant"
       payment_status: "draft" | "pending" | "paid" | "cancelled"
       post_visibility: "public" | "private" | "followers"
@@ -13861,7 +13866,12 @@ export const Constants = {
       lab_template_decision: ["pending", "accepted", "rejected"],
       movement_type: ["in", "out", "transfer"],
       occupancy_mode: ["single", "group"],
-      payment_intent_type: ["platform_fee", "service_payment", "commission"],
+      payment_intent_type: [
+        "platform_fee",
+        "service_payment",
+        "commission",
+        "receivable",
+      ],
       payment_owner_type: ["platform", "tenant"],
       payment_reference_type: [
         "academy_booking",
@@ -13869,6 +13879,7 @@ export const Constants = {
         "order",
         "auction",
         "subscription",
+        "invoice",
       ],
       payment_split_role: ["platform", "tenant"],
       payment_status: ["draft", "pending", "paid", "cancelled"],
