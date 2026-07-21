@@ -31,7 +31,92 @@ $ git status --short docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_SPEC.m
 
 **Interpretation.** The repository file exactly matches the prior chat manifest. The user's exported artifact diverged from the repository via the export/rendering pipeline and is not the authoritative artifact. `SPEC_POSTWRITE_MANIFEST_MISMATCH` is therefore resolved as *export-pipeline divergence, not repository drift*; the specification-of-record is the repository file. However, this rewrite still fully replaces the file to (a) remove structural risk of the same drift recurring and (b) apply the contract corrections mandated by §§3–13 of the directive that the prior file did not honor.
 
+### §0.2 Verbatim on-disk `validate_payment_intent` preimage (Stage-2 keyed capture)
+
+Captured read-only against the live catalog on `2026-07-21` via `pg_get_functiondef` / `pg_proc` / `pg_type` / `pg_enum` / `pg_attribute` / `pg_index` / `pg_constraint`. This block is the SOLE source of truth consumed by the §5.4 exact enum rollback. Any drift between this block and the live catalog re-opens `PAYMENT_ENUM_EXACT_ROLLBACK_UNRESOLVED`.
+
+**Function identity, security, config, and ACL:**
+
+- `pg_proc.oid` (resolved at capture time; documented in Stage 2 evidence file `/tmp/validator_preimage.txt`).
+- `proname = 'validate_payment_intent'`, `pronamespace = 'public'::regnamespace`.
+- `prolang = 'plpgsql'`, `provolatile = 'v'`, `prosecdef = true`, `prokind = 'f'`, `proretset = false`.
+- `proconfig = {search_path=public}` (i.e. `SET search_path TO 'public'`).
+- `proowner = 'postgres'`.
+- `proacl` (default owner-only; no PUBLIC grant, no authenticated grant).
+
+**Verbatim function body (preserved byte-for-byte for rollback restoration):**
+
+```plpgsql
+CREATE OR REPLACE FUNCTION public.validate_payment_intent()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_owner_type public.payment_owner_type;
+  v_owner_tenant uuid;
+BEGIN
+  SELECT owner_type, tenant_id
+    INTO v_owner_type, v_owner_tenant
+    FROM public.payment_accounts
+   WHERE id = NEW.payee_account_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'payment_accounts row not found for payee_account_id=%', NEW.payee_account_id;
+  END IF;
+
+  IF NEW.intent_type = 'platform_fee' THEN
+    IF NEW.tenant_id IS NOT NULL THEN
+      RAISE EXCEPTION 'platform_fee intents must have tenant_id IS NULL';
+    END IF;
+    IF v_owner_type <> 'platform' THEN
+      RAISE EXCEPTION 'platform_fee intents must be paid to a platform account';
+    END IF;
+
+  ELSIF NEW.intent_type IN ('service_payment', 'commission') THEN
+    IF NEW.tenant_id IS NULL THEN
+      RAISE EXCEPTION '% intents require tenant_id', NEW.intent_type;
+    END IF;
+    IF v_owner_type <> 'tenant' OR v_owner_tenant IS DISTINCT FROM NEW.tenant_id THEN
+      RAISE EXCEPTION '% intents must be paid to the same tenant account', NEW.intent_type;
+    END IF;
+
+  ELSE
+    RAISE EXCEPTION 'unknown intent_type=%', NEW.intent_type;
+  END IF;
+
+  RETURN NEW;
+END
+$function$;
+```
+
+**Trigger:**
+
+```sql
+CREATE TRIGGER validate_payment_intent_trigger
+  BEFORE INSERT OR UPDATE ON public.payment_intents
+  FOR EACH ROW EXECUTE FUNCTION public.validate_payment_intent();
+```
+
+**Enum labels (pre-Stage-6, in `enumsortorder`):**
+
+- `public.payment_reference_type`: `academy_booking`, `service`, `order`, `auction`, `subscription`.
+- `public.payment_intent_type`: `platform_fee`, `service_payment`, `commission`.
+- `public.payment_status` (NOT modified by Stage 6): `draft`, `pending`, `paid`, `cancelled`.
+
+**`payment_intents` column metadata for the two rolled-back columns (from `pg_attribute` + `information_schema.columns`):**
+
+- `reference_type` — type `public.payment_reference_type`, `NOT NULL`, no default.
+- `intent_type` — type `public.payment_intent_type`, `NOT NULL`, no default.
+
+**Index and constraint inventory on `public.payment_intents` (captured for §5.4 step 11 verification):** the `payment_intents_pkey` on `(id)`; plus every non-inherited index and constraint returned by `pg_indexes` / `pg_constraint` at capture time. The rollback's step 11 requires the post-rollback catalog to match this inventory row-for-row.
+
+**Dependency surface on the two enums (from `pg_depend`, `deptype='n'`):** limited to `pg_attribute` entries for `public.payment_intents.reference_type` and `public.payment_intents.intent_type`, plus the `pg_proc` entry for `public.validate_payment_intent`. §5.4 step 3 re-runs this sweep at rollback time and aborts on any additional dependency.
+
 ---
+
+
 
 ## §1. Locked scope and constraints (PLAN-LOCK re-anchor)
 
