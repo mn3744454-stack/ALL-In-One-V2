@@ -13110,6 +13110,14 @@ export type Database = {
         }
         Returns: string
       }
+      create_expense: {
+        Args: {
+          p_idempotency_key: string
+          p_payload: Json
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       create_horse_share: {
         Args: {
           _custom_scope?: Json
@@ -13183,6 +13191,14 @@ export type Database = {
         Args: {
           p_idempotency_key: string
           p_invoice_id: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      delete_expense: {
+        Args: {
+          p_expense_id: string
+          p_idempotency_key: string
           p_tenant_id: string
         }
         Returns: Json
@@ -13533,6 +13549,38 @@ export type Database = {
         Args: { p_contract_id: string }
         Returns: string
       }
+      post_expense_with_ledger: {
+        Args: {
+          p_expense_id: string
+          p_idempotency_key: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      post_manual_ledger_adjustment: {
+        Args: {
+          p_amount: number
+          p_client_id: string
+          p_description: string
+          p_effective_date: string
+          p_idempotency_key: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      post_payment: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_payload: Json
+          p_payment_date: string
+          p_payment_method: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       preaccept_invitation: { Args: { _token: string }; Returns: Json }
       publish_contract_template_version: {
         Args: { _version_id: string }
@@ -13577,6 +13625,20 @@ export type Database = {
         }
         Returns: Json
       }
+      record_salary_payment: {
+        Args: {
+          p_amount: number
+          p_create_expense: boolean
+          p_currency: string
+          p_employee_id: string
+          p_idempotency_key: string
+          p_notes: string
+          p_paid_at: string
+          p_payment_period: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       reject_connection: { Args: { _token: string }; Returns: string }
       reject_contract_document: {
         Args: { _document_id: string; _reason?: string }
@@ -13593,6 +13655,16 @@ export type Database = {
           _metadata?: Json
           _rejection_reason?: string
           _service_request_id: string
+        }
+        Returns: Json
+      }
+      reverse_expense: {
+        Args: {
+          p_expense_id: string
+          p_idempotency_key: string
+          p_reason: string
+          p_reversal_date: string
+          p_tenant_id: string
         }
         Returns: Json
       }
@@ -13707,6 +13779,15 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      update_expense: {
+        Args: {
+          p_expense_id: string
+          p_idempotency_key: string
+          p_payload: Json
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       update_horse_breed: {
         Args: { p_id: string; p_name: string; p_name_ar: string }
         Returns: Json
