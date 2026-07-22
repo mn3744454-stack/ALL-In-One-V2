@@ -13557,6 +13557,17 @@ export type Database = {
         }
         Returns: Json
       }
+      post_invoice_payments: {
+        Args: {
+          p_account_id: string
+          p_idempotency_key: string
+          p_invoice_id: string
+          p_payment_date: string
+          p_payments: Json
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       post_manual_ledger_adjustment: {
         Args: {
           p_amount: number
