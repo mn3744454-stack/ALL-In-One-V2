@@ -3916,6 +3916,10 @@ export const en = {
       shareDesc: "Make this invoice visible to the counterparty.",
       cancelInvoice: "Cancel Invoice",
       cancelInvoiceDesc: "This will void the invoice and reverse its financial effect. This action cannot be undone.",
+      cancelDate: "Cancellation date",
+      cancelReason: "Cancellation reason",
+      cancelReasonPlaceholder: "Explain why this invoice is being cancelled",
+      cancelReasonRequired: "Enter a cancellation reason",
       cancelledSuccess: "Invoice cancelled and reversed",
       reviewedSuccess: "Invoice marked as reviewed",
       approvedSuccess: "Invoice approved and posted to ledger",
@@ -4020,6 +4024,7 @@ export const en = {
       paidSoFar: "Paid So Far",
       outstanding: "Outstanding",
       paymentDetails: "Payment Details",
+      paymentDate: "Payment date",
       method: "Payment Method",
       amount: "Amount",
       reference: "Reference",
@@ -4036,6 +4041,7 @@ export const en = {
       paymentHistory: "Payment History",
       noPayments: "No payments recorded yet",
       missing: {
+        date: "Select the payment date",
         amount: "Enter at least one payment amount greater than zero",
         method: "Select a payment method",
         invalidAmount: "Amount must be a positive number",
@@ -7276,7 +7282,5 @@ export const en = {
     },
   },
 };
-
-
 
 

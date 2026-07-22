@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface PaymentEntry {
   amount: number; // Positive number representing payment amount
   payment_method: string;
+  idempotency_key: string;
   reference?: string;
   notes?: string;
 }
@@ -16,24 +17,18 @@ export interface PostPaymentsResult {
 }
 
 /**
- * Posts multiple payment ledger entries for an invoice (split-tender support).
- * 
- * Flow:
- * 1. Validate invoice exists and has client_id
- * 2. Compute current paid amount from ledger entries
- * 3. Validate sum(payments) <= outstanding
- * 4. Insert one ledger entry per payment (entry_type='payment', amount=-X)
- * 5. Update customer_balances
- * 6. Update invoice status: paid (if outstanding <= 0), partial (if > 0)
+ * Posts a complete split-tender session through one atomic database RPC.
+ * The server owns overpayment validation, ledger/balance rebuild, payment
+ * intents, billing links, and the final invoice status.
  */
 export async function postLedgerForPayments(
   invoiceId: string,
   tenantId: string,
   payments: PaymentEntry[],
-  paymentSessionId: string
+  paymentSessionId: string,
+  paymentDate: string,
 ): Promise<PostPaymentsResult> {
   try {
-    // Validate payments
     if (!payments.length) {
       return { success: false, error: "No payments provided", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
     }
@@ -43,167 +38,57 @@ export async function postLedgerForPayments(
       return { success: false, error: "Payment amount must be positive", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
     }
 
-    // Fetch invoice
-    const { data: invoice, error: invError } = await supabase
-      .from("invoices")
-      .select("id, client_id, total_amount, invoice_number, status")
-      .eq("id", invoiceId)
-      .single();
-
-    if (invError || !invoice) {
-      return { success: false, error: "Invoice not found", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
-    }
-
-    if (!invoice.client_id) {
-      return { success: false, error: "Cannot record payment for walk-in invoice (no client)", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
-    }
-
-    // Get current user
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
-
-    // Calculate already paid amount from ledger
-    const { data: existingPayments, error: paymentError } = await supabase
-      .from("ledger_entries")
-      .select("amount")
+    const { data: account, error: accountError } = await supabase
+      .from("payment_accounts")
+      .select("id")
       .eq("tenant_id", tenantId)
-      .eq("reference_type", "invoice")
-      .eq("reference_id", invoiceId)
-      .eq("entry_type", "payment");
-
-    if (paymentError) {
-      return { success: false, error: "Failed to fetch existing payments", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
-    }
-
-    const previouslyPaid = (existingPayments || []).reduce((sum, e) => sum + Math.abs(Number(e.amount)), 0);
-    const currentOutstanding = Number(invoice.total_amount) - previouslyPaid;
-
-    // Validate: sum of payments cannot exceed outstanding
-    if (totalPaymentAmount > currentOutstanding + 0.01) { // Allow small float tolerance
-      return { 
-        success: false, 
-        error: `Payment amount (${totalPaymentAmount}) exceeds outstanding (${currentOutstanding.toFixed(2)})`,
-        paidAmount: previouslyPaid,
-        outstandingAmount: currentOutstanding,
-        invoiceStatus: invoice.status
-      };
-    }
-
-    // Get current customer balance
-    const { data: balanceRecord } = await supabase
-      .from("customer_balances")
-      .select("balance")
-      .eq("tenant_id", tenantId)
-      .eq("client_id", invoice.client_id)
+      .eq("owner_type", "tenant")
+      .eq("is_active", true)
+      .limit(1)
       .maybeSingle();
-
-    let currentBalance = Number((balanceRecord as any)?.balance) || 0;
-
-    // Insert ledger entries for each payment
-    for (const payment of payments) {
-      const newBalance = currentBalance - payment.amount;
-
-      const metadataObj: Record<string, unknown> = {};
-      if (payment.reference) metadataObj.reference = payment.reference;
-      if (payment.notes) metadataObj.notes = payment.notes;
-
-      const { error: ledgerError } = await supabase
-        .from("ledger_entries")
-        .insert({
-          tenant_id: tenantId,
-          client_id: invoice.client_id,
-          entry_type: "payment",
-          reference_type: "invoice",
-          reference_id: invoiceId,
-          amount: -payment.amount, // Negative for payments (reduces balance)
-          balance_after: newBalance,
-          description: `Payment | Method: ${payment.payment_method} | ${invoice.invoice_number}`,
-          payment_method: payment.payment_method,
-          payment_session_id: paymentSessionId,
-          metadata: metadataObj,
-          created_by: userId,
-        } as any);
-
-      if (ledgerError) {
-        console.error("Error creating payment ledger entry:", ledgerError);
-        return { 
-          success: false, 
-          error: "Failed to record payment", 
-          paidAmount: previouslyPaid, 
-          outstandingAmount: currentOutstanding, 
-          invoiceStatus: invoice.status 
-        };
-      }
-
-      currentBalance = newBalance;
+    if (accountError || !account) {
+      return { success: false, error: "Active payment account not found", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
     }
 
-    // Update customer balance
-    const { error: balanceError } = await supabase
-      .from("customer_balances")
-      .upsert({
-        tenant_id: tenantId,
-        client_id: invoice.client_id,
-        balance: currentBalance,
-        last_updated: new Date().toISOString(),
-      }, {
-        onConflict: "tenant_id,client_id",
-      });
+    const { data, error } = await supabase.rpc("post_invoice_payments", {
+      p_tenant_id: tenantId,
+      p_idempotency_key: paymentSessionId,
+      p_invoice_id: invoiceId,
+      p_account_id: account.id,
+      p_payment_date: paymentDate,
+      p_payments: payments.map((payment) => ({
+        idempotency_key: payment.idempotency_key,
+        amount: payment.amount,
+        payment_method: payment.payment_method,
+        reference_note: payment.notes ?? null,
+        external_reference: payment.reference ?? null,
+      })),
+    });
+    if (error) throw error;
 
-    if (balanceError) {
-      console.error("Error updating customer balance:", balanceError);
-      // Continue - ledger entries are the source of truth
-    }
+    const response = data && typeof data === "object" && !Array.isArray(data)
+      ? data as Record<string, unknown>
+      : {};
+    const newOutstanding = Math.max(0, Number(response.remaining_after) || 0);
+    const newStatus = String(response.invoice_status || "");
 
-    // Calculate new outstanding
-    const newPaidAmount = previouslyPaid + totalPaymentAmount;
-    const newOutstanding = Number(invoice.total_amount) - newPaidAmount;
-
-    // Determine new invoice status
-    let newStatus = invoice.status;
-    const paymentMethods = payments.map(p => p.payment_method);
-    const paymentMethodValue = paymentMethods.length > 1 ? "mixed" : paymentMethods[0];
-
-    if (newOutstanding <= 0.01) {
-      // Fully paid
-      newStatus = "paid";
-      const { error: statusError } = await supabase
-        .from("invoices")
-        .update({
-          status: "paid",
-          payment_received_at: new Date().toISOString(),
-          payment_method: paymentMethodValue,
-        })
-        .eq("id", invoiceId);
-
-      if (statusError) {
-        console.error("Error updating invoice status:", statusError);
-      }
-    } else if (newPaidAmount > 0) {
-      // Partially paid
-      newStatus = "partial";
-      const { error: statusError } = await supabase
-        .from("invoices")
-        .update({
-          status: "partial",
-          payment_method: paymentMethodValue,
-        })
-        .eq("id", invoiceId);
-
-      if (statusError) {
-        console.error("Error updating invoice status:", statusError);
-      }
-    }
+    const { data: invoice } = await supabase
+      .from("invoices")
+      .select("total_amount")
+      .eq("id", invoiceId)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+    const invoiceTotal = Number(invoice?.total_amount) || totalPaymentAmount + newOutstanding;
 
     return {
       success: true,
-      paidAmount: newPaidAmount,
-      outstandingAmount: Math.max(0, newOutstanding),
+      paidAmount: Math.max(0, invoiceTotal - newOutstanding),
+      outstandingAmount: newOutstanding,
       invoiceStatus: newStatus,
     };
 
   } catch (error) {
-    console.error("postLedgerForPayments: Unexpected error", error);
+    console.error("postLedgerForPayments: RPC error", error);
     return { 
       success: false, 
       error: "Unexpected error recording payment", 

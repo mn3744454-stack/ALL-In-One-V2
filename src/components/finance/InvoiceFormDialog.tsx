@@ -15,9 +15,8 @@ import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
-import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
+import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { formatCurrency } from "@/lib/formatters";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,6 +27,12 @@ import { InvoiceQuickAddHorseDialog } from "./InvoiceQuickAddHorseDialog";
 import { usePermissions } from "@/hooks/usePermissions";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+import {
+  createInvoiceWithItems,
+  updateInvoiceWithItems,
+  type InvoiceRpcItemInput,
+  type InvoiceRpcPayload,
+} from "@/lib/finance/invoiceRpc";
 
 
 
@@ -52,7 +57,7 @@ export function InvoiceFormDialog({
   const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantCurrency = useTenantCurrency();
-  const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
+  const [isSaving, setIsSaving] = useState(false);
   
   const issuerTenantId = activeTenant?.tenant?.id ?? null;
   const issuerTenantType = activeTenant?.tenant?.type ?? null;
@@ -92,9 +97,11 @@ export function InvoiceFormDialog({
 
   // Populate form once per dialog open — ref prevents re-init on every render
   const initializedRef = useRef(false);
+  const saveIdempotencyKeyRef = useRef(crypto.randomUUID());
   useEffect(() => {
     if (!open) {
       initializedRef.current = false;
+      saveIdempotencyKeyRef.current = crypto.randomUUID();
       return;
     }
     if (initializedRef.current) return;
@@ -195,14 +202,6 @@ export function InvoiceFormDialog({
   }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, catalogItems]);
 
 
-  const generateInvoiceNumber = () => {
-    const prefix = activeTenant?.tenant.name?.substring(0, 3).toUpperCase() || "INV";
-    const year = new Date().getFullYear();
-    const month = String(new Date().getMonth() + 1).padStart(2, "0");
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-    return `${prefix}-${year}${month}-${random}`;
-  };
-
   const { data: customerHorses = [] } = useInvoiceCustomerHorses({
     issuerTenantId,
     issuerTenantType,
@@ -271,101 +270,61 @@ export function InvoiceFormDialog({
       return;
     }
 
-    // Build a single row from a LineItem — includes Label 2 package snapshot columns.
-    const buildRow = (item: LineItem, invoiceId: string, index: number) => {
+    // The browser sends intent only. Prices, totals, invoice number, catalog
+    // attributes, and package snapshots are resolved atomically by the RPC.
+    const buildItemPayload = (item: LineItem): InvoiceRpcItemInput => {
       const horseIdOut = !isLabIssuer && item.horse_id ? item.horse_id : null;
       const labHorseIdOut = isLabIssuer && item.horse_id ? item.horse_id : null;
       const isPackageLine = item.source === 'package' && !!item.package_id;
       return {
-        invoice_id: invoiceId,
         description: item.description,
         quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.total_price,
-        entity_type: item.entity_type,
-        entity_id: item.entity_id,
+        ...(isPackageLine || item.service_id ? {} : { unit_price: item.unit_price }),
         horse_id: horseIdOut,
         lab_horse_id: labHorseIdOut,
         domain: item.domain || null,
-        // Package vs service are mutually exclusive (DB check constraint).
         service_id: isPackageLine ? null : (item.service_id || null),
         service_source: isPackageLine
           ? null
           : (item.service_id ? (item.service_source || catalogSource) : 'tenant_services'),
         category_id: isPackageLine ? null : (item.category_id || null),
         package_id: isPackageLine ? item.package_id : null,
-        package_source: isPackageLine ? (item.package_source || 'stable_service_plans') : null,
-        package_name_snapshot: isPackageLine ? item.package_name_snapshot : null,
-        package_name_ar_snapshot: isPackageLine ? item.package_name_ar_snapshot : null,
-        package_price_snapshot: isPackageLine ? item.package_price_snapshot : null,
-        package_currency_snapshot: isPackageLine ? item.package_currency_snapshot : null,
-        package_services_snapshot: isPackageLine ? item.package_services_snapshot : null,
-        position: index,
       };
     };
 
 
     try {
+      setIsSaving(true);
       const validItems = lineItems.filter((item) => item.description && item.total_price > 0);
       if (validItems.length === 0) {
         toast.error(t("finance.invoices.noItemsError") || "Please add at least one item");
         return;
       }
 
-      if (isEditMode && invoice) {
-        await updateInvoice({
-          id: invoice.id,
-          client_id: formData.client_id || undefined,
-          client_name: formData.client_name || undefined,
+      const payload: InvoiceRpcPayload = {
+          client_id: formData.client_id || null,
+          client_name: formData.client_name || null,
           issue_date: formData.issue_date,
-          due_date: formData.due_date,
-          subtotal: calculations.subtotal,
-          tax_amount: calculations.taxAmount,
+          due_date: formData.due_date || null,
           discount_amount: calculations.discountAmount,
-          total_amount: calculations.totalAmount,
-          notes: formData.notes || undefined,
-        });
+          notes: formData.notes || null,
+          items: validItems.map(buildItemPayload),
+      };
 
-        await supabase
-          .from("invoice_items" as any)
-          .delete()
-          .eq("invoice_id", invoice.id);
-
-        for (let index = 0; index < validItems.length; index++) {
-          await supabase.from("invoice_items" as any).insert(buildRow(validItems[index], invoice.id, index));
-        }
-
-
-
+      if (isEditMode && invoice) {
+        await updateInvoiceWithItems(
+          activeTenant.tenant.id,
+          invoice.id,
+          payload,
+          saveIdempotencyKeyRef.current,
+        );
         toast.success(t("finance.invoices.updated"));
       } else {
-        const invoiceNumber = generateInvoiceNumber();
-
-        const input: CreateInvoiceInput = {
-          tenant_id: activeTenant.tenant.id,
-          invoice_number: invoiceNumber,
-          client_id: formData.client_id || undefined,
-          client_name: formData.client_name || undefined,
-          issue_date: formData.issue_date,
-          due_date: formData.due_date,
-          subtotal: calculations.subtotal,
-          tax_amount: calculations.taxAmount,
-          discount_amount: calculations.discountAmount,
-          total_amount: calculations.totalAmount,
-          notes: formData.notes || undefined,
-          status: "draft",
-        };
-
-        const newInvoice = await createInvoice(input);
-
-        if (newInvoice) {
-          for (let index = 0; index < validItems.length; index++) {
-            await supabase.from("invoice_items" as any).insert(buildRow(validItems[index], newInvoice.id, index));
-          }
-
-          // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
-          // NOT at creation time. Draft invoices have zero financial impact.
-        }
+        await createInvoiceWithItems(
+          activeTenant.tenant.id,
+          payload,
+          saveIdempotencyKeyRef.current,
+        );
       }
 
       invalidateAllFinance();
@@ -374,10 +333,12 @@ export function InvoiceFormDialog({
     } catch (error) {
       console.error("Failed to save invoice:", error);
       toast.error(t("common.error"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const isLoading = isCreating || isUpdating;
+  const isLoading = isSaving;
 
   return (
     <SafeFormDialog

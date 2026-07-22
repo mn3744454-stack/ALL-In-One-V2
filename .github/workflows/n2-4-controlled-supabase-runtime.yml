@@ -6,8 +6,12 @@ on:
     paths:
       - ".github/workflows/n2-4-controlled-supabase-runtime.yml"
       - "supabase/migrations/**"
-      - "supabase/tests/database/n2_4_*.sql"
-      - "src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts"
+      - "supabase/tests/database/n2_*.sql"
+      - "src/lib/finance/**"
+      - "src/hooks/finance/useInvoicePayments.ts"
+      - "src/components/finance/**"
+      - "src/i18n/locales/*.ts"
+      - "src/integrations/supabase/types.ts"
       - "package.json"
       - "package-lock.json"
   push:
@@ -16,8 +20,12 @@ on:
     paths:
       - ".github/workflows/n2-4-controlled-supabase-runtime.yml"
       - "supabase/migrations/**"
-      - "supabase/tests/database/n2_4_*.sql"
-      - "src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts"
+      - "supabase/tests/database/n2_*.sql"
+      - "src/lib/finance/**"
+      - "src/hooks/finance/useInvoicePayments.ts"
+      - "src/components/finance/**"
+      - "src/i18n/locales/*.ts"
+      - "src/integrations/supabase/types.ts"
       - "package.json"
       - "package-lock.json"
 
@@ -46,14 +54,14 @@ jobs:
       - name: Install the package.json dependency contract
         run: npm install --package-lock=false --ignore-scripts --no-audit --no-fund
 
-      - name: Run the targeted N+2.2 contract suite
-        run: npx vitest run src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts
+      - name: Run the targeted finance contract suites
+        run: npx vitest run src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts
 
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
 
-      - name: Lint the N+2.2 contract test
-        run: npx eslint src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts
+      - name: Lint the finance RPC contract boundary
+        run: npx eslint src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts src/lib/finance/invoiceRpc.ts src/lib/finance/approveInvoice.ts src/lib/finance/postLedgerForPayments.ts
 
       - name: Build the production bundle
         run: npm run build
