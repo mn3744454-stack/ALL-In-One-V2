@@ -1,89 +1,81 @@
-# AML.1.b.1 — PLAN-LOCK Restoration (Scoped Build Turn)
+# AML.1.b.1 Stage 6 N+2 Read-Only Acceptance Re-Audit — Execution Plan
 
-## Preflight (already verified this turn, read-only)
+## Scope
 
-- External source: `user-uploads://AML.1.b.1-PLAN-LOCK-FINAL-CORRECTED_1.md`
-- Byte-exact SHA-256: `8d2b1cc1927d231e18237cb79132f1b703c96c91dabad111883a144d56f7dae8` — **MATCH** with the authoritative hash you supplied.
-- Line count: 1,088.
-- Target path `docs/aml_1_b_1/PLAN_LOCK.md` does not currently exist (would be a new file).
+Independent, read-only verification of the eight non-POS canonical RPCs (§§7.6–7.12 + §7.14) reported as installed. No code, no docs, no migrations, no type regen, no RPC invocations against live data. Deliverable is the 30-section evidence report defined in §17 of the prompt.
 
-## Authorized scope
+## Evidence-gathering steps (all read-only)
 
-**Exactly one file write:** create `docs/aml_1_b_1/PLAN_LOCK.md`.
+1. **Preimage & repo state**
+   - `git status --porcelain`, `git diff --check`, working-tree hash
+   - Locate N+2 migration file under `supabase/migrations/`, capture filename + full diff
+   - Re-hash `docs/aml_1_b_1/PLAN_LOCK.md` and `docs/aml_1_b_1/stage_06_readiness/STAGE_06_EXECUTION_SPEC.md`; compare against last-known preimages (`27f84205…`, `552c9449…`)
 
-No other file created, edited, moved, deleted, or reformatted. No database call. No migration. No changes to `STAGE_06_EXECUTION_SPEC.md`. No Stage 3 / Stage 4 / Batch D.2 restoration. No D.3R. No D.4. No plan artifact beyond this one.
+2. **Function identity (§4)**
+   - `psql` catalog queries against `pg_proc` / `pg_get_function_identity_arguments` / `pg_get_function_result` for each of the 8 RPCs
+   - Confirm exactly one overload, exact ordered arg types/names, exact return type, `regprocedure`
+   - Compare with `src/integrations/supabase/types.ts` generated declarations
 
-## Composition (byte-precise)
+3. **Security posture (§6)**
+   - Per function: `prosecdef`, `proconfig` (search_path=''), owner, volatility
+   - ACL via `pg_proc.proacl` → PUBLIC / anon / authenticated / service_role EXECUTE state
+   - Re-verify `_finance_billing_link_upsert` and `_finance_expense_create_sourced` remain owner-only
 
-The composite file is built in exactly two segments concatenated in order, no silent editing of either:
+4. **Permission-catalog audit (§7)**
+   - `SELECT key FROM permission_definitions WHERE key IN (...)` for all 9 candidate keys
+   - Inspect `has_permission()` resolution path and role→permission bindings via `tenant_role_permissions` / `permission_bundles`
+   - Extract exact permission keys referenced in each RPC body via `pg_get_functiondef`
+   - Produce AND/OR logic table + effective-authority verdict, with dedicated `hr.manage` assessment
 
-1. **Segment 1 — Verified source body (bytes 1..end of upload).** Copied verbatim from the verified upload. No reflow, no header rewrite, no line-ending change, no trimming. Ends with the source file's final newline.
-2. **Segment 2 — Post-PLAN-LOCK User Authority Addendum.** Appended below a clearly delimited fence. Contains only the already-approved U-1, U-2, U-3 locks + Batch D.2 identity confirmation + retained unavailable-artifact identifiers + the explicit `ADAPTER_ORDERED_ARGUMENTS_PROVENANCE_UNRESOLVED` marker. Text is transcribed verbatim from the user's authorization message (§§2–7). No ordered adapter signatures invented. No historical body edits.
+5. **Semantic contract audit (§8)**
+   - Full `pg_get_functiondef` for each of the 8 RPCs
+   - Trace each requirement (locks, tenant re-resolution, payload allowlist, ledger sign, effective_date source, idempotency, atomic rollback) → PASS / FAIL / DEFERRED / N/A
 
-Addendum skeleton (verbatim transcription of the approved locks — no synthesis):
+6. **Idempotency/concurrency/atomicity (§9)**
+   - Per-function: request-hash inputs, `finance_request_idempotency` interaction, advisory-lock keys, `FOR UPDATE` targets, uniqueness constraints, exception handling
+   - Static proof only
 
-```text
-================================================================
-POST-PLAN-LOCK USER AUTHORITY ADDENDUM
-Appended by scoped restoration build turn.
-Source PLAN-LOCK body above is preserved byte-for-byte
-(SHA-256 8d2b1cc1927d231e18237cb79132f1b703c96c91dabad111883a144d56f7dae8).
-This addendum records approved user authority U-1, U-2, U-3
-plus Batch D.2 identity confirmation and retained
-unavailable-artifact identifiers. It does not alter the body.
-================================================================
+7. **Ledger sign & effective-date matrix (§10)** — consolidated table across all 7 operation shapes
 
-## U-1  Six canonical adapter identities
-{verbatim §2 of authorization message, including the superseded
-non-canonical list and the explicit note that ordered argument
-lists are NOT authorized here}
+8. **Source/helper/uniqueness mapping (§11)** — per-operation table
 
-## U-2  Twelve canonical payload-contract identities
-{verbatim §3, including the twelve numbered identities and the
-explicit prohibition on shared-schema shortcuts}
+9. **Cross-tenant / info-disclosure (§12)** — static trace per function
 
-## U-3  Invoice-number helper and Saudi business-date policy
-{verbatim §4, including the exact helper signature
-_finance_invoice_number_next(uuid, text), the Asia/Riyadh
-business-date derivation rules, and the explicit prohibitions}
+10. **Linter reconciliation (§13)**
+    - Run `supabase--linter`; fingerprint findings (rule + object + severity)
+    - Attempt to locate any preserved pre-migration snapshot in `docs/aml_1_b_1/`
+    - If unavailable, report `LINTER DELTA INCONCLUSIVE — PREIMAGE NOT PRESERVED` separately from the "none of the 8 new RPCs appear in WARN/ERROR" conclusion
 
-## Ordered adapter arguments
-ADAPTER_ORDERED_ARGUMENTS_PROVENANCE_UNRESOLVED
-{verbatim §5 prohibitions on p_invoice_number, p_extra jsonb,
-caller-supplied totals/identities, and unproven arguments}
+11. **Governing-doc audit (§14)**
+    - Verify POS Option A addendum content in `PLAN_LOCK.md`
+    - Confirm `STAGE_06_EXECUTION_SPEC.md` is unchanged since `552c9449…`; if so, classify `CONFIRMED DOCUMENTATION EXECUTION DEVIATION` and enumerate minimal passages needing update
 
-## Batch D.2 identity confirmation
-{verbatim §6, including transcript SHA
-064ab352b57875bf98cdbce66110ed1d6d6c673b63b58a098300212a7d5d24cd
-and the pre/post spec hashes 947e111c… → f297d685…}
+12. **Unauthorized-change sweep (§5)** — confirm N+2 did not touch POS, inventory, frontend callers, `tenant_services.stockable`, orphan invoice -213, balance reconstruction, effective-date backfill, Phase 2 scope
 
-## Retained unavailable artifacts
-- STAGE_3_CLOSURE_ARTIFACT_UNAVAILABLE
-- STAGE_4_CLOSURE_ARTIFACT_UNAVAILABLE
-- BATCH_D2_IDENTITY_CONFIRMED_EXTERNAL_SOURCE_NOT_YET_RESTORED
-   (reclassified from BATCH_D2_ARTIFACT_UNVERIFIED per §7)
-================================================================
-END POST-PLAN-LOCK USER AUTHORITY ADDENDUM
-================================================================
-```
+## Tools used (read-only only)
 
-Every `{verbatim …}` region is replaced during the write with the exact text from your authorization message — no paraphrase, no reordering, no invention.
+- `code--exec` for `git status`, `git diff`, `sha256sum`, `wc`
+- `psql -c` for catalog / ACL / permission / role-binding queries (SELECT only)
+- `code--view` for migration file, generated types, `PLAN_LOCK.md`, `STAGE_06_EXECUTION_SPEC.md`, private-helper migration
+- `supabase--linter` for current linter snapshot
+- `rg` for referenced-symbol sweeps in repo
 
-## Execution steps (build mode)
+Explicitly NOT used: `supabase--migration`, `supabase--insert`, any RPC invocation, any file write/edit/delete, any type regeneration.
 
-1. Recompute SHA-256 of `/mnt/user-uploads/AML.1.b.1-PLAN-LOCK-FINAL-CORRECTED_1.md`; abort if it is not `8d2b1cc1927d231e18237cb79132f1b703c96c91dabad111883a144d56f7dae8`.
-2. Concatenate Segment 1 (byte-exact source) + Segment 2 (addendum built from verbatim §§2–7 of the authorization message) into `docs/aml_1_b_1/PLAN_LOCK.md`. Use a shell `cat` + heredoc redirection so Segment 1 is not touched by any editor. Exactly one repository file created.
-3. Run `git status --porcelain` and confirm the only entry is `A  docs/aml_1_b_1/PLAN_LOCK.md`.
-4. Compute and print: verified external-source SHA (recomputed), final composite line count (`wc -l`), byte count (`wc -c`), and SHA-256 of the final composite file.
-5. Emit end-of-turn manifest with the eight confirmations required by §8 of your authorization.
-6. Stop. No D.3R, no D.4, no spec edits, no DB access.
+## Verdict selection
 
-## Guarantees
+Applied strictly per §16 (A / B / C). Ends with the exact mandated sentence per verdict. Report structured as the 30 numbered sections in §17. Every PASS cites an inspected artifact.
 
-- Only file changed: `docs/aml_1_b_1/PLAN_LOCK.md` (new).
-- No `supabase--migration`, no DB tool of any kind, no source/config/permission edits, no other repo writes.
-- Historical body preserved byte-for-byte; authority is added strictly by append.
-- No ordered adapter signatures invented; `ADAPTER_ORDERED_ARGUMENTS_PROVENANCE_UNRESOLVED` retained.
-- U-1 / U-2 / U-3 present as verbatim transcriptions.
+## Estimated evidence-collection surface
 
-Approve to switch to build mode and execute exactly the steps above.
+~25–40 read-only tool calls (batched where independent) before composing the final report in one message.
+
+## Explicit non-goals
+
+- No implementation of §7.13 / POS Option A DDL
+- No `STAGE_06_EXECUTION_SPEC.md` edit (deviation is reported, not repaired)
+- No Phase 2 work
+- No Stage 6 or Phase 1 completion claim
+- No launch-readiness claim
+
+Approve to switch to build mode; I will then execute the read-only queries and return the single consolidated evidence report.
