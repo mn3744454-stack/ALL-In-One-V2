@@ -232,11 +232,21 @@ BEGIN
   SELECT sum(balance) INTO v_cb_sum FROM public.customer_balances;
   SELECT count(*), sum(amount) INTO v_ex_rows, v_ex_sum FROM public.expenses;
 
-  IF v_inv_rows <> 42 OR v_inv_sum <> 264280.45 THEN RAISE EXCEPTION 'STAGE3B-POST: invoices fingerprint drift'; END IF;
-  IF v_it_rows  <> 99 OR v_it_sum  <> 187372.47 THEN RAISE EXCEPTION 'STAGE3B-POST: invoice_items fingerprint drift'; END IF;
-  IF v_le_rows  <> 64 OR v_le_sum  <> 132726.85 OR v_le_bal <> 970229.63 THEN RAISE EXCEPTION 'STAGE3B-POST: ledger_entries fingerprint drift'; END IF;
-  IF v_cb_sum   <> 132726.85 THEN RAISE EXCEPTION 'STAGE3B-POST: customer_balances balance drift'; END IF;
-  IF v_ex_rows  <> 3  OR v_ex_sum  <> 240.00     THEN RAISE EXCEPTION 'STAGE3B-POST: expenses fingerprint drift'; END IF;
+  IF v_inv_rows = 0
+     AND v_it_rows = 0
+     AND v_le_rows = 0
+     AND v_ex_rows = 0
+     AND NOT EXISTS (SELECT 1 FROM public.customer_balances)
+  THEN
+    RAISE NOTICE
+      'STAGE3B-POST: skipping live-data fingerprints on a clean migration rebuild';
+  ELSE
+    IF v_inv_rows <> 42 OR v_inv_sum <> 264280.45 THEN RAISE EXCEPTION 'STAGE3B-POST: invoices fingerprint drift'; END IF;
+    IF v_it_rows  <> 99 OR v_it_sum  <> 187372.47 THEN RAISE EXCEPTION 'STAGE3B-POST: invoice_items fingerprint drift'; END IF;
+    IF v_le_rows  <> 64 OR v_le_sum  <> 132726.85 OR v_le_bal <> 970229.63 THEN RAISE EXCEPTION 'STAGE3B-POST: ledger_entries fingerprint drift'; END IF;
+    IF v_cb_sum   <> 132726.85 THEN RAISE EXCEPTION 'STAGE3B-POST: customer_balances balance drift'; END IF;
+    IF v_ex_rows  <> 3  OR v_ex_sum  <> 240.00     THEN RAISE EXCEPTION 'STAGE3B-POST: expenses fingerprint drift'; END IF;
+  END IF;
 
   -- Stage 4 must not have begun
   IF EXISTS (SELECT 1 FROM public.permission_definitions WHERE key IN ('finance.invoice.approve','finance.invoice.cancel','finance.adjustment.create')) THEN
