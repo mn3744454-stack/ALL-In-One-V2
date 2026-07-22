@@ -1,0 +1,124 @@
+name: N2.4 Controlled Supabase Runtime Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/n2-4-controlled-supabase-runtime.yml"
+      - "supabase/migrations/**"
+      - "supabase/tests/database/n2_*.sql"
+      - "src/lib/finance/**"
+      - "src/hooks/finance/useInvoicePayments.ts"
+      - "src/components/finance/**"
+      - "src/i18n/locales/*.ts"
+      - "src/integrations/supabase/types.ts"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - "agent/n2-4-github-runtime-acceptance"
+    paths:
+      - ".github/workflows/n2-4-controlled-supabase-runtime.yml"
+      - "supabase/migrations/**"
+      - "supabase/tests/database/n2_*.sql"
+      - "src/lib/finance/**"
+      - "src/hooks/finance/useInvoicePayments.ts"
+      - "src/components/finance/**"
+      - "src/i18n/locales/*.ts"
+      - "src/integrations/supabase/types.ts"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: n2-4-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-contract:
+    name: Repository contract and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the exact repository revision
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install the package.json dependency contract
+        run: npm install --package-lock=false --ignore-scripts --no-audit --no-fund
+
+      - name: Run the targeted finance contract suites
+        run: npx vitest run src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts
+
+      - name: Run TypeScript typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint the finance RPC contract boundary
+        run: npx eslint src/lib/finance/__tests__/n2_2BackendRpcCorrectiveMigration.test.ts src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts src/lib/finance/invoiceRpc.ts src/lib/finance/approveInvoice.ts src/lib/finance/postLedgerForPayments.ts
+
+      - name: Build the production bundle
+        run: npm run build
+
+  database-runtime:
+    name: Fresh Supabase migration and catalog runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out the exact repository revision
+        uses: actions/checkout@v4
+
+      - name: Set up the official Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: latest
+
+      - name: Record the isolated runner identity
+        run: |
+          set -o pipefail
+          mkdir -p n2-4-artifacts
+          {
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "sha=${GITHUB_SHA}"
+            echo "ref=${GITHUB_REF}"
+            echo "runner=${RUNNER_NAME}"
+            echo "environment=ephemeral-github-hosted-runner"
+            echo "production_credentials=not-used"
+            docker version
+            supabase --version
+          } 2>&1 | tee n2-4-artifacts/environment.log
+
+      - name: Build a fresh local database and apply every migration
+        run: |
+          set -o pipefail
+          supabase db start 2>&1 | tee n2-4-artifacts/migration-application.log
+
+      - name: Verify local Supabase status
+        run: |
+          set -o pipefail
+          supabase status -o env 2>&1 | sed -E 's/(KEY|TOKEN|SECRET|PASSWORD)=.*/\1=[REDACTED]/' | tee n2-4-artifacts/local-status.log
+
+      - name: Run PostgreSQL catalog runtime assertions
+        run: |
+          set -o pipefail
+          supabase test db 2>&1 | tee n2-4-artifacts/database-tests.log
+
+      - name: Stop and dispose of the local Supabase database
+        if: always()
+        run: supabase stop --no-backup || true
+
+      - name: Upload runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n2-4-controlled-runtime-${{ github.sha }}
+          path: n2-4-artifacts/
+          if-no-files-found: warn
+          retention-days: 14

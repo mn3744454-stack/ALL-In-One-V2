@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { SharedDateField } from "@/components/ui/shared-date-field";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,15 +31,18 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
-import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
 import { approveInvoice } from "@/lib/finance/approveInvoice";
+import {
+  cancelInvoiceRpc,
+  deleteDraftInvoiceRpc,
+  getRiyadhDateString,
+} from "@/lib/finance/invoiceRpc";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
-import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
-import { getCurrentLanguage } from "@/i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -66,12 +72,10 @@ interface InvoiceDetailsSheetProps {
   onEdit?: (invoice: Invoice) => void;
 }
 
-/** Statuses that are pre-financial (no ledger impact) */
-const PRE_FINANCIAL_STATUSES = ["draft", "reviewed"];
-/** Statuses that have been financially activated */
-const FINANCIALLY_ACTIVE_STATUSES = ["approved", "shared", "paid", "overdue", "partial", "issued"];
 /** Statuses that allow recording payments */
 const PAYABLE_STATUSES = ["approved", "shared", "overdue", "partial"];
+/** Statuses that can be cancelled when no payment exists. */
+const CANCELLABLE_STATUSES = ["reviewed", "approved", "shared", "overdue", "issued"];
 
 export function InvoiceDetailsSheet({
   open,
@@ -90,6 +94,8 @@ export function InvoiceDetailsSheet({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [approveConfirmOpen, setApproveConfirmOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancelEffectiveDate, setCancelEffectiveDate] = useState(getRiyadhDateString);
+  const [cancelReason, setCancelReason] = useState("");
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [invoiceContext, setInvoiceContext] = useState<{ horseName?: string; sampleLabel?: string } | null>(null);
 
@@ -100,7 +106,9 @@ export function InvoiceDetailsSheet({
   const canEdit = hasPermission("finance.invoice.edit");
   const canDelete = hasPermission("finance.invoice.delete");
   const canRecordPayment = hasPermission("finance.payment.create");
-  const canApprove = hasPermission("finance.invoice.send"); // Reuse existing permission key
+  const canReviewOrShare = hasPermission("finance.invoice.send");
+  const canApprove = hasPermission("finance.invoice.approve");
+  const canCancel = hasPermission("finance.invoice.cancel");
   const canPrint = hasPermission("finance.invoice.print");
 
   useEffect(() => {
@@ -362,54 +370,18 @@ export function InvoiceDetailsSheet({
    */
   const handleCancel = async () => {
     if (!invoice || !activeTenant?.tenant?.id) return;
+    if (!cancelReason.trim()) {
+      toast.error(t("finance.invoices.cancelReasonRequired"));
+      return;
+    }
     setActionLoading(true);
     try {
-      const isFinanciallyActive = FINANCIALLY_ACTIVE_STATUSES.includes(invoice.status);
-
-      // If financially active, create reversal ledger entry
-      if (isFinanciallyActive && invoice.client_id) {
-        const { data: userData } = await supabase.auth.getUser();
-        
-        // Get current balance
-        const { data: balanceRecord } = await supabase
-          .from("customer_balances")
-          .select("balance")
-          .eq("tenant_id", activeTenant.tenant.id)
-          .eq("client_id", invoice.client_id)
-          .maybeSingle();
-
-        const currentBalance = Number((balanceRecord as any)?.balance) || 0;
-        const reversalAmount = -Number(invoice.total_amount);
-        const newBalance = currentBalance + reversalAmount;
-
-        // Create reversal ledger entry
-        await supabase.from("ledger_entries").insert({
-          tenant_id: activeTenant.tenant.id,
-          client_id: invoice.client_id,
-          entry_type: "adjustment",
-          reference_type: "invoice_cancellation",
-          reference_id: invoice.id,
-          amount: reversalAmount,
-          balance_after: newBalance,
-          description: `Void | Invoice ${invoice.invoice_number}`,
-          created_by: userData?.user?.id,
-        });
-
-        // Update customer balance
-        await supabase.from("customer_balances").upsert({
-          tenant_id: activeTenant.tenant.id,
-          client_id: invoice.client_id,
-          balance: newBalance,
-          last_updated: new Date().toISOString(),
-        }, { onConflict: "tenant_id,client_id" });
-      }
-
-      // Update invoice status
-      const { error } = await supabase
-        .from("invoices" as any)
-        .update({ status: 'cancelled' })
-        .eq("id", invoice.id);
-      if (error) throw error;
+      await cancelInvoiceRpc(
+        activeTenant.tenant.id,
+        invoice.id,
+        cancelEffectiveDate,
+        cancelReason.trim(),
+      );
 
       toast.success(t("finance.invoices.cancelledSuccess"));
       setCancelConfirmOpen(false);
@@ -424,23 +396,18 @@ export function InvoiceDetailsSheet({
   };
 
   /**
-   * Delete a draft/reviewed invoice (safe — no financial impact)
+   * Delete a draft invoice atomically.
    */
   const handleDelete = async () => {
     if (!invoice) return;
-    // Safety: only allow deletion of pre-financial invoices
-    if (!PRE_FINANCIAL_STATUSES.includes(invoice.status)) {
+    if (invoice.status !== "draft") {
       toast.error(t("finance.invoices.cannotDeleteApproved"));
       return;
     }
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from("invoices" as any)
-        .delete()
-        .eq("id", invoice.id);
-      
-      if (error) throw error;
+      if (!activeTenant?.tenant?.id) return;
+      await deleteDraftInvoiceRpc(activeTenant.tenant.id, invoice.id);
       toast.success(t("finance.invoices.deleted"));
       setDeleteDialogOpen(false);
       invalidateQueries();
@@ -488,7 +455,7 @@ export function InvoiceDetailsSheet({
     }
   };
 
-  const isPreFinancial = invoice ? PRE_FINANCIAL_STATUSES.includes(invoice.status) : false;
+  const isDraft = invoice?.status === "draft";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -534,7 +501,7 @@ export function InvoiceDetailsSheet({
                 )}
 
                 {/* Review — draft → reviewed */}
-                {canApprove && invoice.status === 'draft' && (
+                {canReviewOrShare && invoice.status === 'draft' && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -570,7 +537,7 @@ export function InvoiceDetailsSheet({
                 )}
 
                 {/* Share — approved → shared */}
-                {canApprove && invoice.status === 'approved' && (
+                {canReviewOrShare && invoice.status === 'approved' && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -588,11 +555,15 @@ export function InvoiceDetailsSheet({
                 )}
 
                 {/* Cancel — for approved/shared invoices (with reversal) */}
-                {canApprove && FINANCIALLY_ACTIVE_STATUSES.includes(invoice.status) && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                {canCancel && CANCELLABLE_STATUSES.includes(invoice.status) && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCancelConfirmOpen(true)}
+                    onClick={() => {
+                      setCancelEffectiveDate(getRiyadhDateString());
+                      setCancelReason("");
+                      setCancelConfirmOpen(true);
+                    }}
                     disabled={actionLoading}
                     className="text-destructive hover:text-destructive"
                   >
@@ -602,7 +573,7 @@ export function InvoiceDetailsSheet({
                 )}
 
                 {/* Edit - for pre-financial invoices only */}
-                {canEdit && isPreFinancial && onEdit && (
+                {canEdit && isDraft && onEdit && (
                   <Button
                     variant="outline"
                     size="icon"
@@ -632,8 +603,8 @@ export function InvoiceDetailsSheet({
                     </Button>
                   </>
                 )}
-                {/* Delete - only for pre-financial (draft/reviewed) */}
-                {canDelete && isPreFinancial && (
+                {/* Delete - draft only; reviewed invoices use cancellation. */}
+                {canDelete && isDraft && (
                   <Button
                     variant="outline"
                     size="icon"
@@ -858,7 +829,7 @@ export function InvoiceDetailsSheet({
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-mono tabular-nums" dir="ltr">
-                              {formatDateTime12h(payment.created_at, getCurrentLanguage())}
+                              {formatDate(payment.effective_date, "dd-MM-yyyy")}
                             </p>
                             {payment.payment_method && (
                               <Badge variant="outline" className="text-xs mt-1">
@@ -938,13 +909,40 @@ export function InvoiceDetailsSheet({
               {t("finance.invoices.cancelInvoiceDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label>
+                {t("finance.invoices.cancelDate")} <span aria-hidden="true">*</span>
+              </Label>
+              <SharedDateField
+                value={cancelEffectiveDate}
+                onChange={setCancelEffectiveDate}
+                ariaLabel={t("finance.invoices.cancelDate")}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="invoice-cancel-reason">
+                {t("finance.invoices.cancelReason")}
+              </Label>
+              <Textarea
+                id="invoice-cancel-reason"
+                value={cancelReason}
+                onChange={(event) => setCancelReason(event.target.value)}
+                placeholder={t("finance.invoices.cancelReasonPlaceholder")}
+                maxLength={500}
+              />
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={actionLoading}>
               {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleCancel}
-              disabled={actionLoading}
+              onClick={(event) => {
+                event.preventDefault();
+                handleCancel();
+              }}
+              disabled={actionLoading || !cancelEffectiveDate || !cancelReason.trim()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {actionLoading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}

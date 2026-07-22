@@ -30,44 +30,65 @@ BEGIN
     RAISE EXCEPTION 'PRE-GUARD FAILED: finance permission_definitions count=% (expected 16)', v_finance_perm_count;
   END IF;
 
-  -- Bundle census: single canonical row
-  SELECT id, tenant_id, name, is_system INTO v_bundle_row FROM public.permission_bundles WHERE name='كبير المشرفين';
+  -- Bundle-specific live data is optional on a clean rebuild.
+  SELECT EXISTS (
+    SELECT 1 FROM public.permission_definitions
+    WHERE key='finance.invoice.markPaid'
+  ) INTO v_markpaid_exists;
+  IF NOT v_markpaid_exists THEN
+    RAISE EXCEPTION 'PRE-GUARD FAILED: finance.invoice.markPaid definition missing';
+  END IF;
+
+  SELECT id, tenant_id, name, is_system
+  INTO v_bundle_row
+  FROM public.permission_bundles
+  WHERE name='كبير المشرفين';
+
   IF v_bundle_row.id IS NULL THEN
-    RAISE EXCEPTION 'PRE-GUARD FAILED: كبير المشرفين bundle not found';
-  END IF;
-  IF v_bundle_row.id <> '4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid
-     OR v_bundle_row.tenant_id <> '145f2128-83ca-4ba8-85b5-8ade245c5530'::uuid
-     OR v_bundle_row.is_system IS TRUE THEN
-    RAISE EXCEPTION 'PRE-GUARD FAILED: bundle drift id=%, tenant=%, is_system=%',
-      v_bundle_row.id, v_bundle_row.tenant_id, v_bundle_row.is_system;
-  END IF;
+    RAISE NOTICE
+      'Stage 4: كبير المشرفين bundle absent on clean rebuild; tenant-specific bindings will be skipped';
+  ELSE
+    IF v_bundle_row.id <> '4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid
+       OR v_bundle_row.tenant_id <> '145f2128-83ca-4ba8-85b5-8ade245c5530'::uuid
+       OR v_bundle_row.is_system IS TRUE THEN
+      RAISE EXCEPTION 'PRE-GUARD FAILED: bundle drift id=%, tenant=%, is_system=%',
+        v_bundle_row.id, v_bundle_row.tenant_id, v_bundle_row.is_system;
+    END IF;
 
-  SELECT count(*) INTO v_bundle_dupes FROM public.permission_bundles WHERE name='كبير المشرفين';
-  IF v_bundle_dupes <> 1 THEN
-    RAISE EXCEPTION 'PRE-GUARD FAILED: duplicate كبير المشرفين bundles=%', v_bundle_dupes;
-  END IF;
+    SELECT count(*) INTO v_bundle_dupes
+    FROM public.permission_bundles
+    WHERE name='كبير المشرفين';
+    IF v_bundle_dupes <> 1 THEN
+      RAISE EXCEPTION 'PRE-GUARD FAILED: duplicate كبير المشرفين bundles=%', v_bundle_dupes;
+    END IF;
 
-  -- Bundle currently has exactly 14 finance bindings
-  SELECT count(*) INTO v_finance_bindings FROM public.bundle_permissions
+    SELECT count(*) INTO v_finance_bindings
+    FROM public.bundle_permissions
     WHERE bundle_id = v_bundle_row.id AND permission_key LIKE 'finance.%';
-  IF v_finance_bindings <> 14 THEN
-    RAISE EXCEPTION 'PRE-GUARD FAILED: bundle finance bindings=% (expected 14)', v_finance_bindings;
-  END IF;
+    IF v_finance_bindings <> 14 THEN
+      RAISE EXCEPTION 'PRE-GUARD FAILED: bundle finance bindings=% (expected 14)', v_finance_bindings;
+    END IF;
 
-  -- No target bindings pre-exist
-  SELECT count(*) INTO v_new_bindings FROM public.bundle_permissions
+    SELECT count(*) INTO v_new_bindings
+    FROM public.bundle_permissions
     WHERE bundle_id = v_bundle_row.id
-      AND permission_key IN ('finance.invoice.approve','finance.invoice.cancel','finance.adjustment.create');
-  IF v_new_bindings <> 0 THEN
-    RAISE EXCEPTION 'PRE-GUARD FAILED: target bundle bindings already exist (count=%)', v_new_bindings;
-  END IF;
+      AND permission_key IN (
+        'finance.invoice.approve',
+        'finance.invoice.cancel',
+        'finance.adjustment.create'
+      );
+    IF v_new_bindings <> 0 THEN
+      RAISE EXCEPTION 'PRE-GUARD FAILED: target bundle bindings already exist (count=%)', v_new_bindings;
+    END IF;
 
-  -- markPaid preserved
-  SELECT EXISTS (SELECT 1 FROM public.permission_definitions WHERE key='finance.invoice.markPaid') INTO v_markpaid_exists;
-  SELECT EXISTS (SELECT 1 FROM public.bundle_permissions
-    WHERE bundle_id = v_bundle_row.id AND permission_key='finance.invoice.markPaid') INTO v_markpaid_bound;
-  IF NOT v_markpaid_exists OR NOT v_markpaid_bound THEN
-    RAISE EXCEPTION 'PRE-GUARD FAILED: finance.invoice.markPaid missing (exists=%, bound=%)', v_markpaid_exists, v_markpaid_bound;
+    SELECT EXISTS (
+      SELECT 1 FROM public.bundle_permissions
+      WHERE bundle_id = v_bundle_row.id
+        AND permission_key='finance.invoice.markPaid'
+    ) INTO v_markpaid_bound;
+    IF NOT v_markpaid_bound THEN
+      RAISE EXCEPTION 'PRE-GUARD FAILED: finance.invoice.markPaid bundle binding missing';
+    END IF;
   END IF;
 
   -- bundle_permissions shape (2 cols only)
@@ -118,11 +139,20 @@ VALUES
     true
   );
 
--- Exact bundle_permissions inserts (only to the captured bundle)
-INSERT INTO public.bundle_permissions (bundle_id, permission_key) VALUES
-  ('4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid, 'finance.invoice.approve'),
-  ('4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid, 'finance.invoice.cancel'),
-  ('4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid, 'finance.adjustment.create');
+-- Bind only when the captured tenant-specific bundle exists.
+INSERT INTO public.bundle_permissions (bundle_id, permission_key)
+SELECT pb.id, p.permission_key
+FROM public.permission_bundles pb
+CROSS JOIN (
+  VALUES
+    ('finance.invoice.approve'::text),
+    ('finance.invoice.cancel'::text),
+    ('finance.adjustment.create'::text)
+) AS p(permission_key)
+WHERE pb.id = '4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid
+  AND pb.tenant_id = '145f2128-83ca-4ba8-85b5-8ade245c5530'::uuid
+  AND pb.name = 'كبير المشرفين'
+  AND pb.is_system IS NOT TRUE;
 
 -- Post-mutation gate
 DO $$
@@ -131,6 +161,7 @@ DECLARE
   v_finance_bindings int;
   v_new_bindings int;
   v_markpaid_bound boolean;
+  v_bundle_exists boolean;
   v_invoices_count int; v_invoices_sum numeric;
   v_items_count int; v_items_sum numeric; v_items_qty numeric;
   v_ledger_count int; v_ledger_amt numeric; v_ledger_bal numeric;
@@ -145,32 +176,59 @@ BEGIN
     RAISE EXCEPTION 'POST-GATE FAILED: finance perm count=% (expected 19)', v_finance_perm_count;
   END IF;
 
-  SELECT count(*) INTO v_finance_bindings FROM public.bundle_permissions
-    WHERE bundle_id='4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid AND permission_key LIKE 'finance.%';
-  IF v_finance_bindings <> 17 THEN
-    RAISE EXCEPTION 'POST-GATE FAILED: bundle finance bindings=% (expected 17)', v_finance_bindings;
-  END IF;
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.permission_bundles
+    WHERE id='4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid
+      AND tenant_id='145f2128-83ca-4ba8-85b5-8ade245c5530'::uuid
+      AND name='كبير المشرفين'
+      AND is_system IS NOT TRUE
+  ) INTO v_bundle_exists;
 
-  SELECT count(*) INTO v_new_bindings FROM public.bundle_permissions
+  IF v_bundle_exists THEN
+    SELECT count(*) INTO v_finance_bindings
+    FROM public.bundle_permissions
     WHERE bundle_id='4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid
-      AND permission_key IN ('finance.invoice.approve','finance.invoice.cancel','finance.adjustment.create');
-  IF v_new_bindings <> 3 THEN
-    RAISE EXCEPTION 'POST-GATE FAILED: new bindings=% (expected 3)', v_new_bindings;
+      AND permission_key LIKE 'finance.%';
+    IF v_finance_bindings <> 17 THEN
+      RAISE EXCEPTION 'POST-GATE FAILED: bundle finance bindings=% (expected 17)', v_finance_bindings;
+    END IF;
+
+    SELECT count(*) INTO v_new_bindings
+    FROM public.bundle_permissions
+    WHERE bundle_id='4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid
+      AND permission_key IN (
+        'finance.invoice.approve',
+        'finance.invoice.cancel',
+        'finance.adjustment.create'
+      );
+    IF v_new_bindings <> 3 THEN
+      RAISE EXCEPTION 'POST-GATE FAILED: new bindings=% (expected 3)', v_new_bindings;
+    END IF;
+
+    SELECT EXISTS (
+      SELECT 1 FROM public.bundle_permissions
+      WHERE bundle_id='4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid
+        AND permission_key='finance.invoice.markPaid'
+    ) INTO v_markpaid_bound;
+    IF NOT v_markpaid_bound THEN
+      RAISE EXCEPTION 'POST-GATE FAILED: markPaid binding lost';
+    END IF;
+  ELSE
+    RAISE NOTICE
+      'POST-GATE: tenant-specific كبير المشرفين bindings skipped on clean rebuild';
   END IF;
 
-  -- No other bundle received the three new keys
-  SELECT count(*) INTO v_other_binding FROM public.bundle_permissions
-    WHERE permission_key IN ('finance.invoice.approve','finance.invoice.cancel','finance.adjustment.create')
-      AND bundle_id <> '4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid;
+  SELECT count(*) INTO v_other_binding
+  FROM public.bundle_permissions
+  WHERE permission_key IN (
+    'finance.invoice.approve',
+    'finance.invoice.cancel',
+    'finance.adjustment.create'
+  )
+    AND bundle_id <> '4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid;
   IF v_other_binding <> 0 THEN
     RAISE EXCEPTION 'POST-GATE FAILED: new keys bound to % other bundles', v_other_binding;
-  END IF;
-
-  -- markPaid still bound
-  SELECT EXISTS (SELECT 1 FROM public.bundle_permissions
-    WHERE bundle_id='4d9b8917-f11d-4879-840d-1b682bad8cec'::uuid AND permission_key='finance.invoice.markPaid') INTO v_markpaid_bound;
-  IF NOT v_markpaid_bound THEN
-    RAISE EXCEPTION 'POST-GATE FAILED: markPaid binding lost';
   END IF;
 
   -- Byte-for-byte row content check
@@ -197,13 +255,24 @@ BEGIN
   SELECT count(*), COALESCE(sum(balance),0) INTO v_cb_count, v_cb_sum FROM public.customer_balances;
   SELECT count(*) INTO v_bl_count FROM public.billing_links;
   SELECT count(*), COALESCE(sum(amount),0) INTO v_exp_count, v_exp_sum FROM public.expenses;
-  IF v_invoices_count <> 42 OR v_invoices_sum <> 264280.45
-     OR v_items_count <> 99 OR v_items_sum <> 187372.47 OR v_items_qty <> 1758.00
-     OR v_ledger_count <> 64 OR v_ledger_amt <> 132726.85 OR v_ledger_bal <> 970229.63
-     OR v_cb_count <> 7 OR v_cb_sum <> 132726.85
-     OR v_bl_count <> 17
-     OR v_exp_count <> 3 OR v_exp_sum <> 240.00 THEN
-    RAISE EXCEPTION 'POST-GATE FAILED: financial fingerprint drift';
+  IF v_invoices_count = 0
+     AND v_items_count = 0
+     AND v_ledger_count = 0
+     AND v_cb_count = 0
+     AND v_bl_count = 0
+     AND v_exp_count = 0
+  THEN
+    RAISE NOTICE
+      'POST-GATE: skipping live financial fingerprints on a clean migration rebuild';
+  ELSE
+    IF v_invoices_count <> 42 OR v_invoices_sum <> 264280.45
+       OR v_items_count <> 99 OR v_items_sum <> 187372.47 OR v_items_qty <> 1758.00
+       OR v_ledger_count <> 64 OR v_ledger_amt <> 132726.85 OR v_ledger_bal <> 970229.63
+       OR v_cb_count <> 7 OR v_cb_sum <> 132726.85
+       OR v_bl_count <> 17
+       OR v_exp_count <> 3 OR v_exp_sum <> 240.00 THEN
+      RAISE EXCEPTION 'POST-GATE FAILED: financial fingerprint drift';
+    END IF;
   END IF;
 
   RAISE NOTICE 'AML.1.b.1 STAGE 4: PASSED — 3 permission definitions inserted and bound only to the captured كبير المشرفين bundle.';

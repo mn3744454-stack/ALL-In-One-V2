@@ -11,6 +11,7 @@ export interface InvoicePayment {
   payment_method: string | null;
   payment_session_id: string | null;
   metadata: Record<string, unknown>;
+  effective_date: string;
   created_at: string;
   description: string | null;
 }
@@ -55,11 +56,12 @@ export function useInvoicePayments(invoiceId?: string | null) {
       // Fetch payment ledger entries
       const { data: payments, error: payError } = await supabase
         .from("ledger_entries")
-        .select("id, amount, payment_method, payment_session_id, metadata, created_at, description")
+        .select("id, amount, payment_method, payment_session_id, metadata, effective_date, created_at, description")
         .eq("tenant_id", tenantId)
         .eq("reference_type", "invoice")
         .eq("reference_id", invoiceId)
         .eq("entry_type", "payment")
+        .order("effective_date", { ascending: true })
         .order("created_at", { ascending: true });
 
       if (payError) {
@@ -73,6 +75,7 @@ export function useInvoicePayments(invoiceId?: string | null) {
         payment_method: p.payment_method,
         payment_session_id: p.payment_session_id,
         metadata: p.metadata || {},
+        effective_date: p.effective_date || p.created_at.slice(0, 10),
         created_at: p.created_at,
         description: p.description,
       }));
@@ -95,13 +98,25 @@ export function useInvoicePayments(invoiceId?: string | null) {
   });
 
   const recordPaymentMutation = useMutation({
-    mutationFn: async (payments: PaymentEntry[]) => {
+    mutationFn: async ({
+      payments,
+      paymentDate,
+    }: {
+      payments: PaymentEntry[];
+      paymentDate: string;
+    }) => {
       if (!tenantId || !invoiceId) {
         throw new Error("Missing tenant or invoice");
       }
 
       const paymentSessionId = crypto.randomUUID();
-      const result = await postLedgerForPayments(invoiceId, tenantId, payments, paymentSessionId);
+      const result = await postLedgerForPayments(
+        invoiceId,
+        tenantId,
+        payments,
+        paymentSessionId,
+        paymentDate,
+      );
 
       if (!result.success) {
         throw new Error(result.error || "Failed to record payment");

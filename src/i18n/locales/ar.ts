@@ -3934,6 +3934,10 @@ export const ar = {
       shareDesc: "إتاحة الفاتورة للطرف الآخر.",
       cancelInvoice: "إلغاء الفاتورة",
       cancelInvoiceDesc: "سيتم إلغاء الفاتورة وعكس أثرها المالي. لا يمكن التراجع عن هذا الإجراء.",
+      cancelDate: "تاريخ الإلغاء",
+      cancelReason: "سبب الإلغاء",
+      cancelReasonPlaceholder: "اكتب سبب إلغاء هذه الفاتورة",
+      cancelReasonRequired: "أدخل سبب إلغاء الفاتورة",
       cancelledSuccess: "تم إلغاء الفاتورة وعكس أثرها",
       reviewedSuccess: "تم تحديد الفاتورة كمُراجعة",
       approvedSuccess: "تم اعتماد الفاتورة وتسجيلها في دفتر الحسابات",
@@ -4038,6 +4042,7 @@ export const ar = {
       paidSoFar: "المدفوع حتى الآن",
       outstanding: "المتبقي",
       paymentDetails: "تفاصيل الدفع",
+      paymentDate: "تاريخ الدفع",
       method: "طريقة الدفع",
       amount: "المبلغ",
       reference: "المرجع",
@@ -4054,6 +4059,7 @@ export const ar = {
       paymentHistory: "سجل المدفوعات",
       noPayments: "لم يتم تسجيل أي دفعات بعد",
       missing: {
+        date: "اختر تاريخ الدفع",
         amount: "أدخل مبلغ دفعة واحدة على الأقل أكبر من صفر",
         method: "اختر طريقة الدفع",
         invalidAmount: "يجب أن يكون المبلغ رقماً موجباً",
@@ -7249,6 +7255,4 @@ export const ar = {
     },
   },
 };
-
-
 

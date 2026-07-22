@@ -263,44 +263,55 @@ BEGIN
   SELECT count(*) INTO v_bl_rows FROM public.billing_links;
   SELECT count(*), sum(amount) INTO v_ex_rows, v_ex_sum FROM public.expenses;
 
-  IF v_inv_rows <> 42 OR v_inv_sum <> 264280.45 THEN
-    RAISE EXCEPTION 'POST-ABORT: invoices fingerprint drift (% / %)', v_inv_rows, v_inv_sum;
-  END IF;
-  IF v_it_rows <> 99 OR v_it_sum <> 187372.47 THEN
-    RAISE EXCEPTION 'POST-ABORT: invoice_items fingerprint drift (% / %)', v_it_rows, v_it_sum;
-  END IF;
-  IF v_le_rows <> 64 OR v_le_sum <> 132726.85 OR v_le_bal <> 970229.63 THEN
-    RAISE EXCEPTION 'POST-ABORT: ledger_entries fingerprint drift';
-  END IF;
-  IF v_cb_rows <> 7 OR v_cb_sum <> 132726.85 THEN
-    RAISE EXCEPTION 'POST-ABORT: customer_balances fingerprint drift';
-  END IF;
-  IF v_bl_rows <> 17 THEN
-    RAISE EXCEPTION 'POST-ABORT: billing_links row count drift (% vs 17)', v_bl_rows;
-  END IF;
-  IF v_ex_rows <> 3 OR v_ex_sum <> 240.00 THEN
-    RAISE EXCEPTION 'POST-ABORT: expenses fingerprint drift';
-  END IF;
-
-  SELECT total_amount INTO v_213_total FROM public.invoices
-   WHERE id='bc37440d-d402-4e2b-96cd-67329456d0fd';
-  IF v_213_total <> 50.00 THEN
-    RAISE EXCEPTION 'POST-ABORT: -213 invoice total drift';
-  END IF;
-  SELECT amount INTO v_213_ledger FROM public.ledger_entries
-   WHERE id='dbaccc18-2c28-401b-af9f-e10167ac4ba2';
-  IF v_213_ledger <> 50.00 THEN
-    RAISE EXCEPTION 'POST-ABORT: -213 ledger row drift';
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM public.invoices WHERE invoice_number='INV-MMO9AAXD' AND status='paid' AND total_amount=60000.00) THEN
-    RAISE EXCEPTION 'POST-ABORT: INV-MMO9AAXD drift';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.invoices WHERE invoice_number='INV-MNDH8GPD' AND status='approved' AND total_amount=106375.00) THEN
-    RAISE EXCEPTION 'POST-ABORT: INV-MNDH8GPD drift';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.invoices WHERE invoice_number='INV-MP4ET8LQ' AND status='draft' AND total_amount=2032.26) THEN
-    RAISE EXCEPTION 'POST-ABORT: INV-MP4ET8LQ drift';
+  IF v_inv_rows = 0
+     AND v_it_rows = 0
+     AND v_le_rows = 0
+     AND v_cb_rows = 0
+     AND v_bl_rows = 0
+     AND v_ex_rows = 0
+  THEN
+    RAISE NOTICE
+      'POST-ABORT: skipping live-data fingerprints on a clean migration rebuild';
+  ELSE
+    IF v_inv_rows <> 42 OR v_inv_sum <> 264280.45 THEN
+      RAISE EXCEPTION 'POST-ABORT: invoices fingerprint drift (% / %)', v_inv_rows, v_inv_sum;
+    END IF;
+    IF v_it_rows <> 99 OR v_it_sum <> 187372.47 THEN
+      RAISE EXCEPTION 'POST-ABORT: invoice_items fingerprint drift (% / %)', v_it_rows, v_it_sum;
+    END IF;
+    IF v_le_rows <> 64 OR v_le_sum <> 132726.85 OR v_le_bal <> 970229.63 THEN
+      RAISE EXCEPTION 'POST-ABORT: ledger_entries fingerprint drift';
+    END IF;
+    IF v_cb_rows <> 7 OR v_cb_sum <> 132726.85 THEN
+      RAISE EXCEPTION 'POST-ABORT: customer_balances fingerprint drift';
+    END IF;
+    IF v_bl_rows <> 17 THEN
+      RAISE EXCEPTION 'POST-ABORT: billing_links row count drift (% vs 17)', v_bl_rows;
+    END IF;
+    IF v_ex_rows <> 3 OR v_ex_sum <> 240.00 THEN
+      RAISE EXCEPTION 'POST-ABORT: expenses fingerprint drift';
+    END IF;
+  
+    SELECT total_amount INTO v_213_total FROM public.invoices
+     WHERE id='bc37440d-d402-4e2b-96cd-67329456d0fd';
+    IF v_213_total <> 50.00 THEN
+      RAISE EXCEPTION 'POST-ABORT: -213 invoice total drift';
+    END IF;
+    SELECT amount INTO v_213_ledger FROM public.ledger_entries
+     WHERE id='dbaccc18-2c28-401b-af9f-e10167ac4ba2';
+    IF v_213_ledger <> 50.00 THEN
+      RAISE EXCEPTION 'POST-ABORT: -213 ledger row drift';
+    END IF;
+  
+    IF NOT EXISTS (SELECT 1 FROM public.invoices WHERE invoice_number='INV-MMO9AAXD' AND status='paid' AND total_amount=60000.00) THEN
+      RAISE EXCEPTION 'POST-ABORT: INV-MMO9AAXD drift';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.invoices WHERE invoice_number='INV-MNDH8GPD' AND status='approved' AND total_amount=106375.00) THEN
+      RAISE EXCEPTION 'POST-ABORT: INV-MNDH8GPD drift';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.invoices WHERE invoice_number='INV-MP4ET8LQ' AND status='draft' AND total_amount=2032.26) THEN
+      RAISE EXCEPTION 'POST-ABORT: INV-MP4ET8LQ drift';
+    END IF;
   END IF;
 END
 $rollback_post$;

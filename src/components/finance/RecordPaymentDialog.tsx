@@ -12,6 +12,7 @@ import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SharedDateField } from "@/components/ui/shared-date-field";
 import {
   Select,
   SelectContent,
@@ -50,6 +51,7 @@ import {
   Package,
 } from "lucide-react";
 import type { PaymentEntry } from "@/lib/finance/postLedgerForPayments";
+import { getRiyadhDateString } from "@/lib/finance/invoiceRpc";
 
 interface PaymentRow {
   id: string;
@@ -94,10 +96,12 @@ export function RecordPaymentDialog({
   const [rows, setRows] = useState<PaymentRow[]>([
     { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" },
   ]);
+  const [paymentDate, setPaymentDate] = useState(getRiyadhDateString);
 
   // Reset rows when dialog opens/closes or invoice changes
   useEffect(() => {
     if (open && summary) {
+      setPaymentDate(getRiyadhDateString());
       setRows([{ 
         id: crypto.randomUUID(), 
         method: "cash", 
@@ -125,7 +129,7 @@ export function RecordPaymentDialog({
     if (!open) setAttemptedSubmit(false);
   }, [open]);
 
-  const { isDirty } = useDirtyForm(rows, open);
+  const { isDirty } = useDirtyForm({ rows, paymentDate }, open);
 
   const hasInvalidAmount = useMemo(
     () =>
@@ -143,11 +147,12 @@ export function RecordPaymentDialog({
 
   const missingIssues = useMemo<string[]>(() => {
     const issues: string[] = [];
+    if (!paymentDate) issues.push(t("finance.payments.missing.date"));
     if (totalPayment <= 0) issues.push(t("finance.payments.missing.amount"));
     if (hasInvalidAmount) issues.push(t("finance.payments.missing.invalidAmount"));
     if (hasMissingMethod) issues.push(t("finance.payments.missing.method"));
     return issues;
-  }, [totalPayment, hasInvalidAmount, hasMissingMethod, t]);
+  }, [paymentDate, totalPayment, hasInvalidAmount, hasMissingMethod, t]);
 
   // Handlers
   const addRow = () => {
@@ -179,6 +184,7 @@ export function RecordPaymentDialog({
     const payments: PaymentEntry[] = rows
       .filter((r) => parseFloat(r.amount) > 0)
       .map((r) => ({
+        idempotency_key: r.id,
         amount: parseFloat(r.amount),
         payment_method: r.method,
         reference: r.reference || undefined,
@@ -187,7 +193,7 @@ export function RecordPaymentDialog({
     if (payments.length === 0) return;
 
     try {
-      await recordPayment(payments);
+      await recordPayment({ payments, paymentDate });
       onSuccess?.();
       onOpenChange(false);
     } catch {
@@ -301,6 +307,16 @@ export function RecordPaymentDialog({
             {/* Payment Rows */}
             {!summary.isPaid && (
               <>
+                <div className="grid gap-2">
+                  <Label>
+                    {t("finance.payments.paymentDate")} <span aria-hidden="true">*</span>
+                  </Label>
+                  <SharedDateField
+                    value={paymentDate}
+                    onChange={setPaymentDate}
+                    ariaLabel={t("finance.payments.paymentDate")}
+                  />
+                </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label>{t("finance.payments.paymentDetails")}</Label>
@@ -401,6 +417,7 @@ export function RecordPaymentDialog({
                     variant="outline"
                     size="sm"
                     onClick={addRow}
+                    disabled={rows.length >= 10}
                     className="w-full"
                   >
                     <Plus className="h-4 w-4 me-2" />
