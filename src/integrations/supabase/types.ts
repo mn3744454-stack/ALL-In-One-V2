@@ -11787,7 +11787,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           currency: string
-          default_tax_rate: number | null
+          default_tax_rate: number
           description: string | null
           description_ar: string | null
           email: string | null
@@ -11817,7 +11817,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           currency?: string
-          default_tax_rate?: number | null
+          default_tax_rate?: number
           description?: string | null
           description_ar?: string | null
           email?: string | null
@@ -11847,7 +11847,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           currency?: string
-          default_tax_rate?: number | null
+          default_tax_rate?: number
           description?: string | null
           description_ar?: string | null
           email?: string | null
