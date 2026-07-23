@@ -43,6 +43,10 @@ export interface RawInvoiceItemForPresentation {
   category_name_ar_snapshot?: string | null;
 
   resolvedHorseName?: string | null;
+  /** Phase N+1A refinement: bilingual identity kept separately so the presenter
+   *  can render `الخيل: فاتن (Fatin)` / `Horse: Fatin (فاتن)`. */
+  resolvedHorseNameAr?: string | null;
+  resolvedHorseNameEn?: string | null;
   resolvedServiceName?: string | null;
   resolvedCategoryName?: string | null;
 
