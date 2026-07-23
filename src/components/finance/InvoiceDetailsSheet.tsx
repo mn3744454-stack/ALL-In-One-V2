@@ -777,6 +777,28 @@ export function InvoiceDetailsSheet({
                               <p className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
                                 {item.quantity} × {formatAmount(item.unit_price)}
                               </p>
+                              {(item.resolvedHorseName || item.resolvedServiceName || item.resolvedCategoryName) && (
+                                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                                  {item.resolvedHorseName && (
+                                    <span className="inline-flex items-center gap-1">
+                                      <span aria-hidden>🐴</span>
+                                      <span className="font-medium text-foreground/80">{item.resolvedHorseName}</span>
+                                    </span>
+                                  )}
+                                  {item.resolvedServiceName && (
+                                    <span className="inline-flex items-center gap-1">
+                                      <span className="opacity-70">{t("finance.invoices.service")}:</span>
+                                      <span className="text-foreground/80">{item.resolvedServiceName}</span>
+                                    </span>
+                                  )}
+                                  {item.resolvedCategoryName && (
+                                    <span className="inline-flex items-center gap-1">
+                                      <span className="opacity-70">{t("finance.invoices.category")}:</span>
+                                      <span className="text-foreground/80">{item.resolvedCategoryName}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <p className="font-mono text-sm font-medium tabular-nums shrink-0" dir="ltr">
                               {formatAmount(item.total_price)}
