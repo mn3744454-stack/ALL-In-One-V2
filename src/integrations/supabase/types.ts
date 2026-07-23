@@ -6368,6 +6368,9 @@ export type Database = {
           id: string
           invoice_id: string
           lab_horse_id: string | null
+          line_gross_amount: number | null
+          line_pretax_amount: number | null
+          line_tax_amount: number | null
           package_currency_snapshot: string | null
           package_id: string | null
           package_name_ar_snapshot: string | null
@@ -6383,6 +6386,8 @@ export type Database = {
           service_name_ar_snapshot: string | null
           service_name_snapshot: string | null
           service_source: string
+          tax_rate_snapshot: number | null
+          taxable_snapshot: boolean | null
           total_price: number
           unit_price: number
         }
@@ -6400,6 +6405,9 @@ export type Database = {
           id?: string
           invoice_id: string
           lab_horse_id?: string | null
+          line_gross_amount?: number | null
+          line_pretax_amount?: number | null
+          line_tax_amount?: number | null
           package_currency_snapshot?: string | null
           package_id?: string | null
           package_name_ar_snapshot?: string | null
@@ -6415,6 +6423,8 @@ export type Database = {
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
           service_source?: string
+          tax_rate_snapshot?: number | null
+          taxable_snapshot?: boolean | null
           total_price: number
           unit_price: number
         }
@@ -6432,6 +6442,9 @@ export type Database = {
           id?: string
           invoice_id?: string
           lab_horse_id?: string | null
+          line_gross_amount?: number | null
+          line_pretax_amount?: number | null
+          line_tax_amount?: number | null
           package_currency_snapshot?: string | null
           package_id?: string | null
           package_name_ar_snapshot?: string | null
@@ -6447,6 +6460,8 @@ export type Database = {
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
           service_source?: string
+          tax_rate_snapshot?: number | null
+          taxable_snapshot?: boolean | null
           total_price?: number
           unit_price?: number
         }
@@ -6506,6 +6521,7 @@ export type Database = {
           payment_method: string | null
           payment_received_at: string | null
           pos_session_id: string | null
+          prices_include_tax: boolean | null
           status: string
           subtotal: number
           tax_amount: number | null
@@ -6530,6 +6546,7 @@ export type Database = {
           payment_method?: string | null
           payment_received_at?: string | null
           pos_session_id?: string | null
+          prices_include_tax?: boolean | null
           status?: string
           subtotal?: number
           tax_amount?: number | null
@@ -6554,6 +6571,7 @@ export type Database = {
           payment_method?: string | null
           payment_received_at?: string | null
           pos_session_id?: string | null
+          prices_include_tax?: boolean | null
           status?: string
           subtotal?: number
           tax_amount?: number | null
@@ -8011,6 +8029,7 @@ export type Database = {
           discount_value: number | null
           id: string
           is_active: boolean
+          is_taxable: boolean
           name: string
           name_ar: string | null
           override_price: number | null
@@ -8032,6 +8051,7 @@ export type Database = {
           discount_value?: number | null
           id?: string
           is_active?: boolean
+          is_taxable?: boolean
           name: string
           name_ar?: string | null
           override_price?: number | null
@@ -8053,6 +8073,7 @@ export type Database = {
           discount_value?: number | null
           id?: string
           is_active?: boolean
+          is_taxable?: boolean
           name?: string
           name_ar?: string | null
           override_price?: number | null
@@ -10931,6 +10952,7 @@ export type Database = {
           includes: Json
           is_active: boolean
           is_public: boolean
+          is_taxable: boolean
           name: string
           name_ar: string | null
           plan_type: string
@@ -10949,6 +10971,7 @@ export type Database = {
           includes?: Json
           is_active?: boolean
           is_public?: boolean
+          is_taxable?: boolean
           name: string
           name_ar?: string | null
           plan_type?: string
@@ -10967,6 +10990,7 @@ export type Database = {
           includes?: Json
           is_active?: boolean
           is_public?: boolean
+          is_taxable?: boolean
           name?: string
           name_ar?: string | null
           plan_type?: string
