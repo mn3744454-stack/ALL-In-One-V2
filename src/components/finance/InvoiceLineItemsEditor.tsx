@@ -289,6 +289,10 @@ export function InvoiceLineItemsEditor({
                   onQuickAddHorse={onQuickAddHorse}
                   canQuickAddHorse={canQuickAddHorse}
                   quickAddDisabledReason={quickAddDisabledReason}
+                  isCustomerSelected={isCustomerSelected}
+                  horsesLoading={horsesLoading}
+                  horsesError={horsesError}
+                  onRetryHorses={onRetryHorses}
                   expanded={!!expanded[item.id]}
                   onToggleExpanded={() => toggleExpanded(item.id)}
                   lang={lang}
