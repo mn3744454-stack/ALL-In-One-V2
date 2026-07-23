@@ -796,15 +796,42 @@ export function InvoiceDetailsSheet({
                   <div className="space-y-4">
                     {presentation.groups.map((group) => {
                       const isClientLevel = group.kind === "client_level";
-                      const heading = isClientLevel
-                        ? t("finance.invoices.clientLevelCharges")
-                        : group.horseName || t("finance.invoices.unassignedHorse");
+                      const headingParts = !isClientLevel
+                        ? formatHorseHeadingParts(group, lang, {
+                            horseGroupLabel: t("finance.invoices.horseGroupLabel"),
+                            unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+                          })
+                        : null;
                       return (
-                        <div key={group.key} className="space-y-2">
+                        <div
+                          key={group.key}
+                          className={cn(
+                            "space-y-2 rounded-xl border p-3",
+                            isClientLevel
+                              ? "border-dashed border-muted-foreground/30 bg-muted/20"
+                              : "border-border/70 bg-muted/30",
+                          )}
+                        >
                           <div className="flex items-center justify-between gap-2 px-1">
-                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide">
                               {!isClientLevel && <span aria-hidden>🐴</span>}
-                              <span className="text-foreground/80">{heading}</span>
+                              {isClientLevel ? (
+                                <span className="text-muted-foreground">
+                                  {t("finance.invoices.clientLevelCharges")}
+                                </span>
+                              ) : (
+                                <span className="text-foreground/90 normal-case tracking-normal">
+                                  <span className="text-muted-foreground me-1">
+                                    {headingParts!.label}:
+                                  </span>
+                                  <span className="font-semibold">{headingParts!.primary}</span>
+                                  {headingParts!.secondary && (
+                                    <span className="ms-1.5 text-[11px] font-normal text-muted-foreground">
+                                      ({headingParts!.secondary})
+                                    </span>
+                                  )}
+                                </span>
+                              )}
                             </div>
                             <span className="font-mono tabular-nums text-[11px] text-muted-foreground" dir="ltr">
                               {formatAmount(group.itemsTotal)}
