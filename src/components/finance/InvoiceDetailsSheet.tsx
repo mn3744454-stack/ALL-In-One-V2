@@ -87,7 +87,7 @@ export function InvoiceDetailsSheet({
   invoiceId,
   onEdit,
 }: InvoiceDetailsSheetProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const { hasPermission } = usePermissions();
   const queryClient = useQueryClient();
