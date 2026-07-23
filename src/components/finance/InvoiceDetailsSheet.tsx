@@ -714,8 +714,9 @@ export function InvoiceDetailsSheet({
                   </div>
                 )}
 
-                {/* Horse context */}
-                {invoiceContext?.horseName && (
+                {/* Horse context — header-level only when no line carries a horse.
+                    Multi-horse invoices render horse per line to avoid one arbitrary label. */}
+                {invoiceContext?.horseName && !items.some((it: any) => it.resolvedHorseName) && (
                   <div className="flex items-center gap-3">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <div>
