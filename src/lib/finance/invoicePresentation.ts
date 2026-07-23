@@ -281,3 +281,44 @@ export function invoiceItemsMatchHorseSelection(
   }
   return false;
 }
+
+/**
+ * Phase N+1A refinement — pure bilingual heading formatter shared by Screen
+ * and PDF/Print. Produces:
+ *   - AR both:     `<groupLabel>: فاتن (Fatin)`
+ *   - EN both:     `<groupLabel>: Fatin (فاتن)`
+ *   - single side: `<groupLabel>: <name>`
+ *   - identical (post-normalize) sides: `<groupLabel>: <name>` once.
+ *   - none:        `<groupLabel>: <unassignedFallback>` (parenthesis-free).
+ *
+ * Returns primary + optional secondary + optional shared label prefix. Callers
+ * decide how to render (mute the secondary, escape for HTML, etc.).
+ */
+export interface HorseHeadingParts {
+  /** Localized `الخيل` / `Horse` label (colon appended by caller if desired). */
+  label: string;
+  /** Primary-language name. Never empty. */
+  primary: string;
+  /** Secondary-language name. Null when only one side exists or sides collide. */
+  secondary: string | null;
+}
+
+export function formatHorseHeadingParts(
+  group: Pick<PresentationGroup, "horseNameAr" | "horseNameEn" | "horseName">,
+  lang: string | undefined,
+  labels: { horseGroupLabel: string; unassignedHorseLabel: string },
+): HorseHeadingParts {
+  const isAr = lang === "ar";
+  const ar = (group.horseNameAr ?? "").trim();
+  const en = (group.horseNameEn ?? "").trim();
+  const fallback = (group.horseName ?? "").trim();
+  const primaryRaw = isAr ? ar || en || fallback : en || ar || fallback;
+  const secondaryRaw = isAr ? en : ar;
+  const primary = primaryRaw || labels.unassignedHorseLabel;
+  const secondary =
+    primaryRaw && secondaryRaw && normalize(secondaryRaw) !== normalize(primaryRaw)
+      ? secondaryRaw
+      : null;
+  return { label: labels.horseGroupLabel, primary, secondary };
+}
+
