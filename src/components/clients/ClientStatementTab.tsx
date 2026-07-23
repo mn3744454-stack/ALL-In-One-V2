@@ -262,54 +262,121 @@ function RowDescription({
   );
 }
 
-/** Convert enriched data to a flat string for print/export */
-export function enrichedToString(
-  entry: StatementEntry,
-  enriched?: EnrichedStatementData,
-  lang: string = "en"
+/**
+ * Localized domain label for the export/print row description. Mirrors the
+ * on-screen `DomainBadge` label choices (including the `vet` → `vet.domain.vet`
+ * fallback) and adds a `General` fallback used only for invoice rows that have
+ * no resolvable domain — matching the required Screen ↔ Export parity spec.
+ */
+function domainLabelText(
+  source: "lab" | "boarding" | "breeding" | "vet" | "general" | undefined,
+  t: (k: string) => string,
 ): string {
-  if (!enriched) return entry.description || "-";
-  const parts: string[] = [];
-
-  if (entry.entry_type === "payment") {
-    if (enriched.paymentMethod) parts.push(enriched.paymentMethod);
-    if (enriched.invoiceNumber) parts.push(enriched.invoiceNumber);
-    if (enriched.horses.length > 0) {
-      parts.push(enriched.horses.map(h => h.horseName).filter(Boolean).join(", "));
-    }
-  } else if (entry.entry_type === "invoice") {
-    if (enriched.invoiceNumber) parts.push(enriched.invoiceNumber);
-    if (enriched.horses.length > 0) {
-      const horseNames = enriched.horses.map(h => h.horseName).filter(Boolean);
-      if (enriched.isMultiHorse) {
-        parts.push(`(${horseNames.join(", ")})`);
-      } else {
-        parts.push(horseNames[0]);
-        const samples = enriched.horses[0].samples.map(s => s.sampleLabel).join(", ");
-        if (samples) parts.push(samples);
-      }
-    }
-    if (enriched.itemsSummary) parts.push(enriched.itemsSummary);
-  } else {
-    return entry.description || "-";
-  }
-
-  return parts.join(" | ") || entry.description || "-";
+  if (!source || source === "general") return t("finance.invoices.domain.general");
+  const map: Record<string, string> = {
+    boarding: t("clients.statement.domain.boarding"),
+    breeding: t("clients.statement.domain.breeding"),
+    lab: t("clients.statement.domain.lab"),
+    vet: t("vet.domain.vet"),
+  };
+  return map[source] || source;
 }
 
-/** Build a flat description string for a boarding segment row (for print) */
-function segmentToString(seg: FlatStatementRow["segment"], horseName?: string, isRTL?: boolean): string {
-  if (!seg) return "-";
-  if (seg.isOtherCharges) {
-    const label = isRTL ? "رسوم أخرى" : "Other charges";
-    return horseName ? `${horseName} | ${label}` : label;
+/**
+ * Build the horse fragment shown on the screen ("🐴 name" or
+ * "🐴 Horses: A, B (+N)") for the export/print row description. Returns
+ * `null` when the row genuinely has no horse so no stray icon is emitted.
+ */
+function horseFragmentText(
+  enriched: EnrichedStatementData | undefined,
+  t: (k: string) => string,
+): string | null {
+  if (!enriched || enriched.horses.length === 0) return null;
+  const names = enriched.horses.map((h) => h.horseName).filter(Boolean);
+  if (names.length === 0) return null;
+  if (!enriched.isMultiHorse || names.length === 1) {
+    return `🐴 ${names[0]}`;
   }
+  const visible = names.slice(0, 2).join(", ");
+  const summary =
+    names.length <= 2 ? visible : `${visible} (+${names.length - 2})`;
+  return `🐴 ${t("clients.statement.horsesLabel")}: ${summary}`;
+}
+
+/** Format a segment period date as dd-MM-yyyy (canonical statement date format). */
+function formatSegmentDate(d: string): string {
+  if (!d) return "-";
+  const parsed = new Date(d);
+  if (isNaN(parsed.getTime())) return d;
+  return format(parsed, "dd-MM-yyyy");
+}
+
+/**
+ * Shared, presentation-safe row-description builder used by PDF, Print and
+ * CSV export. Reads only from the already-enriched `FlatStatementRow` — no
+ * financial computation and no data mutation. Returns an ordered array of
+ * non-empty fragments; the caller joins with " | " so `printStatement`'s
+ * existing first-fragment bold behavior is preserved.
+ */
+export function buildStatementRowDescription(
+  row: FlatStatementRow,
+  ctx: { lang: string; isRTL: boolean; t: (k: string) => string },
+): string[] {
+  const { t, isRTL } = ctx;
+  const { entry, enriched, isSegment, segment } = row;
   const parts: string[] = [];
-  if (horseName) parts.push(horseName);
-  const from = isRTL ? "من" : "From";
-  const to = isRTL ? "إلى" : "To";
-  parts.push(`${from} ${seg.periodStart} ${to} ${seg.periodEnd} (${seg.days}d)`);
-  return parts.join(" | ");
+
+  // Boarding segment / other-charges sub-row.
+  if (isSegment && segment) {
+    parts.push(t("clients.statement.domain.boarding"));
+    if (enriched?.invoiceNumber) parts.push(enriched.invoiceNumber);
+    if (segment.horseName) parts.push(`🐴 ${segment.horseName}`);
+    if (segment.isOtherCharges) {
+      parts.push(isRTL ? "رسوم أخرى" : "Other charges");
+    } else {
+      const from = isRTL ? "من" : "From";
+      const to = isRTL ? "إلى" : "To";
+      parts.push(
+        `${from} ${formatSegmentDate(segment.periodStart)} ${to} ${formatSegmentDate(segment.periodEnd)} (${segment.days}d)`,
+      );
+    }
+    return parts.filter(Boolean);
+  }
+
+  const typeLabel = t(`finance.ledger.entryTypes.${entry.entry_type}`);
+
+  // Payment ledger row.
+  if (entry.entry_type === "payment") {
+    parts.push(typeLabel);
+    const domainSrc = getPrimarySource(enriched);
+    if (domainSrc && domainSrc !== "general") {
+      parts.push(domainLabelText(domainSrc, t));
+    }
+    if (enriched?.paymentMethod) parts.push(enriched.paymentMethod);
+    if (enriched?.invoiceNumber) parts.push(enriched.invoiceNumber);
+    const horseFrag = horseFragmentText(enriched, t);
+    if (horseFrag) parts.push(horseFrag);
+    return parts.filter(Boolean);
+  }
+
+  // Invoice ledger row (non-segment view — segments render as their own rows).
+  if (entry.entry_type === "invoice") {
+    parts.push(typeLabel);
+    parts.push(domainLabelText(getPrimarySource(enriched), t));
+    if (enriched?.invoiceNumber) parts.push(enriched.invoiceNumber);
+    const horseFrag = horseFragmentText(enriched, t);
+    if (horseFrag) parts.push(horseFrag);
+    if (enriched?.itemsSummary) {
+      parts.push(`${t("clients.statement.itemsLabel")}: ${enriched.itemsSummary}`);
+    }
+    return parts.filter(Boolean);
+  }
+
+  // Credit / adjustment / other entry types. The semantic pill added by
+  // `printStatement` remains untouched and is not duplicated here.
+  parts.push(typeLabel);
+  if (entry.description) parts.push(entry.description);
+  return parts.filter(Boolean);
 }
 
 export function ClientStatementTab({ clientId, clientName }: ClientStatementTabProps) {
@@ -886,14 +953,13 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     );
   }
 
-  // Build print data with flat rows, scope context, and dual totals
+  // Build print data with flat rows, scope context, and dual totals.
+  // Screen ↔ PDF/Print/CSV parity: use the shared row-description builder so
+  // every export contains the same semantic fragments as the on-screen row.
   const printEnrichedDescriptions = new Map<string, string>();
-  flatRows.forEach(row => {
-    if (row.isSegment) {
-      printEnrichedDescriptions.set(row.key, segmentToString(row.segment, row.segment?.horseName, isRTL));
-    } else {
-      printEnrichedDescriptions.set(row.key, enrichedToString(row.entry, row.enriched, lang));
-    }
+  flatRows.forEach((row) => {
+    const desc = buildStatementRowDescription(row, { lang, isRTL, t }).join(" | ");
+    printEnrichedDescriptions.set(row.key, desc);
   });
 
   // Convert flat rows into print-compatible entries with scoped running balance
@@ -904,7 +970,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         // 2QA-A · Finding 2 — canonical effective date on every export row
         date: row.entry.date,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
-        description: segmentToString(row.segment, row.segment.horseName, isRTL),
+        description: printEnrichedDescriptions.get(row.key) || "",
         reference_type: row.entry.reference_type,
         reference_id: row.entry.reference_id,
         debit: row.segment.amount,
@@ -918,6 +984,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       balance: runningBalances.get(row.key) || 0,
     };
   });
+
 
   const printData = {
     clientName: clientName || clientId,
