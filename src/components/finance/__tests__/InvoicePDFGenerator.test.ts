@@ -99,7 +99,7 @@ describe("buildInvoicePdfFilename", () => {
   });
   it("sanitizes invalid filename characters", () => {
     const out = buildInvoicePdfFilename("en", 'INV/09*86:"x"');
-    expect(out).toBe("Invoice INV-09-86---x-.pdf");
+    expect(out).toBe("Invoice INV-09-86--x-.pdf");
     expect(out).not.toMatch(/[\/\\:*?"<>|]/);
   });
   it("normalizes whitespace", () => {
