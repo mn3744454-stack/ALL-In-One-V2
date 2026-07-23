@@ -3,6 +3,10 @@ import jsPDF from "jspdf";
 import DOMPurify from "dompurify";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
+import {
+  buildInvoicePresentation,
+  type RawInvoiceItemForPresentation,
+} from "@/lib/finance/invoicePresentation";
 
 interface GeneratePDFOptions {
   invoice: Invoice;
@@ -11,10 +15,40 @@ interface GeneratePDFOptions {
   tenantAddress?: string;
   tenantPhone?: string;
   tenantEmail?: string;
+  /** Optional 'en' | 'ar' — affects bilingual snapshot preference. */
+  lang?: string;
+  /** Label used for the Client-Level group header. Localized by caller. */
+  clientLevelLabel?: string;
+  /** Label used when a Horse group has no resolvable name. */
+  unassignedHorseLabel?: string;
+  /** Label used for the "Included" heading under Package children. */
+  includedLabel?: string;
+  /** Label used for the "Package" chip. */
+  packageChipLabel?: string;
 }
 
+const escapeHtml = (s: string) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const createInvoiceHTML = (options: GeneratePDFOptions): string => {
-  const { invoice, items, tenantName, tenantAddress, tenantPhone, tenantEmail } = options;
+  const {
+    invoice,
+    items,
+    tenantName,
+    tenantAddress,
+    tenantPhone,
+    tenantEmail,
+    lang,
+    clientLevelLabel = "Client-Level Charges",
+    unassignedHorseLabel = "Unassigned horse",
+    includedLabel = "Included",
+    packageChipLabel = "Package",
+  } = options;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -23,31 +57,58 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
     }).format(amount);
   };
 
-  const itemsRows = items
-    .map((item) => {
-      const raw = item as any;
-      const isPackage = !!raw.package_id;
-      const snap: any[] = Array.isArray(raw.package_services_snapshot) ? raw.package_services_snapshot : [];
+  const presentation = buildInvoicePresentation(
+    items as unknown as RawInvoiceItemForPresentation[],
+    { lang, clientLevelLabel },
+  );
+
+  const itemsRows = presentation.groups
+    .map((group) => {
+      const heading =
+        group.kind === "client_level"
+          ? clientLevelLabel
+          : group.horseName || unassignedHorseLabel;
       const headerRow = `
     <tr>
+      <td colspan="4" style="padding: 14px 8px 6px 8px; border-bottom: 2px solid #1e3a5f; background: #f9fafb; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a5f; font-weight: 700;">
+        ${escapeHtml(heading)}
+      </td>
+    </tr>`;
+      const itemRows = group.items
+        .map((item) => {
+          const parent = `
+    <tr>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">
-        ${isPackage ? '<span style="display:inline-block;background:#eef2ff;color:#3730a3;font-size:10px;padding:1px 6px;border-radius:4px;margin-right:6px;text-transform:uppercase;letter-spacing:0.5px;">Package</span>' : ''}
-        ${item.description}
+        ${item.isPackage ? `<span style="display:inline-block;background:#eef2ff;color:#3730a3;font-size:10px;padding:1px 6px;border-radius:4px;margin-right:6px;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(packageChipLabel)}</span>` : ''}
+        ${escapeHtml(item.description)}
+        ${item.serviceLabel ? `<div style="font-size:11px;color:#6b7280;margin-top:2px;">${escapeHtml(item.serviceLabel)}</div>` : ''}
       </td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.unit_price)}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.total_price)}</td>
     </tr>`;
-      const childRows = (isPackage && snap.length > 0)
-        ? snap.map((c: any) => `
+          const childRows =
+            item.isPackage && item.children.length > 0
+              ? `
     <tr>
-      <td style="padding: 6px 12px 6px 32px; border-bottom: 1px solid #f3f4f6; color:#6b7280; font-size:12px;">↳ ${c.name || c.name_ar || ''} × ${c.quantity ?? 1}</td>
+      <td colspan="4" style="padding: 4px 12px 4px 32px; color:#6b7280; font-size:11px; text-transform:uppercase; letter-spacing:0.4px;">${escapeHtml(includedLabel)}</td>
+    </tr>` +
+                item.children
+                  .map(
+                    (c) => `
+    <tr>
+      <td style="padding: 6px 12px 6px 32px; border-bottom: 1px solid #f3f4f6; color:#6b7280; font-size:12px;">↳ ${escapeHtml(c.name)} × ${c.quantity}</td>
       <td style="padding: 6px 12px; border-bottom: 1px solid #f3f4f6;"></td>
       <td style="padding: 6px 12px; border-bottom: 1px solid #f3f4f6;"></td>
       <td style="padding: 6px 12px; border-bottom: 1px solid #f3f4f6; text-align:right; color:#6b7280; font-size:12px;">${formatCurrency(0)}</td>
-    </tr>`).join("")
-        : "";
-      return headerRow + childRows;
+    </tr>`,
+                  )
+                  .join("")
+              : "";
+          return parent + childRows;
+        })
+        .join("");
+      return headerRow + itemRows;
     })
     .join("");
 
