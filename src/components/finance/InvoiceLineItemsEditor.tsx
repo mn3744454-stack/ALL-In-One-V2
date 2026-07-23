@@ -89,6 +89,11 @@ interface InvoiceLineItemsEditorProps {
   onQuickAddHorse?: () => void;
   canQuickAddHorse?: boolean;
   quickAddDisabledReason?: string;
+  /** Customer-scoped horse query state — forwarded to HorseLinePicker. */
+  isCustomerSelected?: boolean;
+  horsesLoading?: boolean;
+  horsesError?: boolean;
+  onRetryHorses?: () => void;
 }
 
 export function InvoiceLineItemsEditor({
