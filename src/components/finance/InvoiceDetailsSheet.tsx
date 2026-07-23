@@ -481,6 +481,11 @@ export function InvoiceDetailsSheet({
         invoice,
         items,
         tenantName: activeTenant?.tenant.name,
+        lang,
+        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
+        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+        includedLabel: t("finance.invoices.included"),
+        packageChipLabel: t("finance.invoices.packageSource"),
       });
       toast.success(t("finance.invoices.pdfDownloaded"));
     } catch (error) {
@@ -496,6 +501,11 @@ export function InvoiceDetailsSheet({
         invoice,
         items,
         tenantName: activeTenant?.tenant.name,
+        lang,
+        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
+        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+        includedLabel: t("finance.invoices.included"),
+        packageChipLabel: t("finance.invoices.packageSource"),
       });
     } catch (error) {
       console.error("Print error:", error);
