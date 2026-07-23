@@ -376,6 +376,10 @@ function SortableLineItemRow({
   onQuickAddHorse,
   canQuickAddHorse,
   quickAddDisabledReason,
+  isCustomerSelected,
+  horsesLoading,
+  horsesError,
+  onRetryHorses,
   expanded,
   onToggleExpanded,
   lang,
@@ -390,6 +394,10 @@ function SortableLineItemRow({
   onQuickAddHorse?: () => void;
   canQuickAddHorse?: boolean;
   quickAddDisabledReason?: string;
+  isCustomerSelected?: boolean;
+  horsesLoading?: boolean;
+  horsesError?: boolean;
+  onRetryHorses?: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
   lang: string;
