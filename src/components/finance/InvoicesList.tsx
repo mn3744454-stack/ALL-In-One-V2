@@ -145,16 +145,72 @@ export function InvoicesList({
     horseGroupLabel: t("finance.invoices.horseGroupLabel"),
   });
 
+  /**
+   * Phase N+1A refinement — load raw items and enrich with bilingual horse
+   * names so the PDF group headings match the on-screen drawer.
+   */
+  const loadEnrichedItems = async (invoice: Invoice): Promise<InvoiceItem[]> => {
+    const { data: itemsData } = await supabase
+      .from("invoice_items" as any)
+      .select("*")
+      .eq("invoice_id", invoice.id);
+    const rows = (itemsData as any[]) || [];
+    const platformIds = Array.from(
+      new Set(rows.map((i) => i.horse_id).filter((v): v is string => !!v)),
+    );
+    const labIds = Array.from(
+      new Set(rows.map((i) => i.lab_horse_id).filter((v): v is string => !!v)),
+    );
+    const nameMap: Record<string, { name: string; name_ar: string | null }> = {};
+    if (platformIds.length > 0) {
+      const { data } = await supabase
+        .from("horses" as any)
+        .select("id, name, name_ar")
+        .eq("tenant_id", (invoice as any).tenant_id)
+        .in("id", platformIds);
+      (data || []).forEach((h: any) => {
+        nameMap[h.id] = { name: h.name, name_ar: h.name_ar };
+      });
+    }
+    if (labIds.length > 0) {
+      const { data } = await supabase
+        .from("lab_horses" as any)
+        .select("id, name, name_ar")
+        .eq("tenant_id", (invoice as any).tenant_id)
+        .in("id", labIds);
+      (data || []).forEach((h: any) => {
+        nameMap[h.id] = { name: h.name, name_ar: h.name_ar };
+      });
+    }
+    return rows.map((item) => {
+      const rec = nameMap[item.horse_id] || nameMap[item.lab_horse_id] || null;
+      return {
+        ...item,
+        resolvedHorseName: rec
+          ? lang === "ar"
+            ? rec.name_ar || rec.name
+            : rec.name || rec.name_ar
+          : null,
+        resolvedHorseNameAr: rec?.name_ar || null,
+        resolvedHorseNameEn: rec?.name || null,
+        resolvedServiceName:
+          lang === "ar"
+            ? item.service_name_ar_snapshot || item.service_name_snapshot || null
+            : item.service_name_snapshot || item.service_name_ar_snapshot || null,
+        resolvedCategoryName:
+          lang === "ar"
+            ? item.category_name_ar_snapshot || item.category_name_snapshot || null
+            : item.category_name_snapshot || item.category_name_ar_snapshot || null,
+      };
+    }) as unknown as InvoiceItem[];
+  };
+
   const handleDownloadPDF = async (invoice: Invoice) => {
     try {
-      const { data: items } = await supabase
-        .from("invoice_items" as any)
-        .select("*")
-        .eq("invoice_id", invoice.id);
-
+      const items = await loadEnrichedItems(invoice);
       await downloadInvoicePDF({
         invoice,
-        items: (items as unknown as InvoiceItem[]) || [],
+        items,
         tenantName: activeTenant?.tenant.name,
         lang,
         labels: buildPdfLabels(),
@@ -169,14 +225,10 @@ export function InvoicesList({
 
   const handlePrint = async (invoice: Invoice) => {
     try {
-      const { data: items } = await supabase
-        .from("invoice_items" as any)
-        .select("*")
-        .eq("invoice_id", invoice.id);
-
+      const items = await loadEnrichedItems(invoice);
       await printInvoice({
         invoice,
-        items: (items as unknown as InvoiceItem[]) || [],
+        items,
         tenantName: activeTenant?.tenant.name,
         lang,
         labels: buildPdfLabels(),
