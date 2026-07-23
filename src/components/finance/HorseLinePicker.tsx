@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronsUpDown, Plus, Search, Check, X } from "lucide-react";
+import { ChevronsUpDown, Plus, Search, Check, X, Loader2, AlertCircle, UserPlus } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,11 @@ interface HorseLinePickerProps {
   onQuickAdd?: () => void;
   canQuickAdd?: boolean;
   quickAddDisabledReason?: string;
+  /** Truthful state signals from the customer-scoped horse query. */
+  isCustomerSelected?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
 /**
@@ -36,6 +41,7 @@ interface HorseLinePickerProps {
  * - "+ Add new horse" bridge — actual creation flow is owner-controlled
  *   (Label 1 wires it to the correct registry: lab_horses for Lab issuers,
  *   platform horses for Stable issuers).
+ * - Distinct visual states for: no customer, loading, error, empty, no match.
  */
 export function HorseLinePicker({
   horses,
@@ -44,6 +50,10 @@ export function HorseLinePicker({
   onQuickAdd,
   canQuickAdd = true,
   quickAddDisabledReason,
+  isCustomerSelected = true,
+  isLoading = false,
+  isError = false,
+  onRetry,
 }: HorseLinePickerProps) {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
