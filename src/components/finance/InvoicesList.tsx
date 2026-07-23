@@ -40,7 +40,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { usePermissions } from "@/hooks/usePermissions";
-import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
+import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoiceItems, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
