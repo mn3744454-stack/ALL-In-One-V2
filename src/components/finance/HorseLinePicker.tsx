@@ -173,7 +173,42 @@ export function HorseLinePicker({
                 )}
               </button>
 
-              {filtered.length === 0 ? (
+              {!isCustomerSelected ? (
+                <div className="flex flex-col items-center text-center py-6 gap-2">
+                  <UserPlus className="h-6 w-6 text-muted-foreground" aria-hidden />
+                  <p className="text-sm text-muted-foreground">
+                    {t("finance.invoices.selectCustomerFirst")}
+                  </p>
+                </div>
+              ) : isLoading ? (
+                <div className="flex flex-col items-center text-center py-6 gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden />
+                  <p className="text-sm text-muted-foreground">
+                    {t("finance.invoices.loadingHorses")}
+                  </p>
+                </div>
+              ) : isError ? (
+                <div className="flex flex-col items-center text-center py-6 gap-2">
+                  <AlertCircle className="h-6 w-6 text-destructive" aria-hidden />
+                  <p className="text-sm text-muted-foreground">
+                    {t("finance.invoices.unableToLoadHorses")}
+                  </p>
+                  {onRetry && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRetry()}
+                    >
+                      {t("finance.invoices.retry")}
+                    </Button>
+                  )}
+                </div>
+              ) : horses.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  {t("finance.invoices.noHorsesLinkedToCustomer")}
+                </p>
+              ) : filtered.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">
                   {t("finance.invoices.noHorsesFound")}
                 </p>
