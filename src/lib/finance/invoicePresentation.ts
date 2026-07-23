@@ -144,15 +144,19 @@ export function buildInvoicePresentation(
     let groupKey: string;
     let kind: PresentationGroupKind;
     let horseName: string | null;
+    let horseNameAr: string | null = null;
+    let horseNameEn: string | null = null;
 
-    if (raw.horse_id) {
-      groupKey = `horse:${raw.horse_id}`;
-      kind = "horse";
-      horseName = (raw.resolvedHorseName && raw.resolvedHorseName.trim()) || null;
-    } else if (raw.lab_horse_id) {
-      groupKey = `lab_horse:${raw.lab_horse_id}`;
-      kind = "lab_horse";
-      horseName = (raw.resolvedHorseName && raw.resolvedHorseName.trim()) || null;
+    if (raw.horse_id || raw.lab_horse_id) {
+      groupKey = raw.horse_id ? `horse:${raw.horse_id}` : `lab_horse:${raw.lab_horse_id}`;
+      kind = raw.horse_id ? "horse" : "lab_horse";
+      horseNameAr = (raw.resolvedHorseNameAr && raw.resolvedHorseNameAr.trim()) || null;
+      horseNameEn = (raw.resolvedHorseNameEn && raw.resolvedHorseNameEn.trim()) || null;
+      // Locale-picked fallback for legacy consumers.
+      horseName =
+        (raw.resolvedHorseName && raw.resolvedHorseName.trim()) ||
+        (lang === "ar" ? horseNameAr || horseNameEn : horseNameEn || horseNameAr) ||
+        null;
     } else {
       groupKey = CLIENT_LEVEL_KEY;
       kind = "client_level";
@@ -165,10 +169,17 @@ export function buildInvoicePresentation(
         key: groupKey,
         kind,
         horseName: kind === "client_level" ? null : horseName,
+        horseNameAr: kind === "client_level" ? null : horseNameAr,
+        horseNameEn: kind === "client_level" ? null : horseNameEn,
         items: [],
         itemsTotal: 0,
       };
       groupsByKey.set(groupKey, group);
+    } else if (kind !== "client_level") {
+      // Later item may carry a bilingual side that the first item was missing.
+      if (!group.horseNameAr && horseNameAr) group.horseNameAr = horseNameAr;
+      if (!group.horseNameEn && horseNameEn) group.horseNameEn = horseNameEn;
+      if (!group.horseName && horseName) group.horseName = horseName;
     }
 
     const isPackage = !!raw.package_id;
