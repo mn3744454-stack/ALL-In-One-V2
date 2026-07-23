@@ -493,7 +493,7 @@ function SortableLineItemRow({
       </div>
 
       <div className="grid grid-cols-12 gap-2 items-center">
-        {showAttribution && !item.entity_type && !isPackage ? (
+        {showAttribution && !item.entity_type ? (
           <>
             <div className="col-span-5">
               <HorseLinePicker
@@ -509,18 +509,20 @@ function SortableLineItemRow({
                 onRetry={onRetryHorses}
               />
             </div>
-            <div className="col-span-4">
-              <ServiceCategorySelect
-                value={item.category_id ?? null}
-                onChange={(id) => updateItem(item.id, "category_id", id)}
-                className="h-8 text-xs"
-              />
-            </div>
+            {isPackage ? (
+              <div className="col-span-4 text-xs text-muted-foreground truncate">
+                {t("finance.invoices.packageLineHint")}
+              </div>
+            ) : (
+              <div className="col-span-4">
+                <ServiceCategorySelect
+                  value={item.category_id ?? null}
+                  onChange={(id) => updateItem(item.id, "category_id", id)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            )}
           </>
-        ) : isPackage ? (
-          <div className="col-span-9 text-xs text-muted-foreground ps-6">
-            {t("finance.invoices.packageLineHint")}
-          </div>
         ) : (
           <div className="col-span-9" />
         )}
