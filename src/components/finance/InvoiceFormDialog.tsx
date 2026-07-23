@@ -202,7 +202,12 @@ export function InvoiceFormDialog({
   }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, catalogItems]);
 
 
-  const { data: customerHorses = [] } = useInvoiceCustomerHorses({
+  const {
+    data: customerHorses = [],
+    isFetching: customerHorsesFetching,
+    isError: customerHorsesError,
+    refetch: refetchCustomerHorses,
+  } = useInvoiceCustomerHorses({
     issuerTenantId,
     issuerTenantType,
     customerId: formData.client_id || null,
