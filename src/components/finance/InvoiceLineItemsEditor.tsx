@@ -503,6 +503,10 @@ function SortableLineItemRow({
                 onQuickAdd={onQuickAddHorse}
                 canQuickAdd={canQuickAddHorse}
                 quickAddDisabledReason={quickAddDisabledReason}
+                isCustomerSelected={isCustomerSelected}
+                isLoading={horsesLoading}
+                isError={horsesError}
+                onRetry={onRetryHorses}
               />
             </div>
             <div className="col-span-4">
