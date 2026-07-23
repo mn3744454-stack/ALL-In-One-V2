@@ -252,10 +252,13 @@ export function InvoiceDetailsSheet({
 
       // Enrich items with better labels + per-line horse/service/category context
       const enrichedItems = (itemsData || []).map((item: any) => {
-        const resolvedHorseName =
-          pickBilingual(item.horse_id ? horseNameMap[item.horse_id] : null) ||
-          pickBilingual(item.lab_horse_id ? horseNameMap[item.lab_horse_id] : null) ||
+        const horseRec =
+          (item.horse_id ? horseNameMap[item.horse_id] : null) ||
+          (item.lab_horse_id ? horseNameMap[item.lab_horse_id] : null) ||
           null;
+        const resolvedHorseName = pickBilingual(horseRec);
+        const resolvedHorseNameAr = horseRec?.name_ar || null;
+        const resolvedHorseNameEn = horseRec?.name || null;
         const resolvedServiceName = dir === "rtl"
           ? (item.service_name_ar_snapshot || item.service_name_snapshot || null)
           : (item.service_name_snapshot || item.service_name_ar_snapshot || null);
@@ -277,6 +280,8 @@ export function InvoiceDetailsSheet({
           ...item,
           enrichedDescription,
           resolvedHorseName,
+          resolvedHorseNameAr,
+          resolvedHorseNameEn,
           resolvedServiceName,
           resolvedCategoryName,
         };
