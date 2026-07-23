@@ -211,26 +211,70 @@ export function InvoiceDetailsSheet({
         }
       }
 
-      // Enrich items with better labels
+      // Batch-resolve per-line horse names from platform horses + lab_horses
+      // (tenant-scoped to the invoice issuer; RLS also enforces this).
+      const platformHorseIds = Array.from(new Set(
+        (itemsData || [])
+          .map((i: any) => i.horse_id)
+          .filter((v: any): v is string => !!v),
+      ));
+      const labHorseIds = Array.from(new Set(
+        (itemsData || [])
+          .map((i: any) => i.lab_horse_id)
+          .filter((v: any): v is string => !!v),
+      ));
+      const horseNameMap: Record<string, { name: string; name_ar: string | null }> = {};
+      if (platformHorseIds.length > 0) {
+        const { data: hs } = await supabase
+          .from("horses" as any)
+          .select("id, name, name_ar")
+          .eq("tenant_id", (invoiceData as any).tenant_id)
+          .in("id", platformHorseIds);
+        (hs || []).forEach((h: any) => { horseNameMap[h.id] = { name: h.name, name_ar: h.name_ar }; });
+      }
+      if (labHorseIds.length > 0) {
+        const { data: lhs } = await supabase
+          .from("lab_horses" as any)
+          .select("id, name, name_ar")
+          .eq("tenant_id", (invoiceData as any).tenant_id)
+          .in("id", labHorseIds);
+        (lhs || []).forEach((h: any) => { horseNameMap[h.id] = { name: h.name, name_ar: h.name_ar }; });
+      }
+      const pickBilingual = (n?: { name: string; name_ar: string | null } | null) => {
+        if (!n) return null;
+        return dir === "rtl" ? (n.name_ar || n.name) : (n.name || n.name_ar);
+      };
+
+      // Enrich items with better labels + per-line horse/service/category context
       const enrichedItems = (itemsData || []).map((item: any) => {
+        const resolvedHorseName =
+          pickBilingual(item.horse_id ? horseNameMap[item.horse_id] : null) ||
+          pickBilingual(item.lab_horse_id ? horseNameMap[item.lab_horse_id] : null) ||
+          null;
+        const resolvedServiceName = dir === "rtl"
+          ? (item.service_name_ar_snapshot || item.service_name_snapshot || null)
+          : (item.service_name_snapshot || item.service_name_ar_snapshot || null);
+        const resolvedCategoryName = dir === "rtl"
+          ? (item.category_name_ar_snapshot || item.category_name_snapshot || null)
+          : (item.category_name_snapshot || item.category_name_ar_snapshot || null);
+
+        let enrichedDescription = item.description;
         if (item.entity_type === 'lab_sample' && item.entity_id && sampleMap[item.entity_id]) {
           const sample = sampleMap[item.entity_id];
-          const label = sample.daily_number 
+          const label = sample.daily_number
             ? `#${sample.daily_number}`
             : sample.physical_sample_id?.slice(0, 12) || '';
-          return {
-            ...item,
-            enrichedDescription: label ? `${item.description} - ${label}` : item.description,
-          };
+          if (label) enrichedDescription = `${item.description} - ${label}`;
+        } else if (item.entity_id && stableEntityMap[item.entity_id]) {
+          enrichedDescription = `${item.description} — ${stableEntityMap[item.entity_id]}`;
         }
-        // Stable-origin enrichment
-        if (item.entity_id && stableEntityMap[item.entity_id]) {
-          return {
-            ...item,
-            enrichedDescription: `${item.description} — ${stableEntityMap[item.entity_id]}`,
-          };
-        }
-        return { ...item, enrichedDescription: item.description };
+        return {
+          ...item,
+          enrichedDescription,
+          resolvedHorseName,
+          resolvedServiceName,
+          resolvedCategoryName,
+        };
       });
 
       setItems(enrichedItems as unknown as InvoiceItem[]);
