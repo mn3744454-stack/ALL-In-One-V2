@@ -124,6 +124,27 @@ export function InvoicesList({
     }
   };
 
+  const buildPdfLabels = (): InvoicePDFLabels => ({
+    invoice: t("finance.invoices.pdfInvoiceTitle"),
+    billTo: t("finance.invoices.pdfBillTo"),
+    issueDate: t("finance.invoices.issueDate"),
+    dueDate: t("finance.invoices.dueDate"),
+    description: t("finance.invoices.description"),
+    quantity: t("finance.invoices.quantity"),
+    unitPrice: t("finance.invoices.unitPrice"),
+    total: t("finance.invoices.total"),
+    subtotal: t("finance.invoices.subtotal"),
+    tax: t("finance.invoices.tax"),
+    discount: t("finance.invoices.discount"),
+    notes: t("finance.invoices.notes"),
+    thankYou: t("finance.invoices.pdfThankYou"),
+    clientLevelCharges: t("finance.invoices.clientLevelCharges"),
+    unassignedHorse: t("finance.invoices.unassignedHorse"),
+    included: t("finance.invoices.included"),
+    packageChip: t("finance.invoices.packageSource"),
+    horseGroupLabel: t("finance.invoices.horseGroupLabel"),
+  });
+
   const handleDownloadPDF = async (invoice: Invoice) => {
     try {
       const { data: items } = await supabase
@@ -136,10 +157,7 @@ export function InvoicesList({
         items: (items as unknown as InvoiceItem[]) || [],
         tenantName: activeTenant?.tenant.name,
         lang,
-        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
-        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
-        includedLabel: t("finance.invoices.included"),
-        packageChipLabel: t("finance.invoices.packageSource"),
+        labels: buildPdfLabels(),
       });
 
       toast.success(t("finance.invoices.pdfDownloaded"));
@@ -161,10 +179,7 @@ export function InvoicesList({
         items: (items as unknown as InvoiceItem[]) || [],
         tenantName: activeTenant?.tenant.name,
         lang,
-        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
-        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
-        includedLabel: t("finance.invoices.included"),
-        packageChipLabel: t("finance.invoices.packageSource"),
+        labels: buildPdfLabels(),
       });
     } catch (error) {
       console.error("Print error:", error);
