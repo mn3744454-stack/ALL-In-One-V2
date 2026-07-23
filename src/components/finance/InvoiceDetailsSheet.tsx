@@ -40,10 +40,11 @@ import {
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
-import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
+import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import {
   buildInvoicePresentation,
+  formatHorseHeadingParts,
   type RawInvoiceItemForPresentation,
 } from "@/lib/finance/invoicePresentation";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
