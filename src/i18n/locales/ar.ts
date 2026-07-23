@@ -3945,6 +3945,13 @@ export const ar = {
       cannotDeleteApproved: "لا يمكن حذف فاتورة معتمدة. استخدم الإلغاء بدلاً من ذلك.",
       horse: "الحصان",
       sample: "العينة",
+      service: "الخدمة",
+      category: "التصنيف",
+      selectCustomerFirst: "اختر العميل أولاً لعرض الخيل المرتبطة به",
+      noHorsesLinkedToCustomer: "لا توجد خيل مرتبطة بهذا العميل",
+      loadingHorses: "جاري تحميل الخيل…",
+      unableToLoadHorses: "تعذر تحميل الخيل",
+      retry: "إعادة المحاولة",
       missing: {
         client: "اختر عميلاً",
         issueDate: "أدخل تاريخ الإصدار",

@@ -202,7 +202,12 @@ export function InvoiceFormDialog({
   }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, catalogItems]);
 
 
-  const { data: customerHorses = [] } = useInvoiceCustomerHorses({
+  const {
+    data: customerHorses = [],
+    isFetching: customerHorsesFetching,
+    isError: customerHorsesError,
+    refetch: refetchCustomerHorses,
+  } = useInvoiceCustomerHorses({
     issuerTenantId,
     issuerTenantType,
     customerId: formData.client_id || null,
@@ -410,6 +415,10 @@ export function InvoiceFormDialog({
                 onQuickAddHorse={canWriteHorse ? () => setQuickAddOpen(true) : undefined}
                 canQuickAddHorse={!!formData.client_id}
                 quickAddDisabledReason={t("finance.invoices.selectCustomerFirst")}
+                isCustomerSelected={!!formData.client_id}
+                horsesLoading={!!formData.client_id && customerHorsesFetching}
+                horsesError={customerHorsesError}
+                onRetryHorses={() => refetchCustomerHorses()}
               />
             </div>
 

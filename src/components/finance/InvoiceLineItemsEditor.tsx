@@ -89,6 +89,11 @@ interface InvoiceLineItemsEditorProps {
   onQuickAddHorse?: () => void;
   canQuickAddHorse?: boolean;
   quickAddDisabledReason?: string;
+  /** Customer-scoped horse query state — forwarded to HorseLinePicker. */
+  isCustomerSelected?: boolean;
+  horsesLoading?: boolean;
+  horsesError?: boolean;
+  onRetryHorses?: () => void;
 }
 
 export function InvoiceLineItemsEditor({
@@ -103,6 +108,10 @@ export function InvoiceLineItemsEditor({
   onQuickAddHorse,
   canQuickAddHorse = true,
   quickAddDisabledReason,
+  isCustomerSelected = true,
+  horsesLoading = false,
+  horsesError = false,
+  onRetryHorses,
 }: InvoiceLineItemsEditorProps) {
   const { t, lang } = useI18n();
 
@@ -280,6 +289,10 @@ export function InvoiceLineItemsEditor({
                   onQuickAddHorse={onQuickAddHorse}
                   canQuickAddHorse={canQuickAddHorse}
                   quickAddDisabledReason={quickAddDisabledReason}
+                  isCustomerSelected={isCustomerSelected}
+                  horsesLoading={horsesLoading}
+                  horsesError={horsesError}
+                  onRetryHorses={onRetryHorses}
                   expanded={!!expanded[item.id]}
                   onToggleExpanded={() => toggleExpanded(item.id)}
                   lang={lang}
@@ -363,6 +376,10 @@ function SortableLineItemRow({
   onQuickAddHorse,
   canQuickAddHorse,
   quickAddDisabledReason,
+  isCustomerSelected,
+  horsesLoading,
+  horsesError,
+  onRetryHorses,
   expanded,
   onToggleExpanded,
   lang,
@@ -377,6 +394,10 @@ function SortableLineItemRow({
   onQuickAddHorse?: () => void;
   canQuickAddHorse?: boolean;
   quickAddDisabledReason?: string;
+  isCustomerSelected?: boolean;
+  horsesLoading?: boolean;
+  horsesError?: boolean;
+  onRetryHorses?: () => void;
   expanded: boolean;
   onToggleExpanded: () => void;
   lang: string;
@@ -482,6 +503,10 @@ function SortableLineItemRow({
                 onQuickAdd={onQuickAddHorse}
                 canQuickAdd={canQuickAddHorse}
                 quickAddDisabledReason={quickAddDisabledReason}
+                isCustomerSelected={isCustomerSelected}
+                isLoading={horsesLoading}
+                isError={horsesError}
+                onRetry={onRetryHorses}
               />
             </div>
             <div className="col-span-4">

@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronsUpDown, Plus, Search, Check, X } from "lucide-react";
+import { ChevronsUpDown, Plus, Search, Check, X, Loader2, AlertCircle, UserPlus } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,11 @@ interface HorseLinePickerProps {
   onQuickAdd?: () => void;
   canQuickAdd?: boolean;
   quickAddDisabledReason?: string;
+  /** Truthful state signals from the customer-scoped horse query. */
+  isCustomerSelected?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
 /**
@@ -36,6 +41,7 @@ interface HorseLinePickerProps {
  * - "+ Add new horse" bridge — actual creation flow is owner-controlled
  *   (Label 1 wires it to the correct registry: lab_horses for Lab issuers,
  *   platform horses for Stable issuers).
+ * - Distinct visual states for: no customer, loading, error, empty, no match.
  */
 export function HorseLinePicker({
   horses,
@@ -44,6 +50,10 @@ export function HorseLinePicker({
   onQuickAdd,
   canQuickAdd = true,
   quickAddDisabledReason,
+  isCustomerSelected = true,
+  isLoading = false,
+  isError = false,
+  onRetry,
 }: HorseLinePickerProps) {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
@@ -163,7 +173,42 @@ export function HorseLinePicker({
                 )}
               </button>
 
-              {filtered.length === 0 ? (
+              {!isCustomerSelected ? (
+                <div className="flex flex-col items-center text-center py-6 gap-2">
+                  <UserPlus className="h-6 w-6 text-muted-foreground" aria-hidden />
+                  <p className="text-sm text-muted-foreground">
+                    {t("finance.invoices.selectCustomerFirst")}
+                  </p>
+                </div>
+              ) : isLoading ? (
+                <div className="flex flex-col items-center text-center py-6 gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden />
+                  <p className="text-sm text-muted-foreground">
+                    {t("finance.invoices.loadingHorses")}
+                  </p>
+                </div>
+              ) : isError ? (
+                <div className="flex flex-col items-center text-center py-6 gap-2">
+                  <AlertCircle className="h-6 w-6 text-destructive" aria-hidden />
+                  <p className="text-sm text-muted-foreground">
+                    {t("finance.invoices.unableToLoadHorses")}
+                  </p>
+                  {onRetry && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRetry()}
+                    >
+                      {t("finance.invoices.retry")}
+                    </Button>
+                  )}
+                </div>
+              ) : horses.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  {t("finance.invoices.noHorsesLinkedToCustomer")}
+                </p>
+              ) : filtered.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">
                   {t("finance.invoices.noHorsesFound")}
                 </p>

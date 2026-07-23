@@ -3927,6 +3927,13 @@ export const en = {
       cannotDeleteApproved: "Cannot delete an approved invoice. Use Cancel instead.",
       horse: "Horse",
       sample: "Sample",
+      service: "Service",
+      category: "Category",
+      selectCustomerFirst: "Select a customer first to view linked horses",
+      noHorsesLinkedToCustomer: "No horses are linked to this customer",
+      loadingHorses: "Loading horses…",
+      unableToLoadHorses: "Unable to load horses",
+      retry: "Retry",
       missing: {
         client: "Select a client",
         issueDate: "Enter an issue date",
