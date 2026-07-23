@@ -86,8 +86,12 @@ export interface PresentationGroup {
   /** Stable, unique key for the group. */
   key: string;
   kind: PresentationGroupKind;
-  /** Display name for Horse groups; null for Client-Level. */
+  /** Display name for Horse groups; null for Client-Level. Locale-picked. */
   horseName: string | null;
+  /** Phase N+1A refinement: bilingual name sides preserved so callers can
+   *  render `الخيل: فاتن (Fatin)` / `Horse: Fatin (فاتن)`. Null for Client-Level. */
+  horseNameAr: string | null;
+  horseNameEn: string | null;
   items: PresentationItem[];
   /** Sum of parent item.total_price. Children never contribute. */
   itemsTotal: number;
