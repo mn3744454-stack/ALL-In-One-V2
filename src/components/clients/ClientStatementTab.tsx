@@ -953,14 +953,13 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     );
   }
 
-  // Build print data with flat rows, scope context, and dual totals
+  // Build print data with flat rows, scope context, and dual totals.
+  // Screen ↔ PDF/Print/CSV parity: use the shared row-description builder so
+  // every export contains the same semantic fragments as the on-screen row.
   const printEnrichedDescriptions = new Map<string, string>();
-  flatRows.forEach(row => {
-    if (row.isSegment) {
-      printEnrichedDescriptions.set(row.key, segmentToString(row.segment, row.segment?.horseName, isRTL));
-    } else {
-      printEnrichedDescriptions.set(row.key, enrichedToString(row.entry, row.enriched, lang));
-    }
+  flatRows.forEach((row) => {
+    const desc = buildStatementRowDescription(row, { lang, isRTL, t }).join(" | ");
+    printEnrichedDescriptions.set(row.key, desc);
   });
 
   // Convert flat rows into print-compatible entries with scoped running balance
@@ -971,7 +970,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         // 2QA-A · Finding 2 — canonical effective date on every export row
         date: row.entry.date,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
-        description: segmentToString(row.segment, row.segment.horseName, isRTL),
+        description: printEnrichedDescriptions.get(row.key) || "",
         reference_type: row.entry.reference_type,
         reference_id: row.entry.reference_id,
         debit: row.segment.amount,
@@ -985,6 +984,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       balance: runningBalances.get(row.key) || 0,
     };
   });
+
 
   const printData = {
     clientName: clientName || clientId,
