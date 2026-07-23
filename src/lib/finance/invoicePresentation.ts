@@ -43,6 +43,10 @@ export interface RawInvoiceItemForPresentation {
   category_name_ar_snapshot?: string | null;
 
   resolvedHorseName?: string | null;
+  /** Phase N+1A refinement: bilingual identity kept separately so the presenter
+   *  can render `الخيل: فاتن (Fatin)` / `Horse: Fatin (فاتن)`. */
+  resolvedHorseNameAr?: string | null;
+  resolvedHorseNameEn?: string | null;
   resolvedServiceName?: string | null;
   resolvedCategoryName?: string | null;
 
@@ -82,8 +86,12 @@ export interface PresentationGroup {
   /** Stable, unique key for the group. */
   key: string;
   kind: PresentationGroupKind;
-  /** Display name for Horse groups; null for Client-Level. */
+  /** Display name for Horse groups; null for Client-Level. Locale-picked. */
   horseName: string | null;
+  /** Phase N+1A refinement: bilingual name sides preserved so callers can
+   *  render `الخيل: فاتن (Fatin)` / `Horse: Fatin (فاتن)`. Null for Client-Level. */
+  horseNameAr: string | null;
+  horseNameEn: string | null;
   items: PresentationItem[];
   /** Sum of parent item.total_price. Children never contribute. */
   itemsTotal: number;
@@ -136,15 +144,19 @@ export function buildInvoicePresentation(
     let groupKey: string;
     let kind: PresentationGroupKind;
     let horseName: string | null;
+    let horseNameAr: string | null = null;
+    let horseNameEn: string | null = null;
 
-    if (raw.horse_id) {
-      groupKey = `horse:${raw.horse_id}`;
-      kind = "horse";
-      horseName = (raw.resolvedHorseName && raw.resolvedHorseName.trim()) || null;
-    } else if (raw.lab_horse_id) {
-      groupKey = `lab_horse:${raw.lab_horse_id}`;
-      kind = "lab_horse";
-      horseName = (raw.resolvedHorseName && raw.resolvedHorseName.trim()) || null;
+    if (raw.horse_id || raw.lab_horse_id) {
+      groupKey = raw.horse_id ? `horse:${raw.horse_id}` : `lab_horse:${raw.lab_horse_id}`;
+      kind = raw.horse_id ? "horse" : "lab_horse";
+      horseNameAr = (raw.resolvedHorseNameAr && raw.resolvedHorseNameAr.trim()) || null;
+      horseNameEn = (raw.resolvedHorseNameEn && raw.resolvedHorseNameEn.trim()) || null;
+      // Locale-picked fallback for legacy consumers.
+      horseName =
+        (raw.resolvedHorseName && raw.resolvedHorseName.trim()) ||
+        (lang === "ar" ? horseNameAr || horseNameEn : horseNameEn || horseNameAr) ||
+        null;
     } else {
       groupKey = CLIENT_LEVEL_KEY;
       kind = "client_level";
@@ -157,10 +169,17 @@ export function buildInvoicePresentation(
         key: groupKey,
         kind,
         horseName: kind === "client_level" ? null : horseName,
+        horseNameAr: kind === "client_level" ? null : horseNameAr,
+        horseNameEn: kind === "client_level" ? null : horseNameEn,
         items: [],
         itemsTotal: 0,
       };
       groupsByKey.set(groupKey, group);
+    } else if (kind !== "client_level") {
+      // Later item may carry a bilingual side that the first item was missing.
+      if (!group.horseNameAr && horseNameAr) group.horseNameAr = horseNameAr;
+      if (!group.horseNameEn && horseNameEn) group.horseNameEn = horseNameEn;
+      if (!group.horseName && horseName) group.horseName = horseName;
     }
 
     const isPackage = !!raw.package_id;
@@ -262,3 +281,44 @@ export function invoiceItemsMatchHorseSelection(
   }
   return false;
 }
+
+/**
+ * Phase N+1A refinement — pure bilingual heading formatter shared by Screen
+ * and PDF/Print. Produces:
+ *   - AR both:     `<groupLabel>: فاتن (Fatin)`
+ *   - EN both:     `<groupLabel>: Fatin (فاتن)`
+ *   - single side: `<groupLabel>: <name>`
+ *   - identical (post-normalize) sides: `<groupLabel>: <name>` once.
+ *   - none:        `<groupLabel>: <unassignedFallback>` (parenthesis-free).
+ *
+ * Returns primary + optional secondary + optional shared label prefix. Callers
+ * decide how to render (mute the secondary, escape for HTML, etc.).
+ */
+export interface HorseHeadingParts {
+  /** Localized `الخيل` / `Horse` label (colon appended by caller if desired). */
+  label: string;
+  /** Primary-language name. Never empty. */
+  primary: string;
+  /** Secondary-language name. Null when only one side exists or sides collide. */
+  secondary: string | null;
+}
+
+export function formatHorseHeadingParts(
+  group: Pick<PresentationGroup, "horseNameAr" | "horseNameEn" | "horseName">,
+  lang: string | undefined,
+  labels: { horseGroupLabel: string; unassignedHorseLabel: string },
+): HorseHeadingParts {
+  const isAr = lang === "ar";
+  const ar = (group.horseNameAr ?? "").trim();
+  const en = (group.horseNameEn ?? "").trim();
+  const fallback = (group.horseName ?? "").trim();
+  const primaryRaw = isAr ? ar || en || fallback : en || ar || fallback;
+  const secondaryRaw = isAr ? en : ar;
+  const primary = primaryRaw || labels.unassignedHorseLabel;
+  const secondary =
+    primaryRaw && secondaryRaw && normalize(secondaryRaw) !== normalize(primaryRaw)
+      ? secondaryRaw
+      : null;
+  return { label: labels.horseGroupLabel, primary, secondary };
+}
+

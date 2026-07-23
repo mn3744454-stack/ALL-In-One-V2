@@ -40,10 +40,11 @@ import {
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
-import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
+import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import {
   buildInvoicePresentation,
+  formatHorseHeadingParts,
   type RawInvoiceItemForPresentation,
 } from "@/lib/finance/invoicePresentation";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
@@ -251,10 +252,13 @@ export function InvoiceDetailsSheet({
 
       // Enrich items with better labels + per-line horse/service/category context
       const enrichedItems = (itemsData || []).map((item: any) => {
-        const resolvedHorseName =
-          pickBilingual(item.horse_id ? horseNameMap[item.horse_id] : null) ||
-          pickBilingual(item.lab_horse_id ? horseNameMap[item.lab_horse_id] : null) ||
+        const horseRec =
+          (item.horse_id ? horseNameMap[item.horse_id] : null) ||
+          (item.lab_horse_id ? horseNameMap[item.lab_horse_id] : null) ||
           null;
+        const resolvedHorseName = pickBilingual(horseRec);
+        const resolvedHorseNameAr = horseRec?.name_ar || null;
+        const resolvedHorseNameEn = horseRec?.name || null;
         const resolvedServiceName = dir === "rtl"
           ? (item.service_name_ar_snapshot || item.service_name_snapshot || null)
           : (item.service_name_snapshot || item.service_name_ar_snapshot || null);
@@ -276,6 +280,8 @@ export function InvoiceDetailsSheet({
           ...item,
           enrichedDescription,
           resolvedHorseName,
+          resolvedHorseNameAr,
+          resolvedHorseNameEn,
           resolvedServiceName,
           resolvedCategoryName,
         };
@@ -474,6 +480,27 @@ export function InvoiceDetailsSheet({
     }
   };
 
+  const buildPdfLabels = (): InvoicePDFLabels => ({
+    invoice: t("finance.invoices.pdfInvoiceTitle"),
+    billTo: t("finance.invoices.pdfBillTo"),
+    issueDate: t("finance.invoices.issueDate"),
+    dueDate: t("finance.invoices.dueDate"),
+    description: t("finance.invoices.description"),
+    quantity: t("finance.invoices.quantity"),
+    unitPrice: t("finance.invoices.unitPrice"),
+    total: t("finance.invoices.total"),
+    subtotal: t("finance.invoices.subtotal"),
+    tax: t("finance.invoices.tax"),
+    discount: t("finance.invoices.discount"),
+    notes: t("finance.invoices.notes"),
+    thankYou: t("finance.invoices.pdfThankYou"),
+    clientLevelCharges: t("finance.invoices.clientLevelCharges"),
+    unassignedHorse: t("finance.invoices.unassignedHorse"),
+    included: t("finance.invoices.included"),
+    packageChip: t("finance.invoices.packageSource"),
+    horseGroupLabel: t("finance.invoices.horseGroupLabel"),
+  });
+
   const handleDownloadPDF = async () => {
     if (!invoice) return;
     try {
@@ -482,10 +509,7 @@ export function InvoiceDetailsSheet({
         items,
         tenantName: activeTenant?.tenant.name,
         lang,
-        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
-        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
-        includedLabel: t("finance.invoices.included"),
-        packageChipLabel: t("finance.invoices.packageSource"),
+        labels: buildPdfLabels(),
       });
       toast.success(t("finance.invoices.pdfDownloaded"));
     } catch (error) {
@@ -502,10 +526,7 @@ export function InvoiceDetailsSheet({
         items,
         tenantName: activeTenant?.tenant.name,
         lang,
-        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
-        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
-        includedLabel: t("finance.invoices.included"),
-        packageChipLabel: t("finance.invoices.packageSource"),
+        labels: buildPdfLabels(),
       });
     } catch (error) {
       console.error("Print error:", error);
@@ -780,15 +801,42 @@ export function InvoiceDetailsSheet({
                   <div className="space-y-4">
                     {presentation.groups.map((group) => {
                       const isClientLevel = group.kind === "client_level";
-                      const heading = isClientLevel
-                        ? t("finance.invoices.clientLevelCharges")
-                        : group.horseName || t("finance.invoices.unassignedHorse");
+                      const headingParts = !isClientLevel
+                        ? formatHorseHeadingParts(group, lang, {
+                            horseGroupLabel: t("finance.invoices.horseGroupLabel"),
+                            unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+                          })
+                        : null;
                       return (
-                        <div key={group.key} className="space-y-2">
+                        <div
+                          key={group.key}
+                          className={cn(
+                            "space-y-2 rounded-xl border p-3",
+                            isClientLevel
+                              ? "border-dashed border-muted-foreground/30 bg-muted/20"
+                              : "border-border/70 bg-muted/30",
+                          )}
+                        >
                           <div className="flex items-center justify-between gap-2 px-1">
-                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide">
                               {!isClientLevel && <span aria-hidden>🐴</span>}
-                              <span className="text-foreground/80">{heading}</span>
+                              {isClientLevel ? (
+                                <span className="text-muted-foreground">
+                                  {t("finance.invoices.clientLevelCharges")}
+                                </span>
+                              ) : (
+                                <span className="text-foreground/90 normal-case tracking-normal">
+                                  <span className="text-muted-foreground me-1">
+                                    {headingParts!.label}:
+                                  </span>
+                                  <span className="font-semibold">{headingParts!.primary}</span>
+                                  {headingParts!.secondary && (
+                                    <span className="ms-1.5 text-[11px] font-normal text-muted-foreground">
+                                      ({headingParts!.secondary})
+                                    </span>
+                                  )}
+                                </span>
+                              )}
                             </div>
                             <span className="font-mono tabular-nums text-[11px] text-muted-foreground" dir="ltr">
                               {formatAmount(group.itemsTotal)}
