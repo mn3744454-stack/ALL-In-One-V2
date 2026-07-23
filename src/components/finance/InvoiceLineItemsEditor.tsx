@@ -108,6 +108,10 @@ export function InvoiceLineItemsEditor({
   onQuickAddHorse,
   canQuickAddHorse = true,
   quickAddDisabledReason,
+  isCustomerSelected = true,
+  horsesLoading = false,
+  horsesError = false,
+  onRetryHorses,
 }: InvoiceLineItemsEditorProps) {
   const { t, lang } = useI18n();
 
