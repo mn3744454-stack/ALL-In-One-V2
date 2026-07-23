@@ -42,6 +42,10 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 import { formatCurrency, formatDate } from "@/lib/formatters";
+import {
+  buildInvoicePresentation,
+  type RawInvoiceItemForPresentation,
+} from "@/lib/finance/invoicePresentation";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -83,7 +87,7 @@ export function InvoiceDetailsSheet({
   invoiceId,
   onEdit,
 }: InvoiceDetailsSheetProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const { hasPermission } = usePermissions();
   const queryClient = useQueryClient();
@@ -477,6 +481,11 @@ export function InvoiceDetailsSheet({
         invoice,
         items,
         tenantName: activeTenant?.tenant.name,
+        lang,
+        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
+        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+        includedLabel: t("finance.invoices.included"),
+        packageChipLabel: t("finance.invoices.packageSource"),
       });
       toast.success(t("finance.invoices.pdfDownloaded"));
     } catch (error) {
@@ -492,6 +501,11 @@ export function InvoiceDetailsSheet({
         invoice,
         items,
         tenantName: activeTenant?.tenant.name,
+        lang,
+        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
+        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+        includedLabel: t("finance.invoices.included"),
+        packageChipLabel: t("finance.invoices.packageSource"),
       });
     } catch (error) {
       console.error("Print error:", error);
@@ -754,78 +768,121 @@ export function InvoiceDetailsSheet({
                 <p className="text-sm text-muted-foreground text-center py-4">
                   {t("finance.invoices.items")} (0)
                 </p>
-              ) : (
-                <div className="space-y-2">
-                  {items.map((item: any) => {
-                    const isPackage = !!item.package_id;
-                    const snap: any[] = Array.isArray(item.package_services_snapshot)
-                      ? item.package_services_snapshot
-                      : [];
-                    return (
-                      <Card key={item.id} className={isPackage ? "border-primary/40 bg-primary/[0.02]" : undefined}>
-                        <CardContent className="p-3">
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium break-words">
-                                {isPackage && (
-                                  <span className="inline-flex items-center rounded bg-primary/15 text-primary text-[10px] px-1.5 py-0.5 me-1.5 uppercase tracking-wide">
-                                    {t("finance.invoices.packageSource")}
-                                  </span>
-                                )}
-                                {item.enrichedDescription || item.description}
-                              </p>
-                              <p className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
-                                {item.quantity} × {formatAmount(item.unit_price)}
-                              </p>
-                              {(item.resolvedHorseName || item.resolvedServiceName || item.resolvedCategoryName) && (
-                                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                                  {item.resolvedHorseName && (
-                                    <span className="inline-flex items-center gap-1">
-                                      <span aria-hidden>🐴</span>
-                                      <span className="font-medium text-foreground/80">{item.resolvedHorseName}</span>
-                                    </span>
-                                  )}
-                                  {item.resolvedServiceName && (
-                                    <span className="inline-flex items-center gap-1">
-                                      <span className="opacity-70">{t("finance.invoices.service")}:</span>
-                                      <span className="text-foreground/80">{item.resolvedServiceName}</span>
-                                    </span>
-                                  )}
-                                  {item.resolvedCategoryName && (
-                                    <span className="inline-flex items-center gap-1">
-                                      <span className="opacity-70">{t("finance.invoices.category")}:</span>
-                                      <span className="text-foreground/80">{item.resolvedCategoryName}</span>
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+              ) : (() => {
+                const presentation = buildInvoicePresentation(
+                  items as unknown as RawInvoiceItemForPresentation[],
+                  {
+                    lang,
+                    clientLevelLabel: t("finance.invoices.clientLevelCharges"),
+                  },
+                );
+                return (
+                  <div className="space-y-4">
+                    {presentation.groups.map((group) => {
+                      const isClientLevel = group.kind === "client_level";
+                      const heading = isClientLevel
+                        ? t("finance.invoices.clientLevelCharges")
+                        : group.horseName || t("finance.invoices.unassignedHorse");
+                      return (
+                        <div key={group.key} className="space-y-2">
+                          <div className="flex items-center justify-between gap-2 px-1">
+                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                              {!isClientLevel && <span aria-hidden>🐴</span>}
+                              <span className="text-foreground/80">{heading}</span>
                             </div>
-                            <p className="font-mono text-sm font-medium tabular-nums shrink-0" dir="ltr">
-                              {formatAmount(item.total_price)}
-                            </p>
+                            <span className="font-mono tabular-nums text-[11px] text-muted-foreground" dir="ltr">
+                              {formatAmount(group.itemsTotal)}
+                            </span>
                           </div>
-                          {isPackage && snap.length > 0 && (
-                            <div className="mt-2 ms-2 border-s ps-3 space-y-1">
-                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                                {t("finance.invoices.includedServices")}
-                              </div>
-                              {snap.map((child: any, idx: number) => (
-                                <div key={idx} className="flex items-center justify-between text-xs text-muted-foreground">
-                                  <span className="truncate flex-1 min-w-0">
-                                    {child.name || child.name_ar}
-                                    <span className="opacity-70"> × {child.quantity ?? 1}</span>
-                                  </span>
-                                  <span className="font-mono tabular-nums shrink-0" dir="ltr">0.00</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+                          <div className="space-y-2">
+                            {group.items.map((item) => (
+                              <Card
+                                key={item.id}
+                                className={item.isPackage ? "border-primary/40 bg-primary/[0.02]" : undefined}
+                              >
+                                <CardContent className="p-3">
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium break-words">
+                                        {item.isPackage && (
+                                          <span className="inline-flex items-center rounded bg-primary/15 text-primary text-[10px] px-1.5 py-0.5 me-1.5 uppercase tracking-wide">
+                                            {t("finance.invoices.packageSource")}
+                                          </span>
+                                        )}
+                                        {item.description}
+                                      </p>
+                                      <p
+                                        className="text-xs text-muted-foreground font-mono tabular-nums"
+                                        dir="ltr"
+                                      >
+                                        {item.quantity} × {formatAmount(item.unit_price)}
+                                      </p>
+                                      {(item.serviceLabel || item.categoryLabel) && (
+                                        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                                          {item.serviceLabel && (
+                                            <span className="inline-flex items-center gap-1">
+                                              <span className="opacity-70">
+                                                {t("finance.invoices.service")}:
+                                              </span>
+                                              <span className="text-foreground/80">
+                                                {item.serviceLabel}
+                                              </span>
+                                            </span>
+                                          )}
+                                          {item.categoryLabel && (
+                                            <span className="inline-flex items-center gap-1">
+                                              <span className="opacity-70">
+                                                {t("finance.invoices.category")}:
+                                              </span>
+                                              <span className="text-foreground/80">
+                                                {item.categoryLabel}
+                                              </span>
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <p
+                                      className="font-mono text-sm font-medium tabular-nums shrink-0"
+                                      dir="ltr"
+                                    >
+                                      {formatAmount(item.total_price)}
+                                    </p>
+                                  </div>
+                                  {item.isPackage && item.children.length > 0 && (
+                                    <div className="mt-2 ms-2 border-s ps-3 space-y-1">
+                                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                        {t("finance.invoices.includedServices")}
+                                      </div>
+                                      {item.children.map((child) => (
+                                        <div
+                                          key={child.key}
+                                          className="flex items-center justify-between text-xs text-muted-foreground"
+                                        >
+                                          <span className="truncate flex-1 min-w-0">
+                                            {child.name}
+                                            <span className="opacity-70"> × {child.quantity}</span>
+                                          </span>
+                                          <span
+                                            className="font-mono tabular-nums shrink-0"
+                                            dir="ltr"
+                                          >
+                                            0.00
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
 
             <Separator />

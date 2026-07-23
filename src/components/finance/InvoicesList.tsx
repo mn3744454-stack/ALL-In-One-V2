@@ -83,7 +83,7 @@ export function InvoicesList({
   onInvoiceClick,
   selectedInvoiceId,
 }: InvoicesListProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
@@ -135,6 +135,11 @@ export function InvoicesList({
         invoice,
         items: (items as unknown as InvoiceItem[]) || [],
         tenantName: activeTenant?.tenant.name,
+        lang,
+        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
+        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+        includedLabel: t("finance.invoices.included"),
+        packageChipLabel: t("finance.invoices.packageSource"),
       });
 
       toast.success(t("finance.invoices.pdfDownloaded"));
@@ -155,6 +160,11 @@ export function InvoicesList({
         invoice,
         items: (items as unknown as InvoiceItem[]) || [],
         tenantName: activeTenant?.tenant.name,
+        lang,
+        clientLevelLabel: t("finance.invoices.clientLevelCharges"),
+        unassignedHorseLabel: t("finance.invoices.unassignedHorse"),
+        includedLabel: t("finance.invoices.included"),
+        packageChipLabel: t("finance.invoices.packageSource"),
       });
     } catch (error) {
       console.error("Print error:", error);
