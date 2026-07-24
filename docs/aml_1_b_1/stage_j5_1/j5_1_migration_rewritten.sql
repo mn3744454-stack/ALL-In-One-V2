@@ -1168,7 +1168,7 @@ DECLARE
   v_tenant uuid; v_actor uuid; v_client_id uuid;
   v_lab_sample uuid;
   v_pos_session uuid; v_product uuid; v_pay_account uuid;
-  v_currency text; v_tax_rate numeric;
+  v_currency text; v_tax_rate numeric; v_perm_check text;
 
   --------------------- utility ---------------------
   v_key uuid; v_result jsonb; v_result2 jsonb;
@@ -1444,7 +1444,11 @@ BEGIN
     ------------------------------------------------------------------
     -- §F3. Tax reconciliation. Tenant tax_rate is authoritative.
     ------------------------------------------------------------------
-    SELECT COALESCE((SELECT tax_rate FROM public.tenants WHERE id = v_tenant), 15) INTO v_tax_rate;
+    -- Delta 1: canonical tenant tax column. No fallback rate.
+    SELECT default_tax_rate INTO v_tax_rate FROM public.tenants WHERE id = v_tenant;
+    IF v_tax_rate IS NULL THEN
+      RAISE EXCEPTION 'J5_1_VERIFY_TENANT_DEFAULT_TAX_RATE_NULL';
+    END IF;
 
     IF v_tax_rate = 15 THEN
       v_result := public.create_source_checkout_invoice(v_tenant, gen_random_uuid(),
