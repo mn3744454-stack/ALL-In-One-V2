@@ -49,3 +49,4 @@ Policies:
     POLICY "Active members can view products" FOR SELECT
       USING (is_active_tenant_member(auth.uid(), tenant_id))
 
+0
