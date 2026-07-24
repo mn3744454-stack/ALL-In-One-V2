@@ -965,7 +965,7 @@ BEGIN
     'currency',               COALESCE(v_inv_row.currency, 'SAR'),
     'status',                 v_final_status,
     'payment_method',         v_inv_row.payment_method,
-    'payment_received_at',    v_inv_row.payment_received_at,
+    
     'client_id',              v_client_id,
     'client_name',            v_client_name,
     'source_type',            v_source_type,
