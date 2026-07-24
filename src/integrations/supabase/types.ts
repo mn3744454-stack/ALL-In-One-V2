@@ -6368,9 +6368,9 @@ export type Database = {
           id: string
           invoice_id: string
           lab_horse_id: string | null
-          line_gross_amount: number | null
-          line_pretax_amount: number | null
-          line_tax_amount: number | null
+          line_gross_amount: number
+          line_pretax_amount: number
+          line_tax_amount: number
           package_currency_snapshot: string | null
           package_id: string | null
           package_name_ar_snapshot: string | null
@@ -6386,8 +6386,8 @@ export type Database = {
           service_name_ar_snapshot: string | null
           service_name_snapshot: string | null
           service_source: string
-          tax_rate_snapshot: number | null
-          taxable_snapshot: boolean | null
+          tax_rate_snapshot: number
+          taxable_snapshot: boolean
           total_price: number
           unit_price: number
         }
@@ -6405,9 +6405,9 @@ export type Database = {
           id?: string
           invoice_id: string
           lab_horse_id?: string | null
-          line_gross_amount?: number | null
-          line_pretax_amount?: number | null
-          line_tax_amount?: number | null
+          line_gross_amount: number
+          line_pretax_amount: number
+          line_tax_amount: number
           package_currency_snapshot?: string | null
           package_id?: string | null
           package_name_ar_snapshot?: string | null
@@ -6423,8 +6423,8 @@ export type Database = {
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
           service_source?: string
-          tax_rate_snapshot?: number | null
-          taxable_snapshot?: boolean | null
+          tax_rate_snapshot: number
+          taxable_snapshot: boolean
           total_price: number
           unit_price: number
         }
@@ -6442,9 +6442,9 @@ export type Database = {
           id?: string
           invoice_id?: string
           lab_horse_id?: string | null
-          line_gross_amount?: number | null
-          line_pretax_amount?: number | null
-          line_tax_amount?: number | null
+          line_gross_amount?: number
+          line_pretax_amount?: number
+          line_tax_amount?: number
           package_currency_snapshot?: string | null
           package_id?: string | null
           package_name_ar_snapshot?: string | null
@@ -6460,8 +6460,8 @@ export type Database = {
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
           service_source?: string
-          tax_rate_snapshot?: number | null
-          taxable_snapshot?: boolean | null
+          tax_rate_snapshot?: number
+          taxable_snapshot?: boolean
           total_price?: number
           unit_price?: number
         }
@@ -6521,7 +6521,7 @@ export type Database = {
           payment_method: string | null
           payment_received_at: string | null
           pos_session_id: string | null
-          prices_include_tax: boolean | null
+          prices_include_tax: boolean
           status: string
           subtotal: number
           tax_amount: number | null
@@ -6546,7 +6546,7 @@ export type Database = {
           payment_method?: string | null
           payment_received_at?: string | null
           pos_session_id?: string | null
-          prices_include_tax?: boolean | null
+          prices_include_tax: boolean
           status?: string
           subtotal?: number
           tax_amount?: number | null
@@ -6571,7 +6571,7 @@ export type Database = {
           payment_method?: string | null
           payment_received_at?: string | null
           pos_session_id?: string | null
-          prices_include_tax?: boolean | null
+          prices_include_tax?: boolean
           status?: string
           subtotal?: number
           tax_amount?: number | null
