@@ -486,7 +486,12 @@ BEGIN
       RAISE EXCEPTION 'FIN_PAYLOAD_TYPE: discount_amount' USING ERRCODE = '23514';
     END IF;
     IF pg_catalog.jsonb_typeof(p_payload->'discount_amount') = 'number' THEN
-      v_discount := (p_payload->>'discount_amount')::numeric;
+      BEGIN
+        v_discount := (p_payload->>'discount_amount')::numeric;
+      EXCEPTION
+        WHEN invalid_text_representation OR numeric_value_out_of_range THEN
+          RAISE EXCEPTION 'FIN_DISCOUNT_INVALID' USING ERRCODE = '23514';
+      END;
     ELSE
       v_discount := 0;
     END IF;
