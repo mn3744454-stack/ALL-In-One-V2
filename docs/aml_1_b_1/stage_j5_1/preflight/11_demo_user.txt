@@ -1,3 +1,7 @@
-ERROR:  permission denied for schema auth
-LINE 1: ...ELECT u.id, u.email, tm.tenant_id, tm.status FROM auth.users...
-                                                             ^
+ERROR:  column tm.status does not exist
+LINE 1: SELECT tm.user_id, tm.tenant_id, tm.status FROM public.tenan...
+                                         ^
+145f2128-83ca-4ba8-85b5-8ade245c5530|30
+348ce41c-1102-4295-bf6a-2ea0203c1036|22
+8951ac1a-2940-4e93-9a62-95e47f110cba|3
+1298be8b-14bb-4b35-ae2d-1fa735a69a3c|1
