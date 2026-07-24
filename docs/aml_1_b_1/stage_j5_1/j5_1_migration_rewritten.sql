@@ -1,4 +1,16 @@
 -- ============================================================================
+-- REVIEW ARTIFACT — NOT APPLIED
+-- This file is derived from the existing unapplied J5.1 migration and
+-- incorporates the final verified correction delta. It is a review artifact
+-- outside the managed migrations directory and has not been applied.
+--
+-- Baseline: supabase/migrations/20260724101152_56ad20be-efd5-406a-8821-5df92b565dec.sql
+-- Deltas applied inline: B (Delta 1), C (Delta 2), D (Delta 3), I (Delta 8),
+--                        K (partial — tenant default_tax_rate reference).
+-- Deltas E, F, G, J, L, M, N, O, P: verified as already satisfied by the
+--                        baseline OR carried unchanged pending code review.
+-- ============================================================================
+-- ============================================================================
 -- J5.1 — Atomic Embedded Checkout + POS Core Financial Writers
 -- (Mechanically-corrected per J5.1 DATABASE FILE CORRECTION spec.)
 --
