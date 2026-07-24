@@ -12768,6 +12768,10 @@ export type Database = {
         Args: { p_cutoff: string }
         Returns: number
       }
+      _finance_invoice_approve_inline: {
+        Args: { p_actor: string; p_invoice_id: string; p_tenant_id: string }
+        Returns: undefined
+      }
       _finance_invoice_compute_totals: {
         Args: { p_payload: Json; p_tenant_id: string }
         Returns: Json
@@ -13196,6 +13200,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_pos_sale: {
+        Args: {
+          p_idempotency_key: string
+          p_payload: Json
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       create_service_request: {
         Args: {
           _billing_responsibility?: string
@@ -13208,6 +13220,14 @@ export type Database = {
           _owner_supplied_item?: boolean
           _provider_tenant_id?: string
           _request_type: string
+        }
+        Returns: Json
+      }
+      create_source_checkout_invoice: {
+        Args: {
+          p_idempotency_key: string
+          p_payload: Json
+          p_tenant_id: string
         }
         Returns: Json
       }
