@@ -476,42 +476,64 @@ Idempotent replay returns the byte-identical `stored_response` originally commit
 
 ## M. Fully Executable Case 16.10 Blueprint
 
-Blueprint is executable-shape only; the T1 file will materialize each `<literal>` from File 15 fixture UUIDs. All function argument positions and response keys are pinned to §A / §L above — **no unknown placeholders**.
+Blueprint is executable-shape only. Every symbol used below is a **named variable** whose origin is explicitly defined in §M.0. No angle-bracket unknown placeholders remain. All function argument positions and response keys are pinned to §A / §L above.
 
-### Step 0 — Fixture pre-conditions (from File 15)
+The Root Payload conforms exactly to the locked whitelist from `docs/aml_1_b_1/stage_j5_1/j5_1a_migration.sql`:
+`source_type, source_id, link_kind, client_name, discount_amount, payment_method, prices_include_tax, notes, items`.
+The Lab Item whitelist is exactly:
+`description, quantity, unit_price, is_taxable`.
 
-- Primary tenant `:tenant_id` provisioned with owner membership for `:actor_id`.
-- Client `:client_id` inserted.
-- Horse or `lab_horse` (with microchip mirror if needed) inserted.
-- Lab sample `:sample_id` in status `'accessioned'` (Deposit-eligible).
+No browser-controlled `client_id`, no browser-controlled Source trace (`entity_type`, `entity_id`), no browser-controlled `horse_id` / `lab_horse_id`, no browser-controlled `service_source` / `category_id`, no item-level `discount_amount`, and no browser-controlled `tax_rate_snapshot` appears anywhere in the corrected Payloads. The registered Client is resolved server-side from the locked Lab Sample (`lab_samples.client_id`); the Source trace and Horse/Lab-Horse identity are written server-side by `_finance_source_checkout_apply_trace`; the tax-rate snapshot is resolved and frozen by Backend Finance.
+
+### Step 0 — Fixture pre-conditions and variable registry
+
+Fixture pre-conditions (materialized by File 15 templates; not part of this file):
+
+- Primary tenant provisioned with owner membership for the fixed actor.
+- Client inserted.
+- Lab horse (with microchip mirror, if applicable) inserted, or a horse-only source fixture inserted; see §M.4 for the alternative family.
+- Lab sample inserted in status `'accessioned'` (Deposit-eligible), owning `lab_samples.client_id` and either `lab_samples.lab_horse_id` or `lab_samples.horse_id`.
 - No `payment_accounts` row required for the debt path (debt is a non-account payment method).
-- Session GUC: `SET LOCAL ROLE authenticated;` and `SELECT set_config('request.jwt.claims', jsonb_build_object('sub', :actor_id::text, 'role', 'authenticated')::text, true);`
+- Session GUC: `SET LOCAL ROLE authenticated;` and `SELECT set_config('request.jwt.claims', jsonb_build_object('sub', v_actor_id::text, 'role', 'authenticated')::text, true);`
+- Pre-cancellation invariant: exactly one `ledger_entries` row of `entry_type='invoice'`, `reference_type='invoice'`, `reference_id=v_invoice_1_id`, `amount > 0` exists (guaranteed by the source-checkout writer in Step 1; ensures §G edge branch `FIN_INVOICE_LEDGER_MISSING` does not fire).
+- Pre-cancellation invariant: no `payment_intents` row exists for `(tenant_id=v_tenant_id, reference_type='invoice', reference_id=v_invoice_1_id, status IN ('pending','paid'))`. The debt path does not create Payment Intents; see §M.5.
+
+Named variable registry (every symbol used in §M.1–§M.4):
+
+| Variable | Type | Origin |
+| --- | --- | --- |
+| `v_tenant_id` | `uuid` | Fixed identity — File 15 T1 ID registry (primary tenant). |
+| `v_actor_id` | `uuid` | Fixed identity — File 15 T1 ID registry (owner-role fixed actor). |
+| `v_sample_id` | `uuid` | File 15 T1 ID registry — locked `lab_samples.id` fixture in status `'accessioned'`. Owns `lab_samples.client_id` and either `lab_samples.lab_horse_id` or `lab_samples.horse_id`. |
+| `v_checkout_key_1` | `uuid` | Freshly generated via `gen_random_uuid()` at Step 1 (outer checkout idempotency key #1). |
+| `v_cancel_key` | `uuid` | Deterministic per test transaction — `'11111111-1111-1111-1111-111111111111'::uuid`. |
+| `v_checkout_key_2` | `uuid` | Freshly generated via `gen_random_uuid()` at Step 4 (outer checkout idempotency key #2, **distinct** from `v_checkout_key_1`). |
+| `v_invoice_1_id` | `uuid` | Returned from Step 1 response — `(resp->>'invoice_id')::uuid`. |
+| `v_invoice_2_id` | `uuid` | Returned from Step 4 response — `(resp->>'invoice_id')::uuid`. |
+| `v_cancel_effective_date` | `date` | Computed at Step 2 as `(now() AT TIME ZONE 'Asia/Riyadh')::date` (Riyadh business date). |
+| `v_cancel_reason` | `text` | Literal `'T1 canonical cancellation for Case 16.10'`. |
 
 ### Step 1 — Initial Source checkout (Deposit + Debt)
 
 ```sql
 WITH r AS (
   SELECT public.create_source_checkout_invoice(
-    :tenant_id,
-    gen_random_uuid(),                          -- outer idempotency key #1
+    v_tenant_id,
+    v_checkout_key_1,                            -- outer idempotency key #1
     jsonb_build_object(
-      'source_type',    'lab_sample',
-      'source_id',      :sample_id,
-      'link_kind',      'deposit',
-      'payment_method', 'debt',
-      'client_id',      :client_id,
-      'items',          jsonb_build_array( jsonb_build_object(
-        'entity_type', 'lab_sample',
-        'entity_id',   :sample_id,
-        'lab_horse_id', :lab_horse_id,
-        'service_source', 'lab',
-        'category_id', :category_id,
-        'quantity',    1,
-        'unit_price',  100.00,
-        'discount_amount', 0,
-        'tax_rate_snapshot', 15.0,
-        'description', 'T1 Deposit'
-      ) )
+      'source_type',     'lab_sample',
+      'source_id',       v_sample_id::text,      -- JSON string, per locked migration
+      'link_kind',       'deposit',
+      'payment_method',  'debt',
+      'discount_amount', 0,
+      'items', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'T1 Deposit',
+          'quantity',    1,
+          'unit_price',  100.00,
+          'is_taxable',  true
+        )
+      )
     )
   ) AS resp
 )
@@ -523,20 +545,47 @@ SELECT
 INTO TEMP TABLE t_step1
 FROM r;
 
--- Assertions:
+-- Assertions (browser Payload omitted every server-owned field):
 --   invoice_1_status = 'approved'
 --   invoice_1_method = 'debt'
---   invoice_1_payment_result IS NULL
+--   invoice_1_payment_result IS JSON null
 --   (SELECT payment_received_at FROM public.invoices WHERE id = invoice_1_id) IS NULL
+--
+--   -- Exactly one invoice ledger row, zero payment ledger rows:
 --   (SELECT count(*) FROM public.ledger_entries
---      WHERE tenant_id=:tenant_id AND reference_type='invoice'
+--      WHERE tenant_id=v_tenant_id AND reference_type='invoice'
 --        AND reference_id=invoice_1_id AND entry_type='invoice') = 1
 --   (SELECT count(*) FROM public.ledger_entries
---      WHERE tenant_id=:tenant_id AND reference_type='invoice'
+--      WHERE tenant_id=v_tenant_id AND reference_type='invoice'
 --        AND reference_id=invoice_1_id AND entry_type='payment') = 0
+--
+--   -- Exactly one historical Source Deposit billing_links row:
 --   (SELECT count(*) FROM public.billing_links
---      WHERE tenant_id=:tenant_id AND source_type='lab_sample' AND source_id=:sample_id
---        AND invoice_id=invoice_1_id AND link_kind='deposit') = 1
+--      WHERE tenant_id=v_tenant_id AND source_type='lab_sample'
+--        AND source_id=v_sample_id AND invoice_id=invoice_1_id
+--        AND link_kind='deposit') = 1
+--
+--   -- Server-owned trace was written (browser Payload had no entity_type/entity_id
+--   -- and no horse identity fields):
+--   (SELECT bool_and(entity_type = 'lab_sample' AND entity_id = v_sample_id)
+--      FROM public.invoice_items WHERE invoice_id = invoice_1_id) = true
+--
+--   -- Server-owned horse identity, derived from the locked Lab Sample:
+--   -- If lab_samples.lab_horse_id IS NOT NULL for v_sample_id:
+--     (SELECT bool_and(lab_horse_id = (SELECT lab_horse_id FROM public.lab_samples
+--                                       WHERE id = v_sample_id)
+--                       AND horse_id IS NULL)
+--        FROM public.invoice_items WHERE invoice_id = invoice_1_id) = true
+--   -- Else (lab_samples.horse_id IS NOT NULL, lab_samples.lab_horse_id IS NULL):
+--     (SELECT bool_and(horse_id = (SELECT horse_id FROM public.lab_samples
+--                                    WHERE id = v_sample_id)
+--                       AND lab_horse_id IS NULL)
+--        FROM public.invoice_items WHERE invoice_id = invoice_1_id) = true
+--
+--   -- Server-owned Client resolution: invoice client_id matches the locked
+--   -- Lab Sample's registered client, not any browser-provided value:
+--   (SELECT client_id FROM public.invoices WHERE id = invoice_1_id)
+--      = (SELECT client_id FROM public.lab_samples WHERE id = v_sample_id)
 ```
 
 ### Step 2 — Canonical cancellation
@@ -544,14 +593,21 @@ FROM r;
 ```sql
 WITH c AS (
   SELECT public.cancel_invoice(
-    :tenant_id,                                                       -- p_tenant_id
-    '11111111-1111-1111-1111-111111111111'::uuid,                     -- p_idempotency_key (deterministic per test transaction)
+    v_tenant_id,                                                      -- p_tenant_id
+    v_cancel_key,                                                     -- p_idempotency_key
     (SELECT invoice_1_id FROM t_step1),                               -- p_invoice_id
-    (now() AT TIME ZONE 'Asia/Riyadh')::date,                         -- p_effective_date (Riyadh business date, ≥ issue_date, ≤ Riyadh today + 7)
-    'T1 canonical cancellation for Case 16.10'                        -- p_reason
+    v_cancel_effective_date,                                          -- p_effective_date (Riyadh business date, ≥ issue_date, ≤ Riyadh today + 7)
+    v_cancel_reason                                                   -- p_reason
   ) AS resp
 )
 SELECT resp INTO TEMP TABLE t_step2 FROM c;
+```
+
+Response contract (exactly the seven keys from §L; canonical positional argument order preserved from §A):
+
+```
+{ invoice_id, invoice_number, status, reversal_ledger_entry_id,
+  balance_after, effective_date, reason }
 ```
 
 ### Step 3 — Post-cancellation assertions
@@ -563,8 +619,8 @@ SELECT resp INTO TEMP TABLE t_step2 FROM c;
 --   (resp->>'status')                    = 'cancelled'
 --   (resp->>'reversal_ledger_entry_id')  IS NOT NULL
 --   (resp->>'balance_after')             IS NOT NULL
---   (resp->>'effective_date')::date      = (now() AT TIME ZONE 'Asia/Riyadh')::date
---   (resp->>'reason')                    = 'T1 canonical cancellation for Case 16.10'
+--   (resp->>'effective_date')::date      = v_cancel_effective_date
+--   (resp->>'reason')                    = v_cancel_reason
 
 -- Invoice header:
 --   status = 'cancelled'
@@ -575,21 +631,23 @@ SELECT resp INTO TEMP TABLE t_step2 FROM c;
 --   exactly 1 row  entry_type='invoice'         reference_id=invoice_1_id  amount > 0   (unchanged)
 --   exactly 1 row  entry_type='adjustment'      reference_type='invoice_cancellation'
 --                  reference_id=invoice_1_id    amount = -(original invoice amount)
---                  effective_date = Step 2 date, metadata->>'via' = 'cancel_invoice',
---                  metadata->>'reason' = Step 2 reason,
+--                  effective_date = v_cancel_effective_date,
+--                  metadata->>'via' = 'cancel_invoice',
+--                  metadata->>'reason' = v_cancel_reason,
 --                  (metadata->>'reverses_ledger_entry_id')::uuid = original invoice ledger row id
 --   exactly 0 rows entry_type='payment'         reference_id=invoice_1_id
 
 -- Customer balance:
---   customer_balances.balance for (:tenant_id, :client_id) equals SUM(ledger_entries.amount)
---   for that pair (i.e. reversal has been applied to the running balance).
+--   customer_balances.balance for (v_tenant_id, invoice client_id) equals
+--   SUM(ledger_entries.amount) for that pair (reversal applied).
 
 -- Historical Source Billing Link (preserved bytewise):
 --   exactly 1 row still exists WHERE source_type='lab_sample'
---     AND source_id=:sample_id AND invoice_id=invoice_1_id AND link_kind='deposit'
+--     AND source_id=v_sample_id AND invoice_id=invoice_1_id AND link_kind='deposit'
 --   (created_at unchanged; row content unchanged)
 
--- Invoice items: row count unchanged; every row unchanged.
+-- Invoice items: row count unchanged; every row unchanged (including server-owned
+-- entity_type, entity_id, lab_horse_id/horse_id from Step 1).
 ```
 
 ### Step 4 — Same-kind retry
@@ -597,26 +655,22 @@ SELECT resp INTO TEMP TABLE t_step2 FROM c;
 ```sql
 WITH r2 AS (
   SELECT public.create_source_checkout_invoice(
-    :tenant_id,
-    gen_random_uuid(),                          -- outer idempotency key #2 (new)
+    v_tenant_id,
+    v_checkout_key_2,                            -- outer idempotency key #2, distinct from v_checkout_key_1
     jsonb_build_object(
-      'source_type',    'lab_sample',
-      'source_id',      :sample_id,             -- same source
-      'link_kind',      'deposit',              -- same link kind
-      'payment_method', 'debt',
-      'client_id',      :client_id,
-      'items',          jsonb_build_array( jsonb_build_object(
-        'entity_type', 'lab_sample',
-        'entity_id',   :sample_id,
-        'lab_horse_id', :lab_horse_id,
-        'service_source', 'lab',
-        'category_id', :category_id,
-        'quantity',    1,
-        'unit_price',  100.00,
-        'discount_amount', 0,
-        'tax_rate_snapshot', 15.0,
-        'description', 'T1 Deposit retry after cancel'
-      ) )
+      'source_type',     'lab_sample',
+      'source_id',       v_sample_id::text,      -- same source, intentional
+      'link_kind',       'deposit',              -- same link kind, intentional
+      'payment_method',  'debt',
+      'discount_amount', 0,
+      'items', jsonb_build_array(
+        jsonb_build_object(
+          'description', 'T1 Deposit retry after cancellation',
+          'quantity',    1,
+          'unit_price',  100.00,
+          'is_taxable',  true
+        )
+      )
     )
   ) AS resp
 )
@@ -629,24 +683,53 @@ FROM r2;
 --   Step 4 does NOT raise 'FIN_SOURCE_LINK_CONFLICT' (or any SQLSTATE);
 --   invoice_2_id <> invoice_1_id;
 --   invoice_2_status = 'approved';
+--
+--   -- Two historical/current Source Deposit billing_links rows exist:
 --   (SELECT count(*) FROM public.billing_links
---      WHERE tenant_id=:tenant_id AND source_type='lab_sample'
---        AND source_id=:sample_id AND link_kind='deposit') = 2
+--      WHERE tenant_id=v_tenant_id AND source_type='lab_sample'
+--        AND source_id=v_sample_id AND link_kind='deposit') = 2
+--
+--   -- Exactly one of them points to a non-cancelled invoice:
 --   (SELECT count(*) FROM public.billing_links bl
 --      JOIN public.invoices i ON i.id=bl.invoice_id
---      WHERE bl.tenant_id=:tenant_id AND bl.source_type='lab_sample'
---        AND bl.source_id=:sample_id AND bl.link_kind='deposit'
+--      WHERE bl.tenant_id=v_tenant_id AND bl.source_type='lab_sample'
+--        AND bl.source_id=v_sample_id AND bl.link_kind='deposit'
 --        AND i.status <> 'cancelled') = 1
---   Historical Step 1 rows (invoices, invoice_items, billing_links, invoice ledger row,
---     adjustment reversal row) were NOT deleted (count them; they still exist).
+--
+--   -- Historical Step 1 artifacts (old invoice, its invoice_items, its billing_links
+--   -- row, its invoice ledger row, and the cancellation adjustment reversal row)
+--   -- were NOT deleted; every one still exists.
 ```
 
-### Idempotency negative cases (documented; T2 will materialize as failure injections)
+### §M.4 — Alternative fixture family
 
-- Re-running Step 2 with the same key `11111111-1111-1111-1111-111111111111` and same args → returns byte-identical response, no additional ledger row.
-- Re-running Step 2 with the same key but a different `p_reason` → `FIN_IDEMPOTENCY_CONFLICT` / `23514`.
-- Re-running Step 2 with the same key but a different `p_invoice_id` → `FIN_IDEMPOTENCY_CONFLICT` / `23514`.
-- Re-running Step 2 with the same key from a different actor → `FIN_IDEMPOTENCY_ACTOR_MISMATCH` / `42501`.
+Case 16.10 may equivalently be run against a Lab Sample fixture that owns `lab_samples.horse_id` (with `lab_samples.lab_horse_id IS NULL`). In that alternative, the browser Payload in Steps 1 and 4 remains **identical** — still exactly the whitelisted Root and Lab Item keys shown above. Only the server-side trace assertion swaps to the `horse_id IS NOT NULL AND lab_horse_id IS NULL` branch shown in Step 1.
+
+### §M.5 — Payment Intent scope
+
+The captured live body of `public.cancel_invoice` reads `public.payment_intents` only as an existing cancellation-safety guard (it rejects cancellation when a `pending` or `paid` intent references the invoice). Case 16.10:
+
+- Creates no Payment Intent fixture.
+- Modifies no Payment Intent row.
+- Implements no new Payment Intent behavior.
+- Relies on the existing guard to remain silent because the approved debt fixture has no matching `pending` or `paid` Payment Intent row.
+
+The captured live function body in §A is preserved unchanged. This subphase does not authorize retail POS development or any new Payment Intent architecture.
+
+### §M.6 — Idempotency scope (T2 boundary preserved)
+
+T2 remains locked to: Invoice Item late-stage failure, Approval Ledger late-stage failure, Payment Ledger late-stage failure, Source Billing Link late-stage failure, exact zero-residue reconciliation, and the final preservation fingerprint. Case 16.10 requires only:
+
+- one successful canonical cancellation (Step 2) with its exact stored response (Step 3);
+- no duplicate cancellation Adjustment ledger row;
+- the successful same-kind checkout retry (Step 4).
+
+The following additional `cancel_invoice` idempotency behaviors are **documentation-only** and are **not mandatory T2 requirements**:
+
+- Re-running Step 2 with `v_cancel_key` and identical args → returns byte-identical response, no additional ledger row.
+- Re-running Step 2 with `v_cancel_key` but a different `p_reason` → `FIN_IDEMPOTENCY_CONFLICT` / `23514`.
+- Re-running Step 2 with `v_cancel_key` but a different `p_invoice_id` → `FIN_IDEMPOTENCY_CONFLICT` / `23514`.
+- Re-running Step 2 with `v_cancel_key` from a different actor → `FIN_IDEMPOTENCY_ACTOR_MISMATCH` / `42501`.
 
 ---
 
