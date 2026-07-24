@@ -1,0 +1,30 @@
+                         Table "public.payment_accounts"
+   Column   |           Type           | Collation | Nullable |      Default      
+------------+--------------------------+-----------+----------+-------------------
+ id         | uuid                     |           | not null | gen_random_uuid()
+ owner_type | payment_owner_type       |           | not null | 
+ tenant_id  | uuid                     |           |          | 
+ is_active  | boolean                  |           | not null | true
+ created_at | timestamp with time zone |           | not null | now()
+Indexes:
+    "payment_accounts_pkey" PRIMARY KEY, btree (id)
+    "unique_platform_account" UNIQUE, btree (owner_type) WHERE owner_type = 'platform'::payment_owner_type
+    "unique_tenant_account" UNIQUE CONSTRAINT, btree (tenant_id)
+Check constraints:
+    "valid_owner" CHECK (owner_type = 'platform'::payment_owner_type AND tenant_id IS NULL OR owner_type = 'tenant'::payment_owner_type AND tenant_id IS NOT NULL)
+Foreign-key constraints:
+    "payment_accounts_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+Referenced by:
+    TABLE "payment_intents" CONSTRAINT "payment_intents_payee_account_id_fkey" FOREIGN KEY (payee_account_id) REFERENCES payment_accounts(id) ON DELETE CASCADE
+    TABLE "payment_splits" CONSTRAINT "payment_splits_receiver_account_id_fkey" FOREIGN KEY (receiver_account_id) REFERENCES payment_accounts(id) ON DELETE CASCADE
+Policies:
+    POLICY "Owners can create tenant payment account" FOR INSERT
+      WITH CHECK (((owner_type = 'tenant'::payment_owner_type) AND has_tenant_role(auth.uid(), tenant_id, 'owner'::tenant_role)))
+    POLICY "Owners can update tenant payment account" FOR UPDATE
+      USING (((owner_type = 'tenant'::payment_owner_type) AND has_tenant_role(auth.uid(), tenant_id, 'owner'::tenant_role)))
+    POLICY "Tenant members can view their payment account" FOR SELECT
+      USING (((owner_type = 'tenant'::payment_owner_type) AND is_tenant_member(auth.uid(), tenant_id)))
+
+payment_accounts
+payment_intents
+payment_splits
