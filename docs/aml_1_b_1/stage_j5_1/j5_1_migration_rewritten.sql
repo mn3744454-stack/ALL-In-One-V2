@@ -1092,18 +1092,8 @@ BEGIN
       ))
     );
 
-    UPDATE public.invoices
-       SET payment_received_at = now(), updated_at = now()
-     WHERE id = v_invoice_id
-       AND status IN ('paid','approved','partial')
-       AND payment_received_at IS NULL
-       AND EXISTS (
-         SELECT 1 FROM public.ledger_entries
-          WHERE tenant_id = p_tenant_id
-            AND entry_type = 'payment'
-            AND reference_type = 'invoice'
-            AND reference_id = v_invoice_id
-       );
+    -- Delta 8: payment_received_at owned solely by post_invoice_payments.
+    NULL;
   END IF;
 
   SELECT COALESCE(MAX(sale_number), 0) + 1 INTO v_sale_number
