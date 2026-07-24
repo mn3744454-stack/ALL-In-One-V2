@@ -1,0 +1,32 @@
+_finance_idempotency_complete(uuid,text,uuid,uuid,bytea,jsonb,jsonb)
+---
+CREATE OR REPLACE FUNCTION public._finance_idempotency_complete(p_tenant_id uuid, p_operation text, p_idempotency_key uuid, p_actor_id uuid, p_request_hash bytea, p_resolved_snapshot jsonb, p_response jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE v_updated int;
+BEGIN
+  IF p_response IS NULL THEN
+    RAISE EXCEPTION 'FIN_IDEMPOTENCY_RESPONSE_REQUIRED' USING ERRCODE = '22023'; END IF;
+  IF p_tenant_id IS NULL OR p_operation IS NULL OR p_idempotency_key IS NULL
+     OR p_actor_id IS NULL OR p_request_hash IS NULL THEN
+    RAISE EXCEPTION 'FIN_IDEMPOTENCY_INVALID_ARGUMENTS' USING ERRCODE = '22023'; END IF;
+  UPDATE public.finance_request_idempotency
+     SET resolved_snapshot = COALESCE(p_resolved_snapshot, '{}'::jsonb), response = p_response
+   WHERE tenant_id = p_tenant_id AND operation = p_operation
+     AND idempotency_key = p_idempotency_key AND actor_id = p_actor_id
+     AND request_hash = p_request_hash AND response IS NULL
+     AND expires_at > pg_catalog.now();
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  IF v_updated = 0 THEN
+    RAISE EXCEPTION 'FIN_IDEMPOTENCY_COMPLETE_NO_MATCH' USING ERRCODE = '23514';
+  ELSIF v_updated > 1 THEN
+    RAISE EXCEPTION 'FIN_IDEMPOTENCY_COMPLETE_MULTI_MATCH' USING ERRCODE = '23514';
+  END IF;
+  RETURN p_response;
+END $function$
+
+---
+secdef=true owner=postgres config=search_path=""
