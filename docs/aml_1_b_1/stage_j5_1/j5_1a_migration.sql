@@ -486,7 +486,12 @@ BEGIN
       RAISE EXCEPTION 'FIN_PAYLOAD_TYPE: discount_amount' USING ERRCODE = '23514';
     END IF;
     IF pg_catalog.jsonb_typeof(p_payload->'discount_amount') = 'number' THEN
-      v_discount := (p_payload->>'discount_amount')::numeric;
+      BEGIN
+        v_discount := (p_payload->>'discount_amount')::numeric;
+      EXCEPTION
+        WHEN invalid_text_representation OR numeric_value_out_of_range THEN
+          RAISE EXCEPTION 'FIN_DISCOUNT_INVALID' USING ERRCODE = '23514';
+      END;
     ELSE
       v_discount := 0;
     END IF;
@@ -557,18 +562,35 @@ BEGIN
         RAISE EXCEPTION 'FIN_LAB_ITEM_DESCRIPTION_REQUIRED' USING ERRCODE = '23514';
       END IF;
 
-      -- quantity: required number > 0 (explicit presence check; jsonb_typeof(NULL)
-      -- IS DISTINCT FROM 'number' would otherwise be NULL, not true)
+      -- quantity: type check and numeric cast must be in separate statements
+      -- (PostgreSQL does not guarantee left-to-right short-circuit evaluation
+      -- of Boolean OR).
       IF NOT (v_item ? 'quantity')
-         OR pg_catalog.jsonb_typeof(v_item->'quantity') IS DISTINCT FROM 'number'
-         OR (v_item->>'quantity')::numeric <= 0 THEN
+         OR pg_catalog.jsonb_typeof(v_item->'quantity') IS DISTINCT FROM 'number' THEN
+        RAISE EXCEPTION 'FIN_LAB_ITEM_QUANTITY_INVALID' USING ERRCODE = '23514';
+      END IF;
+      BEGIN
+        v_qty := (v_item->>'quantity')::numeric;
+      EXCEPTION
+        WHEN invalid_text_representation OR numeric_value_out_of_range THEN
+          RAISE EXCEPTION 'FIN_LAB_ITEM_QUANTITY_INVALID' USING ERRCODE = '23514';
+      END;
+      IF v_qty <= 0 THEN
         RAISE EXCEPTION 'FIN_LAB_ITEM_QUANTITY_INVALID' USING ERRCODE = '23514';
       END IF;
 
-      -- unit_price: required number >= 0
+      -- unit_price: type check and numeric cast must be in separate statements
       IF NOT (v_item ? 'unit_price')
-         OR pg_catalog.jsonb_typeof(v_item->'unit_price') IS DISTINCT FROM 'number'
-         OR (v_item->>'unit_price')::numeric < 0 THEN
+         OR pg_catalog.jsonb_typeof(v_item->'unit_price') IS DISTINCT FROM 'number' THEN
+        RAISE EXCEPTION 'FIN_LAB_ITEM_PRICE_INVALID' USING ERRCODE = '23514';
+      END IF;
+      BEGIN
+        v_unit := (v_item->>'unit_price')::numeric;
+      EXCEPTION
+        WHEN invalid_text_representation OR numeric_value_out_of_range THEN
+          RAISE EXCEPTION 'FIN_LAB_ITEM_PRICE_INVALID' USING ERRCODE = '23514';
+      END;
+      IF v_unit < 0 THEN
         RAISE EXCEPTION 'FIN_LAB_ITEM_PRICE_INVALID' USING ERRCODE = '23514';
       END IF;
 
@@ -845,6 +867,21 @@ BEGIN
   ---------------------------------------------------------------------------
   IF v_payment_method = 'debt' THEN
     v_payment_result := NULL;
+
+    -- Server-owned persistence of the 'debt' payment method. Do NOT trust
+    -- caller-supplied invoice.payment_method (create_invoice_with_items does
+    -- not persist a checkout method). Do NOT set payment_received_at. Do NOT
+    -- create a Payment ledger row or Payment billing link.
+    UPDATE public.invoices
+       SET payment_method = 'debt',
+           updated_at     = now()
+     WHERE id                  = v_invoice_id
+       AND tenant_id           = p_tenant_id
+       AND status              = 'approved'
+       AND payment_received_at IS NULL;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'FIN_CHECKOUT_DEBT_STATE_INVALID' USING ERRCODE = '23514';
+    END IF;
   ELSE
     SELECT id INTO v_account_id
       FROM public.payment_accounts
@@ -883,6 +920,9 @@ BEGIN
   IF v_payment_method = 'debt' THEN
     IF v_inv_row.status <> 'approved' THEN
       RAISE EXCEPTION 'FIN_CHECKOUT_DEBT_STATUS_INVALID' USING ERRCODE = '23514';
+    END IF;
+    IF v_inv_row.payment_method IS DISTINCT FROM 'debt' THEN
+      RAISE EXCEPTION 'FIN_CHECKOUT_DEBT_PAYMENT_METHOD_INVALID' USING ERRCODE = '23514';
     END IF;
     IF v_inv_row.payment_received_at IS NOT NULL THEN
       RAISE EXCEPTION 'FIN_CHECKOUT_DEBT_HAS_PAYMENT_RECEIVED_AT' USING ERRCODE = '23514';
@@ -925,7 +965,7 @@ BEGIN
     'currency',               COALESCE(v_inv_row.currency, 'SAR'),
     'status',                 v_final_status,
     'payment_method',         v_inv_row.payment_method,
-    'payment_received_at',    v_inv_row.payment_received_at,
+    
     'client_id',              v_client_id,
     'client_name',            v_client_name,
     'source_type',            v_source_type,
