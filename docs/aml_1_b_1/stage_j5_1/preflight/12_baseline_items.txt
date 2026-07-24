@@ -1,0 +1,10 @@
+ null_pretax | null_tax | null_gross | null_taxable | null_rate | mismatch | neg | badrate | nontax_pos | zerorate_pos | period_bad 
+-------------+----------+------------+--------------+-----------+----------+-----+---------+------------+--------------+------------
+           0 |        0 |          0 |            0 |         0 |        0 |   0 |       0 |          0 |            0 |          0
+(1 row)
+
+ header_mismatch 
+-----------------
+               2
+(1 row)
+
