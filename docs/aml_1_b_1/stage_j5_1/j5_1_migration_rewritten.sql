@@ -783,19 +783,9 @@ BEGIN
       ))
     );
 
-    -- §M3. Stamp payment_received_at only after a successful full payment.
-    UPDATE public.invoices
-       SET payment_received_at = now(), updated_at = now()
-     WHERE id = v_invoice_id
-       AND status IN ('paid','approved','partial')
-       AND payment_received_at IS NULL
-       AND EXISTS (
-         SELECT 1 FROM public.ledger_entries
-          WHERE tenant_id = p_tenant_id
-            AND entry_type = 'payment'
-            AND reference_type = 'invoice'
-            AND reference_id = v_invoice_id
-       );
+    -- §M3 (Delta 8): payment_received_at is owned solely by post_invoice_payments.
+    -- Orchestrator-side UPDATE removed; canonical payment path owns the stamp.
+    NULL;
   END IF;
 
   INSERT INTO public.billing_links (tenant_id, source_type, source_id, invoice_id, link_kind, amount, created_by)
