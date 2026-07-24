@@ -1,0 +1,8 @@
+ null_mode 
+-----------
+         0
+(1 row)
+
+ERROR:  column "pretax_amount_snapshot" does not exist
+LINE 2:   count(*) FILTER (WHERE pretax_amount_snapshot IS NULL) nul...
+                                 ^
