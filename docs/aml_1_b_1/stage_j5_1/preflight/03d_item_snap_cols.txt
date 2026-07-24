@@ -1,0 +1,14 @@
+category_name_ar_snapshot
+category_name_snapshot
+line_gross_amount
+line_pretax_amount
+line_tax_amount
+package_currency_snapshot
+package_name_ar_snapshot
+package_name_snapshot
+package_price_snapshot
+package_services_snapshot
+service_name_ar_snapshot
+service_name_snapshot
+tax_rate_snapshot
+taxable_snapshot
