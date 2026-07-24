@@ -133,13 +133,13 @@ export function usePOSCore() {
           payment_method: input.payment_method,
           payment_received_at: input.payment_method !== "debt" ? new Date().toISOString() : null,
           created_by: user.user.id,
-        })
+        } as never)
         .select()
         .single();
 
       if (invError) throw invError;
 
-      // Create invoice items
+      // Create invoice items (snapshots filled by DB trigger _invoice_items_fill_snapshots)
       const invoiceItems = cart.map((item, idx) => ({
         invoice_id: invoice.id,
         description: `${item.name}${item.name_ar ? ` / ${item.name_ar}` : ""}`,
@@ -153,7 +153,8 @@ export function usePOSCore() {
 
       const { error: itemsError } = await supabase
         .from("invoice_items")
-        .insert(invoiceItems);
+        .insert(invoiceItems as never);
+
 
       if (itemsError) throw itemsError;
 

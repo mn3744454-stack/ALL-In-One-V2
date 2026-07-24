@@ -129,13 +129,13 @@ export function EmbeddedCheckout({
           payment_method: paymentMethod,
           payment_received_at: paymentMethod !== "debt" ? new Date().toISOString() : null,
           created_by: user.user.id,
-        })
+        } as never)
         .select()
         .single();
 
       if (invError) throw invError;
 
-      // Create invoice items
+      // Create invoice items (snapshots filled by DB trigger _invoice_items_fill_snapshots)
       const invoiceItems = initialLineItems.map((item, idx) => ({
         invoice_id: invoice.id,
         description: item.description,
@@ -149,7 +149,8 @@ export function EmbeddedCheckout({
 
       const { error: itemsError } = await supabase
         .from("invoice_items")
-        .insert(invoiceItems);
+        .insert(invoiceItems as never);
+
 
       if (itemsError) throw itemsError;
 
