@@ -867,6 +867,21 @@ BEGIN
   ---------------------------------------------------------------------------
   IF v_payment_method = 'debt' THEN
     v_payment_result := NULL;
+
+    -- Server-owned persistence of the 'debt' payment method. Do NOT trust
+    -- caller-supplied invoice.payment_method (create_invoice_with_items does
+    -- not persist a checkout method). Do NOT set payment_received_at. Do NOT
+    -- create a Payment ledger row or Payment billing link.
+    UPDATE public.invoices
+       SET payment_method = 'debt',
+           updated_at     = now()
+     WHERE id                  = v_invoice_id
+       AND tenant_id           = p_tenant_id
+       AND status              = 'approved'
+       AND payment_received_at IS NULL;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'FIN_CHECKOUT_DEBT_STATE_INVALID' USING ERRCODE = '23514';
+    END IF;
   ELSE
     SELECT id INTO v_account_id
       FROM public.payment_accounts
