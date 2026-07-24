@@ -1,0 +1,102 @@
+CREATE OR REPLACE FUNCTION public._invoice_items_fill_snapshots()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  inv_tenant uuid;
+  svc_name text;
+  svc_name_ar text;
+  svc_cat_id uuid;
+  cat_key text;
+  cat_name text;
+  cat_name_ar text;
+BEGIN
+  SELECT tenant_id INTO inv_tenant FROM public.invoices WHERE id = NEW.invoice_id;
+  IF inv_tenant IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  IF NEW.service_source IS NULL THEN
+    NEW.service_source := 'tenant_services';
+  END IF;
+
+  -- Service name snapshot (only if writer did not supply)
+  IF (NEW.service_name_snapshot IS NULL OR NEW.service_name_ar_snapshot IS NULL)
+     AND NEW.service_id IS NOT NULL THEN
+    IF NEW.service_source = 'lab_services' THEN
+      SELECT name, name_ar, category_id INTO svc_name, svc_name_ar, svc_cat_id
+      FROM public.lab_services WHERE id = NEW.service_id AND tenant_id = inv_tenant;
+    ELSE
+      SELECT name, name_ar, category_id INTO svc_name, svc_name_ar, svc_cat_id
+      FROM public.tenant_services WHERE id = NEW.service_id AND tenant_id = inv_tenant;
+    END IF;
+    NEW.service_name_snapshot := COALESCE(NEW.service_name_snapshot, svc_name);
+    NEW.service_name_ar_snapshot := COALESCE(NEW.service_name_ar_snapshot, svc_name_ar);
+  END IF;
+  IF NEW.service_name_snapshot IS NULL AND NEW.description IS NOT NULL
+     AND length(btrim(NEW.description)) > 0 THEN
+    NEW.service_name_snapshot := NEW.description;
+  END IF;
+  NEW.service_name_snapshot := COALESCE(NEW.service_name_snapshot, 'Unnamed line');
+  NEW.service_name_ar_snapshot := COALESCE(NEW.service_name_ar_snapshot, 'بند بدون اسم');
+
+  -- Category snapshot: prefer explicit NEW.category_id, then service.category_id,
+  -- then legacy domain fallback, then historically_uncategorized.
+  IF NEW.category_key IS NULL THEN
+    IF NEW.category_id IS NOT NULL THEN
+      SELECT key, name, name_ar INTO cat_key, cat_name, cat_name_ar
+      FROM public.tenant_service_categories
+      WHERE id = NEW.category_id AND tenant_id = inv_tenant;
+    END IF;
+
+    IF cat_key IS NULL AND NEW.service_id IS NOT NULL THEN
+      IF svc_cat_id IS NULL THEN
+        IF NEW.service_source = 'lab_services' THEN
+          SELECT category_id INTO svc_cat_id
+          FROM public.lab_services WHERE id = NEW.service_id AND tenant_id = inv_tenant;
+        ELSE
+          SELECT category_id INTO svc_cat_id
+          FROM public.tenant_services WHERE id = NEW.service_id AND tenant_id = inv_tenant;
+        END IF;
+      END IF;
+      IF svc_cat_id IS NOT NULL THEN
+        SELECT key, name, name_ar INTO cat_key, cat_name, cat_name_ar
+        FROM public.tenant_service_categories
+        WHERE id = svc_cat_id AND tenant_id = inv_tenant;
+      END IF;
+    END IF;
+
+    IF cat_key IS NULL AND NEW.domain IS NOT NULL AND length(btrim(NEW.domain)) > 0 THEN
+      SELECT key, name, name_ar INTO cat_key, cat_name, cat_name_ar
+      FROM public.tenant_service_categories
+      WHERE tenant_id = inv_tenant AND key = btrim(NEW.domain);
+      IF cat_key IS NULL THEN
+        INSERT INTO public.tenant_service_categories (tenant_id, key, name, name_ar, domain_key, sort_order)
+        VALUES (inv_tenant, btrim(NEW.domain), initcap(btrim(NEW.domain)), NULL, btrim(NEW.domain), 10)
+        ON CONFLICT (tenant_id, key) DO NOTHING;
+        SELECT key, name, name_ar INTO cat_key, cat_name, cat_name_ar
+        FROM public.tenant_service_categories
+        WHERE tenant_id = inv_tenant AND key = btrim(NEW.domain);
+      END IF;
+    END IF;
+
+    IF cat_key IS NULL THEN
+      INSERT INTO public.tenant_service_categories (tenant_id, key, name, name_ar, sort_order)
+      VALUES (inv_tenant, 'historically_uncategorized', 'Historically Uncategorized', 'غير مصنف تاريخيًا', 900)
+      ON CONFLICT (tenant_id, key) DO NOTHING;
+      SELECT key, name, name_ar INTO cat_key, cat_name, cat_name_ar
+      FROM public.tenant_service_categories
+      WHERE tenant_id = inv_tenant AND key = 'historically_uncategorized';
+    END IF;
+
+    NEW.category_key := cat_key;
+    NEW.category_name_snapshot := COALESCE(NEW.category_name_snapshot, cat_name);
+    NEW.category_name_ar_snapshot := COALESCE(NEW.category_name_ar_snapshot, cat_name_ar);
+  END IF;
+
+  RETURN NEW;
+END;
+$function$
+
