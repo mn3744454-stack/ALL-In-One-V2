@@ -1,0 +1,65 @@
+                                Table "public.payment_intents"
+      Column      |           Type           | Collation | Nullable |         Default         
+------------------+--------------------------+-----------+----------+-------------------------
+ id               | uuid                     |           | not null | gen_random_uuid()
+ payer_user_id    | uuid                     |           | not null | 
+ payee_account_id | uuid                     |           | not null | 
+ tenant_id        | uuid                     |           |          | 
+ intent_type      | payment_intent_type      |           | not null | 
+ reference_type   | payment_reference_type   |           | not null | 
+ reference_id     | uuid                     |           | not null | 
+ amount_display   | text                     |           |          | 
+ currency         | text                     |           | not null | 'SAR'::text
+ status           | payment_status           |           | not null | 'draft'::payment_status
+ created_at       | timestamp with time zone |           | not null | now()
+ updated_at       | timestamp with time zone |           | not null | now()
+Indexes:
+    "payment_intents_pkey" PRIMARY KEY, btree (id)
+    "idx_payment_intents_payer" btree (payer_user_id)
+    "idx_payment_intents_reference" btree (reference_type, reference_id)
+    "idx_payment_intents_status" btree (status)
+    "idx_payment_intents_tenant" btree (tenant_id)
+Foreign-key constraints:
+    "payment_intents_payee_account_id_fkey" FOREIGN KEY (payee_account_id) REFERENCES payment_accounts(id) ON DELETE CASCADE
+    "payment_intents_payer_user_id_fkey" FOREIGN KEY (payer_user_id) REFERENCES profiles(id) ON DELETE CASCADE
+    "payment_intents_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE SET NULL
+Referenced by:
+    TABLE "payment_splits" CONSTRAINT "payment_splits_payment_intent_id_fkey" FOREIGN KEY (payment_intent_id) REFERENCES payment_intents(id) ON DELETE CASCADE
+Policies:
+    POLICY "Permission-based update payment intents" FOR UPDATE
+      USING (((tenant_id IS NOT NULL) AND has_permission(auth.uid(), tenant_id, 'finance.payment.create'::text)))
+    POLICY "Permission-based view tenant payment intents" FOR SELECT
+      USING (((tenant_id IS NOT NULL) AND has_permission(auth.uid(), tenant_id, 'finance.payment.view'::text)))
+    POLICY "Users can create their own payment intents" FOR INSERT
+      WITH CHECK ((payer_user_id = auth.uid()))
+    POLICY "Users can update their own payment intents" FOR UPDATE
+      USING (((payer_user_id = auth.uid()) AND (status = ANY (ARRAY['draft'::payment_status, 'pending'::payment_status]))))
+    POLICY "Users can view their own payment intents" FOR SELECT
+      USING ((payer_user_id = auth.uid()))
+Triggers:
+    update_payment_intents_updated_at BEFORE UPDATE ON payment_intents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+    validate_payment_intent_trigger BEFORE INSERT OR UPDATE ON payment_intents FOR EACH ROW EXECUTE FUNCTION validate_payment_intent()
+
+                               Table "public.payment_splits"
+       Column        |           Type           | Collation | Nullable |      Default      
+---------------------+--------------------------+-----------+----------+-------------------
+ id                  | uuid                     |           | not null | gen_random_uuid()
+ payment_intent_id   | uuid                     |           | not null | 
+ receiver_account_id | uuid                     |           | not null | 
+ amount_display      | text                     |           |          | 
+ role                | payment_split_role       |           | not null | 
+ created_at          | timestamp with time zone |           | not null | now()
+Indexes:
+    "payment_splits_pkey" PRIMARY KEY, btree (id)
+    "idx_payment_splits_intent" btree (payment_intent_id)
+Foreign-key constraints:
+    "payment_splits_payment_intent_id_fkey" FOREIGN KEY (payment_intent_id) REFERENCES payment_intents(id) ON DELETE CASCADE
+    "payment_splits_receiver_account_id_fkey" FOREIGN KEY (receiver_account_id) REFERENCES payment_accounts(id) ON DELETE CASCADE
+Policies:
+    POLICY "Permission-based insert payment splits" FOR INSERT
+      WITH CHECK ((EXISTS ( SELECT 1
+   FROM payment_intents pi
+  WHERE ((pi.id = payment_splits.payment_intent_id) AND has_permission(auth.uid(), pi.tenant_id, 'finance.payment.create'::text)))))
+    POLICY "Users can view payment splits" FOR SELECT
+      USING (can_view_payment_intent(auth.uid(), payment_intent_id))
+

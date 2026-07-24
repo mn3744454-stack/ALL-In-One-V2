@@ -1,0 +1,10 @@
+ERROR:  column tm.status does not exist
+LINE 1: SELECT tm.user_id, tm.tenant_id, tm.status FROM public.tenan...
+                                         ^
+145f2128-83ca-4ba8-85b5-8ade245c5530|30
+348ce41c-1102-4295-bf6a-2ea0203c1036|22
+8951ac1a-2940-4e93-9a62-95e47f110cba|3
+1298be8b-14bb-4b35-ae2d-1fa735a69a3c|1
+98439fe8-6881-4e9e-8ff6-18aca0ce4470|145f2128-83ca-4ba8-85b5-8ade245c5530|owner
+a9211bf7-4f66-484c-8d1d-ece445de1604|145f2128-83ca-4ba8-85b5-8ade245c5530|foreman
+2a1593d8-2397-4d1f-90f5-aba5983a9b57|145f2128-83ca-4ba8-85b5-8ade245c5530|manager

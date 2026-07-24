@@ -1,0 +1,58 @@
+                                  Table "public.invoices"
+       Column        |           Type           | Collation | Nullable |      Default      
+---------------------+--------------------------+-----------+----------+-------------------
+ id                  | uuid                     |           | not null | gen_random_uuid()
+ tenant_id           | uuid                     |           | not null | 
+ invoice_number      | text                     |           | not null | 
+ client_id           | uuid                     |           |          | 
+ client_name         | text                     |           |          | 
+ status              | text                     |           | not null | 'draft'::text
+ issue_date          | date                     |           | not null | CURRENT_DATE
+ due_date            | date                     |           |          | 
+ subtotal            | numeric(12,2)            |           | not null | 0
+ tax_amount          | numeric(12,2)            |           |          | 0
+ discount_amount     | numeric(12,2)            |           |          | 0
+ total_amount        | numeric(12,2)            |           | not null | 0
+ currency            | text                     |           |          | 'SAR'::text
+ notes               | text                     |           |          | 
+ created_by          | uuid                     |           |          | 
+ created_at          | timestamp with time zone |           |          | now()
+ updated_at          | timestamp with time zone |           |          | now()
+ pos_session_id      | uuid                     |           |          | 
+ branch_id           | uuid                     |           |          | 
+ payment_method      | text                     |           |          | 
+ payment_received_at | timestamp with time zone |           |          | 
+ corrects_invoice_id | uuid                     |           |          | 
+ prices_include_tax  | boolean                  |           | not null | 
+Indexes:
+    "invoices_pkey" PRIMARY KEY, btree (id)
+    "idx_invoices_pos_session" btree (pos_session_id) WHERE pos_session_id IS NOT NULL
+    "idx_invoices_tenant_status" btree (tenant_id, status, issue_date)
+    "invoices_tenant_id_invoice_number_key" UNIQUE CONSTRAINT, btree (tenant_id, invoice_number)
+Check constraints:
+    "invoices_status_check" CHECK (status = ANY (ARRAY['draft'::text, 'reviewed'::text, 'approved'::text, 'shared'::text, 'paid'::text, 'partial'::text, 'overdue'::text, 'cancelled'::text, 'issued'::text, 'sent'::text]))
+Foreign-key constraints:
+    "invoices_branch_id_fkey" FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL
+    "invoices_client_id_fkey" FOREIGN KEY (client_id) REFERENCES clients(id)
+    "invoices_corrects_invoice_id_fkey" FOREIGN KEY (corrects_invoice_id) REFERENCES invoices(id)
+    "invoices_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id)
+    "invoices_pos_session_id_fkey" FOREIGN KEY (pos_session_id) REFERENCES pos_sessions(id) ON DELETE SET NULL
+    "invoices_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+Referenced by:
+    TABLE "billing_links" CONSTRAINT "billing_links_invoice_id_fkey" FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    TABLE "invoice_items" CONSTRAINT "invoice_items_invoice_id_fkey" FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+    TABLE "invoices" CONSTRAINT "invoices_corrects_invoice_id_fkey" FOREIGN KEY (corrects_invoice_id) REFERENCES invoices(id)
+    TABLE "pos_sales" CONSTRAINT "pos_sales_invoice_id_fkey" FOREIGN KEY (invoice_id) REFERENCES invoices(id)
+Policies:
+    POLICY "Permission-based delete invoices" FOR DELETE
+      USING (has_permission(auth.uid(), tenant_id, 'finance.invoice.delete'::text))
+    POLICY "Permission-based insert invoices" FOR INSERT
+      WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.create'::text))
+    POLICY "Permission-based update invoices" FOR UPDATE
+      USING (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text))
+      WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text))
+    POLICY "Tenant members can view invoices" FOR SELECT
+      USING (is_tenant_member(auth.uid(), tenant_id))
+Publications:
+    "supabase_realtime"
+

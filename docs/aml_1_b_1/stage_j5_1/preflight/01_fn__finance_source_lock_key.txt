@@ -1,0 +1,17 @@
+_finance_source_lock_key(uuid,text,uuid)
+---
+CREATE OR REPLACE FUNCTION public._finance_source_lock_key(p_tenant_id uuid, p_source_type text, p_source_id uuid)
+ RETURNS bigint
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO ''
+AS $function$
+  SELECT pg_catalog.hashtextextended(
+    'fin.src|' || COALESCE(p_tenant_id::text, '')
+      || '|' || COALESCE(p_source_type, '')
+      || '|' || COALESCE(p_source_id::text, ''),
+    0::bigint);
+$function$
+
+---
+secdef=false owner=postgres config=search_path=""

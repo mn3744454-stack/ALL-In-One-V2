@@ -1,0 +1,52 @@
+                                Table "public.products"
+     Column      |           Type           | Collation | Nullable |      Default      
+-----------------+--------------------------+-----------+----------+-------------------
+ id              | uuid                     |           | not null | gen_random_uuid()
+ tenant_id       | uuid                     |           | not null | 
+ category_id     | uuid                     |           |          | 
+ supplier_id     | uuid                     |           |          | 
+ unit_id         | uuid                     |           |          | 
+ name            | text                     |           | not null | 
+ name_ar         | text                     |           |          | 
+ description     | text                     |           |          | 
+ description_ar  | text                     |           |          | 
+ sku             | text                     |           |          | 
+ barcode         | text                     |           |          | 
+ product_type    | text                     |           | not null | 'item'::text
+ purchase_price  | numeric(12,2)            |           |          | 
+ selling_price   | numeric(12,2)            |           |          | 
+ currency        | text                     |           | not null | 'SAR'::text
+ tax_rate        | numeric(5,2)             |           |          | 0
+ track_inventory | boolean                  |           | not null | true
+ min_stock_level | numeric(12,3)            |           |          | 0
+ reorder_point   | numeric(12,3)            |           |          | 0
+ expiry_tracking | boolean                  |           | not null | false
+ is_active       | boolean                  |           | not null | true
+ created_at      | timestamp with time zone |           | not null | now()
+ updated_at      | timestamp with time zone |           | not null | now()
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (id)
+    "idx_products_barcode" btree (tenant_id, barcode)
+    "idx_products_category" btree (category_id)
+    "idx_products_sku" btree (tenant_id, sku)
+    "idx_products_tenant" btree (tenant_id)
+    "products_tenant_id_id_key" UNIQUE CONSTRAINT, btree (tenant_id, id)
+Check constraints:
+    "products_product_type_check" CHECK (product_type = ANY (ARRAY['item'::text, 'service'::text, 'composite'::text]))
+Foreign-key constraints:
+    "products_category_id_fkey" FOREIGN KEY (category_id) REFERENCES product_categories(id)
+    "products_supplier_id_fkey" FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+    "products_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    "products_unit_id_fkey" FOREIGN KEY (unit_id) REFERENCES measurement_units(id)
+Referenced by:
+    TABLE "inventory_movements" CONSTRAINT "inventory_movements_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    TABLE "stock_levels" CONSTRAINT "stock_levels_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    TABLE "tenant_services" CONSTRAINT "tenant_services_product_fk" FOREIGN KEY (tenant_id, product_id) REFERENCES products(tenant_id, id) ON DELETE RESTRICT
+Policies:
+    POLICY "Active members can manage products"
+      USING (is_active_tenant_member(auth.uid(), tenant_id))
+      WITH CHECK (is_active_tenant_member(auth.uid(), tenant_id))
+    POLICY "Active members can view products" FOR SELECT
+      USING (is_active_tenant_member(auth.uid(), tenant_id))
+
+0

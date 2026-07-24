@@ -1,0 +1,70 @@
+_finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)
+---
+CREATE OR REPLACE FUNCTION public._finance_ledger_insert(p_tenant_id uuid, p_client_id uuid, p_entry_type text, p_reference_type text, p_reference_id uuid, p_amount numeric, p_effective_date date, p_description text, p_payment_method text, p_payment_session_id uuid, p_metadata jsonb, p_created_by uuid)
+ RETURNS TABLE(ledger_entry_id uuid, balance_after numeric)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_id           uuid;
+  v_running      numeric := 0;
+  v_row          record;
+  v_new_bal      numeric := 0;
+BEGIN
+  IF p_tenant_id IS NULL OR p_entry_type IS NULL OR p_reference_type IS NULL
+     OR p_amount IS NULL OR p_effective_date IS NULL THEN
+    RAISE EXCEPTION 'FIN_LEDGER_INSERT_BAD_ARGS' USING ERRCODE = '22023';
+  END IF;
+
+  IF p_client_id IS NOT NULL THEN
+    PERFORM pg_advisory_xact_lock(
+      public._finance_advisory_lock_key(p_tenant_id, 'client_ledger', p_client_id)
+    );
+  END IF;
+
+  INSERT INTO public.ledger_entries (
+    tenant_id, client_id, entry_type, reference_type, reference_id,
+    amount, balance_after, description, created_by,
+    payment_method, metadata, payment_session_id, effective_date
+  ) VALUES (
+    p_tenant_id, p_client_id, p_entry_type, p_reference_type, p_reference_id,
+    p_amount, 0, p_description, p_created_by,
+    p_payment_method, COALESCE(p_metadata, '{}'::jsonb), p_payment_session_id, p_effective_date
+  )
+  RETURNING id INTO v_id;
+
+  IF p_client_id IS NULL THEN
+    RETURN QUERY SELECT v_id, 0::numeric;
+    RETURN;
+  END IF;
+
+  v_running := 0;
+  FOR v_row IN
+    SELECT id, amount
+      FROM public.ledger_entries
+     WHERE tenant_id = p_tenant_id AND client_id = p_client_id
+     ORDER BY effective_date, created_at, id
+  LOOP
+    v_running := v_running + COALESCE(v_row.amount, 0);
+    UPDATE public.ledger_entries
+       SET balance_after = v_running
+     WHERE id = v_row.id;
+    IF v_row.id = v_id THEN
+      v_new_bal := v_running;
+    END IF;
+  END LOOP;
+
+  INSERT INTO public.customer_balances (tenant_id, client_id, balance, currency, last_updated)
+  SELECT p_tenant_id, p_client_id, v_running,
+         COALESCE((SELECT currency FROM public.tenants WHERE id = p_tenant_id), 'SAR'),
+         now()
+  ON CONFLICT (tenant_id, client_id)
+  DO UPDATE SET balance = EXCLUDED.balance, last_updated = now();
+
+  RETURN QUERY SELECT v_id, v_new_bal;
+END
+$function$
+
+---
+secdef=true owner=postgres config=search_path=""

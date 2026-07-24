@@ -1,0 +1,74 @@
+_finance_idempotency_begin(uuid,text,uuid,uuid,jsonb,jsonb)
+---
+CREATE OR REPLACE FUNCTION public._finance_idempotency_begin(p_tenant_id uuid, p_operation text, p_idempotency_key uuid, p_actor_id uuid, p_source jsonb, p_intent jsonb)
+ RETURNS TABLE(is_replay boolean, request_hash bytea, stored_response jsonb)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_hash bytea; v_lock_key bigint;
+  v_row public.finance_request_idempotency%ROWTYPE;
+  v_updated int;
+BEGIN
+  IF p_tenant_id IS NULL OR p_operation IS NULL OR pg_catalog.length(p_operation) = 0
+     OR p_idempotency_key IS NULL OR p_actor_id IS NULL THEN
+    RAISE EXCEPTION 'FIN_IDEMPOTENCY_INVALID_ARGUMENTS' USING ERRCODE = '22023';
+  END IF;
+  v_hash := public._finance_request_hash(p_operation, p_tenant_id, p_actor_id, p_source, p_intent);
+  v_lock_key := public._finance_advisory_lock_key(p_tenant_id, p_operation, p_idempotency_key);
+  PERFORM pg_catalog.pg_advisory_xact_lock(v_lock_key);
+
+  SELECT * INTO v_row FROM public.finance_request_idempotency
+   WHERE tenant_id = p_tenant_id AND operation = p_operation AND idempotency_key = p_idempotency_key;
+
+  IF FOUND THEN
+    IF v_row.expires_at > pg_catalog.now() THEN
+      IF v_row.response IS NOT NULL THEN
+        IF v_row.actor_id IS DISTINCT FROM p_actor_id THEN
+          RAISE EXCEPTION 'FIN_IDEMPOTENCY_ACTOR_MISMATCH' USING ERRCODE = '42501'; END IF;
+        IF v_row.request_hash IS DISTINCT FROM v_hash THEN
+          RAISE EXCEPTION 'FIN_IDEMPOTENCY_CONFLICT' USING ERRCODE = '23514'; END IF;
+        is_replay := true; request_hash := v_hash; stored_response := v_row.response;
+        RETURN NEXT; RETURN;
+      ELSE
+        RAISE EXCEPTION 'FIN_IDEMPOTENCY_IN_PROGRESS' USING ERRCODE = '40001';
+      END IF;
+    ELSE
+      UPDATE public.finance_request_idempotency
+         SET actor_id = p_actor_id, request_hash = v_hash,
+             resolved_snapshot = '{}'::jsonb, response = NULL,
+             created_at = pg_catalog.now(),
+             expires_at = pg_catalog.now() + interval '7 days'
+       WHERE tenant_id = p_tenant_id AND operation = p_operation
+         AND idempotency_key = p_idempotency_key AND expires_at <= pg_catalog.now();
+      GET DIAGNOSTICS v_updated = ROW_COUNT;
+      IF v_updated = 0 THEN
+        SELECT * INTO v_row FROM public.finance_request_idempotency
+         WHERE tenant_id = p_tenant_id AND operation = p_operation AND idempotency_key = p_idempotency_key;
+        IF v_row.response IS NULL THEN
+          RAISE EXCEPTION 'FIN_IDEMPOTENCY_IN_PROGRESS' USING ERRCODE = '40001'; END IF;
+        IF v_row.actor_id IS DISTINCT FROM p_actor_id THEN
+          RAISE EXCEPTION 'FIN_IDEMPOTENCY_ACTOR_MISMATCH' USING ERRCODE = '42501'; END IF;
+        IF v_row.request_hash IS DISTINCT FROM v_hash THEN
+          RAISE EXCEPTION 'FIN_IDEMPOTENCY_CONFLICT' USING ERRCODE = '23514'; END IF;
+        is_replay := true; request_hash := v_hash; stored_response := v_row.response;
+        RETURN NEXT; RETURN;
+      END IF;
+      is_replay := false; request_hash := v_hash; stored_response := NULL;
+      RETURN NEXT; RETURN;
+    END IF;
+  ELSE
+    INSERT INTO public.finance_request_idempotency (
+      tenant_id, operation, idempotency_key, actor_id, request_hash,
+      resolved_snapshot, response, created_at, expires_at
+    ) VALUES (
+      p_tenant_id, p_operation, p_idempotency_key, p_actor_id, v_hash,
+      '{}'::jsonb, NULL, pg_catalog.now(), pg_catalog.now() + interval '7 days');
+    is_replay := false; request_hash := v_hash; stored_response := NULL;
+    RETURN NEXT; RETURN;
+  END IF;
+END $function$
+
+---
+secdef=true owner=postgres config=search_path=""

@@ -1,0 +1,9 @@
+id
+tenant_id
+user_id
+role
+can_invite
+can_manage_horses
+is_active
+created_at
+updated_at

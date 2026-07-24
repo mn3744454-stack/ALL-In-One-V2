@@ -1,0 +1,78 @@
+                             Table "public.pos_sessions"
+    Column     |           Type           | Collation | Nullable |      Default      
+---------------+--------------------------+-----------+----------+-------------------
+ id            | uuid                     |           | not null | gen_random_uuid()
+ tenant_id     | uuid                     |           | not null | 
+ branch_id     | uuid                     |           |          | 
+ opened_by     | uuid                     |           | not null | 
+ closed_by     | uuid                     |           |          | 
+ status        | text                     |           | not null | 'open'::text
+ opening_cash  | numeric(12,2)            |           | not null | 0
+ closing_cash  | numeric(12,2)            |           |          | 
+ expected_cash | numeric(12,2)            |           |          | 
+ cash_variance | numeric(12,2)            |           |          | 
+ notes         | text                     |           |          | 
+ opened_at     | timestamp with time zone |           | not null | now()
+ closed_at     | timestamp with time zone |           |          | 
+ created_at    | timestamp with time zone |           | not null | now()
+ updated_at    | timestamp with time zone |           | not null | now()
+Indexes:
+    "pos_sessions_pkey" PRIMARY KEY, btree (id)
+    "idx_pos_sessions_opened_at" btree (tenant_id, opened_at DESC)
+    "idx_pos_sessions_status" btree (tenant_id, status)
+    "idx_pos_sessions_tenant" btree (tenant_id)
+    "ux_pos_sessions_one_open_per_branch" UNIQUE, btree (tenant_id, COALESCE(branch_id, '00000000-0000-0000-0000-000000000000'::uuid)) WHERE status = 'open'::text
+Check constraints:
+    "pos_sessions_status_check" CHECK (status = ANY (ARRAY['open'::text, 'closed'::text, 'reconciled'::text]))
+Foreign-key constraints:
+    "pos_sessions_branch_id_fkey" FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL
+    "pos_sessions_closed_by_fkey" FOREIGN KEY (closed_by) REFERENCES auth.users(id)
+    "pos_sessions_opened_by_fkey" FOREIGN KEY (opened_by) REFERENCES auth.users(id)
+    "pos_sessions_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+Referenced by:
+    TABLE "invoices" CONSTRAINT "invoices_pos_session_id_fkey" FOREIGN KEY (pos_session_id) REFERENCES pos_sessions(id) ON DELETE SET NULL
+    TABLE "pos_sales" CONSTRAINT "pos_sales_session_id_fkey" FOREIGN KEY (session_id) REFERENCES pos_sessions(id)
+Policies:
+    POLICY "Managers can create POS sessions" FOR INSERT
+      WITH CHECK ((EXISTS ( SELECT 1
+   FROM tenant_members tm
+  WHERE ((tm.tenant_id = pos_sessions.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.role = ANY (ARRAY['owner'::tenant_role, 'manager'::tenant_role])) AND (tm.is_active = true)))))
+    POLICY "Managers can update POS sessions" FOR UPDATE
+      USING ((EXISTS ( SELECT 1
+   FROM tenant_members tm
+  WHERE ((tm.tenant_id = pos_sessions.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.role = ANY (ARRAY['owner'::tenant_role, 'manager'::tenant_role])) AND (tm.is_active = true)))))
+      WITH CHECK ((EXISTS ( SELECT 1
+   FROM tenant_members tm
+  WHERE ((tm.tenant_id = pos_sessions.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.role = ANY (ARRAY['owner'::tenant_role, 'manager'::tenant_role])) AND (tm.is_active = true)))))
+    POLICY "Tenant members can view POS sessions" FOR SELECT
+      USING ((EXISTS ( SELECT 1
+   FROM tenant_members tm
+  WHERE ((tm.tenant_id = pos_sessions.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true)))))
+Triggers:
+    update_pos_sessions_updated_at BEFORE UPDATE ON pos_sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+
+                              Table "public.pos_sales"
+    Column    |           Type           | Collation | Nullable |      Default      
+--------------+--------------------------+-----------+----------+-------------------
+ id           | uuid                     |           | not null | gen_random_uuid()
+ tenant_id    | uuid                     |           | not null | 
+ session_id   | uuid                     |           | not null | 
+ sale_number  | integer                  |           | not null | 
+ cart_hash    | text                     |           | not null | 
+ subtotal     | numeric(12,2)            |           | not null | 
+ tax_amount   | numeric(12,2)            |           | not null | 0
+ total_amount | numeric(12,2)            |           | not null | 
+ currency     | text                     |           | not null | 
+ invoice_id   | uuid                     |           |          | 
+ created_by   | uuid                     |           | not null | 
+ created_at   | timestamp with time zone |           | not null | now()
+Indexes:
+    "pos_sales_pkey" PRIMARY KEY, btree (id)
+    "pos_sales_session_sale_unique" UNIQUE CONSTRAINT, btree (tenant_id, session_id, sale_number)
+Foreign-key constraints:
+    "pos_sales_created_by_fkey" FOREIGN KEY (created_by) REFERENCES profiles(id)
+    "pos_sales_invoice_id_fkey" FOREIGN KEY (invoice_id) REFERENCES invoices(id)
+    "pos_sales_session_id_fkey" FOREIGN KEY (session_id) REFERENCES pos_sessions(id)
+    "pos_sales_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+Policies (row security enabled): (none)
+

@@ -1,0 +1,139 @@
+post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)
+---
+CREATE OR REPLACE FUNCTION public.post_invoice_payments(p_tenant_id uuid, p_idempotency_key uuid, p_invoice_id uuid, p_account_id uuid, p_payment_date date, p_payments jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_actor uuid := auth.uid();
+  v_op text := 'post_invoice_payments';
+  v_replay boolean;
+  v_hash bytea;
+  v_stored jsonb;
+  v_payment jsonb;
+  v_key text;
+  v_position integer := 0;
+  v_amount numeric;
+  v_method text;
+  v_item_idempotency uuid;
+  v_total numeric := 0;
+  v_result jsonb;
+  v_results jsonb := '[]'::jsonb;
+  v_snapshot jsonb;
+BEGIN
+  IF v_actor IS NULL THEN
+    RAISE EXCEPTION 'FIN_UNAUTHENTICATED' USING ERRCODE = '42501';
+  END IF;
+  IF p_tenant_id IS NULL OR p_idempotency_key IS NULL OR p_invoice_id IS NULL
+     OR p_account_id IS NULL OR p_payment_date IS NULL OR p_payments IS NULL THEN
+    RAISE EXCEPTION 'FIN_BAD_ARGS' USING ERRCODE = '22023';
+  END IF;
+  IF NOT public.is_active_tenant_member(v_actor, p_tenant_id) THEN
+    RAISE EXCEPTION 'FIN_TENANT_ACCESS_DENIED' USING ERRCODE = '42501';
+  END IF;
+  IF NOT public.has_permission(v_actor, p_tenant_id, 'finance.payment.create') THEN
+    RAISE EXCEPTION 'FIN_PERMISSION_DENIED' USING ERRCODE = '42501';
+  END IF;
+  IF jsonb_typeof(p_payments) <> 'array'
+     OR jsonb_array_length(p_payments) < 1
+     OR jsonb_array_length(p_payments) > 10 THEN
+    RAISE EXCEPTION 'FIN_PAYMENTS_INVALID' USING ERRCODE = '23514';
+  END IF;
+
+  FOR v_payment IN SELECT jsonb_array_elements(p_payments)
+  LOOP
+    v_position := v_position + 1;
+    IF jsonb_typeof(v_payment) <> 'object' THEN
+      RAISE EXCEPTION 'FIN_PAYLOAD_TYPE: payments[]' USING ERRCODE = '23514';
+    END IF;
+    FOR v_key IN SELECT jsonb_object_keys(v_payment)
+    LOOP
+      IF v_key NOT IN (
+        'idempotency_key', 'amount', 'payment_method',
+        'reference_note', 'external_reference'
+      ) THEN
+        RAISE EXCEPTION 'FIN_PAYLOAD_UNKNOWN_KEY: payments[].%', v_key
+          USING ERRCODE = '23514';
+      END IF;
+    END LOOP;
+
+    v_item_idempotency := NULLIF(v_payment->>'idempotency_key', '')::uuid;
+    v_amount := COALESCE(NULLIF(v_payment->>'amount', '')::numeric, 0);
+    v_method := NULLIF(btrim(v_payment->>'payment_method'), '');
+    IF v_item_idempotency IS NULL OR v_amount <= 0 OR v_method IS NULL THEN
+      RAISE EXCEPTION 'FIN_PAYMENT_SPLIT_INVALID: pos=%', v_position
+        USING ERRCODE = '23514';
+    END IF;
+    IF char_length(COALESCE(v_payment->>'reference_note', '')) > 500
+       OR char_length(COALESCE(v_payment->>'external_reference', '')) > 100 THEN
+      RAISE EXCEPTION 'FIN_PAYMENT_SPLIT_TEXT_INVALID: pos=%', v_position
+        USING ERRCODE = '23514';
+    END IF;
+    v_total := v_total + v_amount;
+  END LOOP;
+
+  SELECT is_replay, request_hash, stored_response
+  INTO v_replay, v_hash, v_stored
+  FROM public._finance_idempotency_begin(
+    p_tenant_id,
+    v_op,
+    p_idempotency_key,
+    v_actor,
+    jsonb_build_object('tenant_id', p_tenant_id, 'invoice_id', p_invoice_id),
+    jsonb_build_object(
+      'account_id', p_account_id,
+      'payment_date', p_payment_date,
+      'payments', p_payments
+    )
+  );
+  IF v_replay THEN
+    RETURN v_stored;
+  END IF;
+
+  v_position := 0;
+  FOR v_payment IN SELECT jsonb_array_elements(p_payments)
+  LOOP
+    v_position := v_position + 1;
+    v_result := public.post_payment(
+      p_tenant_id,
+      (v_payment->>'idempotency_key')::uuid,
+      p_invoice_id,
+      (v_payment->>'amount')::numeric,
+      p_payment_date,
+      v_payment->>'payment_method',
+      p_account_id,
+      jsonb_strip_nulls(jsonb_build_object(
+        'reference_note', NULLIF(v_payment->>'reference_note', ''),
+        'external_reference', NULLIF(v_payment->>'external_reference', ''),
+        'metadata', jsonb_build_object(
+          'payment_session_id', p_idempotency_key::text,
+          'split_position', v_position
+        )
+      ))
+    );
+    v_results := v_results || jsonb_build_array(v_result);
+  END LOOP;
+
+  v_snapshot := jsonb_build_object(
+    'invoice_id', p_invoice_id,
+    'payment_session_id', p_idempotency_key,
+    'payment_date', p_payment_date,
+    'total_payment', round(v_total, 2),
+    'split_count', v_position,
+    'remaining_after', (v_result->>'remaining_after')::numeric,
+    'invoice_status', v_result->>'invoice_status',
+    'results', v_results
+  );
+
+  PERFORM public._finance_idempotency_complete(
+    p_tenant_id, v_op, p_idempotency_key, v_actor, v_hash,
+    v_snapshot, v_snapshot
+  );
+  RETURN v_snapshot;
+END
+$function$
+
+---
+secdef=true owner=postgres config=search_path=""
