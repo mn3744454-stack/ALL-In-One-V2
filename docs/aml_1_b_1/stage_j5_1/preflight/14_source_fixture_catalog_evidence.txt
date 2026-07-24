@@ -1398,3 +1398,170 @@ Interpretation: horses.gender is a plain text column constrained by CHECK to exa
 ================================================================================
 END SECTION 9
 ================================================================================
+
+================================================================================
+SECTION 10 — CONTRACT-REPAIR RAW EVIDENCE (J5.1A.2-PREFLIGHT-CONTRACT-REPAIR)
+================================================================================
+
+--- SQL ---
+\d public.member_permissions
+--- OUTPUT (columns) ---
+id               uuid NOT NULL DEFAULT gen_random_uuid()
+tenant_member_id uuid NOT NULL
+permission_key   text NOT NULL
+granted          boolean NOT NULL DEFAULT true
+granted_by       uuid NULL
+granted_at       timestamptz NOT NULL DEFAULT now()
+
+Unique constraint: (tenant_member_id, permission_key)
+FKs:
+  tenant_member_id -> tenant_members(id) ON DELETE CASCADE
+  granted_by       -> profiles(id)
+  permission_key   -> permission_definitions(key) ON DELETE CASCADE
+
+Interpretation: `member_permissions` HAS NO `tenant_id` or `user_id` column. All prior
+templates using those columns are schema-invalid. Overrides must key on
+`tenant_member_id`, and the unique conflict target is exactly
+`(tenant_member_id, permission_key)`. `granted_by` must reference `profiles(id)`; the
+fixed actor `98439fe8-6881-4e9e-8ff6-18aca0ce4470` already has a `profiles` row
+(proven in File 14 Section 9.1).
+
+--- SQL ---
+\d public.clients
+--- OUTPUT (relevant columns) ---
+id, tenant_id, name, name_ar, email, phone, address, type, status, tax_number,
+preferred_payment_method, credit_limit, outstanding_balance, notes, created_at,
+updated_at, profile_id, linked_profile_id, claimed_at, phones, linked_tenant_id
+
+Interpretation: `clients` HAS NO `created_by` column. Templates including it are
+schema-invalid. Required non-defaulted columns for a minimal insert are
+`tenant_id` and `name`.
+
+--- SQL ---
+\d public.horses
+--- OUTPUT (identity fragment) ---
+id, tenant_id, name (NOT NULL), gender (NOT NULL, CHECK IN ('male','female')),
+status DEFAULT 'active', is_pregnant DEFAULT false, is_gelded DEFAULT false,
+is_pony DEFAULT false, owner_truth_review_required DEFAULT false
+
+Interpretation: `horses` HAS NO `created_by` column. Required non-defaulted columns
+are `tenant_id`, `name`, `gender`.
+
+--- SQL ---
+\d public.horse_order_types
+--- OUTPUT (columns) ---
+id, tenant_id, name, name_ar, category, is_active DEFAULT true,
+pin_as_tab DEFAULT false, sort_order DEFAULT 0, created_at, updated_at
+
+Interpretation: `horse_order_types` HAS NO `created_by` column. Required
+non-defaulted columns are `tenant_id`, `name`.
+
+--- SQL ---
+\d public.lab_horses
+--- OUTPUT (columns) ---
+id, tenant_id, created_by, created_at, updated_at, name (NOT NULL), name_ar, gender,
+approx_age, breed_text, color_text, microchip_number, passport_number, ueln,
+owner_name, owner_phone, notes, metadata (NOT NULL DEFAULT '{}'::jsonb),
+linked_horse_id, linked_at, source (NOT NULL DEFAULT 'manual'; CHECK IN
+('manual','platform','request')), is_archived (NOT NULL DEFAULT false), client_id,
+owner_email
+
+FK: created_by -> auth.users(id)
+
+Interpretation: `lab_horses.created_by` references `auth.users(id)` — different from
+`clients`/`horses`. The fixed actor `98439fe8...` is a real `auth.users` row
+(transitively proven via `tenants.owner_id` FK in File 14 Section 9.1), so
+`created_by = :actor_id` is valid. Required non-defaulted columns are `tenant_id`
+and `name`. Optional collision-prone unique columns (`microchip_number`,
+`passport_number`, `ueln`, `linked_horse_id`) must be left NULL.
+
+--- SQL ---
+\d public.lab_samples (validate_lab_sample requirement)
+--- OUTPUT ---
+Column `created_by` is NOT NULL, FK -> profiles(id).
+Column `client_metadata` is NOT NULL DEFAULT '{}'::jsonb.
+Column `numbering_deferred` NOT NULL DEFAULT false.
+Column `retest_count` NOT NULL DEFAULT 0 (CHECK 0..3).
+Status CHECK ('draft','accessioned','processing','completed','cancelled').
+
+--- SQL ---
+SELECT pg_get_functiondef(oid) FROM pg_proc WHERE proname='validate_lab_sample';
+--- OUTPUT (excerpt) ---
+Requires: horse_id IS NOT NULL OR NULLIF(TRIM(horse_name),'') IS NOT NULL.
+lab_horse_id alone does NOT satisfy the trigger — a Lab-Horse-precedence fixture
+must ALSO supply a valid Source `horse_id` (from public.horses in the same tenant)
+or a non-empty `horse_name`.
+
+--- SQL ---
+\d public.horse_orders (validate_horse_order_tenant / validate_order_required_fields)
+--- OUTPUT ---
+horse_id NOT NULL, order_type_id NOT NULL, service_mode NOT NULL, status NOT NULL,
+priority NOT NULL DEFAULT 'medium', requested_at NOT NULL DEFAULT now(),
+currency NOT NULL DEFAULT 'SAR', is_income NOT NULL DEFAULT false,
+created_by NOT NULL (FK -> profiles(id)), client_id nullable.
+
+Interpretation: A minimal safe fixture requires `tenant_id`, `horse_id`,
+`order_type_id`, `service_mode`, `status`, `created_by`. When no matching
+`tenant_capabilities` row exists (proven zero for the fixed tenant in Section 9),
+`service_mode='external'` is the only safely allowed mode; `service_mode='internal'`
+would require a Tenant Capability fixture. All normal T1 Horse Order fixtures must
+therefore use `service_mode='external'`. Completed external orders must carry a
+non-empty `external_provider_name` for the checkout RPC to attribute the vendor.
+
+--- SQL ---
+SELECT tgname, pg_get_triggerdef(oid) FROM pg_trigger
+ WHERE tgrelid='public.tenants'::regclass AND NOT tgisinternal;
+--- OUTPUT ---
+enforce_tenant_limit                              BEFORE INSERT   check_tenant_limit()
+on_tenant_created_seed_roles                      AFTER  INSERT   seed_tenant_roles()
+trg_provision_stable_local_record_permissions_ins AFTER  INSERT   _trg_provision_stable_local_record_permissions()  (WHEN type='stable')
+trg_provision_stable_local_record_permissions_upd AFTER  UPDATE   _trg_provision_stable_local_record_permissions()
+update_tenants_updated_at                         BEFORE UPDATE   update_updated_at_column()
+
+--- SQL ---
+SELECT pg_get_functiondef(oid) FROM pg_proc WHERE proname='seed_tenant_roles';
+--- OUTPUT (body) ---
+INSERT INTO tenant_roles (tenant_id, role_key, name, name_ar, description, description_ar, is_system)
+VALUES (NEW.id, 'owner', ...), (NEW.id, 'manager', ...), ...;
+RETURN NEW;
+
+--- SQL ---
+SELECT pg_get_functiondef(oid) FROM pg_proc
+ WHERE proname='_trg_provision_stable_local_record_permissions';
+--- OUTPUT (body) ---
+PERFORM public._provision_stable_local_record_permissions(NEW.id);
+RETURN NEW;
+
+Interpretation: NEITHER tenant trigger inserts a `tenant_members` row. Owner
+membership on a newly-created secondary tenant MUST be inserted manually.
+This locks Strategy B for Section 12.
+
+--- SQL ---
+SELECT pg_get_functiondef(oid) FROM pg_proc WHERE proname='check_tenant_limit';
+--- OUTPUT (body) ---
+IF (SELECT COUNT(*) FROM public.tenants WHERE owner_id = NEW.owner_id) >= 3 THEN
+   RAISE EXCEPTION 'Maximum tenant limit (3) reached for this user';
+END IF;
+
+Interpretation: The fixed actor currently owns 1 tenant (File 14 Section 9.4), so a
+single transaction-local secondary tenant is well within the cap. A cleanup ROLLBACK
+of the outer T1 transaction restores the pre-test count.
+
+--- SQL ---
+\d public.tenant_members
+--- OUTPUT (columns) ---
+id, tenant_id, user_id, role tenant_role NOT NULL DEFAULT 'employee',
+can_invite DEFAULT false, can_manage_horses DEFAULT false, is_active DEFAULT true,
+created_at, updated_at.
+Unique: (tenant_id, user_id). user_id -> profiles(id).
+
+Interpretation: `tenant_role` is a Postgres ENUM; `'owner'` and `'foreman'` are
+proven valid labels (row samples in Section 9.2). The permission-negative recipe
+demotes the fixed owner to `'foreman'` inside a SAVEPOINT before applying a
+`member_permissions.granted=false` override, then rolls back — `has_permission`
+short-circuits to TRUE while the actor is still an owner, so the demotion is
+mandatory.
+
+================================================================================
+END SECTION 10
+================================================================================
