@@ -1,0 +1,1241 @@
+# J5.1A.2-PREFLIGHT · Raw Evidence Catalog
+# Generated 2026-07-24T17:59:29Z
+# Read-only inspection. No writes performed. Tab-separated psql outputs.
+
+################################################################
+# SECTION 1 — COLUMN CONTRACTS (information_schema.columns)
+################################################################
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='lab_samples' ORDER BY ordinal_position;
+--- OUTPUT: public.lab_samples ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	horse_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+4	related_order_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+5	client_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+6	assigned_to	uuid	pg_catalog	uuid	YES		NO	NEVER				
+7	physical_sample_id	text	pg_catalog	text	YES		NO	NEVER				
+8	collection_date	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+9	status	text	pg_catalog	text	NO	'draft'::text	NO	NEVER				
+10	accessioned_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+11	completed_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+12	notes	text	pg_catalog	text	YES		NO	NEVER				
+13	retest_of_sample_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+14	retest_count	integer	pg_catalog	int4	NO	0	NO	NEVER		32	0	
+15	debit_txn_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+16	metadata	jsonb	pg_catalog	jsonb	YES	'{}'::jsonb	NO	NEVER				
+17	created_by	uuid	pg_catalog	uuid	NO		NO	NEVER				
+18	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+19	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+20	received_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+21	received_by	uuid	pg_catalog	uuid	YES		NO	NEVER				
+22	source_lab_tenant_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+23	daily_number	integer	pg_catalog	int4	YES		NO	NEVER		32	0	
+24	horse_name	text	pg_catalog	text	YES		NO	NEVER				
+25	horse_external_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+26	horse_metadata	jsonb	pg_catalog	jsonb	YES	'{}'::jsonb	NO	NEVER				
+27	collection_date_only	date	pg_catalog	date	YES		NO	NEVER				
+28	client_name	text	pg_catalog	text	YES		NO	NEVER				
+29	client_phone	text	pg_catalog	text	YES		NO	NEVER				
+30	client_email	text	pg_catalog	text	YES		NO	NEVER				
+31	client_metadata	jsonb	pg_catalog	jsonb	NO	'{}'::jsonb	NO	NEVER				
+32	processing_started_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+33	lab_horse_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+34	lab_request_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+35	numbering_deferred	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+(35 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='lab_horses' ORDER BY ordinal_position;
+--- OUTPUT: public.lab_horses ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	created_by	uuid	pg_catalog	uuid	YES		NO	NEVER				
+4	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+5	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+6	name	text	pg_catalog	text	NO		NO	NEVER				
+7	name_ar	text	pg_catalog	text	YES		NO	NEVER				
+8	gender	text	pg_catalog	text	YES		NO	NEVER				
+9	approx_age	text	pg_catalog	text	YES		NO	NEVER				
+10	breed_text	text	pg_catalog	text	YES		NO	NEVER				
+11	color_text	text	pg_catalog	text	YES		NO	NEVER				
+12	microchip_number	text	pg_catalog	text	YES		NO	NEVER				
+13	passport_number	text	pg_catalog	text	YES		NO	NEVER				
+14	ueln	text	pg_catalog	text	YES		NO	NEVER				
+15	owner_name	text	pg_catalog	text	YES		NO	NEVER				
+16	owner_phone	text	pg_catalog	text	YES		NO	NEVER				
+17	notes	text	pg_catalog	text	YES		NO	NEVER				
+18	metadata	jsonb	pg_catalog	jsonb	NO	'{}'::jsonb	NO	NEVER				
+19	linked_horse_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+20	linked_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+21	source	text	pg_catalog	text	NO	'manual'::text	NO	NEVER				
+22	is_archived	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+23	client_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+24	owner_email	text	pg_catalog	text	YES		NO	NEVER				
+(24 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='horse_orders' ORDER BY ordinal_position;
+--- OUTPUT: public.horse_orders ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	horse_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+4	order_type_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+5	category	text	pg_catalog	text	YES		NO	NEVER				
+6	service_mode	text	pg_catalog	text	NO		NO	NEVER				
+7	status	text	pg_catalog	text	NO	'draft'::text	NO	NEVER				
+8	priority	text	pg_catalog	text	NO	'medium'::text	NO	NEVER				
+9	requested_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+10	scheduled_for	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+11	completed_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+12	notes	text	pg_catalog	text	YES		NO	NEVER				
+13	internal_resource_ref	jsonb	pg_catalog	jsonb	YES		NO	NEVER				
+14	external_provider_name	text	pg_catalog	text	YES		NO	NEVER				
+15	external_provider_meta	jsonb	pg_catalog	jsonb	YES		NO	NEVER				
+16	estimated_cost	numeric	pg_catalog	numeric	YES		NO	NEVER				
+17	actual_cost	numeric	pg_catalog	numeric	YES		NO	NEVER				
+18	currency	text	pg_catalog	text	NO	'SAR'::text	NO	NEVER				
+19	is_income	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+20	tax_category	text	pg_catalog	text	YES		NO	NEVER				
+21	account_code	text	pg_catalog	text	YES		NO	NEVER				
+22	financial_category	text	pg_catalog	text	YES		NO	NEVER				
+23	created_by	uuid	pg_catalog	uuid	NO		NO	NEVER				
+24	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+25	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+26	client_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+27	external_provider_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+28	assigned_to	uuid	pg_catalog	uuid	YES		NO	NEVER				
+(28 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='horse_order_types' ORDER BY ordinal_position;
+--- OUTPUT: public.horse_order_types ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	name	text	pg_catalog	text	NO		NO	NEVER				
+4	name_ar	text	pg_catalog	text	YES		NO	NEVER				
+5	category	text	pg_catalog	text	YES		NO	NEVER				
+6	is_active	boolean	pg_catalog	bool	NO	true	NO	NEVER				
+7	pin_as_tab	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+8	sort_order	integer	pg_catalog	int4	NO	0	NO	NEVER		32	0	
+9	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+10	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+(10 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='tenants' ORDER BY ordinal_position;
+--- OUTPUT: public.tenants ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	name	text	pg_catalog	text	NO		NO	NEVER				
+3	type	USER-DEFINED	public	tenant_type	NO		NO	NEVER				
+4	description	text	pg_catalog	text	YES		NO	NEVER				
+5	logo_url	text	pg_catalog	text	YES		NO	NEVER				
+6	address	text	pg_catalog	text	YES		NO	NEVER				
+7	phone	text	pg_catalog	text	YES		NO	NEVER				
+8	email	text	pg_catalog	text	YES		NO	NEVER				
+9	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+10	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+11	owner_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+12	slug	text	pg_catalog	text	YES		NO	NEVER				
+13	is_public	boolean	pg_catalog	bool	YES	false	NO	NEVER				
+14	is_listed	boolean	pg_catalog	bool	YES	true	NO	NEVER				
+15	public_name	text	pg_catalog	text	YES		NO	NEVER				
+16	public_description	text	pg_catalog	text	YES		NO	NEVER				
+17	public_phone	text	pg_catalog	text	YES		NO	NEVER				
+18	public_email	text	pg_catalog	text	YES		NO	NEVER				
+19	public_website	text	pg_catalog	text	YES		NO	NEVER				
+20	public_location_text	text	pg_catalog	text	YES		NO	NEVER				
+21	region	text	pg_catalog	text	YES		NO	NEVER				
+22	cover_url	text	pg_catalog	text	YES		NO	NEVER				
+23	tags	ARRAY	pg_catalog	_text	YES	'{}'::text[]	NO	NEVER				
+24	name_ar	text	pg_catalog	text	YES		NO	NEVER				
+25	description_ar	text	pg_catalog	text	YES		NO	NEVER				
+26	default_tax_rate	numeric	pg_catalog	numeric	NO	15	NO	NEVER				
+27	prices_tax_inclusive	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+28	currency	text	pg_catalog	text	NO	'SAR'::text	NO	NEVER				
+(28 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='clients' ORDER BY ordinal_position;
+--- OUTPUT: public.clients ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	name	text	pg_catalog	text	NO		NO	NEVER				
+4	name_ar	text	pg_catalog	text	YES		NO	NEVER				
+5	email	text	pg_catalog	text	YES		NO	NEVER				
+6	phone	text	pg_catalog	text	YES		NO	NEVER				
+7	address	text	pg_catalog	text	YES		NO	NEVER				
+8	type	text	pg_catalog	text	NO	'individual'::text	NO	NEVER				
+9	status	text	pg_catalog	text	NO	'active'::text	NO	NEVER				
+10	tax_number	text	pg_catalog	text	YES		NO	NEVER				
+11	preferred_payment_method	text	pg_catalog	text	YES		NO	NEVER				
+12	credit_limit	numeric	pg_catalog	numeric	YES		NO	NEVER				
+13	outstanding_balance	numeric	pg_catalog	numeric	YES	0	NO	NEVER				
+14	notes	text	pg_catalog	text	YES		NO	NEVER				
+15	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+16	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+17	profile_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+18	linked_profile_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+19	claimed_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+20	phones	jsonb	pg_catalog	jsonb	YES	'[]'::jsonb	NO	NEVER				
+21	linked_tenant_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+(21 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='horses' ORDER BY ordinal_position;
+--- OUTPUT: public.horses ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	name	text	pg_catalog	text	NO		NO	NEVER				
+4	gender	text	pg_catalog	text	NO		NO	NEVER				
+5	breed	text	pg_catalog	text	YES		NO	NEVER				
+6	color	text	pg_catalog	text	YES		NO	NEVER				
+7	birth_date	date	pg_catalog	date	YES		NO	NEVER				
+8	registration_number	text	pg_catalog	text	YES		NO	NEVER				
+9	microchip_number	text	pg_catalog	text	YES		NO	NEVER				
+10	notes	text	pg_catalog	text	YES		NO	NEVER				
+11	avatar_url	text	pg_catalog	text	YES		NO	NEVER				
+12	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+13	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+14	name_ar	text	pg_catalog	text	YES		NO	NEVER				
+15	age_category	text	pg_catalog	text	YES		NO	NEVER				
+16	status	text	pg_catalog	text	NO	'active'::text	NO	NEVER				
+17	passport_number	text	pg_catalog	text	YES		NO	NEVER				
+18	ueln	text	pg_catalog	text	YES		NO	NEVER				
+19	is_pregnant	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+20	pregnancy_months	integer	pg_catalog	int4	YES		NO	NEVER		32	0	
+21	height	numeric	pg_catalog	numeric	YES		NO	NEVER				
+22	weight	numeric	pg_catalog	numeric	YES		NO	NEVER				
+23	mane_marks	text	pg_catalog	text	YES		NO	NEVER				
+24	body_marks	text	pg_catalog	text	YES		NO	NEVER				
+25	legs_marks	text	pg_catalog	text	YES		NO	NEVER				
+26	distinctive_marks_notes	text	pg_catalog	text	YES		NO	NEVER				
+27	mother_name	text	pg_catalog	text	YES		NO	NEVER				
+28	mother_name_ar	text	pg_catalog	text	YES		NO	NEVER				
+29	father_name	text	pg_catalog	text	YES		NO	NEVER				
+30	father_name_ar	text	pg_catalog	text	YES		NO	NEVER				
+31	maternal_grandmother	text	pg_catalog	text	YES		NO	NEVER				
+32	maternal_grandfather	text	pg_catalog	text	YES		NO	NEVER				
+33	paternal_grandmother	text	pg_catalog	text	YES		NO	NEVER				
+34	paternal_grandfather	text	pg_catalog	text	YES		NO	NEVER				
+35	images	ARRAY	pg_catalog	_text	YES	'{}'::text[]	NO	NEVER				
+36	external_links	ARRAY	pg_catalog	_text	YES	'{}'::text[]	NO	NEVER				
+37	housing_notes	text	pg_catalog	text	YES		NO	NEVER				
+38	breed_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+39	color_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+40	branch_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+41	stable_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+42	housing_unit_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+43	mother_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+44	father_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+45	breeder_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+46	birth_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+47	is_gelded	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+48	breeding_role	text	pg_catalog	text	YES		NO	NEVER				
+49	videos	ARRAY	pg_catalog	_text	YES	'{}'::text[]	NO	NEVER				
+50	current_location_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+51	current_area_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+52	is_pony	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+53	owner_tenant_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+54	owner_truth_review_required	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+55	owner_truth_review_reason	text	pg_catalog	text	YES		NO	NEVER				
+56	owner_truth_review_set_at	timestamp with time zone	pg_catalog	timestamptz	YES		NO	NEVER				
+57	owner_truth_review_set_by	uuid	pg_catalog	uuid	YES		NO	NEVER				
+(57 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='tenant_members' ORDER BY ordinal_position;
+--- OUTPUT: public.tenant_members ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	user_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+4	role	USER-DEFINED	public	tenant_role	NO	'employee'::tenant_role	NO	NEVER				
+5	can_invite	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+6	can_manage_horses	boolean	pg_catalog	bool	NO	false	NO	NEVER				
+7	is_active	boolean	pg_catalog	bool	NO	true	NO	NEVER				
+8	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+9	updated_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+(9 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='member_permissions' ORDER BY ordinal_position;
+--- OUTPUT: public.member_permissions ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	tenant_member_id	uuid	pg_catalog	uuid	NO		NO	NEVER				
+3	permission_key	text	pg_catalog	text	NO		NO	NEVER				
+4	granted	boolean	pg_catalog	bool	NO	true	NO	NEVER				
+5	granted_by	uuid	pg_catalog	uuid	YES		NO	NEVER				
+6	granted_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+(6 rows)
+
+--- SQL ---
+SELECT ordinal_position, column_name, data_type, udt_schema, udt_name, is_nullable, column_default, is_identity, is_generated, character_maximum_length, numeric_precision, numeric_scale, collation_name FROM information_schema.columns WHERE table_schema='public' AND table_name='payment_accounts' ORDER BY ordinal_position;
+--- OUTPUT: public.payment_accounts ---
+ordinal_position	column_name	data_type	udt_schema	udt_name	is_nullable	column_default	is_identity	is_generated	character_maximum_length	numeric_precision	numeric_scale	collation_name
+1	id	uuid	pg_catalog	uuid	NO	gen_random_uuid()	NO	NEVER				
+2	owner_type	USER-DEFINED	public	payment_owner_type	NO		NO	NEVER				
+3	tenant_id	uuid	pg_catalog	uuid	YES		NO	NEVER				
+4	is_active	boolean	pg_catalog	bool	NO	true	NO	NEVER				
+5	created_at	timestamp with time zone	pg_catalog	timestamptz	NO	now()	NO	NEVER				
+(5 rows)
+
+################################################################
+# SECTION 2 — CONSTRAINT CONTRACTS (pg_constraint)
+################################################################
+
+--- SQL ---
+SELECT c.conname, c.contype, c.convalidated, pg_get_constraintdef(c.oid), c.condeferrable, c.condeferred, cf.relname AS refrel, c.confupdtype, c.confdeltype FROM pg_constraint c JOIN pg_class cl ON cl.oid=c.conrelid JOIN pg_namespace n ON n.oid=cl.relnamespace LEFT JOIN pg_class cf ON cf.oid=c.confrelid WHERE n.nspname='public' AND cl.relname='lab_samples' ORDER BY c.contype, c.conname;
+--- OUTPUT: public.lab_samples ---
+conname	contype	convalidated	pg_get_constraintdef	condeferrable	condeferred	refrel	confupdtype	confdeltype
+lab_samples_retest_count_check	c	t	CHECK (((retest_count >= 0) AND (retest_count <= 3)))	f	f		 	 
+lab_samples_status_check	c	t	CHECK ((status = ANY (ARRAY['draft'::text, 'accessioned'::text, 'processing'::text, 'completed'::text, 'cancelled'::text])))	f	f		 	 
+lab_samples_assigned_to_fkey	f	t	FOREIGN KEY (assigned_to) REFERENCES profiles(id)	f	f	profiles	a	a
+lab_samples_client_id_fkey	f	t	FOREIGN KEY (client_id) REFERENCES clients(id)	f	f	clients	a	a
+lab_samples_created_by_fkey	f	t	FOREIGN KEY (created_by) REFERENCES profiles(id)	f	f	profiles	a	a
+lab_samples_debit_txn_fkey	f	t	FOREIGN KEY (debit_txn_id) REFERENCES lab_credit_transactions(id)	f	f	lab_credit_transactions	a	a
+lab_samples_horse_id_fkey	f	t	FOREIGN KEY (horse_id) REFERENCES horses(id)	f	f	horses	a	a
+lab_samples_lab_horse_id_fkey	f	t	FOREIGN KEY (lab_horse_id) REFERENCES lab_horses(id) ON DELETE SET NULL	f	f	lab_horses	a	n
+lab_samples_lab_request_id_fkey	f	t	FOREIGN KEY (lab_request_id) REFERENCES lab_requests(id) ON DELETE SET NULL	f	f	lab_requests	a	n
+lab_samples_received_by_fkey	f	t	FOREIGN KEY (received_by) REFERENCES profiles(id)	f	f	profiles	a	a
+lab_samples_related_order_id_fkey	f	t	FOREIGN KEY (related_order_id) REFERENCES horse_orders(id)	f	f	horse_orders	a	a
+lab_samples_retest_of_sample_id_fkey	f	t	FOREIGN KEY (retest_of_sample_id) REFERENCES lab_samples(id)	f	f	lab_samples	a	a
+lab_samples_source_lab_tenant_id_fkey	f	t	FOREIGN KEY (source_lab_tenant_id) REFERENCES tenants(id)	f	f	tenants	a	a
+lab_samples_tenant_id_fkey	f	t	FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE	f	f	tenants	a	c
+lab_samples_pkey	p	t	PRIMARY KEY (id)	f	f		 	 
+(15 rows)
+
+--- SQL ---
+SELECT c.conname, c.contype, c.convalidated, pg_get_constraintdef(c.oid), c.condeferrable, c.condeferred, cf.relname AS refrel, c.confupdtype, c.confdeltype FROM pg_constraint c JOIN pg_class cl ON cl.oid=c.conrelid JOIN pg_namespace n ON n.oid=cl.relnamespace LEFT JOIN pg_class cf ON cf.oid=c.confrelid WHERE n.nspname='public' AND cl.relname='lab_horses' ORDER BY c.contype, c.conname;
+--- OUTPUT: public.lab_horses ---
+conname	contype	convalidated	pg_get_constraintdef	condeferrable	condeferred	refrel	confupdtype	confdeltype
+lab_horses_source_check	c	t	CHECK ((source = ANY (ARRAY['manual'::text, 'platform'::text, 'request'::text])))	f	f		 	 
+lab_horses_client_id_fkey	f	t	FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL	f	f	clients	a	n
+lab_horses_created_by_fkey	f	t	FOREIGN KEY (created_by) REFERENCES auth.users(id)	f	f	users	a	a
+lab_horses_tenant_id_fkey	f	t	FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE	f	f	tenants	a	c
+lab_horses_pkey	p	t	PRIMARY KEY (id)	f	f		 	 
+(5 rows)
+
+--- SQL ---
+SELECT c.conname, c.contype, c.convalidated, pg_get_constraintdef(c.oid), c.condeferrable, c.condeferred, cf.relname AS refrel, c.confupdtype, c.confdeltype FROM pg_constraint c JOIN pg_class cl ON cl.oid=c.conrelid JOIN pg_namespace n ON n.oid=cl.relnamespace LEFT JOIN pg_class cf ON cf.oid=c.confrelid WHERE n.nspname='public' AND cl.relname='horse_orders' ORDER BY c.contype, c.conname;
+--- OUTPUT: public.horse_orders ---
+conname	contype	convalidated	pg_get_constraintdef	condeferrable	condeferred	refrel	confupdtype	confdeltype
+horse_orders_priority_check	c	t	CHECK ((priority = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text, 'urgent'::text])))	f	f		 	 
+horse_orders_service_mode_check	c	t	CHECK ((service_mode = ANY (ARRAY['internal'::text, 'external'::text])))	f	f		 	 
+horse_orders_status_check	c	t	CHECK ((status = ANY (ARRAY['draft'::text, 'pending'::text, 'scheduled'::text, 'in_progress'::text, 'completed'::text, 'cancelled'::text])))	f	f		 	 
+horse_orders_assigned_to_fkey	f	t	FOREIGN KEY (assigned_to) REFERENCES profiles(id)	f	f	profiles	a	a
+horse_orders_client_id_fkey	f	t	FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL	f	f	clients	a	n
+horse_orders_created_by_fkey	f	t	FOREIGN KEY (created_by) REFERENCES profiles(id) ON DELETE SET NULL	f	f	profiles	a	n
+horse_orders_external_provider_id_fkey	f	t	FOREIGN KEY (external_provider_id) REFERENCES service_providers(id) ON DELETE SET NULL	f	f	service_providers	a	n
+horse_orders_horse_id_fkey	f	t	FOREIGN KEY (horse_id) REFERENCES horses(id) ON DELETE CASCADE	f	f	horses	a	c
+horse_orders_order_type_id_fkey	f	t	FOREIGN KEY (order_type_id) REFERENCES horse_order_types(id) ON DELETE RESTRICT	f	f	horse_order_types	a	r
+horse_orders_tenant_id_fkey	f	t	FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE	f	f	tenants	a	c
+horse_orders_pkey	p	t	PRIMARY KEY (id)	f	f		 	 
+(11 rows)
+
+--- SQL ---
+SELECT c.conname, c.contype, c.convalidated, pg_get_constraintdef(c.oid), c.condeferrable, c.condeferred, cf.relname AS refrel, c.confupdtype, c.confdeltype FROM pg_constraint c JOIN pg_class cl ON cl.oid=c.conrelid JOIN pg_namespace n ON n.oid=cl.relnamespace LEFT JOIN pg_class cf ON cf.oid=c.confrelid WHERE n.nspname='public' AND cl.relname='horse_order_types' ORDER BY c.contype, c.conname;
+--- OUTPUT: public.horse_order_types ---
+conname	contype	convalidated	pg_get_constraintdef	condeferrable	condeferred	refrel	confupdtype	confdeltype
+horse_order_types_tenant_id_fkey	f	t	FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE	f	f	tenants	a	c
+horse_order_types_pkey	p	t	PRIMARY KEY (id)	f	f		 	 
+unique_order_type_name	u	t	UNIQUE (tenant_id, category, name)	f	f		 	 
+(3 rows)
+
+--- SQL ---
+SELECT c.conname, c.contype, c.convalidated, pg_get_constraintdef(c.oid), c.condeferrable, c.condeferred, cf.relname AS refrel, c.confupdtype, c.confdeltype FROM pg_constraint c JOIN pg_class cl ON cl.oid=c.conrelid JOIN pg_namespace n ON n.oid=cl.relnamespace LEFT JOIN pg_class cf ON cf.oid=c.confrelid WHERE n.nspname='public' AND cl.relname='member_permissions' ORDER BY c.contype, c.conname;
+--- OUTPUT: public.member_permissions ---
+conname	contype	convalidated	pg_get_constraintdef	condeferrable	condeferred	refrel	confupdtype	confdeltype
+member_permissions_granted_by_fkey	f	t	FOREIGN KEY (granted_by) REFERENCES profiles(id)	f	f	profiles	a	a
+member_permissions_permission_key_fkey	f	t	FOREIGN KEY (permission_key) REFERENCES permission_definitions(key) ON DELETE CASCADE	f	f	permission_definitions	a	c
+member_permissions_tenant_member_id_fkey	f	t	FOREIGN KEY (tenant_member_id) REFERENCES tenant_members(id) ON DELETE CASCADE	f	f	tenant_members	a	c
+member_permissions_pkey	p	t	PRIMARY KEY (id)	f	f		 	 
+member_permissions_tenant_member_id_permission_key_key	u	t	UNIQUE (tenant_member_id, permission_key)	f	f		 	 
+(5 rows)
+
+--- SQL ---
+SELECT c.conname, c.contype, c.convalidated, pg_get_constraintdef(c.oid), c.condeferrable, c.condeferred, cf.relname AS refrel, c.confupdtype, c.confdeltype FROM pg_constraint c JOIN pg_class cl ON cl.oid=c.conrelid JOIN pg_namespace n ON n.oid=cl.relnamespace LEFT JOIN pg_class cf ON cf.oid=c.confrelid WHERE n.nspname='public' AND cl.relname='payment_accounts' ORDER BY c.contype, c.conname;
+--- OUTPUT: public.payment_accounts ---
+conname	contype	convalidated	pg_get_constraintdef	condeferrable	condeferred	refrel	confupdtype	confdeltype
+valid_owner	c	t	CHECK ((((owner_type = 'platform'::payment_owner_type) AND (tenant_id IS NULL)) OR ((owner_type = 'tenant'::payment_owner_type) AND (tenant_id IS NOT NULL))))	f	f		 	 
+payment_accounts_tenant_id_fkey	f	t	FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE	f	f	tenants	a	c
+payment_accounts_pkey	p	t	PRIMARY KEY (id)	f	f		 	 
+unique_tenant_account	u	t	UNIQUE (tenant_id)	f	f		 	 
+(4 rows)
+
+################################################################
+# SECTION 3 — ENUM / STATUS TYPE CONTRACTS
+################################################################
+
+--- SQL ---
+SELECT n.nspname, t.typname, e.enumlabel, e.enumsortorder FROM pg_type t JOIN pg_enum e ON e.enumtypid=t.oid JOIN pg_namespace n ON n.oid=t.typnamespace WHERE t.typname IN ('lab_sample_status','horse_order_status','payment_owner_type','app_role','tenant_role') ORDER BY t.typname, e.enumsortorder;
+--- OUTPUT ---
+nspname	typname	enumlabel	enumsortorder
+public	payment_owner_type	platform	1
+public	payment_owner_type	tenant	2
+public	tenant_role	owner	1
+public	tenant_role	admin	2
+public	tenant_role	foreman	3
+public	tenant_role	vet	4
+public	tenant_role	trainer	5
+public	tenant_role	employee	6
+public	tenant_role	manager	7
+(9 rows)
+
+--- SQL ---
+SELECT table_name, column_name, udt_schema, udt_name FROM information_schema.columns WHERE table_schema='public' AND table_name IN ('lab_samples','horse_orders') AND column_name IN ('status','priority','service_mode');
+--- OUTPUT (status/mode columns are TEXT + CHECK, not enums) ---
+table_name	column_name	udt_schema	udt_name
+horse_orders	service_mode	pg_catalog	text
+horse_orders	status	pg_catalog	text
+horse_orders	priority	pg_catalog	text
+lab_samples	status	pg_catalog	text
+(4 rows)
+
+--- CHECK definitions for status/mode/priority (from pg_constraint) ---
+/tmp/pf/cons_lab_samples.tsv:lab_samples_status_check	c	t	CHECK ((status = ANY (ARRAY['draft'::text, 'accessioned'::text, 'processing'::text, 'completed'::text, 'cancelled'::text])))	f	f		 	 
+/tmp/pf/cons_horse_orders.tsv:horse_orders_priority_check	c	t	CHECK ((priority = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text, 'urgent'::text])))	f	f		 	 
+/tmp/pf/cons_horse_orders.tsv:horse_orders_service_mode_check	c	t	CHECK ((service_mode = ANY (ARRAY['internal'::text, 'external'::text])))	f	f		 	 
+/tmp/pf/cons_horse_orders.tsv:horse_orders_status_check	c	t	CHECK ((status = ANY (ARRAY['draft'::text, 'pending'::text, 'scheduled'::text, 'in_progress'::text, 'completed'::text, 'cancelled'::text])))	f	f		 	 
+
+################################################################
+# SECTION 4 — LIVE STATUS POPULATION
+################################################################
+
+--- SQL ---
+SELECT status, count(*) FROM public.lab_samples GROUP BY status ORDER BY status;
+--- OUTPUT ---
+status	count
+accessioned	9
+cancelled	4
+completed	37
+draft	2
+processing	5
+(5 rows)
+
+--- SQL ---
+SELECT status, count(*) FROM public.horse_orders GROUP BY status ORDER BY status;
+--- OUTPUT ---
+status	count
+(0 rows)
+
+################################################################
+# SECTION 5 — TRIGGERS (pg_trigger, non-internal only)
+################################################################
+
+--- SQL ---
+SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid), p.pronamespace::regnamespace||'.'||p.proname FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_proc p ON p.oid=t.tgfoid WHERE n.nspname='public' AND c.relname='lab_samples' AND NOT t.tgisinternal ORDER BY t.tgname;
+--- OUTPUT: public.lab_samples ---
+tgname	tgenabled	pg_get_triggerdef	fn
+log_lab_sample_event_trigger	O	CREATE TRIGGER log_lab_sample_event_trigger AFTER INSERT OR UPDATE ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION log_lab_sample_event()	public.log_lab_sample_event
+trg_sample_lifecycle_timestamps	O	CREATE TRIGGER trg_sample_lifecycle_timestamps BEFORE UPDATE ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION set_sample_lifecycle_timestamps()	public.set_sample_lifecycle_timestamps
+trg_set_collection_date_only	O	CREATE TRIGGER trg_set_collection_date_only BEFORE INSERT OR UPDATE OF collection_date ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION set_collection_date_only()	public.set_collection_date_only
+trg_set_daily_sample_number	O	CREATE TRIGGER trg_set_daily_sample_number BEFORE INSERT OR UPDATE ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION set_daily_sample_number()	public.set_daily_sample_number
+update_lab_samples_updated_at	O	CREATE TRIGGER update_lab_samples_updated_at BEFORE UPDATE ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()	public.update_updated_at_column
+validate_lab_sample_received_trigger	O	CREATE TRIGGER validate_lab_sample_received_trigger BEFORE INSERT OR UPDATE ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION validate_lab_sample_received()	public.validate_lab_sample_received
+validate_lab_sample_status_trigger	O	CREATE TRIGGER validate_lab_sample_status_trigger BEFORE UPDATE ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION validate_lab_sample_status_transition()	public.validate_lab_sample_status_transition
+validate_lab_sample_trigger	O	CREATE TRIGGER validate_lab_sample_trigger BEFORE INSERT OR UPDATE ON public.lab_samples FOR EACH ROW EXECUTE FUNCTION validate_lab_sample()	public.validate_lab_sample
+(8 rows)
+
+--- SQL ---
+SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid), p.pronamespace::regnamespace||'.'||p.proname FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_proc p ON p.oid=t.tgfoid WHERE n.nspname='public' AND c.relname='lab_horses' AND NOT t.tgisinternal ORDER BY t.tgname;
+--- OUTPUT: public.lab_horses ---
+tgname	tgenabled	pg_get_triggerdef	fn
+set_lab_horses_updated_at	O	CREATE TRIGGER set_lab_horses_updated_at BEFORE UPDATE ON public.lab_horses FOR EACH ROW EXECUTE FUNCTION set_updated_at()	public.set_updated_at
+(1 row)
+
+--- SQL ---
+SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid), p.pronamespace::regnamespace||'.'||p.proname FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_proc p ON p.oid=t.tgfoid WHERE n.nspname='public' AND c.relname='horse_orders' AND NOT t.tgisinternal ORDER BY t.tgname;
+--- OUTPUT: public.horse_orders ---
+tgname	tgenabled	pg_get_triggerdef	fn
+update_horse_orders_updated_at	O	CREATE TRIGGER update_horse_orders_updated_at BEFORE UPDATE ON public.horse_orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()	public.update_updated_at_column
+validate_horse_order_tenant_trigger	O	CREATE TRIGGER validate_horse_order_tenant_trigger BEFORE INSERT OR UPDATE ON public.horse_orders FOR EACH ROW EXECUTE FUNCTION validate_horse_order_tenant()	public.validate_horse_order_tenant
+validate_order_required_fields_trigger	O	CREATE TRIGGER validate_order_required_fields_trigger BEFORE INSERT OR UPDATE ON public.horse_orders FOR EACH ROW EXECUTE FUNCTION validate_order_required_fields()	public.validate_order_required_fields
+validate_status_transition_trigger	O	CREATE TRIGGER validate_status_transition_trigger BEFORE UPDATE ON public.horse_orders FOR EACH ROW EXECUTE FUNCTION validate_status_transition()	public.validate_status_transition
+(4 rows)
+
+--- SQL ---
+SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid), p.pronamespace::regnamespace||'.'||p.proname FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_proc p ON p.oid=t.tgfoid WHERE n.nspname='public' AND c.relname='horse_order_types' AND NOT t.tgisinternal ORDER BY t.tgname;
+--- OUTPUT: public.horse_order_types ---
+tgname	tgenabled	pg_get_triggerdef	fn
+update_horse_order_types_updated_at	O	CREATE TRIGGER update_horse_order_types_updated_at BEFORE UPDATE ON public.horse_order_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()	public.update_updated_at_column
+validate_pinned_tabs_limit_trigger	O	CREATE TRIGGER validate_pinned_tabs_limit_trigger BEFORE INSERT OR UPDATE ON public.horse_order_types FOR EACH ROW EXECUTE FUNCTION validate_pinned_tabs_limit()	public.validate_pinned_tabs_limit
+(2 rows)
+
+################################################################
+# SECTION 6 — TRIGGER FUNCTION BODIES (pg_get_functiondef)
+################################################################
+
+--- SQL ---
+SELECT pg_get_functiondef('public.validate_lab_sample'::regproc);
+--- OUTPUT: public.validate_lab_sample ---
+CREATE OR REPLACE FUNCTION public.validate_lab_sample()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  horse_tenant uuid;
+  order_tenant uuid;
+  client_tenant uuid;
+  original_retest_count integer;
+BEGIN
+  -- Prevent tenant_id change
+  IF TG_OP = 'UPDATE' AND OLD.tenant_id != NEW.tenant_id THEN
+    RAISE EXCEPTION 'Cannot change tenant_id after creation';
+  END IF;
+
+  -- Validate horse: either horse_id belongs to tenant OR horse_name is provided for walk-in
+  IF NEW.horse_id IS NOT NULL THEN
+    SELECT tenant_id INTO horse_tenant FROM public.horses WHERE id = NEW.horse_id;
+    IF horse_tenant IS NULL THEN
+      RAISE EXCEPTION 'Horse not found';
+    END IF;
+    IF horse_tenant != NEW.tenant_id THEN
+      RAISE EXCEPTION 'Horse does not belong to this tenant';
+    END IF;
+  ELSE
+    IF NEW.horse_name IS NULL OR trim(NEW.horse_name) = '' THEN
+      RAISE EXCEPTION 'Horse name is required for walk-in samples';
+    END IF;
+  END IF;
+
+  -- Validate related_order_id if provided
+  IF NEW.related_order_id IS NOT NULL THEN
+    SELECT tenant_id INTO order_tenant FROM public.horse_orders WHERE id = NEW.related_order_id;
+    IF order_tenant IS NULL THEN
+      RAISE EXCEPTION 'Related order not found';
+    END IF;
+    IF order_tenant != NEW.tenant_id THEN
+      RAISE EXCEPTION 'Related order does not belong to this tenant';
+    END IF;
+  END IF;
+
+  -- Validate client_id if provided (registered client)
+  IF NEW.client_id IS NOT NULL THEN
+    SELECT tenant_id INTO client_tenant FROM public.clients WHERE id = NEW.client_id;
+    IF client_tenant IS NULL THEN
+      RAISE EXCEPTION 'Client not found';
+    END IF;
+    IF client_tenant != NEW.tenant_id THEN
+      RAISE EXCEPTION 'Client does not belong to this tenant';
+    END IF;
+    -- Clear inline walk-in client fields when client_id is set (prevents duplication)
+    NEW.client_name := NULL;
+    NEW.client_phone := NULL;
+    NEW.client_email := NULL;
+    NEW.client_metadata := '{}'::jsonb;
+  END IF;
+
+  -- Retest count handling (IMPORTANT: avoid double increment on updates)
+  IF NEW.retest_of_sample_id IS NOT NULL
+     AND (TG_OP = 'INSERT'
+          OR (TG_OP = 'UPDATE' AND OLD.retest_of_sample_id IS DISTINCT FROM NEW.retest_of_sample_id))
+  THEN
+    SELECT retest_count INTO original_retest_count
+    FROM public.lab_samples
+    WHERE id = NEW.retest_of_sample_id;
+
+    IF original_retest_count IS NOT NULL AND original_retest_count >= 3 THEN
+      RAISE EXCEPTION 'Maximum retests (3) reached for this sample';
+    END IF;
+
+    UPDATE public.lab_samples
+    SET retest_count = retest_count + 1
+    WHERE id = NEW.retest_of_sample_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.validate_lab_sample_received'::regproc);
+--- OUTPUT: public.validate_lab_sample_received ---
+CREATE OR REPLACE FUNCTION public.validate_lab_sample_received()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF NEW.received_by IS NOT NULL THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM public.tenant_members 
+      WHERE user_id = NEW.received_by 
+        AND tenant_id = NEW.tenant_id 
+        AND is_active = true
+    ) THEN
+      RAISE EXCEPTION 'Receiver is not an active member of this tenant';
+    END IF;
+  END IF;
+
+  IF NEW.received_by IS NOT NULL AND NEW.received_at IS NULL THEN
+    NEW.received_at := now();
+  END IF;
+
+  IF NEW.source_lab_tenant_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.tenants WHERE id = NEW.source_lab_tenant_id) THEN
+      RAISE EXCEPTION 'Source lab tenant not found';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.validate_lab_sample_status_transition'::regproc);
+--- OUTPUT: public.validate_lab_sample_status_transition ---
+CREATE OR REPLACE FUNCTION public.validate_lab_sample_status_transition()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    RETURN NEW;
+  END IF;
+
+  IF OLD.status = NEW.status THEN
+    RETURN NEW;
+  END IF;
+
+  -- Valid transitions:
+  -- draft -> accessioned, cancelled
+  -- accessioned -> processing, cancelled
+  -- processing -> completed, cancelled
+  -- completed/cancelled are final
+
+  IF OLD.status = 'draft' AND NEW.status IN ('accessioned', 'cancelled') THEN
+    RETURN NEW;
+  ELSIF OLD.status = 'accessioned' AND NEW.status IN ('processing', 'cancelled') THEN
+    RETURN NEW;
+  ELSIF OLD.status = 'processing' AND NEW.status IN ('completed', 'cancelled') THEN
+    RETURN NEW;
+  ELSIF OLD.status IN ('completed', 'cancelled') THEN
+    RAISE EXCEPTION 'Cannot change status from % - it is a final state', OLD.status;
+  ELSE
+    RAISE EXCEPTION 'Invalid status transition from % to %', OLD.status, NEW.status;
+  END IF;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.set_daily_sample_number'::regproc);
+--- OUTPUT: public.set_daily_sample_number ---
+CREATE OR REPLACE FUNCTION public.set_daily_sample_number()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_effective_ts timestamptz;
+  v_day date;
+BEGIN
+  IF NEW.daily_number IS NOT NULL THEN
+    RETURN NEW;
+  END IF;
+
+  IF COALESCE(NEW.numbering_deferred, false) = true THEN
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'INSERT' THEN
+    IF NOT (
+      NEW.status = 'accessioned'
+      OR NEW.received_at IS NOT NULL
+      OR NEW.received_by IS NOT NULL
+    ) THEN
+      RETURN NEW;
+    END IF;
+  ELSE
+    IF NOT (
+      (NEW.status = 'accessioned' AND (OLD.status IS DISTINCT FROM 'accessioned'))
+      OR (NEW.received_at IS NOT NULL AND OLD.received_at IS NULL)
+      OR (NEW.received_by IS NOT NULL AND OLD.received_by IS NULL)
+      OR (COALESCE(OLD.numbering_deferred, false) = true AND COALESCE(NEW.numbering_deferred, false) = false
+          AND (NEW.status = 'accessioned' OR NEW.received_at IS NOT NULL OR NEW.received_by IS NOT NULL))
+    ) THEN
+      RETURN NEW;
+    END IF;
+  END IF;
+
+  v_effective_ts := COALESCE(NEW.received_at, NEW.accessioned_at, NOW());
+  v_day := DATE(v_effective_ts AT TIME ZONE '+03:00');
+
+  PERFORM pg_advisory_xact_lock(
+    hashtext(NEW.tenant_id::text || ':' || v_day::text)
+  );
+
+  SELECT COALESCE(MAX(daily_number), 0) + 1
+    INTO NEW.daily_number
+  FROM public.lab_samples
+  WHERE tenant_id = NEW.tenant_id
+    AND DATE(COALESCE(received_at, accessioned_at, created_at) AT TIME ZONE '+03:00') = v_day;
+
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.set_sample_lifecycle_timestamps'::regproc);
+--- OUTPUT: public.set_sample_lifecycle_timestamps ---
+CREATE OR REPLACE FUNCTION public.set_sample_lifecycle_timestamps()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF TG_OP <> 'UPDATE' THEN
+    RETURN NEW;
+  END IF;
+
+  IF NEW.status = 'accessioned'
+     AND (OLD.status IS NULL OR OLD.status <> 'accessioned')
+     AND NEW.accessioned_at IS NULL
+  THEN
+    NEW.accessioned_at := NOW();
+  END IF;
+
+  IF NEW.status = 'processing'
+     AND (OLD.status IS NULL OR OLD.status <> 'processing')
+     AND NEW.processing_started_at IS NULL
+  THEN
+    NEW.processing_started_at := NOW();
+  END IF;
+
+  IF NEW.status = 'completed'
+     AND (OLD.status IS NULL OR OLD.status <> 'completed')
+     AND NEW.completed_at IS NULL
+  THEN
+    NEW.completed_at := NOW();
+  END IF;
+
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.set_collection_date_only'::regproc);
+--- OUTPUT: public.set_collection_date_only ---
+CREATE OR REPLACE FUNCTION public.set_collection_date_only()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  NEW.collection_date_only := (NEW.collection_date AT TIME ZONE 'Asia/Riyadh')::date;
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.log_lab_sample_event'::regproc);
+--- OUTPUT: public.log_lab_sample_event ---
+CREATE OR REPLACE FUNCTION public.log_lab_sample_event()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  event_type_val text;
+  payload_val jsonb;
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    event_type_val := 'created';
+    payload_val := jsonb_build_object('status', NEW.status, 'horse_id', NEW.horse_id);
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF OLD.status != NEW.status THEN
+      event_type_val := 'status_changed';
+      payload_val := jsonb_build_object('from', OLD.status, 'to', NEW.status);
+    ELSE
+      event_type_val := 'updated';
+      payload_val := jsonb_build_object('changes', 'details updated');
+    END IF;
+  ELSE
+    RETURN OLD;
+  END IF;
+
+  INSERT INTO public.lab_events (
+    tenant_id, entity_type, entity_id, event_type, from_status, to_status, payload, created_by
+  ) VALUES (
+    NEW.tenant_id, 
+    'lab_sample', 
+    NEW.id, 
+    event_type_val,
+    CASE WHEN TG_OP = 'UPDATE' THEN OLD.status ELSE NULL END,
+    NEW.status,
+    payload_val,
+    COALESCE(auth.uid(), NEW.created_by)
+  );
+
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.validate_horse_order_tenant'::regproc);
+--- OUTPUT: public.validate_horse_order_tenant ---
+CREATE OR REPLACE FUNCTION public.validate_horse_order_tenant()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  horse_tenant uuid;
+  order_type_tenant uuid;
+  client_tenant uuid;
+  provider_tenant uuid;
+  cap_has_internal boolean;
+  cap_allow_external boolean;
+BEGIN
+  -- Prevent tenant_id change after creation
+  IF TG_OP = 'UPDATE' AND OLD.tenant_id != NEW.tenant_id THEN
+    RAISE EXCEPTION 'Cannot change tenant_id after order creation';
+  END IF;
+
+  -- Validate horse belongs to same tenant
+  SELECT tenant_id INTO horse_tenant FROM public.horses WHERE id = NEW.horse_id;
+  IF horse_tenant IS NULL THEN
+    RAISE EXCEPTION 'Horse not found';
+  END IF;
+  IF horse_tenant != NEW.tenant_id THEN
+    RAISE EXCEPTION 'Horse does not belong to this tenant';
+  END IF;
+
+  -- Validate order_type belongs to same tenant
+  SELECT tenant_id INTO order_type_tenant FROM public.horse_order_types WHERE id = NEW.order_type_id;
+  IF order_type_tenant IS NULL THEN
+    RAISE EXCEPTION 'Order type not found';
+  END IF;
+  IF order_type_tenant != NEW.tenant_id THEN
+    RAISE EXCEPTION 'Order type does not belong to this tenant';
+  END IF;
+
+  -- Copy category from order_type for quick filtering
+  SELECT category INTO NEW.category FROM public.horse_order_types WHERE id = NEW.order_type_id;
+
+  -- Validate client_id belongs to same tenant (if provided)
+  IF NEW.client_id IS NOT NULL THEN
+    SELECT tenant_id INTO client_tenant FROM public.clients WHERE id = NEW.client_id;
+    IF client_tenant IS NULL THEN
+      RAISE EXCEPTION 'Client not found';
+    END IF;
+    IF client_tenant != NEW.tenant_id THEN
+      RAISE EXCEPTION 'Client does not belong to this tenant';
+    END IF;
+  END IF;
+
+  -- Validate external_provider_id belongs to same tenant (if provided)
+  IF NEW.external_provider_id IS NOT NULL THEN
+    SELECT tenant_id INTO provider_tenant FROM public.service_providers WHERE id = NEW.external_provider_id;
+    IF provider_tenant IS NULL THEN
+      RAISE EXCEPTION 'Service provider not found';
+    END IF;
+    IF provider_tenant != NEW.tenant_id THEN
+      RAISE EXCEPTION 'Service provider does not belong to this tenant';
+    END IF;
+  END IF;
+
+  -- Validate assigned_to is a valid tenant member (if provided)
+  IF NEW.assigned_to IS NOT NULL THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM public.tenant_members 
+      WHERE user_id = NEW.assigned_to 
+        AND tenant_id = NEW.tenant_id 
+        AND is_active = true
+    ) THEN
+      RAISE EXCEPTION 'Assignee is not an active member of this tenant';
+    END IF;
+  END IF;
+
+  -- 3. Enforce service_mode rules
+  -- ==========================================
+  
+  IF NEW.service_mode = 'internal' THEN
+    -- Internal orders cannot have external provider references
+    IF NEW.external_provider_id IS NOT NULL THEN
+      RAISE EXCEPTION 'Internal orders cannot have external_provider_id';
+    END IF;
+    IF NEW.external_provider_name IS NOT NULL AND NEW.external_provider_name != '' THEN
+      RAISE EXCEPTION 'Internal orders cannot have external_provider_name';
+    END IF;
+  END IF;
+
+  IF NEW.service_mode = 'external' THEN
+    -- External orders require provider info when not draft/pending
+    IF NEW.status NOT IN ('draft', 'pending') THEN
+      IF NEW.external_provider_id IS NULL AND (NEW.external_provider_name IS NULL OR NEW.external_provider_name = '') THEN
+        RAISE EXCEPTION 'External orders require provider information (external_provider_id or external_provider_name)';
+      END IF;
+    END IF;
+  END IF;
+
+  -- 4. Enforce tenant_capabilities
+  -- ==========================================
+  
+  -- Get capabilities for this category
+  SELECT has_internal, allow_external INTO cap_has_internal, cap_allow_external
+  FROM public.tenant_capabilities
+  WHERE tenant_id = NEW.tenant_id AND category = NEW.category;
+
+  -- If no capability exists, default to external only
+  IF NOT FOUND THEN
+    cap_has_internal := false;
+    cap_allow_external := true;
+  END IF;
+
+  -- Validate service_mode against capabilities
+  IF NEW.service_mode = 'internal' AND NOT COALESCE(cap_has_internal, false) THEN
+    RAISE EXCEPTION 'Internal service mode is not available for category: %', COALESCE(NEW.category, 'uncategorized');
+  END IF;
+
+  IF NEW.service_mode = 'external' AND NOT COALESCE(cap_allow_external, true) THEN
+    RAISE EXCEPTION 'External service mode is not allowed for category: %', COALESCE(NEW.category, 'uncategorized');
+  END IF;
+
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.validate_order_required_fields'::regproc);
+--- OUTPUT: public.validate_order_required_fields ---
+CREATE OR REPLACE FUNCTION public.validate_order_required_fields()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  -- Draft allows incomplete data
+  IF NEW.status = 'draft' THEN
+    RETURN NEW;
+  END IF;
+
+  -- Non-draft requires core fields
+  IF NEW.horse_id IS NULL THEN
+    RAISE EXCEPTION 'horse_id is required for non-draft orders';
+  END IF;
+  IF NEW.order_type_id IS NULL THEN
+    RAISE EXCEPTION 'order_type_id is required for non-draft orders';
+  END IF;
+
+  -- Scheduled requires scheduled_for
+  IF NEW.status = 'scheduled' AND NEW.scheduled_for IS NULL THEN
+    RAISE EXCEPTION 'scheduled_for is required when status is scheduled';
+  END IF;
+
+  -- Completed requires completed_at
+  IF NEW.status = 'completed' AND NEW.completed_at IS NULL THEN
+    NEW.completed_at := now();
+  END IF;
+
+  -- Internal mode requires internal_resource_ref (except draft)
+  IF NEW.service_mode = 'internal' AND NEW.status != 'draft' THEN
+    IF NEW.internal_resource_ref IS NULL OR NEW.internal_resource_ref = '{}'::jsonb THEN
+      RAISE EXCEPTION 'internal_resource_ref is required for internal service mode';
+    END IF;
+  END IF;
+
+  -- External mode should have provider info (except draft) - warning only, not blocking
+  IF NEW.service_mode = 'external' AND NEW.status NOT IN ('draft', 'pending') THEN
+    IF NEW.external_provider_name IS NULL AND (NEW.external_provider_meta IS NULL OR NEW.external_provider_meta = '{}'::jsonb) THEN
+      -- Just a notice, not blocking
+      RAISE NOTICE 'Consider adding external provider information';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.validate_status_transition'::regproc);
+--- OUTPUT: public.validate_status_transition ---
+CREATE OR REPLACE FUNCTION public.validate_status_transition()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  -- Skip validation on INSERT
+  IF TG_OP = 'INSERT' THEN
+    RETURN NEW;
+  END IF;
+
+  -- No change in status, skip
+  IF OLD.status = NEW.status THEN
+    RETURN NEW;
+  END IF;
+
+  -- Define valid transitions
+  -- draft → pending
+  -- pending → scheduled, cancelled
+  -- scheduled → in_progress, cancelled
+  -- in_progress → completed, cancelled
+  -- completed/cancelled are final (no transitions out)
+  
+  IF OLD.status = 'draft' AND NEW.status IN ('pending') THEN
+    RETURN NEW;
+  ELSIF OLD.status = 'pending' AND NEW.status IN ('scheduled', 'cancelled') THEN
+    RETURN NEW;
+  ELSIF OLD.status = 'scheduled' AND NEW.status IN ('in_progress', 'cancelled') THEN
+    RETURN NEW;
+  ELSIF OLD.status = 'in_progress' AND NEW.status IN ('completed', 'cancelled') THEN
+    RETURN NEW;
+  ELSIF OLD.status IN ('completed', 'cancelled') THEN
+    RAISE EXCEPTION 'Cannot change status from % - it is a final state', OLD.status;
+  ELSE
+    RAISE EXCEPTION 'Invalid status transition from % to %', OLD.status, NEW.status;
+  END IF;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.validate_pinned_tabs_limit'::regproc);
+--- OUTPUT: public.validate_pinned_tabs_limit ---
+CREATE OR REPLACE FUNCTION public.validate_pinned_tabs_limit()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  current_pinned_count integer;
+BEGIN
+  -- Only check when pin_as_tab is being set to true
+  IF NEW.pin_as_tab = true AND (TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND OLD.pin_as_tab = false)) THEN
+    SELECT COUNT(*) INTO current_pinned_count
+    FROM public.horse_order_types
+    WHERE tenant_id = NEW.tenant_id 
+      AND pin_as_tab = true
+      AND id != COALESCE(NEW.id, '00000000-0000-0000-0000-000000000000'::uuid);
+    
+    IF current_pinned_count >= 6 THEN
+      RAISE EXCEPTION 'Maximum 6 pinned tabs allowed per tenant. Please unpin an existing tab first.';
+    END IF;
+  END IF;
+  
+  RETURN NEW;
+END;
+$function$
+
+
+--- SQL ---
+SELECT pg_get_functiondef('public.has_permission'::regproc);
+--- OUTPUT: public.has_permission ---
+CREATE OR REPLACE FUNCTION public.has_permission(_user_id uuid, _tenant_id uuid, _permission_key text)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  member_id uuid;
+  member_role text;
+  override_granted boolean;
+  role_has boolean;
+  bundle_has boolean;
+BEGIN
+  -- 1) Check if user is active tenant member
+  SELECT id, role::text INTO member_id, member_role
+  FROM tenant_members
+  WHERE user_id = _user_id
+    AND tenant_id = _tenant_id
+    AND is_active = true;
+
+  IF member_id IS NULL THEN
+    RETURN false;
+  END IF;
+
+  -- 2) Owner always has all permissions
+  IF member_role = 'owner' THEN
+    RETURN true;
+  END IF;
+
+  -- 3) Check member_permissions override (highest priority)
+  SELECT granted INTO override_granted
+  FROM member_permissions
+  WHERE tenant_member_id = member_id
+    AND permission_key = _permission_key;
+
+  IF FOUND THEN
+    RETURN override_granted;
+  END IF;
+
+  -- 4) Check role-based permissions (from tenant_role_permissions)
+  SELECT EXISTS (
+    SELECT 1
+    FROM tenant_role_permissions trp
+    WHERE trp.tenant_id = _tenant_id
+      AND trp.role_key = member_role
+      AND trp.permission_key = _permission_key
+      AND trp.granted = true
+  ) INTO role_has;
+
+  IF role_has THEN
+    RETURN true;
+  END IF;
+
+  -- 5) Check role bundles (from tenant_role_bundles -> bundle_permissions)
+  SELECT EXISTS (
+    SELECT 1
+    FROM tenant_role_bundles trb
+    JOIN bundle_permissions bp ON bp.bundle_id = trb.bundle_id
+    WHERE trb.tenant_id = _tenant_id
+      AND trb.role_key = member_role
+      AND bp.permission_key = _permission_key
+  ) INTO bundle_has;
+
+  IF bundle_has THEN
+    RETURN true;
+  END IF;
+
+  -- 6) Check member's direct bundles (member_permission_bundles -> bundle_permissions)
+  SELECT EXISTS (
+    SELECT 1
+    FROM member_permission_bundles mpb
+    JOIN bundle_permissions bp ON bp.bundle_id = mpb.bundle_id
+    WHERE mpb.tenant_member_id = member_id
+      AND bp.permission_key = _permission_key
+  ) INTO bundle_has;
+
+  RETURN bundle_has;
+END;
+$function$
+
+
+################################################################
+# SECTION 7 — INDEXES (pg_indexes)
+################################################################
+
+--- SQL ---
+SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename='lab_samples' ORDER BY indexname;
+--- OUTPUT: public.lab_samples ---
+indexname	indexdef
+idx_lab_samples_client	CREATE INDEX idx_lab_samples_client ON public.lab_samples USING btree (tenant_id, client_id) WHERE (client_id IS NOT NULL)
+idx_lab_samples_collection_date	CREATE INDEX idx_lab_samples_collection_date ON public.lab_samples USING btree (tenant_id, collection_date)
+idx_lab_samples_horse	CREATE INDEX idx_lab_samples_horse ON public.lab_samples USING btree (tenant_id, horse_id)
+idx_lab_samples_lab_horse	CREATE INDEX idx_lab_samples_lab_horse ON public.lab_samples USING btree (lab_horse_id)
+idx_lab_samples_lab_request_id	CREATE INDEX idx_lab_samples_lab_request_id ON public.lab_samples USING btree (lab_request_id)
+idx_lab_samples_received	CREATE INDEX idx_lab_samples_received ON public.lab_samples USING btree (tenant_id, received_at) WHERE (received_at IS NOT NULL)
+idx_lab_samples_related_order	CREATE INDEX idx_lab_samples_related_order ON public.lab_samples USING btree (related_order_id) WHERE (related_order_id IS NOT NULL)
+idx_lab_samples_tenant_request	CREATE INDEX idx_lab_samples_tenant_request ON public.lab_samples USING btree (tenant_id, lab_request_id)
+idx_lab_samples_tenant_status	CREATE INDEX idx_lab_samples_tenant_status ON public.lab_samples USING btree (tenant_id, status)
+idx_lab_samples_unique_daily_number	CREATE UNIQUE INDEX idx_lab_samples_unique_daily_number ON public.lab_samples USING btree (tenant_id, collection_date_only, daily_number) WHERE (daily_number IS NOT NULL)
+lab_samples_pkey	CREATE UNIQUE INDEX lab_samples_pkey ON public.lab_samples USING btree (id)
+(11 rows)
+
+--- SQL ---
+SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename='lab_horses' ORDER BY indexname;
+--- OUTPUT: public.lab_horses ---
+indexname	indexdef
+idx_lab_horses_tenant_archived	CREATE INDEX idx_lab_horses_tenant_archived ON public.lab_horses USING btree (tenant_id, is_archived)
+idx_lab_horses_tenant_client	CREATE INDEX idx_lab_horses_tenant_client ON public.lab_horses USING btree (tenant_id, client_id) WHERE (client_id IS NOT NULL)
+idx_lab_horses_tenant_name	CREATE INDEX idx_lab_horses_tenant_name ON public.lab_horses USING btree (tenant_id, name)
+idx_lab_horses_tenant_owner_phone	CREATE INDEX idx_lab_horses_tenant_owner_phone ON public.lab_horses USING btree (tenant_id, owner_phone)
+lab_horses_pkey	CREATE UNIQUE INDEX lab_horses_pkey ON public.lab_horses USING btree (id)
+uq_lab_horses_tenant_microchip	CREATE UNIQUE INDEX uq_lab_horses_tenant_microchip ON public.lab_horses USING btree (tenant_id, microchip_number) WHERE ((microchip_number IS NOT NULL) AND (btrim(microchip_number) <> ''::text))
+uq_lab_horses_tenant_passport	CREATE UNIQUE INDEX uq_lab_horses_tenant_passport ON public.lab_horses USING btree (tenant_id, passport_number) WHERE ((passport_number IS NOT NULL) AND (btrim(passport_number) <> ''::text))
+uq_lab_horses_tenant_ueln	CREATE UNIQUE INDEX uq_lab_horses_tenant_ueln ON public.lab_horses USING btree (tenant_id, ueln) WHERE ((ueln IS NOT NULL) AND (btrim(ueln) <> ''::text))
+ux_lab_horses_tenant_linked_horse	CREATE UNIQUE INDEX ux_lab_horses_tenant_linked_horse ON public.lab_horses USING btree (tenant_id, linked_horse_id) WHERE (linked_horse_id IS NOT NULL)
+(9 rows)
+
+--- SQL ---
+SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename='horse_orders' ORDER BY indexname;
+--- OUTPUT: public.horse_orders ---
+indexname	indexdef
+horse_orders_pkey	CREATE UNIQUE INDEX horse_orders_pkey ON public.horse_orders USING btree (id)
+idx_orders_tenant_category	CREATE INDEX idx_orders_tenant_category ON public.horse_orders USING btree (tenant_id, category)
+idx_orders_tenant_horse	CREATE INDEX idx_orders_tenant_horse ON public.horse_orders USING btree (tenant_id, horse_id)
+idx_orders_tenant_scheduled	CREATE INDEX idx_orders_tenant_scheduled ON public.horse_orders USING btree (tenant_id, scheduled_for)
+idx_orders_tenant_status	CREATE INDEX idx_orders_tenant_status ON public.horse_orders USING btree (tenant_id, status)
+idx_orders_tenant_type	CREATE INDEX idx_orders_tenant_type ON public.horse_orders USING btree (tenant_id, order_type_id)
+(6 rows)
+
+--- SQL ---
+SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename='horse_order_types' ORDER BY indexname;
+--- OUTPUT: public.horse_order_types ---
+indexname	indexdef
+horse_order_types_pkey	CREATE UNIQUE INDEX horse_order_types_pkey ON public.horse_order_types USING btree (id)
+idx_order_types_tenant_active	CREATE INDEX idx_order_types_tenant_active ON public.horse_order_types USING btree (tenant_id, is_active)
+idx_order_types_tenant_category	CREATE INDEX idx_order_types_tenant_category ON public.horse_order_types USING btree (tenant_id, category)
+idx_order_types_tenant_pinned	CREATE INDEX idx_order_types_tenant_pinned ON public.horse_order_types USING btree (tenant_id, pin_as_tab, sort_order)
+unique_order_type_name	CREATE UNIQUE INDEX unique_order_type_name ON public.horse_order_types USING btree (tenant_id, category, name)
+(5 rows)
+
+--- SQL ---
+SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename='member_permissions' ORDER BY indexname;
+--- OUTPUT: public.member_permissions ---
+indexname	indexdef
+idx_member_permissions_member	CREATE INDEX idx_member_permissions_member ON public.member_permissions USING btree (tenant_member_id)
+idx_member_permissions_member_perm	CREATE INDEX idx_member_permissions_member_perm ON public.member_permissions USING btree (tenant_member_id, permission_key)
+member_permissions_pkey	CREATE UNIQUE INDEX member_permissions_pkey ON public.member_permissions USING btree (id)
+member_permissions_tenant_member_id_permission_key_key	CREATE UNIQUE INDEX member_permissions_tenant_member_id_permission_key_key ON public.member_permissions USING btree (tenant_member_id, permission_key)
+(4 rows)
+
+--- SQL ---
+SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename='payment_accounts' ORDER BY indexname;
+--- OUTPUT: public.payment_accounts ---
+indexname	indexdef
+payment_accounts_pkey	CREATE UNIQUE INDEX payment_accounts_pkey ON public.payment_accounts USING btree (id)
+unique_platform_account	CREATE UNIQUE INDEX unique_platform_account ON public.payment_accounts USING btree (owner_type) WHERE (owner_type = 'platform'::payment_owner_type)
+unique_tenant_account	CREATE UNIQUE INDEX unique_tenant_account ON public.payment_accounts USING btree (tenant_id)
+(3 rows)
+
+################################################################
+# SECTION 8 — PAYMENT ACCOUNT FACTS (target tenant + populations)
+################################################################
+
+--- SQL ---
+SELECT id, owner_type, tenant_id, is_active, created_at FROM public.payment_accounts WHERE tenant_id='145f2128-83ca-4ba8-85b5-8ade245c5530';
+--- OUTPUT ---
+id	owner_type	tenant_id	is_active	created_at
+(0 rows)
+(0 rows: target tenant has NO payment_accounts row currently)
+
+--- SQL ---
+SELECT count(*) FROM public.payment_accounts WHERE owner_type='tenant';
+--- OUTPUT ---
+0
+
+--- SQL ---
+SELECT count(*) FROM public.payment_accounts WHERE owner_type='platform';
+--- OUTPUT ---
+0
+
+--- SQL ---
+SELECT id, name FROM public.tenants WHERE id='145f2128-83ca-4ba8-85b5-8ade245c5530';
+--- OUTPUT ---
+145f2128-83ca-4ba8-85b5-8ade245c5530|اسطبل القمة
+
+--- SQL ---
+SELECT count(*), max(is_active::int) FROM public.tenant_members WHERE tenant_id='145f2128-83ca-4ba8-85b5-8ade245c5530';
+--- OUTPUT ---
+3|1
