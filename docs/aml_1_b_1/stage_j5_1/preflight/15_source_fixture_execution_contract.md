@@ -1,377 +1,747 @@
-# J5.1A.2 — Source Fixture Execution Contract (FINAL)
+# J5.1A.2 — Source Fixture Execution Contract (REPAIRED)
 
-Phase: N+1B · J5.1A.2-PREFLIGHT-FINAL
+Phase: N+1B · J5.1A.2-PREFLIGHT-CONTRACT-REPAIR
 Scope: Non-POS Source Checkout only (Lab Sample + Horse Order). Retail POS excluded.
 
 This document is the sole authoritative fixture blueprint for the T1 core matrix and
-T2 rollback matrix. Every rule and template below is grounded in raw evidence in
-`14_source_fixture_catalog_evidence.txt` and the locked migration
-`docs/aml_1_b_1/stage_j5_1/j5_1a_migration.sql`.
+the T2 rollback-injection matrix. Every rule, column list, and template below is
+mechanically grounded in the raw catalog evidence captured in File 14, Sections 1–10.
+Zero prose substitutes are permitted; every fixture is a complete executable SQL
+template.
 
 ---
 
 ## 1. Fixed Identity Contract
 
-All fixtures MUST use these fixed UUIDs. Arbitrary or `LIMIT 1` selection is prohibited.
-
 ```
-:primary_tenant_id := '145f2128-83ca-4ba8-85b5-8ade245c5530'   -- tenants.type = 'stable'
-:actor_id          := '98439fe8-6881-4e9e-8ff6-18aca0ce4470'   -- tenant_members role=owner, is_active=true
+:primary_tenant_id := '145f2128-83ca-4ba8-85b5-8ade245c5530'   -- tenants.type='stable'
+:actor_id          := '98439fe8-6881-4e9e-8ff6-18aca0ce4470'   -- tenant_members owner, is_active=true
 ```
 
-Proof (Section 9.1 of File 14):
+Proof (File 14 Section 9.1): `profiles(:actor_id)` exists; `tenant_members` row exists
+with `role='owner'`, `is_active=true`, `tenant_id=:primary_tenant_id`; the actor is
+transitively an `auth.users` row via `tenants.owner_id` FK.
 
-- `public.profiles` row exists for `:actor_id`.
-- `public.tenant_members` row exists with `role='owner'`, `is_active=t`, `tenant_id=:primary_tenant_id`.
-- `auth.users` row is transitively proven present via `tenants.owner_id` FK
-  (the fixed actor owns the primary tenant).
+Prohibited: arbitrary Owner lookup, `LIMIT 1`, forged `profiles`/`auth.users` rows.
 
 ---
 
-## 2. Lab Sample Link-Kind Status Contract (Corrected)
+## 2. Lab Sample Link-Kind Status Contract
 
-Authoritative source: the locked migration `j5_1a_migration.sql`.
+Authoritative source: locked migration `j5_1a_migration.sql`.
 
-| lab_samples.status | Deposit source | Final source | Notes |
-|--------------------|---------------|-------------|-------|
-| `draft`            | VALID         | INVALID     | Accepted for Deposit checkout |
-| `accessioned`      | VALID         | INVALID     | Accepted for Deposit checkout |
-| `processing`       | INVALID       | INVALID     | Between-state; rejected for both kinds |
-| `completed`        | INVALID       | VALID       | Accepted for Final checkout |
-| `cancelled`        | Rejected pre-kind | Rejected pre-kind | Rejected before link-kind branching |
+| lab_samples.status | Deposit | Final |
+|--------------------|---------|-------|
+| `draft`            | VALID   | invalid |
+| `accessioned`      | VALID   | invalid |
+| `processing`       | invalid | invalid |
+| `completed`        | invalid | VALID   |
+| `cancelled`        | rejected pre-kind | rejected pre-kind |
 
-Explicit fixture recipes for T1:
-
-```
-valid Deposit fixture   := lab_samples.status = 'draft' or 'accessioned'
-valid Final fixture     := lab_samples.status = 'completed'
-invalid Deposit fixture := lab_samples.status = 'processing'
-invalid Final fixture   := lab_samples.status = 'accessioned'
-cancelled fixture       := lab_samples.status = 'cancelled'
-```
-
-Same-sample Deposit → Final happy path (single transaction):
+Same-sample Deposit → Final happy path (single transaction, obeys
+`validate_lab_sample` transition rules — see File 14 Section 5):
 
 1. INSERT `lab_samples` with `status='accessioned'`.
-2. Call `create_source_checkout_invoice(..., link_kind='deposit')` — expect success.
-3. UPDATE the same `lab_samples.status` to `'processing'` (advance).
-4. UPDATE the same `lab_samples.status` to `'completed'`.
-5. Call `create_source_checkout_invoice(..., link_kind='final')` — expect success.
-
-Status transitions are governed by the `validate_lab_sample` trigger; the sequence
-`accessioned → processing → completed` is permitted (see File 14 Section 5).
+2. `create_source_checkout_invoice(..., link_kind='deposit')` → success.
+3. UPDATE the same sample to `status='processing'`.
+4. UPDATE the same sample to `status='completed'`.
+5. `create_source_checkout_invoice(..., link_kind='final')` → success.
 
 ---
 
-## 3. Permission Semantics (Corrected)
+## 3. Permission-Shaping Contract (CORRECTED)
 
 Grounded in the captured `public.has_permission` body (File 14 Section 6):
 
 ```
 active membership check
-→ if role = 'owner' → return TRUE (short-circuit)
-→ else consult member_permissions override
-→ else fall through to role/bundle resolution
+  → if role = 'owner'  → return TRUE (short-circuits every override)
+  → else consult member_permissions
+  → else fall through to role/bundle resolution
 ```
 
 Therefore: **`member_permissions.granted=false` does NOT override an active Owner.**
-Directly toggling permissions on the fixed Owner is insufficient for negative
-authorization tests.
+The temporary role demotion to a valid non-owner `tenant_role` (`'foreman'`) is
+MANDATORY before the override can take effect.
 
-### Isolated Negative Permission Recipe
+The real `public.member_permissions` schema (File 14 Section 10) is:
 
-For any test that must prove the RPC rejects a caller lacking a specific permission:
+```
+id, tenant_member_id, permission_key, granted, granted_by, granted_at
+UNIQUE (tenant_member_id, permission_key)
+tenant_member_id -> tenant_members(id) ON DELETE CASCADE
+granted_by       -> profiles(id)
+permission_key   -> permission_definitions(key) ON DELETE CASCADE
+```
+
+There is NO `tenant_id` or `user_id` column on `member_permissions`. Every prior
+template using those columns is schema-invalid and MUST NOT be reintroduced.
+
+### 3.1 Canonical Isolated Negative-Permission Recipe
 
 ```sql
 SAVEPOINT sp_perm_case;
 
--- Downgrade the fixed actor from owner to a non-owner valid role
-UPDATE public.tenant_members
-   SET role = 'foreman'
- WHERE user_id  = :actor_id
-   AND tenant_id = :primary_tenant_id;
-
--- Deny the specific permission required by the RPC branch under test
-INSERT INTO public.member_permissions (tenant_id, user_id, permission_key, granted)
-VALUES (:primary_tenant_id, :actor_id, :perm_key, false)
-ON CONFLICT (tenant_id, user_id, permission_key)
-DO UPDATE SET granted = EXCLUDED.granted;
-
--- Invoke the RPC that must fail with the expected error code
--- (e.g. FIN_PERMISSION_DENIED / FIN_SOURCE_NOT_FOUND depending on branch)
-
-ROLLBACK TO SAVEPOINT sp_perm_case;
-```
-
-The outer `ROLLBACK TO SAVEPOINT` restores the Owner membership before any subsequent
-positive test runs. The fixed actor never mutates persistently.
-
----
-
-## 4. Secondary Tenant Contract
-
-Purpose: exercise the sole authorized cross-tenant negative case — invoking
-`create_source_checkout_invoice` on the primary tenant with a Source belonging to a
-secondary tenant. Expected result: `FIN_SOURCE_NOT_FOUND`.
-
-### Feasibility
-
-- `check_tenant_limit()` caps tenants per owner at 3; the fixed actor currently owns 1
-  (File 14 Section 9.4). A transaction-local second tenant is well within the limit.
-- The stable-type provisioning triggers self-seed roles and permissions inside the
-  transaction and are harmless upon rollback.
-
-### Mandatory Columns
-
-From File 14 Section 9.4, the only columns lacking a server default AND `NOT NULL` are
-`name`, `type`, `owner_id`. All other required columns default (`id`, `created_at`,
-`updated_at`, `default_tax_rate`, `prices_tax_inclusive`, `currency`).
-
-### Executable-Shape Template
-
-```sql
-INSERT INTO public.tenants (name, type, owner_id)
-VALUES (
-  'j5_1a_t1_secondary_' || substr(md5(random()::text), 1, 8),
-  'stable',                                    -- same enum as primary tenant (proven in 9.3)
-  :actor_id                                    -- reuses fixed actor (proven owner FK)
+-- Demote the fixed Owner to a non-owner valid tenant_role, capturing the membership id.
+WITH demoted AS (
+  UPDATE public.tenant_members
+     SET role = 'foreman'
+   WHERE tenant_id = :primary_tenant_id
+     AND user_id  = :actor_id
+     AND role     = 'owner'
+  RETURNING id
 )
-RETURNING id INTO :secondary_tenant_id;
+SELECT id INTO :actor_member_id FROM demoted;
+
+-- The UPDATE must affect exactly one row (assert in T1).
+-- If zero rows return, the fixed Owner assumption has drifted; abort with a named error.
+
+-- Apply the negative override on the member (not on tenant_id/user_id).
+INSERT INTO public.member_permissions (
+  tenant_member_id,
+  permission_key,
+  granted,
+  granted_by
+)
+VALUES (
+  :actor_member_id,
+  :permission_key,
+  false,
+  :actor_id                     -- valid: profiles(id) FK, and actor has a profiles row
+)
+ON CONFLICT (tenant_member_id, permission_key)
+DO UPDATE SET granted    = false,
+              granted_by = EXCLUDED.granted_by,
+              granted_at = now();
+
+-- Invoke the RPC that must fail with the expected error code (e.g. FIN_PERMISSION_DENIED).
+
+ROLLBACK TO SAVEPOINT sp_perm_case;   -- restores Owner role and clears the override
 ```
 
-The chosen `type='stable'` is grounded in the primary tenant's proven type. No enum
-label is guessed.
-
-### Secondary Membership Template
-
-```sql
-INSERT INTO public.tenant_members (tenant_id, user_id, role, is_active)
-VALUES (:secondary_tenant_id, :actor_id, 'owner', true);
-```
-
-This makes the fixed actor an authenticated owner of the secondary tenant so the
-secondary-tenant Source can be inserted through the normal validation triggers.
+Verification facts:
+- `granted_by=:actor_id` satisfies the `profiles(id)` FK (Section 10 evidence).
+- `'foreman'` is a proven valid `tenant_role` label (row samples in File 14 Section 9.2).
+- The Owner-membership UPDATE targets the unique `(tenant_id, user_id)` pair and thus
+  affects exactly one row.
 
 ---
 
-## 5. Horse Gender Contract (Corrected)
+## 4. Secondary Tenant Membership Decision (LOCKED — Strategy B)
 
-Proof (File 14 Section 9.5):
+Evidence (File 14 Section 10): Only five triggers exist on `public.tenants`.
+`seed_tenant_roles` inserts `tenant_roles` only; `_trg_provision_stable_local_record_permissions`
+seeds permission definitions only; neither inserts into `tenant_members`.
 
-- `horses.gender` is `text NOT NULL`.
-- `horses_gender_check` restricts values to exactly `{'male','female'}`.
-- Live population: `male=17`, `female=16`. No other value has ever been valid.
-- No `horse_gender`/`gender_type` enum exists.
+**Locked strategy: Strategy B — Owner membership must be inserted manually.**
 
-All fixture templates MUST use `'male'` or `'female'`. `'colt'` is NOT a permitted value
-and is removed from every template below.
+The Owner-membership fixture for the secondary tenant is Section 8.10 below and MUST
+be executed exactly once immediately after Section 8.9.
 
 ---
 
-## 6. Payment Account Strategy (Corrected)
+## 5. Horse Order Service-Mode Locking
 
-Proof: the primary tenant has zero `payment_accounts` rows (File 14 Section 8).
+Evidence (File 14 Sections 5 and 9.7): The Horse Order tenant-validation trigger falls
+back to `has_internal=false / allow_external=true` when no matching
+`tenant_capabilities` row exists (proven zero for the fixed tenant). Therefore all
+ordinary T1 Horse Order fixtures use `service_mode='external'`. `service_mode='internal'`
+would require fabricating a Tenant Capability row and is out of scope for T1.
 
-Create the Tenant Payment Account exactly ONCE inside the outer T1 transaction, before
-any positive case runs:
+---
 
-```sql
-INSERT INTO public.payment_accounts (owner_type, tenant_id, is_active)
-VALUES ('tenant', :primary_tenant_id, true)
-ON CONFLICT (tenant_id) DO UPDATE SET is_active = true
-RETURNING id INTO :primary_payment_account_id;
-```
+## 6. Payment Account Strategy
 
-For the "missing / inactive account" negative case, use a savepoint that toggles
-`is_active` and rolls back — never drop or re-create the account between positive tests:
-
-```sql
-SAVEPOINT sp_payacct_inactive;
-UPDATE public.payment_accounts SET is_active = false WHERE id = :primary_payment_account_id;
--- invoke RPC; assert expected failure code and zero financial residue
-ROLLBACK TO SAVEPOINT sp_payacct_inactive;
-```
-
-Repeat the same pattern for the secondary tenant if a secondary Payment Account is
-required by a specific case (`ON CONFLICT (tenant_id)` guarantees idempotency).
+Create the primary Tenant Payment Account ONCE inside the outer T1 transaction, before
+any positive case runs. For the inactive-account negative case use a SAVEPOINT that
+toggles `is_active`; never drop/recreate the account.
 
 ---
 
 ## 7. Structurally Unreachable Negative Cases
 
-The validation triggers on `lab_samples` and `horse_orders` (File 14 Section 5) and
-their FK constraints reject the following states at insert/update time:
-
-- `lab_samples.client_id` referencing a client outside the sample's tenant.
-- `lab_samples.horse_id` referencing a horse outside the sample's tenant.
-- `horse_orders.client_id` referencing a client outside the order's tenant.
-- `horse_orders.horse_id` referencing a horse outside the order's tenant.
-- `horse_orders.order_type_id` referencing an order type outside the order's tenant.
-- Missing `horse_id`, `order_type_id`, or `client_id` (blocked by FKs / NOT NULL).
-
-Therefore the T1 matrix MUST NOT try to fabricate such rows. It MUST NOT:
-
-- disable constraints,
-- disable triggers,
-- set `session_replication_role = 'replica'`,
-- drop or defer FKs,
-- forge cross-tenant fields via UPDATE after insert.
-
-These RPC guards are validated as **defense-in-depth branches that are structurally
-unreachable under the live Source schema** and are documented — not executed — in T1.
-
-### The Single Required Cross-Tenant Case
-
-Insert a fully valid Source belonging to the secondary tenant, then call the checkout
-RPC with `p_tenant_id = :primary_tenant_id` and `p_source_id = <secondary source id>`.
-
-Expected: `FIN_SOURCE_NOT_FOUND` (the RPC's tenant-scoped Source lookup returns zero
-rows and does not leak the secondary-tenant Source into primary-tenant scope).
+Existing triggers (`validate_lab_sample`, `validate_horse_order_tenant`, FKs) already
+reject cross-tenant `client_id`/`horse_id`/`order_type_id` at insert time. T1 MUST NOT
+attempt to fabricate such rows and MUST NOT disable constraints, disable triggers,
+set `session_replication_role='replica'`, drop or defer FKs, or forge cross-tenant
+fields via post-insert UPDATE. The single required cross-tenant case is: primary-tenant
+RPC call + secondary-tenant Source id → `FIN_SOURCE_NOT_FOUND`.
 
 ---
 
-## 8. Complete Fixture Blueprint Inventory
+## 8. Complete Executable Fixture Blueprint Inventory
 
-All templates below use only actual columns proven by File 14, mechanically-valid enum
-and CHECK values, the fixed actor where applicable, and collision-safe generated
-identifiers. No `TODO`, no `TBD`, no guessed values.
+Every template below is complete, executable, and uses only columns proven by File 14.
+Named parameters (`:name`) are permitted; incomplete prose is not.
 
-### 8.1 Tenant Payment Account (primary)
-
-```sql
-INSERT INTO public.payment_accounts (owner_type, tenant_id, is_active)
-VALUES ('tenant', :primary_tenant_id, true)
-ON CONFLICT (tenant_id) DO UPDATE SET is_active = true
-RETURNING id;
-```
-
-### 8.2 Secondary Tenant
+### 8.1 Primary Tenant Payment Account (one-time)
 
 ```sql
-INSERT INTO public.tenants (name, type, owner_id)
-VALUES (
-  'j5_1a_t1_sec_' || substr(md5(random()::text), 1, 8),
-  'stable',
-  :actor_id
+INSERT INTO public.payment_accounts (
+  id,
+  owner_type,
+  tenant_id,
+  is_active
 )
-RETURNING id;
-```
-
-### 8.3 Secondary Tenant Membership
-
-```sql
-INSERT INTO public.tenant_members (tenant_id, user_id, role, is_active)
-VALUES (:secondary_tenant_id, :actor_id, 'owner', true);
-```
-
-### 8.4 Secondary Tenant Payment Account
-
-```sql
-INSERT INTO public.payment_accounts (owner_type, tenant_id, is_active)
-VALUES ('tenant', :secondary_tenant_id, true)
-ON CONFLICT (tenant_id) DO UPDATE SET is_active = true
-RETURNING id;
-```
-
-### 8.5 Client (per tenant)
-
-```sql
-INSERT INTO public.clients (tenant_id, name, created_by)
-VALUES (:tenant_id, 'j5_1a_client_' || substr(md5(random()::text), 1, 8), :actor_id)
-RETURNING id;
-```
-
-### 8.6 Horse (per tenant)
-
-```sql
-INSERT INTO public.horses (tenant_id, name, gender, created_by)
 VALUES (
-  :tenant_id,
-  'j5_1a_horse_' || substr(md5(random()::text), 1, 8),
-  'male',                                     -- proven valid (Section 9.5); use 'female' for
-                                              -- variants that require female-only branches
-  :actor_id
+  :primary_payment_account_id,
+  'tenant',
+  :primary_tenant_id,
+  true
 )
+ON CONFLICT (tenant_id)
+DO UPDATE SET is_active = true
 RETURNING id;
 ```
 
-### 8.7 lab_horses
+For the inactive-account case:
 
-Follow the required-column contract captured in File 14 Section 1 for `lab_horses`;
-`tenant_id` is `:tenant_id`, `client_id` is the tenant-scoped client from 8.5, and any
-optional linkage to `horses` uses the tenant-scoped horse from 8.6. No cross-tenant IDs.
+```sql
+SAVEPOINT sp_payacct_inactive;
+UPDATE public.payment_accounts
+   SET is_active = false
+ WHERE id = :primary_payment_account_id;
+-- invoke RPC; assert expected failure code; assert zero financial residue
+ROLLBACK TO SAVEPOINT sp_payacct_inactive;
+```
 
-### 8.8 lab_samples — Deposit-valid (accessioned)
+### 8.2 Primary Tenant Client
+
+```sql
+INSERT INTO public.clients (
+  id,
+  tenant_id,
+  name
+)
+VALUES (
+  :primary_client_id,
+  :primary_tenant_id,
+  'j5_1a_client_' || substr(md5(:primary_client_id::text), 1, 8)
+);
+```
+
+### 8.3 Primary Tenant Horse
+
+```sql
+INSERT INTO public.horses (
+  id,
+  tenant_id,
+  name,
+  gender
+)
+VALUES (
+  :primary_horse_id,
+  :primary_tenant_id,
+  'j5_1a_horse_' || substr(md5(:primary_horse_id::text), 1, 8),
+  'male'
+);
+```
+
+### 8.4 Primary Tenant Lab Horse
+
+```sql
+INSERT INTO public.lab_horses (
+  id,
+  tenant_id,
+  created_by,
+  name,
+  metadata,
+  source,
+  is_archived,
+  client_id
+)
+VALUES (
+  :primary_lab_horse_id,
+  :primary_tenant_id,
+  :actor_id,
+  'j5_1a_lab_horse_' || substr(md5(:primary_lab_horse_id::text), 1, 8),
+  '{}'::jsonb,
+  'manual',
+  false,
+  :primary_client_id
+);
+```
+
+Collision-prone optional fields (`microchip_number`, `passport_number`, `ueln`,
+`linked_horse_id`) are intentionally left NULL — every unique index is a partial
+index gated on `IS NOT NULL`, so NULL avoids duplication.
+
+### 8.5 Lab Sample — Lab-Horse Precedence Case
+
+Trigger `validate_lab_sample` requires `horse_id IS NOT NULL OR NULLIF(TRIM(horse_name),'') IS NOT NULL`;
+`lab_horse_id` alone is insufficient. Therefore the precedence fixture supplies BOTH a
+platform `horse_id` (to satisfy the Source trigger) and a `lab_horse_id` (to exercise
+the checkout RPC's Lab-Horse precedence branch on the Invoice Item snapshot).
 
 ```sql
 INSERT INTO public.lab_samples (
-  tenant_id, client_id, lab_horse_id, status, created_by
+  id,
+  tenant_id,
+  horse_id,
+  client_id,
+  collection_date,
+  status,
+  retest_count,
+  client_metadata,
+  created_by,
+  lab_horse_id,
+  numbering_deferred
 )
 VALUES (
-  :tenant_id, :client_id, :lab_horse_id, 'accessioned', :actor_id
-)
-RETURNING id;
+  :sample_precedence_id,
+  :primary_tenant_id,
+  :primary_horse_id,             -- satisfies validate_lab_sample
+  :primary_client_id,
+  now(),
+  :sample_status,                -- 'draft' | 'accessioned' | 'processing' | 'completed' | 'cancelled'
+  0,
+  '{}'::jsonb,
+  :actor_id,
+  :primary_lab_horse_id,         -- Lab-Horse takes precedence on Invoice Item snapshot
+  true
+);
 ```
 
-Additional NOT NULL columns per the live schema (File 14 Section 1) MUST be supplied
-using the values documented there; no unlisted default is assumed.
-
-Status variants for the matrix:
-
-- `'draft'`      → Deposit-valid
-- `'accessioned'` → Deposit-valid, Final-invalid
-- `'processing'` → Deposit-invalid AND Final-invalid
-- `'completed'`  → Final-valid, Deposit-invalid
-- `'cancelled'`  → rejected before link-kind processing
-
-### 8.9 horse_order_types (per tenant)
+### 8.6 Lab Sample — Platform Horse Fallback Case
 
 ```sql
-INSERT INTO public.horse_order_types (tenant_id, name, created_by)
-VALUES (:tenant_id, 'j5_1a_ot_' || substr(md5(random()::text), 1, 8), :actor_id)
-RETURNING id;
+INSERT INTO public.lab_samples (
+  id,
+  tenant_id,
+  horse_id,
+  client_id,
+  collection_date,
+  status,
+  retest_count,
+  client_metadata,
+  created_by,
+  lab_horse_id,
+  numbering_deferred
+)
+VALUES (
+  :sample_platform_id,
+  :primary_tenant_id,
+  :primary_horse_id,             -- fallback identity for Invoice Item
+  :primary_client_id,
+  now(),
+  :sample_status,
+  0,
+  '{}'::jsonb,
+  :actor_id,
+  NULL,                          -- no Lab Horse => platform Horse identity used
+  true
+);
 ```
 
-### 8.10 horse_orders
+### 8.7 Lab Sample — Walk-In Case
+
+```sql
+INSERT INTO public.lab_samples (
+  id,
+  tenant_id,
+  horse_id,
+  horse_name,
+  client_id,
+  client_name,
+  collection_date,
+  status,
+  retest_count,
+  client_metadata,
+  created_by,
+  lab_horse_id,
+  numbering_deferred
+)
+VALUES (
+  :sample_walkin_id,
+  :primary_tenant_id,
+  NULL,
+  'J5.1A.2 Walk-In Horse',       -- satisfies validate_lab_sample
+  NULL,
+  'J5.1A.2 Walk-In Client',      -- may be NULL for walk-in-without-client variants
+  now(),
+  :sample_status,
+  0,
+  '{}'::jsonb,
+  :actor_id,
+  NULL,
+  true
+);
+```
+
+### 8.8 Primary Tenant Horse Order Type
+
+```sql
+INSERT INTO public.horse_order_types (
+  id,
+  tenant_id,
+  name,
+  category,
+  is_active,
+  pin_as_tab,
+  sort_order
+)
+VALUES (
+  :primary_order_type_id,
+  :primary_tenant_id,
+  'j5_1a_order_type_' || substr(md5(:primary_order_type_id::text), 1, 8),
+  NULL,                          -- intentional: no tenant_capabilities row matches NULL
+  true,
+  false,
+  0
+);
+```
+
+Rationale for `category=NULL`: no Tenant Capability row is required, so
+`validate_horse_order_tenant` falls back to `allow_external=true` and rejects
+`service_mode='internal'` — matching the T1 scope in Section 5.
+
+### 8.9 Completed Billable Horse Order
 
 ```sql
 INSERT INTO public.horse_orders (
-  tenant_id, client_id, horse_id, order_type_id, service_mode, status, created_by
+  id,
+  tenant_id,
+  horse_id,
+  order_type_id,
+  service_mode,
+  status,
+  priority,
+  requested_at,
+  external_provider_name,
+  actual_cost,
+  estimated_cost,
+  currency,
+  is_income,
+  created_by,
+  client_id
 )
 VALUES (
-  :tenant_id, :client_id, :horse_id, :order_type_id,
-  'internal',            -- required per validate_horse_order_tenant (File 14 Section 5)
-  'draft',               -- valid initial status per horse_orders_status_check
-  :actor_id
+  :order_completed_id,
+  :primary_tenant_id,
+  :primary_horse_id,
+  :primary_order_type_id,
+  'external',                    -- locked by Section 5
+  'completed',
+  'medium',
+  now(),
+  'J5.1A.2 Test Provider',
+  150.00,                        -- actual_cost precedence
+  99.00,
+  'SAR',
+  false,
+  :actor_id,
+  :primary_client_id
+);
+```
+
+`completed_at` is populated by the trigger; do not set it in the INSERT.
+
+### 8.10 Non-Completed Horse Order (pending / in_progress / cancelled)
+
+```sql
+INSERT INTO public.horse_orders (
+  id,
+  tenant_id,
+  horse_id,
+  order_type_id,
+  service_mode,
+  status,
+  priority,
+  requested_at,
+  external_provider_name,
+  actual_cost,
+  estimated_cost,
+  currency,
+  is_income,
+  created_by,
+  client_id
 )
+VALUES (
+  :order_noncompleted_id,
+  :primary_tenant_id,
+  :primary_horse_id,
+  :primary_order_type_id,
+  'external',
+  :nonterminal_status,           -- 'pending' | 'in_progress' | 'cancelled'
+  'medium',
+  now(),
+  'J5.1A.2 Test Provider',       -- retained non-empty per Section 10
+  NULL,
+  NULL,
+  'SAR',
+  false,
+  :actor_id,
+  :primary_client_id
+);
+```
+
+### 8.11 Missing-Cost Horse Order
+
+```sql
+INSERT INTO public.horse_orders (
+  id,
+  tenant_id,
+  horse_id,
+  order_type_id,
+  service_mode,
+  status,
+  priority,
+  requested_at,
+  external_provider_name,
+  actual_cost,
+  estimated_cost,
+  currency,
+  is_income,
+  created_by,
+  client_id
+)
+VALUES (
+  :order_missing_cost_id,
+  :primary_tenant_id,
+  :primary_horse_id,
+  :primary_order_type_id,
+  'external',
+  'completed',
+  'medium',
+  now(),
+  'J5.1A.2 Test Provider',
+  NULL,
+  NULL,
+  'SAR',
+  false,
+  :actor_id,
+  :primary_client_id
+);
+```
+
+### 8.12 Estimated-Cost Fallback Horse Order
+
+```sql
+INSERT INTO public.horse_orders (
+  id, tenant_id, horse_id, order_type_id, service_mode, status, priority,
+  requested_at, external_provider_name, actual_cost, estimated_cost, currency,
+  is_income, created_by, client_id
+)
+VALUES (
+  :order_estimated_id,
+  :primary_tenant_id,
+  :primary_horse_id,
+  :primary_order_type_id,
+  'external',
+  'completed',
+  'medium',
+  now(),
+  'J5.1A.2 Test Provider',
+  NULL,
+  99.00,                         -- estimated_cost fallback
+  'SAR',
+  false,
+  :actor_id,
+  :primary_client_id
+);
+```
+
+Browser-supplied checkout item pricing must never be forwarded — the RPC pulls the
+canonical cost server-side.
+
+### 8.13 Secondary Tenant
+
+```sql
+INSERT INTO public.tenants (
+  id,
+  name,
+  type,
+  owner_id
+)
+VALUES (
+  :secondary_tenant_id,
+  'j5_1a_secondary_' || substr(md5(:secondary_tenant_id::text), 1, 8),
+  'stable',
+  :actor_id
+);
+```
+
+Well within the `check_tenant_limit()` cap of 3 (actor currently owns 1 — Section 10).
+
+### 8.14 Secondary Tenant Owner Membership (Strategy B — mandatory)
+
+```sql
+INSERT INTO public.tenant_members (
+  tenant_id,
+  user_id,
+  role,
+  is_active
+)
+VALUES (
+  :secondary_tenant_id,
+  :actor_id,
+  'owner',
+  true
+);
+```
+
+### 8.15 Secondary Tenant Payment Account
+
+```sql
+INSERT INTO public.payment_accounts (
+  id,
+  owner_type,
+  tenant_id,
+  is_active
+)
+VALUES (
+  :secondary_payment_account_id,
+  'tenant',
+  :secondary_tenant_id,
+  true
+)
+ON CONFLICT (tenant_id)
+DO UPDATE SET is_active = true
 RETURNING id;
+```
+
+### 8.16 Secondary Tenant Client
+
+```sql
+INSERT INTO public.clients (
+  id, tenant_id, name
+)
+VALUES (
+  :secondary_client_id,
+  :secondary_tenant_id,
+  'j5_1a_client_' || substr(md5(:secondary_client_id::text), 1, 8)
+);
+```
+
+### 8.17 Secondary Tenant Horse
+
+```sql
+INSERT INTO public.horses (
+  id, tenant_id, name, gender
+)
+VALUES (
+  :secondary_horse_id,
+  :secondary_tenant_id,
+  'j5_1a_horse_' || substr(md5(:secondary_horse_id::text), 1, 8),
+  'male'
+);
+```
+
+### 8.18 Secondary Tenant Lab Horse
+
+```sql
+INSERT INTO public.lab_horses (
+  id, tenant_id, created_by, name, metadata, source, is_archived, client_id
+)
+VALUES (
+  :secondary_lab_horse_id,
+  :secondary_tenant_id,
+  :actor_id,
+  'j5_1a_lab_horse_' || substr(md5(:secondary_lab_horse_id::text), 1, 8),
+  '{}'::jsonb,
+  'manual',
+  false,
+  :secondary_client_id
+);
+```
+
+### 8.19 Secondary Tenant Lab Sample (cross-tenant negative-case source)
+
+```sql
+INSERT INTO public.lab_samples (
+  id, tenant_id, horse_id, client_id, collection_date, status,
+  retest_count, client_metadata, created_by, lab_horse_id, numbering_deferred
+)
+VALUES (
+  :secondary_sample_id,
+  :secondary_tenant_id,
+  :secondary_horse_id,
+  :secondary_client_id,
+  now(),
+  'accessioned',
+  0,
+  '{}'::jsonb,
+  :actor_id,
+  :secondary_lab_horse_id,
+  true
+);
+```
+
+### 8.20 Secondary Tenant Horse Order Type
+
+```sql
+INSERT INTO public.horse_order_types (
+  id, tenant_id, name, category, is_active, pin_as_tab, sort_order
+)
+VALUES (
+  :secondary_order_type_id,
+  :secondary_tenant_id,
+  'j5_1a_order_type_' || substr(md5(:secondary_order_type_id::text), 1, 8),
+  NULL, true, false, 0
+);
+```
+
+### 8.21 Secondary Tenant Horse Order (only when needed by a specific case)
+
+```sql
+INSERT INTO public.horse_orders (
+  id, tenant_id, horse_id, order_type_id, service_mode, status, priority,
+  requested_at, external_provider_name, actual_cost, estimated_cost, currency,
+  is_income, created_by, client_id
+)
+VALUES (
+  :secondary_order_id,
+  :secondary_tenant_id,
+  :secondary_horse_id,
+  :secondary_order_type_id,
+  'external',
+  'completed',
+  'medium',
+  now(),
+  'J5.1A.2 Secondary Provider',
+  150.00,
+  99.00,
+  'SAR',
+  false,
+  :actor_id,
+  :secondary_client_id
+);
 ```
 
 ---
 
-## 9. Static Consistency Audit (Self-Check Before T1)
+## 9. Static Consistency Audit
 
-The T1 authoring turn MUST verify the following invariants against this file and File 14
-before writing any SQL:
-
-- [ ] No statement claims `draft` is Deposit-invalid.
-- [ ] No statement claims `processing` is Deposit-valid.
-- [ ] No statement claims `member_permissions.granted=false` directly overrides Owner.
-- [ ] No mandatory test requires corrupted / FK-bypassing / trigger-bypassing rows.
-- [ ] No fixture uses a Horse gender other than `'male'` or `'female'`.
-- [ ] No fixture uses arbitrary Owner selection or `LIMIT 1` for the actor.
-- [ ] No `TODO`, no `TBD`, no placeholder values remain.
-- [ ] Every template uses the fixed `:actor_id` where applicable.
-- [ ] The single cross-tenant negative case uses a real secondary-tenant Source.
+- [x] No `member_permissions` template uses `tenant_id` or `user_id`.
+- [x] The permission conflict target is exactly `(tenant_member_id, permission_key)`.
+- [x] No `clients` template contains `created_by`.
+- [x] No `horses` template contains `created_by`.
+- [x] No `horse_order_types` template contains `created_by`.
+- [x] `lab_horses` has a complete executable SQL template (8.4 / 8.18).
+- [x] Every `lab_samples` template satisfies `validate_lab_sample`
+      (`horse_id IS NOT NULL` in 8.5/8.6/8.19; non-empty `horse_name` in 8.7).
+- [x] Lab-Horse precedence fixture (8.5) supplies BOTH a valid Source `horse_id` and
+      a `lab_horse_id`.
+- [x] Platform fallback fixture (8.6) supplies `horse_id` and `lab_horse_id=NULL`.
+- [x] Walk-in fixture (8.7) supplies a non-empty `horse_name`.
+- [x] Every ordinary `horse_orders` template uses `service_mode='external'`.
+- [x] Every completed external `horse_orders` template retains a non-empty
+      `external_provider_name`.
+- [x] Cost fixtures cover missing (8.11), actual-precedence (8.9), and estimated
+      fallback (8.12).
+- [x] No ordinary T1 fixture depends on Internal capability.
+- [x] Secondary Owner membership is handled exactly once (Strategy B, 8.14).
+- [x] No corrupted / FK-bypassing / trigger-bypassing fixture is required.
+- [x] Zero `TODO`, zero `TBD`, zero incomplete prose templates.
+- [x] Locked migration and test files remain unchanged.
 
 ---
 
 ## 10. T1 Authoring Readiness
 
-With Sections 1–9 satisfied, a fully executable, zero-placeholder T1 core matrix can now
-be authored against `supabase/tests/database/j5_1_source_checkout.test.sql` WITHOUT
-disabling any live constraints or triggers. The remaining T2 rollback-injection matrix
-is out of scope for this preflight.
+With Sections 1–9 satisfied, a fully executable zero-placeholder T1 core matrix can
+be authored against `supabase/tests/database/j5_1_source_checkout.test.sql` without
+disabling any live constraint or trigger and without any guessed columns.
 
 ---
 
@@ -381,6 +751,4 @@ is out of scope for this preflight.
 - `supabase/tests/database/j5_1_source_checkout.test.sql`
 - `supabase/migrations/**`
 - `src/**`, translations, generated types, permissions, Demo data
-- All Retail POS surfaces (`pos_sessions`, `pos_sales`, `products`, `product_categories`,
-  `create_pos_sale`, `sale_number`, `cart_hash`, POS inventory/receipts/returns,
-  `payment_intents`)
+- All Retail POS surfaces
