@@ -562,18 +562,35 @@ BEGIN
         RAISE EXCEPTION 'FIN_LAB_ITEM_DESCRIPTION_REQUIRED' USING ERRCODE = '23514';
       END IF;
 
-      -- quantity: required number > 0 (explicit presence check; jsonb_typeof(NULL)
-      -- IS DISTINCT FROM 'number' would otherwise be NULL, not true)
+      -- quantity: type check and numeric cast must be in separate statements
+      -- (PostgreSQL does not guarantee left-to-right short-circuit evaluation
+      -- of Boolean OR).
       IF NOT (v_item ? 'quantity')
-         OR pg_catalog.jsonb_typeof(v_item->'quantity') IS DISTINCT FROM 'number'
-         OR (v_item->>'quantity')::numeric <= 0 THEN
+         OR pg_catalog.jsonb_typeof(v_item->'quantity') IS DISTINCT FROM 'number' THEN
+        RAISE EXCEPTION 'FIN_LAB_ITEM_QUANTITY_INVALID' USING ERRCODE = '23514';
+      END IF;
+      BEGIN
+        v_qty := (v_item->>'quantity')::numeric;
+      EXCEPTION
+        WHEN invalid_text_representation OR numeric_value_out_of_range THEN
+          RAISE EXCEPTION 'FIN_LAB_ITEM_QUANTITY_INVALID' USING ERRCODE = '23514';
+      END;
+      IF v_qty <= 0 THEN
         RAISE EXCEPTION 'FIN_LAB_ITEM_QUANTITY_INVALID' USING ERRCODE = '23514';
       END IF;
 
-      -- unit_price: required number >= 0
+      -- unit_price: type check and numeric cast must be in separate statements
       IF NOT (v_item ? 'unit_price')
-         OR pg_catalog.jsonb_typeof(v_item->'unit_price') IS DISTINCT FROM 'number'
-         OR (v_item->>'unit_price')::numeric < 0 THEN
+         OR pg_catalog.jsonb_typeof(v_item->'unit_price') IS DISTINCT FROM 'number' THEN
+        RAISE EXCEPTION 'FIN_LAB_ITEM_PRICE_INVALID' USING ERRCODE = '23514';
+      END IF;
+      BEGIN
+        v_unit := (v_item->>'unit_price')::numeric;
+      EXCEPTION
+        WHEN invalid_text_representation OR numeric_value_out_of_range THEN
+          RAISE EXCEPTION 'FIN_LAB_ITEM_PRICE_INVALID' USING ERRCODE = '23514';
+      END;
+      IF v_unit < 0 THEN
         RAISE EXCEPTION 'FIN_LAB_ITEM_PRICE_INVALID' USING ERRCODE = '23514';
       END IF;
 
