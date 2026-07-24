@@ -1239,3 +1239,162 @@ SELECT id, name FROM public.tenants WHERE id='145f2128-83ca-4ba8-85b5-8ade245c55
 SELECT count(*), max(is_active::int) FROM public.tenant_members WHERE tenant_id='145f2128-83ca-4ba8-85b5-8ade245c5530';
 --- OUTPUT ---
 3|1
+
+================================================================================
+SECTION 9 — J5.1A.2-PREFLIGHT-FINAL DEPENDENCY GAP EVIDENCE
+================================================================================
+
+# 9.1 Fixed Actor Identity Proof
+
+--- SQL ---
+SELECT id, full_name FROM public.profiles WHERE id='98439fe8-6881-4e9e-8ff6-18aca0ce4470';
+--- OUTPUT ---
+98439fe8-6881-4e9e-8ff6-18aca0ce4470|Mohamed Nour
+
+--- SQL ---
+SELECT id, tenant_id, user_id, role, is_active FROM public.tenant_members WHERE user_id='98439fe8-6881-4e9e-8ff6-18aca0ce4470' AND tenant_id='145f2128-83ca-4ba8-85b5-8ade245c5530';
+--- OUTPUT ---
+87c2f5e6-76c9-450b-9e39-9ee64ea321fb|145f2128-83ca-4ba8-85b5-8ade245c5530|98439fe8-6881-4e9e-8ff6-18aca0ce4470|owner|t
+
+--- SQL ---
+SELECT id, email FROM auth.users WHERE id='98439fe8-6881-4e9e-8ff6-18aca0ce4470';
+--- OUTPUT ---
+ERROR: permission denied for schema auth (expected under preflight role; existence is transitively proven by
+the FK constraint tenants_owner_id_fkey referencing auth.users(id) succeeding for owner_id below).
+
+--- SQL ---
+SELECT COUNT(*) FROM public.tenants WHERE owner_id='98439fe8-6881-4e9e-8ff6-18aca0ce4470';
+--- OUTPUT ---
+1
+
+Interpretation: the actor owns exactly one existing tenant (the fixed primary tenant),
+which transitively proves an auth.users row with id 98439fe8-6881-4e9e-8ff6-18aca0ce4470
+exists, because tenants_owner_id_fkey references auth.users(id).
+
+# 9.2 tenant_type enum
+
+--- SQL ---
+SELECT enumlabel, enumsortorder FROM pg_enum WHERE enumtypid='public.tenant_type'::regtype ORDER BY enumsortorder;
+--- OUTPUT ---
+stable|1
+clinic|2
+lab|3
+academy|4
+pharmacy|5
+transport|6
+auction|7
+horse_owner|8
+trainer|9
+doctor|10
+
+# 9.3 Primary Tenant Type
+
+--- SQL ---
+SELECT id, type::text, name FROM public.tenants WHERE id='145f2128-83ca-4ba8-85b5-8ade245c5530';
+--- OUTPUT ---
+145f2128-83ca-4ba8-85b5-8ade245c5530|stable|اسطبل القمة
+
+# 9.4 tenants — Columns / Constraints / Triggers
+
+--- SQL ---
+SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema='public' AND table_name='tenants' ORDER BY ordinal_position;
+--- OUTPUT ---
+id|uuid|NO|gen_random_uuid()
+name|text|NO|
+type|USER-DEFINED|NO|
+description|text|YES|
+logo_url|text|YES|
+address|text|YES|
+phone|text|YES|
+email|text|YES|
+created_at|timestamp with time zone|NO|now()
+updated_at|timestamp with time zone|NO|now()
+owner_id|uuid|NO|
+slug|text|YES|
+is_public|boolean|YES|false
+is_listed|boolean|YES|true
+public_name|text|YES|
+public_description|text|YES|
+public_phone|text|YES|
+public_email|text|YES|
+public_website|text|YES|
+public_location_text|text|YES|
+region|text|YES|
+cover_url|text|YES|
+tags|ARRAY|YES|'{}'::text[]
+name_ar|text|YES|
+description_ar|text|YES|
+default_tax_rate|numeric|NO|15
+prices_tax_inclusive|boolean|NO|false
+currency|text|NO|'SAR'::text
+
+Mandatory (NO default, NOT NULL) for INSERT: name, type, owner_id.
+All other NOT NULL columns have server defaults.
+
+--- SQL ---
+SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='public.tenants'::regclass;
+--- OUTPUT ---
+tenants_default_tax_rate_range_chk|CHECK (((default_tax_rate >= (0)::numeric) AND (default_tax_rate <= (100)::numeric)))
+tenants_owner_id_fkey|FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE RESTRICT
+tenants_pkey|PRIMARY KEY (id)
+tenants_slug_key|UNIQUE (slug)
+
+--- SQL ---
+SELECT tgname, pg_get_triggerdef(oid) FROM pg_trigger WHERE tgrelid='public.tenants'::regclass AND NOT tgisinternal;
+--- OUTPUT ---
+enforce_tenant_limit|CREATE TRIGGER enforce_tenant_limit BEFORE INSERT ON public.tenants FOR EACH ROW EXECUTE FUNCTION check_tenant_limit()
+on_tenant_created_seed_roles|CREATE TRIGGER on_tenant_created_seed_roles AFTER INSERT ON public.tenants FOR EACH ROW EXECUTE FUNCTION seed_tenant_roles()
+trg_provision_stable_local_record_permissions_ins|CREATE TRIGGER trg_provision_stable_local_record_permissions_ins AFTER INSERT ON public.tenants FOR EACH ROW WHEN (((new.type)::text = 'stable'::text)) EXECUTE FUNCTION _trg_provision_stable_local_record_permissions()
+trg_provision_stable_local_record_permissions_upd|CREATE TRIGGER trg_provision_stable_local_record_permissions_upd AFTER UPDATE OF type ON public.tenants FOR EACH ROW WHEN ((((new.type)::text = 'stable'::text) AND (old.type IS DISTINCT FROM new.type))) EXECUTE FUNCTION _trg_provision_stable_local_record_permissions()
+update_tenants_updated_at|CREATE TRIGGER update_tenants_updated_at BEFORE UPDATE ON public.tenants FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+
+--- SQL ---
+SELECT pg_get_functiondef('public.check_tenant_limit'::regproc);
+--- OUTPUT ---
+CREATE OR REPLACE FUNCTION public.check_tenant_limit()
+ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF (SELECT COUNT(*) FROM public.tenants WHERE owner_id = NEW.owner_id) >= 3 THEN
+    RAISE EXCEPTION 'Maximum tenant limit (3) reached for this user';
+  END IF;
+  RETURN NEW;
+END;
+$function$
+
+Interpretation: the fixed actor currently owns 1 tenant; the 3-tenant cap allows a
+transaction-local secondary tenant fixture to be inserted with owner_id = fixed actor
+without violating the limit trigger. The stable-type triggers self-seed roles/permissions
+which is harmless inside a rolled-back transaction.
+
+# 9.5 horses.gender Contract
+
+--- SQL ---
+SELECT column_name, data_type, udt_name, is_nullable, column_default FROM information_schema.columns WHERE table_schema='public' AND table_name='horses' AND column_name='gender';
+--- OUTPUT ---
+gender|text|text|NO|
+
+--- SQL ---
+SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='public.horses'::regclass AND pg_get_constraintdef(oid) ILIKE '%gender%';
+--- OUTPUT ---
+chk_is_gelded_male|CHECK (((is_gelded = false) OR (gender = 'male'::text)))
+horses_gender_check|CHECK ((gender = ANY (ARRAY['male'::text, 'female'::text])))
+
+--- SQL ---
+SELECT gender, COUNT(*) FROM public.horses GROUP BY gender ORDER BY 2 DESC;
+--- OUTPUT ---
+male|17
+female|16
+
+--- SQL ---
+SELECT typname, enumlabel FROM pg_type t JOIN pg_enum e ON e.enumtypid=t.oid WHERE t.typname IN ('horse_gender','gender_type','sex_type');
+--- OUTPUT ---
+(0 rows)
+
+Interpretation: horses.gender is a plain text column constrained by CHECK to exactly
+{'male','female'}. The only mechanically proven valid fixture values are 'male' and
+'female'. 'colt' is NOT a valid value and must be removed from any fixture template.
+
+================================================================================
+END SECTION 9
+================================================================================
