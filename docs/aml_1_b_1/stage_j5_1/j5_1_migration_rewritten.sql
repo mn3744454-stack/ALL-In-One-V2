@@ -1190,15 +1190,33 @@ BEGIN
     -- §F. Deterministic fixture creation inside this subtransaction.
     --     Everything created here disappears on the sentinel rollback.
     ------------------------------------------------------------------
-    SELECT tm.user_id, tm.tenant_id
-      INTO v_actor, v_tenant
-      FROM public.tenant_members tm
-     WHERE tm.is_active = true
-     ORDER BY tm.created_at
-     LIMIT 1;
-    IF v_tenant IS NULL THEN
+    -- Delta 3: fixed authorized verification identity. No first-member fallback.
+    v_tenant := '145f2128-83ca-4ba8-85b5-8ade245c5530'::uuid;
+    v_actor  := '98439fe8-6881-4e9e-8ff6-18aca0ce4470'::uuid;
+
+    IF NOT EXISTS (SELECT 1 FROM public.tenants WHERE id = v_tenant) THEN
       RAISE EXCEPTION 'J5_1_VERIFY_FIXTURE_TENANT_MISSING';
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_actor) THEN
+      RAISE EXCEPTION 'J5_1_VERIFY_FIXTURE_ACTOR_MISSING';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM public.tenant_members
+       WHERE user_id = v_actor AND tenant_id = v_tenant
+         AND is_active = true AND role = 'owner'
+    ) THEN
+      RAISE EXCEPTION 'J5_1_VERIFY_FIXTURE_MEMBERSHIP_MISSING';
+    END IF;
+    FOR v_perm_check IN
+      SELECT unnest(ARRAY[
+        'finance.invoice.create','finance.invoice.approve',
+        'finance.payment.create','pos.sale.create'
+      ])
+    LOOP
+      IF NOT public.has_permission(v_actor, v_tenant, v_perm_check) THEN
+        RAISE EXCEPTION 'J5_1_VERIFY_FIXTURE_PERMISSION_MISSING: %', v_perm_check;
+      END IF;
+    END LOOP;
 
     -- Establish authenticated JWT claims for RLS/permission checks.
     PERFORM set_config('request.jwt.claim.sub', v_actor::text, true);
@@ -1207,14 +1225,22 @@ BEGIN
 
     SELECT COALESCE(currency,'SAR') INTO v_currency FROM public.tenants WHERE id = v_tenant;
 
+    -- Delta 2: payment_accounts has no `name` column. Reactivate if inactive
+    -- exists; otherwise insert minimal row (tenant_id, owner_type, is_active).
     SELECT id INTO v_pay_account
       FROM public.payment_accounts
      WHERE tenant_id = v_tenant AND owner_type='tenant' AND is_active = true
      LIMIT 1;
     IF v_pay_account IS NULL THEN
-      INSERT INTO public.payment_accounts (tenant_id, owner_type, name, is_active)
-      VALUES (v_tenant, 'tenant', 'J5.1 verify cashbox', true)
-      RETURNING id INTO v_pay_account;
+      UPDATE public.payment_accounts
+         SET is_active = true
+       WHERE tenant_id = v_tenant AND owner_type='tenant'
+       RETURNING id INTO v_pay_account;
+      IF v_pay_account IS NULL THEN
+        INSERT INTO public.payment_accounts (tenant_id, owner_type, is_active)
+        VALUES (v_tenant, 'tenant', true)
+        RETURNING id INTO v_pay_account;
+      END IF;
     END IF;
 
     INSERT INTO public.clients (tenant_id, name)
