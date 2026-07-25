@@ -10,14 +10,29 @@ The sandbox `sandbox_exec` role does **not** hold membership in `authenticated`,
 
 ## 1. Fixed Qualified Test Actor & Tenant
 
-Every authenticated test transaction runs against **one fixed pair**:
+Every authenticated test transaction runs against **one fixed pair** of UUIDs — locked and non-negotiable for Slice 01:
 
-| Symbol | Meaning |
+| Symbol | Locked Value |
 |---|---|
-| `:test_actor_id` | Fixed authenticated `auth.users.id` provisioned in the qualified-runner environment; holds `active` `tenant_members` membership with the required permission bundle. |
-| `:test_tenant_id` | Fixed tenant id used for all Slice 01 scenarios; the test actor is a member. |
+| `:test_actor_id`  | `98439fe8-6881-4e9e-8ff6-18aca0ce4470` |
+| `:test_tenant_id` | `145f2128-83ca-4ba8-85b5-8ade245c5530` |
 
-These symbols are injected by the qualified runner via `psql -v test_actor_id=... -v test_tenant_id=...`. Tests never hard-code UUIDs.
+Binding rules:
+
+- The qualified runner supplies these via `psql -v test_actor_id=... -v test_tenant_id=...`; the values injected MUST equal the locked UUIDs above.
+- Every authenticated scenario begins with an equality assertion that hard-fails if the bound values differ:
+
+  ```sql
+  DO $$ BEGIN
+    IF :'test_actor_id'  <> '98439fe8-6881-4e9e-8ff6-18aca0ce4470'
+    OR :'test_tenant_id' <> '145f2128-83ca-4ba8-85b5-8ade245c5530' THEN
+      RAISE EXCEPTION 'J5_2_FIXED_IDENTITY_MISMATCH';
+    END IF;
+  END $$;
+  ```
+
+- The runner MUST NOT provision arbitrary replacement `auth.users` or `public.tenant_members` rows. The locked Actor already holds `active` `tenant_members` membership in the locked Tenant with the Slice 01 permission bundle; test setup only asserts pre-existing state, it does not create it.
+- No test file hard-codes these UUIDs inline; both are bound only through the `psql -v` variables above so the equality assertion is the single source of truth.
 
 ---
 
