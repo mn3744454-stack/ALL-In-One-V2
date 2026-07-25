@@ -341,6 +341,18 @@ export function CreateSampleDialog({
     return sum + price * item.quantity;
   }, 0);
 
+  // SAFETY: Source Checkout RPC accepts exactly ONE source_id. Immediate
+  // Collect-Now is only safe when exactly one sample will be created. Any
+  // other count must go through per-sample checkout on the sample cards.
+  const expectedSampleCount =
+    formData.selectedHorses.length > 0
+      ? formData.selectedHorses.length
+      : isRetest
+        ? 1
+        : 0;
+  const canImmediateCheckout = expectedSampleCount === 1;
+  const isMultiSampleImmediateCheckoutBlocked = expectedSampleCount > 1;
+
   useEffect(() => {
     if (open) {
       // Fast-path: for request-origin samples, jump to Details step (index of 'details')
@@ -1024,16 +1036,8 @@ export function CreateSampleDialog({
   const createSampleAndOpenCheckout = async () => {
     if (formData.selectedHorses.length === 0 && !isRetest) return;
 
-    // SAFETY: Source Checkout RPC accepts exactly ONE source_id. Immediate
-    // Collect-Now is only safe when exactly one sample will be created. Any
-    // other count must go through per-sample checkout on the sample cards.
-    const expectedSampleCount =
-      formData.selectedHorses.length > 0
-        ? formData.selectedHorses.length
-        : isRetest
-          ? 1
-          : 0;
-    if (expectedSampleCount !== 1) {
+    // Hard security/safety guard — see canImmediateCheckout derivation above.
+    if (!canImmediateCheckout) {
       toast.error(t("laboratory.checkout.multiSampleBlocked"));
       return;
     }
@@ -2287,6 +2291,15 @@ export function CreateSampleDialog({
               </Alert>
             )}
 
+            {isMultiSampleImmediateCheckoutBlocked && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  {t("laboratory.checkout.multiSampleBlocked")}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Card className="p-4">
               <ScrollArea className="max-h-[200px]">
                 <div className="space-y-2">
@@ -2326,7 +2339,7 @@ export function CreateSampleDialog({
               <Button
                 className="flex-1"
                 onClick={createSampleAndOpenCheckout}
-                disabled={loading || (requirePricesForCheckout && hasMissingPrices)}
+                disabled={loading || (requirePricesForCheckout && hasMissingPrices) || !canImmediateCheckout}
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
