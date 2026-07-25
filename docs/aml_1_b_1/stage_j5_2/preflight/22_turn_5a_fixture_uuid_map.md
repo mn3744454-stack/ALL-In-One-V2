@@ -1,4 +1,4 @@
-# 22 — Turn 5A.1R · Deterministic Fixture UUID Map (Corrected)
+# 22 — Turn 5A.1R3 · Deterministic Fixture UUID Map (Corrected)
 
 Namespace is locked. All UUIDs are v4-shaped. A read-only collision census was
 executed against every fixture-owned UUID and its target table during Turn 5A.1R
