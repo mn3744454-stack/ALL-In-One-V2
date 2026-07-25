@@ -82,6 +82,32 @@ There is exactly ONE coexistence sample. Deposit and Final MUST run against the
 same `source_id`; File 22 no longer allocates separate deposit / final source
 UUIDs for coexistence.
 
+### D.1 — Turn-5A.2.a Foundation subset (Turn 5A.1R5E lock)
+
+The Turn 5A.2.a Retry inserts EXACTLY the following 10 fixture rows (no more,
+no less; zero RPC calls in that sub-turn). Junction/cross-tenant/anon samples
+in §D above belong to Turn 5A.3 fixture setup and MUST NOT be inserted by
+Turn 5A.2.a.
+
+| Layer | Symbol                   | UUID                                     |
+|-------|--------------------------|------------------------------------------|
+| 1     | CLIENT_REGISTERED        | `aaaa1111-0000-4000-8000-000000000001`   |
+| 2     | LH_LEGACY_CLIENT         | `cccc3333-0000-4000-8000-000000000001`   |
+| 3     | LS_DRAFT_LEGACY          | `dddd4444-0000-4000-8000-000000000001`   |
+| 3     | LS_ACCESSIONED_LEGACY    | `dddd4444-0000-4000-8000-000000000002`   |
+| 3     | LS_COMPLETED_LEGACY      | `dddd4444-0000-4000-8000-000000000003`   |
+| 3     | LS_PROCESSING            | `dddd4444-0000-4000-8000-000000000004`   |
+| 3     | LS_CANCELLED             | `dddd4444-0000-4000-8000-000000000005`   |
+| 3     | LS_WALKIN_LONG_NAME      | `dddd4444-0000-4000-8000-000000000007`   |
+| 3     | LS_COEXIST               | `dddd4444-0000-4000-8000-00000000000b`   |
+| 3     | LS_ZERO_PRICE            | `dddd4444-0000-4000-8000-00000000000e`   |
+
+Turn-5A.2.a Foundation totals: Clients = 1; Lab Horses = 1; Lab Samples = 8;
+**Total = 10**. Insertion order: (1) CLIENT_REGISTERED → (2) LH_LEGACY_CLIENT
+→ (3) all eight Primary-Tenant Lab Samples. No Secondary-Tenant Client insertion.
+
+
+
 ## E — Horse Order Types
 
 | Symbol            | UUID                                     | Notes                              |
