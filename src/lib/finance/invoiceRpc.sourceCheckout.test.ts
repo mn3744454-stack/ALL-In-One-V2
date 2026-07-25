@@ -140,48 +140,43 @@ describe("createSourceCheckoutInvoice wrapper", () => {
 
 describe("createSourceCheckoutInvoice compile-time contract (@ts-expect-error)", () => {
   it("rejects forbidden payload shapes at the type level", () => {
-    // These assertions do not run — they are TypeScript compile-time gates.
-    // Each @ts-expect-error MUST be meaningful; `tsc --noEmit` will fail if
-    // the underlying error disappears.
+    // Compile-time gates only — never invoked at runtime. Each @ts-expect-error
+    // must be meaningful; `tsc --noEmit` will fail if the underlying error
+    // disappears (TS2578 Unused '@ts-expect-error' directive).
     void (async () => {
-      // Horse Order with items
-      // @ts-expect-error horse_order MUST NOT carry items
-      const p1: SourceCheckoutPayload = {
+      const p1: HorseOrderCheckoutPayload = {
         source_type: "horse_order",
         source_id: SRC,
         link_kind: "final",
         payment_method: "cash",
+        // @ts-expect-error horse_order MUST NOT carry items
         items: [],
       };
-      // Horse Order with deposit
-      // @ts-expect-error horse_order link_kind MUST be "final"
-      const p2: SourceCheckoutPayload = {
+      const p2: HorseOrderCheckoutPayload = {
         source_type: "horse_order",
         source_id: SRC,
+        // @ts-expect-error horse_order link_kind MUST be "final"
         link_kind: "deposit",
         payment_method: "cash",
       };
-      // Missing link_kind
       // @ts-expect-error link_kind is required
-      const p3: SourceCheckoutPayload = {
+      const p3: LabSampleCheckoutPayload = {
         source_type: "lab_sample",
         source_id: SRC,
         payment_method: "cash",
         items: [],
       };
-      // Root client_id forbidden
-      // @ts-expect-error client_id is not a wrapper payload key
-      const p4: SourceCheckoutPayload = {
+      const p4: LabSampleCheckoutPayload = {
         source_type: "lab_sample",
         source_id: SRC,
         link_kind: "final",
         payment_method: "cash",
         items: [],
+        // @ts-expect-error client_id is not an allowed root payload key
         client_id: SRC,
       };
-      // Unsupported source type
-      // @ts-expect-error lab_request is not a supported source_type
       const p5: SourceCheckoutPayload = {
+        // @ts-expect-error lab_request is not a supported source_type
         source_type: "lab_request",
         source_id: SRC,
         link_kind: "final",
