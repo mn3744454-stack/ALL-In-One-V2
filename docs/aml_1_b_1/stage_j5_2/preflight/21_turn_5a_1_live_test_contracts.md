@@ -377,14 +377,16 @@ They will be fully replaced by Turns 5A.2–5A.4.
 
 ## T. Exact next turn
 
-**Turn 5A.2** — T1 Foundation + Deterministic Fixtures + Payload Validation +
-Lab Deposit + Lab Final + Same-Source Deposit/Final Coexistence.
+**Turn 5A.2** — T1 Foundation + Complete Deterministic Fixtures + Payload
+Validation + Laboratory Deposit + Laboratory Final + Replay/Conflict Chain (C1) +
+Same-Source Deposit/Final Coexistence Chain (C2, including duplicate-Deposit and
+duplicate-Final rejections).
 
 ## U. Five-phase roadmap position
 
 - Phase 1 — N+1A: COMPLETE AND MANUALLY ACCEPTED.
 - Phase 2 — N+1B: IN PROGRESS. Current subphase: J5.2-SLICE-01-EXECUTION —
-  TURN 5A.1R2 (fingerprint + harness + inventory lock — this turn).
+  TURN 5A.1R3 (cross-file consistency lock — this turn).
 - Phase 3 — N+2: NOT STARTED / NOT AUTHORIZED.
 - Phase 4 — N+3: NOT STARTED / NOT AUTHORIZED.
 - Phase 5 — N+4: NOT STARTED / NOT AUTHORIZED.
