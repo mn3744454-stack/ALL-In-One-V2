@@ -349,24 +349,24 @@ lifecycle.
 
 **Sub-turn 5A.3 T1 row count = 14** (6 A + 4 B + 4 positive).
 
-### O.3 T1 counts (row-count derived, Turn 5A.1R3)
+### O.3 T1 counts (row-count derived, Turn 5A.1R5E)
 
 | Sub-turn | A | B | Positive | Row total |
 |----------|---|---|----------|-----------|
-| 5A.2     | 36 | 0 | 5        | **41**    |
+| 5A.2     | 35 | 0 | 5        | **40**    |
 | 5A.3     | 6  | 4 | 4        | **14**    |
-| **Total executable T1** | **42** | **4** | **9** | **55** |
+| **Total executable T1** | **41** | **4** | **9** | **54** |
 
-The prior Turn 5A.1R2 total of **54** is superseded. Turn 5A.1R3 changes:
+Turn 5A.1R5E changes vs. Turn 5A.1R3/R4:
 
-- Chain C1 (T1-P-01, T1-P-06, T1-A-40) moved wholly into Sub-turn 5A.2 with
-  shared idem UUID `11111111-…-000000000001`.
-- Chain C2 gains T1-A-42 (duplicate Final with fresh idem UUID) alongside
-  T1-A-34 (duplicate Deposit with fresh idem UUID).
-- Rows 61/62 of File 23 are Category C (multi-actor/concurrent — outside T1).
+- T1-A-32 (`FIN_SOURCE_CLIENT_CROSS_TENANT`) is RETIRED from the executable
+  inventory; the token is Category D in File 23. Scenario ID and reserved
+  Idempotency key `11111111-…-000000000035` (Decimal N+3) MUST NOT be reused.
+- Sub-turn 5A.2 executable total drops 41 → 40; overall executable T1 drops
+  55 → 54; File-23 Category A drops 37 → 36; File-23 Category D rises 2 → 3.
+- Chain C1 and Chain C2 shapes unchanged.
 - Row 40 (`FIN_ORDER_TYPE_NOT_FOUND`) remains Category D; `HOT_TO_DELETE` and
-  `HO_ORDER_TYPE_MISSING` are withdrawn from the executable fixture namespace
-  (see File 22 §E note).
+  `HO_ORDER_TYPE_MISSING` remain withdrawn (see File 22 §E note).
 
 ### O.4 T2 stages (T2-owned; not counted in T1)
 
@@ -378,19 +378,32 @@ Exactly 5 stages, each a distinct SAVEPOINT in `j5_2_source_checkout_atomicity.t
 4. `fin.fail_after_source_link='raise'` → `FIN_TEST_FAIL_AFTER_SOURCE_LINK`.
 5. Default-inert success (no GUC) — proves hooks are opt-in.
 
-### O.5 Reported counts (row-count derived)
+### O.5 Reported counts (row-count derived — File-21 T1 Scenario counts)
+
+These are File-21 executable T1 Scenario counts. They are NOT the File-23
+Token-Matrix row counts (see §N above and File 23 §4).
 
 | Bucket                                     | Count |
 |--------------------------------------------|-------|
-| T1 5A.2 (rows in §O.1)                     | 41    |
+| T1 5A.2 (rows in §O.1)                     | 40    |
 | T1 5A.3 (rows in §O.2)                     | 14    |
-| **Total executable T1**                    | **55**|
-| Category A (executable)                    | 42    |
-| Category B (savepoint-shaped)              | 4     |
-| Positive (executable)                      | 9     |
+| **Total executable T1 Scenarios**          | **54**|
+| Category A T1 Scenarios (executable)       | 41    |
+| Category B T1 Scenarios (savepoint-shaped) | 4     |
+| Positive T1 Scenarios (executable)         | 9     |
 | Static-review-only (Category C, File 23)   | 14    |
-| Structurally unreachable (Category D)      | 2     |
+| Structurally unreachable (Category D)      | 3     |
 | T2 stage count                             | 5     |
+
+Turn-5A.2.a Foundation fixture inventory (locked):
+
+| Object type | Count | Symbols                                                                                                              |
+|-------------|-------|-----------------------------------------------------------------------------------------------------------------------|
+| Clients     | 1     | CLIENT_REGISTERED                                                                                                     |
+| Lab Horses  | 1     | LH_LEGACY_CLIENT                                                                                                      |
+| Lab Samples | 8     | LS_DRAFT_LEGACY, LS_ACCESSIONED_LEGACY, LS_COMPLETED_LEGACY, LS_PROCESSING, LS_CANCELLED, LS_WALKIN_LONG_NAME, LS_COEXIST, LS_ZERO_PRICE |
+| **Total**   | **10**| —                                                                                                                     |
+
 
 ## P. T2 stage confirmation (locked)
 
