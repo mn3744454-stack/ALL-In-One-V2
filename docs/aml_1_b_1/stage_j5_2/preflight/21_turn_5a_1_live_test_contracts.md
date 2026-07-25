@@ -199,26 +199,134 @@ sequence and `23 rows 20–22` for the three permission keys.
 
 All zero. Recorded in File 22.
 
-## N. Token classification totals
+## N. Token classification totals (Turn 5A.1R2)
+
+Aligned with File 23 §4 after row-40 D-reclassification and the addition of the
+externally observable Idempotency helper tokens (rows 60–62).
 
 | Category                                                | Count |
 |---------------------------------------------------------|-------|
-| A — Directly executable                                 | 42    |
+| A — Directly executable                                 | 39    |
 | B — Executable via safe savepoint-scoped fixture shaping| 4     |
 | C — Internal invariant, static review only              | 12    |
-| D — Structurally unreachable                            | 1     |
+| D — Structurally unreachable                            | 2     |
+| T2 failure-hook tokens (T2-owned, not counted as T1)    | 4     |
 
-## O. Recalculated T1 planned executable count
+## O. Exact T1 Scenario Inventory (Turn 5A.1R2 lock)
 
-- **Category A directly executable**: 42
-- **Category B safe savepoint-shaped**: 4 (three permission-denied paths +
-  `FIN_TENANT_PAYMENT_ACCOUNT_MISSING`)
-- Positive-path scenarios (Lab Deposit success, Lab Final success, Horse-Order
-  Final success, Coexistence success, Idempotency replay/conflict, Trigger
-  positive paths T14/T15/T16): 9 additional executable scenarios.
+Every executable T1 case has a unique stable Scenario ID. Sub-turn ownership is
+either `5A.2` (payload validation + Lab Deposit/Final + Coexistence) or `5A.3`
+(Horse Order, trigger surface, permission-negatives, source-link conflict,
+checkout invariants, idempotency). T2 failure-hook stages appear in §O.4 and are
+NOT counted as T1.
 
-**T1 planned executable total: 55.**
-Static-review-only (Category C): 12. Structurally unreachable (Category D): 1.
+### O.1 T1 rows — Sub-turn 5A.2 (Payload + Lab Deposit + Lab Final + Coexistence)
+
+| Scenario ID | Category | Source type | Fixture source ID   | Link kind | Payment method | Payload variation                                    | Expected token / status                          | Persisted assertions (post ROLLBACK TO SAVEPOINT)             | SAVEPOINT | Idem key symbol       |
+|-------------|----------|-------------|---------------------|-----------|----------------|------------------------------------------------------|--------------------------------------------------|---------------------------------------------------------------|-----------|-----------------------|
+| T1-A-01     | A        | n/a         | n/a                 | n/a       | n/a            | JWT claims cleared                                   | `FIN_UNAUTHENTICATED` / 42501                    | Δinvoices=Δinvoice_items=Δbilling_links=Δledger=0             | sp_A01    | K-LAB-DEP-01          |
+| T1-A-02     | A        | n/a         | n/a                 | n/a       | n/a            | `p_payload := NULL`                                  | `FIN_BAD_ARGS` / 22023                           | zero-delta                                                    | sp_A02    | K-LAB-DEP-02          |
+| T1-A-03     | A        | n/a         | n/a                 | n/a       | n/a            | `p_payload := '[]'::jsonb`                           | `FIN_PAYLOAD_TYPE` / 23514                       | zero-delta                                                    | sp_A03    | K-LAB-DEP-03          |
+| T1-A-04     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | tenant = tenant Actor is not a member of              | `FIN_TENANT_ACCESS_DENIED` / 42501               | zero-delta                                                    | sp_A04    | K-LAB-DEP-04          |
+| T1-A-05     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | root key `"foo":1` present                           | `FIN_PAYLOAD_UNKNOWN_KEY: foo` / 23514           | zero-delta                                                    | sp_A05    | K-LAB-DEP-05          |
+| T1-A-06     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `source_type` omitted                                | `FIN_SOURCE_TYPE_REQUIRED` / 23514               | zero-delta                                                    | sp_A06    | K-LAB-DEP-06          |
+| T1-A-07     | A        | (raw)       | n/a                 | deposit   | cash           | `source_type='foo'`                                  | `FIN_SOURCE_TYPE_INVALID` / 23514                | zero-delta                                                    | sp_A07    | K-LAB-DEP-07          |
+| T1-A-08     | A        | lab_sample  | (omit)              | deposit   | cash           | `source_id` omitted                                  | `FIN_SOURCE_ID_REQUIRED` / 23514                 | zero-delta                                                    | sp_A08    | K-LAB-DEP-08          |
+| T1-A-09     | A        | lab_sample  | `"not-a-uuid"`      | deposit   | cash           | invalid UUID cast                                    | `FIN_SOURCE_ID_INVALID` / 23514                  | zero-delta                                                    | sp_A09    | K-LAB-DEP-09          |
+| T1-A-10     | A        | lab_sample  | LS_ACCESSIONED      | (omit)    | cash           | `link_kind` omitted                                  | `FIN_LINK_KIND_REQUIRED` / 23514                 | zero-delta                                                    | sp_A10    | K-LAB-DEP-10          |
+| T1-A-11     | A        | lab_sample  | LS_ACCESSIONED      | `bogus`   | cash           | invalid `link_kind`                                  | `FIN_LINK_KIND_INVALID` / 23514                  | zero-delta                                                    | sp_A11    | K-LAB-DEP-11          |
+| T1-A-12     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | (omit)         | `payment_method` omitted                             | `FIN_PAYMENT_METHOD_REQUIRED` / 23514            | zero-delta                                                    | sp_A12    | K-LAB-DEP-12          |
+| T1-A-13     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | `bitcoin`      | invalid `payment_method`                             | `FIN_PAYMENT_METHOD_INVALID` / 23514             | zero-delta                                                    | sp_A13    | K-LAB-DEP-13          |
+| T1-A-14     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `prices_include_tax:"yes"`                           | `FIN_PAYLOAD_TYPE: prices_include_tax` / 23514   | zero-delta                                                    | sp_A14    | K-LAB-DEP-14          |
+| T1-A-15     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `discount_amount:"10"`                               | `FIN_PAYLOAD_TYPE: discount_amount` / 23514      | zero-delta                                                    | sp_A15    | K-LAB-DEP-15          |
+| T1-A-16     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `discount_amount:-1`                                 | `FIN_DISCOUNT_INVALID` / 23514                   | zero-delta                                                    | sp_A16    | K-LAB-DEP-16          |
+| T1-A-17     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `notes:123`                                          | `FIN_PAYLOAD_TYPE: notes` / 23514                | zero-delta                                                    | sp_A17    | K-LAB-DEP-17          |
+| T1-A-18     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | 501-char `notes` (500 passes)                        | `FIN_NOTES_TOO_LONG` / 23514                     | zero-delta                                                    | sp_A18    | K-LAB-DEP-18          |
+| T1-A-19     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `client_name:42`                                     | `FIN_PAYLOAD_TYPE: client_name` / 23514          | zero-delta                                                    | sp_A19    | K-LAB-DEP-19          |
+| T1-A-20     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `items` omitted                                      | `FIN_ITEMS_EMPTY` / 23514                        | zero-delta                                                    | sp_A20    | K-LAB-DEP-20          |
+| T1-A-21     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `items:[1]`                                          | `FIN_PAYLOAD_TYPE: items[]` / 23514              | zero-delta                                                    | sp_A21    | K-LAB-DEP-21          |
+| T1-A-22     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | item has `"horse_id":"…"`                            | `FIN_PAYLOAD_UNKNOWN_KEY: items[].horse_id`      | zero-delta                                                    | sp_A22    | K-LAB-DEP-22          |
+| T1-A-23     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | item missing `description`                           | `FIN_LAB_ITEM_DESCRIPTION_REQUIRED` / 23514      | zero-delta                                                    | sp_A23    | K-LAB-DEP-23          |
+| T1-A-24     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `quantity:0`                                         | `FIN_LAB_ITEM_QUANTITY_INVALID` / 23514          | zero-delta                                                    | sp_A24    | K-LAB-DEP-24          |
+| T1-A-25     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `unit_price:-1`                                      | `FIN_LAB_ITEM_PRICE_INVALID` / 23514             | zero-delta                                                    | sp_A25    | K-LAB-DEP-25          |
+| T1-A-26     | A        | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | `is_taxable:"true"`                                  | `FIN_PAYLOAD_TYPE: items[].is_taxable` / 23514   | zero-delta                                                    | sp_A26    | K-LAB-DEP-26          |
+| T1-A-27     | A        | lab_sample  | unknown UUID        | deposit   | cash           | source not found in primary tenant                   | `FIN_SOURCE_NOT_FOUND` / 23503                   | zero-delta                                                    | sp_A27    | K-LAB-DEP-27          |
+| T1-A-28     | A        | lab_sample  | LS_CANCELLED        | deposit   | cash           | source status=cancelled                              | `FIN_SOURCE_CANCELLED` / 42501                   | zero-delta                                                    | sp_A28    | K-LAB-DEP-28          |
+| T1-A-29     | A        | lab_sample  | LS_PROCESSING       | deposit   | cash           | processing status                                    | `FIN_LAB_DEPOSIT_STATUS_INVALID` / 42501         | zero-delta                                                    | sp_A29    | K-LAB-DEP-29          |
+| T1-A-30     | A        | lab_sample  | LS_DRAFT_LEGACY     | final     | cash           | draft status via final path                          | `FIN_LAB_FINAL_STATUS_INVALID` / 42501           | zero-delta                                                    | sp_A30    | K-LAB-FIN-01          |
+| T1-A-31     | A        | lab_sample  | LS_WALKIN_LONGNAME  | deposit   | cash           | walk-in sample; payload `client_name` length=201     | `FIN_CLIENT_NAME_TOO_LONG` / 23514               | zero-delta                                                    | sp_A31    | K-LAB-DEP-30          |
+| T1-A-32     | A        | lab_sample  | LS_CROSS_TENANT_CLIENT | deposit | cash        | sample fixture `client_id` = secondary-tenant client | `FIN_SOURCE_CLIENT_CROSS_TENANT` / 23503         | zero-delta                                                    | sp_A32    | K-LAB-DEP-31          |
+| T1-A-33     | A        | lab_sample  | LS_ZEROPRICE_ITEM   | deposit   | cash           | item unit_price=0, quantity=1, discount=0            | `FIN_CHECKOUT_TOTAL_INVALID` / 23514             | zero-delta                                                    | sp_A33    | K-LAB-DEP-32          |
+| T1-P-01     | positive | lab_sample  | LS_ACCESSIONED      | deposit   | cash           | valid single-item deposit; unit_price>0              | success, invoice status=`paid`                   | Δinvoices=1, Δinvoice_items=1, Δbilling_links=1 (kind=deposit), Δledger≥2, `_finance_idempotency_complete` row present | sp_P01 | K-LAB-DEP-P |
+| T1-P-02     | positive | lab_sample  | LS_COMPLETED_STANDALONE | final | cash          | valid final on completed sample                      | success, invoice status=`paid`                   | Δinvoices=1, Δbilling_links=1 (kind=final)                    | sp_P02    | K-LAB-FIN-P           |
+| T1-P-03     | positive | lab_sample  | LS_COEXIST          | deposit   | cash           | Deposit on `accessioned` LS_COEXIST                  | success                                          | Δinvoices=1, Δbilling_links=1 (kind=deposit)                  | sp_P03    | K-COEXIST-DEP         |
+| T1-P-04     | positive | lab_sample  | LS_COEXIST          | final     | cash           | after T1-P-03: privileged UPDATE `processing`→`completed`; Final invoice | success | Δinvoices=+1, Δbilling_links=+1 (kind=final), pre-existing deposit link retained | sp_P04 | K-COEXIST-FIN |
+| T1-A-34     | A        | lab_sample  | LS_COEXIST          | deposit   | cash           | duplicate deposit after T1-P-03 with new idem key    | `FIN_SOURCE_LINK_CONFLICT` / 23514               | zero-delta beyond T1-P-03 baseline                            | sp_A34    | K-COEXIST-DEP-DUP     |
+
+**Sub-turn 5A.2 T1 row count = 38.**
+
+### O.2 T1 rows — Sub-turn 5A.3 (Horse Order + trigger + permissions + invariants + idempotency)
+
+| Scenario ID | Category | Source type   | Fixture source ID              | Link kind | Payment method | Payload variation                                                                 | Expected token / status                                          | Persisted assertions                                       | SAVEPOINT | Idem key symbol            |
+|-------------|----------|---------------|--------------------------------|-----------|----------------|-----------------------------------------------------------------------------------|------------------------------------------------------------------|------------------------------------------------------------|-----------|----------------------------|
+| T1-A-35     | A        | horse_order   | HO_COMPLETED                   | final     | cash           | `items:[…]` present on horse-order path                                            | `FIN_HORSE_ORDER_ITEMS_FORBIDDEN` / 23514                        | zero-delta                                                 | sp_A35    | K-HO-FIN-01                |
+| T1-A-36     | A        | horse_order   | HO_COMPLETED                   | deposit   | cash           | horse-order + deposit                                                              | `FIN_HORSE_ORDER_LINK_KIND_INVALID` / 23514                      | zero-delta                                                 | sp_A36    | K-HO-FIN-02                |
+| T1-A-37     | A        | horse_order   | HO_DRAFT                       | final     | cash           | order status draft                                                                 | `FIN_ORDER_NOT_COMPLETED` / 42501                                | zero-delta                                                 | sp_A37    | K-HO-FIN-03                |
+| T1-A-38     | A        | horse_order   | HO_MISSING_COST                | final     | cash           | actual_cost=estimated_cost=NULL                                                    | `FIN_ORDER_MISSING_COST` / 23514                                 | zero-delta                                                 | sp_A38    | K-HO-FIN-04                |
+| T1-A-39     | A        | horse_order   | HO_HORSE_CROSS_TENANT          | final     | cash           | order tenant=primary, horse tenant=secondary                                       | `FIN_ORDER_HORSE_NOT_FOUND` / 23503                              | zero-delta                                                 | sp_A39    | K-HO-FIN-05                |
+| T1-P-05     | positive | horse_order   | HO_COMPLETED                   | final     | cash           | valid completed order with actual_cost>0                                            | success                                                          | Δinvoices=1, Δinvoice_items=1 (entity_type='horse_order')  | sp_P05    | K-HO-FIN-P                 |
+| T1-B-01     | B        | lab_sample    | LS_ACCESSIONED                 | deposit   | cash           | SAVEPOINT: demote Actor role to `foreman`; upsert `member_permissions(finance.invoice.create,granted=false)` | `FIN_PERMISSION_DENIED` / 42501             | zero-delta                                                 | sp_B01    | K-PERM-CREATE              |
+| T1-B-02     | B        | lab_sample    | LS_ACCESSIONED                 | deposit   | cash           | same as T1-B-01 for `finance.invoice.approve`                                       | `FIN_PERMISSION_DENIED` / 42501                                  | zero-delta                                                 | sp_B02    | K-PERM-APPROVE             |
+| T1-B-03     | B        | lab_sample    | LS_ACCESSIONED                 | deposit   | cash           | same for `finance.payment.create` (cash path)                                       | `FIN_PERMISSION_DENIED` / 42501                                  | zero-delta                                                 | sp_B03    | K-PERM-PAYMENT             |
+| T1-B-04     | B        | lab_sample    | LS_ACCESSIONED                 | deposit   | cash           | SAVEPOINT: UPDATE `payment_accounts.is_active=false` for primary tenant             | `FIN_TENANT_PAYMENT_ACCOUNT_MISSING` / 23503                     | zero-delta                                                 | sp_B04    | K-NOACCT                   |
+| T1-P-06     | positive | lab_sample    | LS_ACCESSIONED                 | deposit   | cash           | Same-key/same-payload replay of a prior successful deposit                          | success (replay); `stored_response` returned verbatim            | Δinvoices=0, Δbilling_links=0, only replay path exercised  | sp_P06    | K-LAB-DEP-P (reused)       |
+| T1-A-40     | A        | lab_sample    | LS_ACCESSIONED                 | deposit   | cash           | Same-key/changed-payload (notes differ) after successful deposit                    | `FIN_IDEMPOTENCY_CONFLICT` / 23514                               | zero-delta                                                 | sp_A40    | K-LAB-DEP-P (reused)       |
+| T1-P-07     | positive | lab_sample    | LS_ACCESSIONED_LH_LEGACY_CLIENT| deposit   | cash           | invoice client = lab_horses.legacy client — trigger T14 accept                     | success                                                          | trigger validate passes                                    | sp_P07    | K-TRIG-T14                 |
+| T1-P-08     | positive | lab_sample    | LS_ACCESSIONED_LH_LAB_CUSTOMER | deposit   | cash           | `party_horse_links.relationship_type='lab_customer'` — trigger T15 accept          | success                                                          | trigger validate passes                                    | sp_P08    | K-TRIG-T15                 |
+| T1-P-09     | positive | lab_sample    | LS_ACCESSIONED_LH_PAYER        | deposit   | cash           | `party_horse_links.relationship_type='payer'` — trigger T16 accept                 | success                                                          | trigger validate passes                                    | sp_P09    | K-TRIG-T16                 |
+| T1-A-41     | A        | lab_sample    | LS_ACCESSIONED_LH_OWNER_ONLY   | deposit   | cash           | trigger rejects owner-only link (T13/T12)                                          | trigger raises `Lab horse … is not linked` / 42501               | zero-delta                                                 | sp_A41    | K-TRIG-T13                 |
+
+**Sub-turn 5A.3 T1 row count = 16.**
+
+### O.3 T1 counts
+
+| Sub-turn | Category-A rows | Category-B rows | Positive rows | Row total |
+|----------|-----------------|-----------------|---------------|-----------|
+| 5A.2     | 33              | 0               | 4 (P01–P04)   | **37**    |
+
+Wait — sub-turn 5A.2 also contains **T1-A-34** (SOURCE_LINK_CONFLICT chained to P03/P04) which is Category A, giving 34 A rows + 4 positives = **38** rows (matches §O.1 table). Sub-turn 5A.3: 7 A rows (35–41) + 4 B rows + 5 positives = **16** rows (matches §O.2 table).
+
+| Sub-turn | A | B | Positive | Row total |
+|----------|---|---|----------|-----------|
+| 5A.2     | 34 | 0 | 4        | **38**    |
+| 5A.3     | 7  | 4 | 5        | **16**    |
+| **Total executable T1** |   |   |          | **54**    |
+
+### O.4 T2 stages (T2-owned; not counted in T1)
+
+Exactly 5 stages, each a distinct SAVEPOINT in `j5_2_source_checkout_atomicity.test.sql`:
+
+1. `fin.fail_after_trace='raise'` → `FIN_TEST_FAIL_AFTER_TRACE`.
+2. `fin.fail_after_approve='raise'` → `FIN_TEST_FAIL_AFTER_APPROVE`.
+3. `fin.fail_after_payment='raise'` → `FIN_TEST_FAIL_AFTER_PAYMENT` (cash only).
+4. `fin.fail_after_source_link='raise'` → `FIN_TEST_FAIL_AFTER_SOURCE_LINK`.
+5. Default-inert success (no GUC) — proves hooks are opt-in.
+
+### O.5 Reported counts (row-count derived)
+
+| Bucket                                     | Count |
+|--------------------------------------------|-------|
+| T1 5A.2 (rows in §O.1)                     | 38    |
+| T1 5A.3 (rows in §O.2)                     | 16    |
+| **Total executable T1**                    | **54**|
+| Static-review-only (Category C, File 23)   | 12    |
+| Structurally unreachable (Category D)      | 2     |
+| T2 stage count                             | 5     |
+
+The prior claim of "T1 planned executable total: 55" is **withdrawn**. The
+canonical count is derived from the row-level inventory above and equals **54**
+after (a) excluding T2 tokens 56–59 from Category A and (b) splitting Idempotency
+into one positive (T1-P-06 replay) and one error (T1-A-40 conflict).
 
 ## P. T2 stage confirmation (locked)
 
