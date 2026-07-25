@@ -1,8 +1,17 @@
-# 23 — Turn 5A.1R · Error-Token Matrix (Live-Reconciled, Corrected)
+# 23 — Turn 5A.1R2 · Error-Token Matrix (Live-Reconciled, Corrected)
 
 Captured 2026-07-26 from the currently installed
-`public.create_source_checkout_invoke` and `public._invoice_items_validate_source`.
+`public.create_source_checkout_invoice` and `public._invoice_items_validate_source`.
 Every token below appears verbatim in the installed function bodies.
+
+**Matrix scope (locked Turn 5A.1R2):** every error token or SQLSTATE expected to
+be externally observable through `create_source_checkout_invoice`, its composed
+helpers (`_finance_idempotency_begin`, `_finance_idempotency_complete`,
+`_finance_source_checkout_apply_trace`, `create_invoice_with_items`,
+`approve_invoice`, `post_payment`, `_finance_billing_link_upsert`), and
+`_invoice_items_validate_source` when triggered by Source Checkout inserts.
+Purely private helper tokens that cannot propagate through the public RPC are
+NOT enumerated here.
 
 Correction notes vs. the withdrawn Turn 5A.1 file:
 
@@ -70,7 +79,7 @@ Categories (see §11 of the turn prompt):
 | 37 | A   | `FIN_ORDER_MISSING_COST`                    | Order with `actual_cost IS NULL AND estimated_cost IS NULL`                                                | `HO_MISSING_COST`.                                                                                                                                                    |
 | 38 | D   | `FIN_ORDER_MISSING_HORSE`                   | Order row loaded with `horse_id IS NULL` after cost-precedence block                                       | `horse_orders.horse_id` is NOT NULL in schema; only reachable by disabling FKs/triggers or scrubbing a row — **forbidden**. Static review only.                        |
 | 39 | A   | `FIN_ORDER_HORSE_NOT_FOUND`                 | `SELECT name FROM horses WHERE id=<horse> AND tenant_id=<tenant>` returns NULL                             | `HO_HORSE_CROSS_TENANT` (order tenant primary, horse tenant secondary).                                                                                               |
-| 40 | A   | `FIN_ORDER_TYPE_NOT_FOUND`                  | `order_type_id` NULL OR name lookup returns NULL                                                           | Fixture-owned order with a deterministic `order_type_id` deleted before RPC call inside SAVEPOINT.                                                                    |
+| 40 | D   | `FIN_ORDER_TYPE_NOT_FOUND`                  | `order_type_id` NULL OR name lookup returns NULL under `tenant_id=p_tenant_id`                             | `horse_orders.order_type_id` is NOT NULL with FK `ON DELETE RESTRICT` on `horse_order_types.id`; the "delete order_type before RPC" path is blocked. No live trigger forbids inserting a `horse_orders` row whose `order_type_id` belongs to a different tenant, but the fixture requires disabling tenant-consistency assumptions and is deferred. Reclassified structurally unreachable via authorized fixture paths — static review only. |
 | 41 | A   | `FIN_SOURCE_CLIENT_CROSS_TENANT`            | Source row's `client_id` not resolvable in `clients WHERE tenant_id=p_tenant_id`                           | Lab sample whose `client_id` = `CLIENT_SECONDARY_TENANT`.                                                                                                             |
 | 42 | A   | `FIN_CLIENT_NAME_TOO_LONG`                  | Resolved `client_name` length > 200                                                                        | Walk-in lab sample with 201-char `client_name` supplied on payload; **200** passes.                                                                                   |
 | 43 | A   | `FIN_SOURCE_LINK_CONFLICT`                  | Same tenant/source/kind already has a non-cancelled invoice's billing link                                 | Execute Lab Deposit successfully with idem key K1, then re-execute with new idem key K2 (same payload) — duplicate deposit is rejected before nested create.          |
@@ -91,9 +100,24 @@ Categories (see §11 of the turn prompt):
 | 58 | A   | `FIN_TEST_FAIL_AFTER_PAYMENT`               | `SET LOCAL fin.fail_after_payment='raise'`                                                                 | T2 stage 3.                                                                                                                                                           |
 | 59 | A   | `FIN_TEST_FAIL_AFTER_SOURCE_LINK`           | `SET LOCAL fin.fail_after_source_link='raise'`                                                             | T2 stage 4.                                                                                                                                                           |
 
-Idempotency-helper tokens raised by `_finance_idempotency_begin` (Category A,
-same-key-different-hash replay path): `FIN_IDEMPOTENCY_HASH_MISMATCH`.
-Idempotency replay (same key + same hash) is a positive path, not an error.
+## 1a. Idempotency-helper token (externally observable)
+
+The nested helper `public._finance_idempotency_begin(...)` raises the following
+token under same-key/changed-payload replay; `public.create_source_checkout_invoice`
+does NOT catch or remap it — it propagates verbatim to the caller.
+
+| #  | Cat | Token                          | SQLSTATE | Trigger path                                                                                                                                     | Fixture / natural reproduction                                                                                                             |
+|----|-----|--------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| 60 | A   | `FIN_IDEMPOTENCY_CONFLICT`     | `23514`  | `_finance_idempotency_begin`: existing row for `(tenant_id, operation, idempotency_key)` has `request_hash <> new hash` (same actor).            | Execute successful checkout with idem key `K1` and payload `P1`; re-invoke with the same `K1` but modified `P1'` (e.g. changed `notes`).   |
+| 61 | A   | `FIN_IDEMPOTENCY_ACTOR_MISMATCH` | `42501` | `_finance_idempotency_begin`: existing row for `(tenant_id, operation, idempotency_key)` has `actor_id <> auth.uid()`.                           | Not scheduled for T1 (requires a second authenticated fixture actor). Static review only in Turn 5A — deferred to a future harness turn.   |
+| 62 | A   | `FIN_IDEMPOTENCY_IN_PROGRESS`  | `40001`  | `_finance_idempotency_begin`: existing row with `response IS NULL` (a concurrent invocation is mid-flight).                                       | Requires two concurrent sessions; not reachable from a single-session T1 SAVEPOINT harness. Static review only.                            |
+
+Idempotency replay (same key + same request_hash + same actor) is a **positive
+path** — the helper returns `stored_response` unchanged and `create_source_checkout_invoice`
+short-circuits with the original response.
+
+The prior File-23 label `FIN_IDEMPOTENCY_HASH_MISMATCH` was **wrong** — no such
+token exists in `_finance_idempotency_begin`. All references to it are withdrawn.
 
 ## 2. `public._invoice_items_validate_source` (trigger) — unchanged token surface
 
@@ -135,15 +159,19 @@ The trigger raises message strings (not `FIN_*` tokens) with these SQLSTATEs:
 Each hook uses `pg_catalog.current_setting('<guc>', true) = 'raise'`. Activation
 is transaction-scoped via `SET LOCAL` and reverts on any enclosing rollback.
 
-## 4. Category totals
+## 4. Category totals (Turn 5A.1R2 corrected)
 
-| Category                                                | Count |
-|---------------------------------------------------------|-------|
-| A — Directly executable                                 | 42    |
-| B — Executable via safe savepoint-scoped fixture shaping| 4     |
-| C — Internal invariant, static review only              | 12    |
-| D — Structurally unreachable                            | 1     |
-| **Total RPC tokens catalogued**                         | **59**|
+Failure-hook tokens `FIN_TEST_FAIL_AFTER_*` (rows 56–59) belong exclusively to
+T2 and are **excluded from T1 Category A** in this table.
 
-Failure-hook tokens (56–59) are included in Category A because they are naturally
-reachable through the T2 stage suite.
+| Category                                                                       | Count |
+|--------------------------------------------------------------------------------|-------|
+| A — Directly executable via T1 (rows 1–19, 23–37, 39, 41–43, 46 + row 60)      | 39    |
+| B — Executable via safe savepoint-scoped fixture shaping (rows 20–22, 47)      | 4     |
+| C — Internal invariant, static review only (rows 44–45, 48–55, 61–62)          | 12    |
+| D — Structurally unreachable (rows 38, 40)                                     | 2     |
+| T2 failure-hook tokens (rows 56–59, T2-owned)                                  | 4     |
+| **Total RPC-observable tokens catalogued**                                     | **61**|
+
+Row-40 reclassification and row-60/61/62 additions are the only changes vs.
+Turn 5A.1R. The 21-row trigger surface (§2) is unchanged.

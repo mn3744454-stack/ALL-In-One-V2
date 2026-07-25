@@ -115,16 +115,35 @@ ROLLBACK TO SAVEPOINT sp_scenario_N;
 ROLLBACK;
 ```
 
-Rules:
+Rules (corrected Turn 5A.1R2):
 
-- `set_config(…, true)` scopes to the current transaction; there is NO persistent
-  GUC write.
-- `SET LOCAL ROLE authenticated` reverts on `RESET ROLE`, `ROLLBACK TO SAVEPOINT`,
-  or the outer `ROLLBACK`. Even on unhandled exception, the outer `ROLLBACK`
-  restores the original role.
-- `auth.uid()` inside `SECURITY DEFINER` helpers reads `request.jwt.claim.sub`
-  first and falls back to `request.jwt.claims->>'sub'` — either path resolves to
-  the fixed Actor.
+- The three `pg_temp` tables (`test_context`, `test_scenario_inputs`,
+  `test_scenario_results`) are created by the **session (privileged) role** at
+  the top of the transaction, BEFORE any `SET LOCAL ROLE authenticated`. Once
+  created, the privileged role executes:
+
+  ```sql
+  GRANT SELECT ON pg_temp.test_context         TO authenticated;
+  GRANT SELECT ON pg_temp.test_scenario_inputs TO authenticated;
+  GRANT INSERT ON pg_temp.test_scenario_results TO authenticated;
+  ```
+
+  No `DELETE`, no `TRUNCATE`, no `UPDATE`, no DDL is granted. Scenario input
+  rows for the current SAVEPOINT are inserted by the privileged role before
+  the role switch.
+- `set_config(…, true)` scopes to the current transaction; there is NO
+  persistent GUC write.
+- `SET LOCAL ROLE authenticated` reverts on `RESET ROLE`, `ROLLBACK TO
+  SAVEPOINT`, or the outer `ROLLBACK`. Even on an unhandled exception, the
+  outer `ROLLBACK` restores the original role.
+- The PL/pgSQL `DO $$ … $$` block that runs under `authenticated` catches
+  RPC exceptions with `EXCEPTION WHEN OTHERS THEN … END;` and INSERTs the
+  captured `SQLSTATE` + `MESSAGE_TEXT` into `pg_temp.test_scenario_results`.
+  `RESET ROLE` runs as the **next top-level statement** after that `DO`
+  block, not inside the exception handler.
+- `auth.uid()` inside `SECURITY DEFINER` helpers reads
+  `request.jwt.claim.sub` first and falls back to
+  `request.jwt.claims->>'sub'` — either path resolves to the fixed Actor.
 - Do NOT `COMMIT`. Every test file terminates with `ROLLBACK`.
 
 ---
@@ -215,7 +234,7 @@ Full mapping is captured in `22_turn_5a_fixture_uuid_map.md`.
 - For expected-error scenarios, capture `RETURNED_SQLSTATE` + `MESSAGE_TEXT` and
   assert on the exact token substring (e.g. `FIN_SOURCE_LINK_CONFLICT`). Never
   mask with a bare `EXCEPTION WHEN OTHERS THEN NULL;`.
-- Permission keys used by `create_source_checkout_invoke` are the live
+- Permission keys used by `create_source_checkout_invoice` are the live
   live-registered values — `finance.invoice.create`, `finance.invoice.approve`,
   and `finance.payment.create`. Do NOT use legacy shorthand such as
   `invoices.create`, `invoices.approve`, or `payments.create`.
