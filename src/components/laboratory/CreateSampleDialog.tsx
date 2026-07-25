@@ -341,6 +341,18 @@ export function CreateSampleDialog({
     return sum + price * item.quantity;
   }, 0);
 
+  // SAFETY: Source Checkout RPC accepts exactly ONE source_id. Immediate
+  // Collect-Now is only safe when exactly one sample will be created. Any
+  // other count must go through per-sample checkout on the sample cards.
+  const expectedSampleCount =
+    formData.selectedHorses.length > 0
+      ? formData.selectedHorses.length
+      : isRetest
+        ? 1
+        : 0;
+  const canImmediateCheckout = expectedSampleCount === 1;
+  const isMultiSampleImmediateCheckoutBlocked = expectedSampleCount > 1;
+
   useEffect(() => {
     if (open) {
       // Fast-path: for request-origin samples, jump to Details step (index of 'details')
