@@ -212,17 +212,20 @@ sequence and `23 rows 20–22` for the three permission keys.
 
 All zero. Recorded in File 22.
 
-## N. Token classification totals (Turn 5A.1R3)
+## N. Token classification totals (Turn 5A.1R5E)
 
-Aligned with File 23 §4 after rows 61/62 A→C reclassification.
+Aligned with File 23 §4 after Turn 5A.1R5E moved `FIN_SOURCE_CLIENT_CROSS_TENANT`
+from Category A to Category D. These are File-23 Token-Matrix row counts and
+must NOT be confused with File-21 executable T1 Scenario counts (see §O.5).
 
 | Category                                                | Count |
 |---------------------------------------------------------|-------|
-| A — Directly executable                                 | 37    |
+| A — Directly executable                                 | 36    |
 | B — Executable via safe savepoint-scoped fixture shaping| 4     |
 | C — Internal invariant / multi-actor / concurrent       | 14    |
-| D — Structurally unreachable                            | 2     |
+| D — Structurally unreachable                            | 3     |
 | T2 failure-hook tokens (T2-owned, not counted as T1)    | 4     |
+
 
 ## O. Exact T1 Scenario Inventory (Turn 5A.1R3 lock)
 
