@@ -1,6 +1,6 @@
-# 21 — Turn 5A.1R · Live Test Contract & Fixture Architecture Lock (Corrected)
+# 21 — Turn 5A.1R2 · Live Test Contract & Fixture Architecture Lock (Corrected)
 
-Verdict: **TURN 5A.1R COMPLETE — CONTRACTS CORRECTED AND READY FOR TURN 5A.2**
+Verdict: **TURN 5A.1R2 COMPLETE — FINGERPRINTS, HARNESS, AND CASE INVENTORY LOCKED FOR TURN 5A.2**
 
 Supersedes the withdrawn Turn 5A.1 lock. This file is preflight/test-contract
 evidence — not final Mini Documentation. It locks the corrected contracts required
