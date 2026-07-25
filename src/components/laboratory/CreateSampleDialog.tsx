@@ -2291,6 +2291,15 @@ export function CreateSampleDialog({
               </Alert>
             )}
 
+            {isMultiSampleImmediateCheckoutBlocked && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  {t("laboratory.checkout.multiSampleBlocked")}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Card className="p-4">
               <ScrollArea className="max-h-[200px]">
                 <div className="space-y-2">
