@@ -859,6 +859,7 @@ export const en = {
       finalLabel: "Final Payment",
       sampleFee: "Sample Fee",
       invoiceCreated: "Invoice created successfully",
+      multiSampleBlocked: "Immediate checkout is only available when creating a single sample. Use per-sample checkout for multiple horses.",
     },
     
     // Alerts
