@@ -1,8 +1,17 @@
-# 23 — Turn 5A.1R · Error-Token Matrix (Live-Reconciled, Corrected)
+# 23 — Turn 5A.1R2 · Error-Token Matrix (Live-Reconciled, Corrected)
 
 Captured 2026-07-26 from the currently installed
-`public.create_source_checkout_invoke` and `public._invoice_items_validate_source`.
+`public.create_source_checkout_invoice` and `public._invoice_items_validate_source`.
 Every token below appears verbatim in the installed function bodies.
+
+**Matrix scope (locked Turn 5A.1R2):** every error token or SQLSTATE expected to
+be externally observable through `create_source_checkout_invoice`, its composed
+helpers (`_finance_idempotency_begin`, `_finance_idempotency_complete`,
+`_finance_source_checkout_apply_trace`, `create_invoice_with_items`,
+`approve_invoice`, `post_payment`, `_finance_billing_link_upsert`), and
+`_invoice_items_validate_source` when triggered by Source Checkout inserts.
+Purely private helper tokens that cannot propagate through the public RPC are
+NOT enumerated here.
 
 Correction notes vs. the withdrawn Turn 5A.1 file:
 
