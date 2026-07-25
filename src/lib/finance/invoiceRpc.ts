@@ -127,3 +127,114 @@ export async function deleteDraftInvoiceRpc(
   if (error) throw error;
   return resultAsObject(data);
 }
+
+// =====================================================================
+// Typed wrapper for public.create_source_checkout_invoice(uuid,uuid,jsonb)
+// (installed by Migration A — Slice 01 Turn 2R).
+// =====================================================================
+
+export type SourceCheckoutSourceType = "lab_sample" | "horse_order";
+export type SourceCheckoutLinkKind = "deposit" | "final";
+export type SourceCheckoutPaymentMethod =
+  | "cash"
+  | "card"
+  | "transfer"
+  | "debt";
+
+export interface LabSampleCheckoutItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  is_taxable: boolean;
+}
+
+interface SourceCheckoutCommonPayload {
+  client_name?: string;
+  discount_amount?: number;
+  prices_include_tax?: boolean;
+  notes?: string;
+  payment_method: SourceCheckoutPaymentMethod;
+}
+
+export interface LabSampleCheckoutPayload extends SourceCheckoutCommonPayload {
+  source_type: "lab_sample";
+  source_id: string;
+  link_kind: SourceCheckoutLinkKind;
+  items: LabSampleCheckoutItem[];
+}
+
+export interface HorseOrderCheckoutPayload extends SourceCheckoutCommonPayload {
+  source_type: "horse_order";
+  source_id: string;
+  link_kind: "final";
+}
+
+export type SourceCheckoutPayload =
+  | LabSampleCheckoutPayload
+  | HorseOrderCheckoutPayload;
+
+export interface SourceCheckoutResult {
+  invoice_id: string;
+  invoice_number: string;
+  subtotal: number;
+  tax_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  prices_include_tax: boolean;
+  currency: string;
+  status: string;
+  payment_method: SourceCheckoutPaymentMethod;
+  client_id: string | null;
+  client_name: string | null;
+  source_type: SourceCheckoutSourceType;
+  source_id: string;
+  source_link_kind: SourceCheckoutLinkKind;
+  source_billing_link_id: string;
+  payment_result: Json | null;
+}
+
+function buildRpcPayload(payload: SourceCheckoutPayload): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    source_type: payload.source_type,
+    source_id: payload.source_id,
+    link_kind: payload.link_kind,
+    payment_method: payload.payment_method,
+  };
+  if (payload.client_name !== undefined) out.client_name = payload.client_name;
+  if (payload.discount_amount !== undefined) out.discount_amount = payload.discount_amount;
+  if (payload.prices_include_tax !== undefined) {
+    out.prices_include_tax = payload.prices_include_tax;
+  }
+  if (payload.notes !== undefined) out.notes = payload.notes;
+  if (payload.source_type === "lab_sample") {
+    out.items = payload.items;
+  }
+  return out;
+}
+
+/**
+ * Atomic source checkout — wraps `public.create_source_checkout_invoice`.
+ *
+ * Callers MUST provide an explicit idempotency key (one-key-per-open-session
+ * behavior is owned by the calling surface, not this utility).
+ *
+ * Live RPC contract: `link_kind` is required (`FIN_LINK_KIND_REQUIRED` on
+ * absence). Horse Order with `deposit` raises `FIN_HORSE_ORDER_LINK_KIND_INVALID`.
+ * This wrapper enforces both invariants at the TypeScript type level.
+ *
+ * Supabase RPC errors are re-thrown unchanged; `FIN_IDEMPOTENCY_CONFLICT` is
+ * NOT converted to success.
+ */
+export async function createSourceCheckoutInvoice(
+  tenantId: string,
+  idempotencyKey: string,
+  payload: SourceCheckoutPayload,
+): Promise<SourceCheckoutResult> {
+  const { data, error } = await supabase.rpc("create_source_checkout_invoice", {
+    p_tenant_id: tenantId,
+    p_idempotency_key: idempotencyKey,
+    p_payload: buildRpcPayload(payload) as unknown as Json,
+  });
+  if (error) throw error;
+  return resultAsObject(data) as unknown as SourceCheckoutResult;
+}
