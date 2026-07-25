@@ -528,14 +528,18 @@ VALUES (
 -- Status mix required by §15.4: draft=3, accessioned=2, completed=1,
 -- processing=1, cancelled=1. numbering_deferred=true keeps the sequential
 -- daily-number trigger from causing collisions or unintended state.
+-- horse_name is required by validate_lab_sample() whenever horse_id IS NULL
+-- (walk-in and lab-only Sources). All 10 rows carry a synthetic horse_name.
 INSERT INTO public.lab_samples (
-  id, tenant_id, client_id, lab_horse_id, status, created_by, numbering_deferred
+  id, tenant_id, client_id, lab_horse_id, horse_name,
+  status, created_by, numbering_deferred
 )
 VALUES
   ('dddd4444-0000-4000-8000-000000000001',
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    'aaaa1111-0000-4000-8000-000000000001',
    'cccc3333-0000-4000-8000-000000000001',
+   'J5.2 Fixture Horse',
    'draft',
    (SELECT actor_id FROM pg_temp.test_context),
    true),
@@ -543,6 +547,7 @@ VALUES
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    'aaaa1111-0000-4000-8000-000000000001',
    'cccc3333-0000-4000-8000-000000000001',
+   'J5.2 Fixture Horse',
    'accessioned',
    (SELECT actor_id FROM pg_temp.test_context),
    true),
@@ -550,6 +555,7 @@ VALUES
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    'aaaa1111-0000-4000-8000-000000000001',
    'cccc3333-0000-4000-8000-000000000001',
+   'J5.2 Fixture Horse',
    'completed',
    (SELECT actor_id FROM pg_temp.test_context),
    true),
@@ -557,6 +563,7 @@ VALUES
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    'aaaa1111-0000-4000-8000-000000000001',
    'cccc3333-0000-4000-8000-000000000001',
+   'J5.2 Fixture Horse',
    'processing',
    (SELECT actor_id FROM pg_temp.test_context),
    true),
@@ -564,6 +571,7 @@ VALUES
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    'aaaa1111-0000-4000-8000-000000000001',
    'cccc3333-0000-4000-8000-000000000001',
+   'J5.2 Fixture Horse',
    'cancelled',
    (SELECT actor_id FROM pg_temp.test_context),
    true),
@@ -573,6 +581,7 @@ VALUES
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    NULL,
    NULL,
+   'J5.2 Walk-in Horse',
    'draft',
    (SELECT actor_id FROM pg_temp.test_context),
    true),
@@ -580,6 +589,7 @@ VALUES
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    'aaaa1111-0000-4000-8000-000000000001',
    'cccc3333-0000-4000-8000-000000000001',
+   'J5.2 Fixture Horse',
    'accessioned',
    (SELECT actor_id FROM pg_temp.test_context),
    true),
@@ -587,6 +597,7 @@ VALUES
    (SELECT primary_tenant_id FROM pg_temp.test_context),
    'aaaa1111-0000-4000-8000-000000000001',
    'cccc3333-0000-4000-8000-000000000001',
+   'J5.2 Fixture Horse',
    'draft',
    (SELECT actor_id FROM pg_temp.test_context),
    true);
