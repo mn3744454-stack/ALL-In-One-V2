@@ -326,7 +326,7 @@ still hold); duplicate-Final fires AFTER the transition (final-eligibility
 must already hold). See File 22 §Live validation order and §Coexistence
 lifecycle.
 
-**Sub-turn 5A.2 T1 row count = 41** (33 A + 3 A moved into C1 + 1 A moved from C2 top + 1 A new C2-dup-final; positives = P-01, P-02, P-03, P-04, P-06). Breakdown: **34 A + 0 B + 7 positive → 41 rows** with A = {A-01..A-33, A-34, A-40, A-42} = 33+3 = 36 A, positives = {P-01, P-02, P-03, P-04, P-06} = 5. **36 A + 5 positive = 41 rows.**
+**Sub-turn 5A.2 T1 executable row count = 40** (Turn 5A.1R5E). Breakdown: Category A executable rows = {A-01..A-31, A-33, A-34, A-40, A-42} = 35 (T1-A-32 RETIRED and NOT counted). Positives = {P-01, P-02, P-03, P-04, P-06} = 5. **35 A + 5 positive = 40 executable rows.** Turn 5A.2.b owns 32 (A-01..A-31, A-33); Turn 5A.2.c owns 8 (P-02 + Chain C1 (3) + Chain C2 (4)).
 
 ### O.2 T1 rows — Sub-turn 5A.3 (Horse Order + trigger + permissions + payment-account absence)
 
