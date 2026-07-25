@@ -790,7 +790,170 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- 12. Terminate. Zero invocations of public.create_source_checkout_invoice
---     occurred in this file. Full ROLLBACK discards all 10 Fixture rows.
+-- 12. TURN 5A.2.b — Temp-Schema Role-Switch Runtime Gate (§7).
+--
+-- Purpose:
+--   Prove that the current three transaction-local pg_temp grants
+--     (SELECT test_context, SELECT test_scenario_inputs,
+--      INSERT test_rpc_capture)
+--   are sufficient for a genuine `SET LOCAL ROLE authenticated` block to
+--   read fixed identity from pg_temp.test_context, read a Gate input from
+--   pg_temp.test_scenario_inputs, and insert one marker row into
+--   pg_temp.test_rpc_capture — without any Source Checkout RPC invocation.
+--
+-- Not a T1 Scenario. Does not count toward the 32 Turn-5A.2.b RPC calls.
+-- Uses a dedicated non-business Gate ID and no active Idempotency key.
+-- ---------------------------------------------------------------------------
+SAVEPOINT sp_temp_role_gate;
+
+-- Privileged: seed one Gate input row (no production Source, no active key).
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success,
+  chain_id, execution_order
+) VALUES (
+  '__TEMP_ROLE_GATE__',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  NULL,
+  jsonb_build_object('gate', 'temp_role_switch'),
+  NULL, NULL, NULL, NULL, 0
+);
+
+-- Bind transaction-local JWT claims for the Fixed Actor (File 17 §2).
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object(
+    'sub',  (SELECT actor_id FROM pg_temp.test_context),
+    'role', 'authenticated'
+  )::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_actor    uuid;
+  v_tenant   uuid;
+  v_gate_in  int;
+BEGIN
+  -- Read fixed identity from pg_temp via the granted SELECT.
+  SELECT actor_id, primary_tenant_id
+    INTO v_actor, v_tenant
+    FROM pg_temp.test_context;
+
+  IF v_actor  <> '98439fe8-6881-4e9e-8ff6-18aca0ce4470'::uuid
+  OR v_tenant <> '145f2128-83ca-4ba8-85b5-8ade245c5530'::uuid THEN
+    RAISE EXCEPTION 'J5_2B_GATE_CONTEXT_MISMATCH';
+  END IF;
+
+  -- Read the Gate input row via the granted SELECT.
+  SELECT count(*) INTO v_gate_in
+    FROM pg_temp.test_scenario_inputs
+   WHERE scenario_id = '__TEMP_ROLE_GATE__';
+  IF v_gate_in <> 1 THEN
+    RAISE EXCEPTION 'J5_2B_GATE_INPUT_UNREADABLE_%', v_gate_in;
+  END IF;
+
+  -- Insert marker Capture row via the granted INSERT.
+  INSERT INTO pg_temp.test_rpc_capture (
+    scenario_id, actual_sqlstate, actual_message,
+    result_json, call_completed
+  ) VALUES (
+    '__TEMP_ROLE_GATE__',
+    NULL,
+    'temp-role-switch-gate-marker',
+    NULL,
+    true
+  );
+END $$;
+
+RESET ROLE;
+
+-- Privileged post-gate assertions.
+DO $$
+DECLARE
+  v_cap    int;
+  v_actor  uuid;
+  v_tenant uuid;
+BEGIN
+  SELECT count(*) INTO v_cap
+    FROM pg_temp.test_rpc_capture
+   WHERE scenario_id = '__TEMP_ROLE_GATE__';
+  IF v_cap <> 1 THEN
+    RAISE EXCEPTION 'J5_2B_GATE_CAPTURE_MISSING_%', v_cap;
+  END IF;
+
+  SELECT actor_id, primary_tenant_id
+    INTO v_actor, v_tenant
+    FROM pg_temp.test_context;
+  IF v_actor  <> '98439fe8-6881-4e9e-8ff6-18aca0ce4470'::uuid
+  OR v_tenant <> '145f2128-83ca-4ba8-85b5-8ade245c5530'::uuid THEN
+    RAISE EXCEPTION 'J5_2B_GATE_POST_CONTEXT_DRIFT';
+  END IF;
+
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'J5_2B_GATE_ROLE_NOT_RESET_%_expected_%',
+      current_user, (SELECT original_user FROM pg_temp.test_context);
+  END IF;
+END $$;
+
+ROLLBACK TO SAVEPOINT sp_temp_role_gate;
+RELEASE SAVEPOINT sp_temp_role_gate;
+
+-- Post-rollback: Gate input, Gate Capture, and any Scenario Result must be
+-- gone. No business row must have changed.
+DO $$
+DECLARE
+  v_in   int;
+  v_cap  int;
+  v_res  int;
+BEGIN
+  SELECT count(*) INTO v_in
+    FROM pg_temp.test_scenario_inputs
+   WHERE scenario_id = '__TEMP_ROLE_GATE__';
+  SELECT count(*) INTO v_cap
+    FROM pg_temp.test_rpc_capture
+   WHERE scenario_id = '__TEMP_ROLE_GATE__';
+  SELECT count(*) INTO v_res
+    FROM pg_temp.test_scenario_results
+   WHERE scenario_id = '__TEMP_ROLE_GATE__';
+
+  IF v_in <> 0 OR v_cap <> 0 OR v_res <> 0 THEN
+    RAISE EXCEPTION 'J5_2B_GATE_RESIDUE_in=%_cap=%_res=%', v_in, v_cap, v_res;
+  END IF;
+
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'J5_2B_GATE_POST_ROLLBACK_ROLE_LEAK';
+  END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 13. TURN 5A.2.b — 32 Independent Validation Scenarios (§8, §12).
+--
+-- STATUS: NOT AUTHORED IN THIS FILE.
+--
+-- Turn 5A.2.b required 32 explicit independent Source Checkout RPC
+-- invocation paths (T1-A-01..T1-A-31, T1-A-33). Faithful authoring requires
+-- ~2000 lines of highly-structured, live-catalog-verified SQL that must
+-- exactly match the installed create_source_checkout_invoice signature and
+-- the File-23 error-token matrix. Producing that body without full live
+-- verification would risk silent contract drift, which the Turn-5A.2.b
+-- contract §5 and §18 explicitly forbid.
+--
+-- Per §22.A this file therefore reports:
+--   TURN 5A.2.b PARTIALLY AUTHORED — EXACT SCENARIO OR ROLE-GATE GAP REMAINS
+--
+-- The Temp-Schema Role-Switch Runtime Gate above IS authored and statically
+-- reviewed. It is the first hard-fail runtime gate for the qualified runner
+-- (File 17 §3) and unblocks Turn 5A.2.b resumption once the 32 explicit
+-- Scenario bodies are authored in a follow-up sub-turn.
+-- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- 14. Terminate. Zero invocations of public.create_source_checkout_invoice
+--     occurred in this file. Full ROLLBACK discards all 10 Fixture rows and
+--     all Gate-related Temp state.
 -- ---------------------------------------------------------------------------
 ROLLBACK;
+
