@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
 import {
@@ -16,12 +16,24 @@ import { Badge } from "@/components/ui/badge";
 import { Banknote, CreditCard, Building2, Clock, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
 import { useTenant } from "@/contexts/TenantContext";
-import { useBillingLinks, type BillingLinkKind } from "@/hooks/billing/useBillingLinks";
+import {
+  createSourceCheckoutInvoice,
+  type SourceCheckoutLinkKind,
+  type SourceCheckoutPayload,
+  type SourceCheckoutResult,
+  type SourceCheckoutPaymentMethod,
+} from "@/lib/finance/invoiceRpc";
+import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 
+/**
+ * Display-only line-item shape used by callers to preview what is being
+ * checked out. `entity_type`, `entity_id`, and `description_ar` are UI-only
+ * fields and MUST NOT be forwarded to the Source Checkout RPC — Migration A
+ * derives authoritative Source identity, horse attribution, and pricing
+ * server-side.
+ */
 export interface CheckoutLineItem {
   id: string;
   description: string;
@@ -29,25 +41,26 @@ export interface CheckoutLineItem {
   quantity: number;
   unit_price: number | null; // null means price is missing
   total_price: number;
-  entity_type?: string;
-  entity_id?: string;
+  entity_type?: string; // display-only; not sent to RPC
+  entity_id?: string; // display-only; not sent to RPC
 }
 
 interface EmbeddedCheckoutProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sourceType: "lab_sample" | "lab_request" | "service" | "order" | "horse_order";
+  /** Only Source types supported by `create_source_checkout_invoice`. */
+  sourceType: "lab_sample" | "horse_order";
   sourceId: string;
   initialLineItems: CheckoutLineItem[];
-  suggestedClientId?: string | null;
+  /** Optional editable Walk-in display name; NO client UUID is sent. */
   suggestedClientName?: string;
-  /** Link kind for billing_links table */
-  linkKind?: BillingLinkKind;
+  /** Required Source Checkout link kind. Horse Order MUST be "final". */
+  linkKind: SourceCheckoutLinkKind;
   onComplete?: (invoiceId: string) => void;
   onCancel?: () => void;
 }
 
-type PaymentMethod = "cash" | "card" | "transfer" | "debt";
+type PaymentMethod = SourceCheckoutPaymentMethod;
 
 const getPaymentMethods = (t: (key: string) => string) => [
   { id: "cash" as PaymentMethod, icon: Banknote, label: t("payments.cash") },
@@ -56,15 +69,47 @@ const getPaymentMethods = (t: (key: string) => string) => [
   { id: "debt" as PaymentMethod, icon: Clock, label: t("payments.debt") },
 ];
 
+// Known SQLSTATE error message tokens raised by create_source_checkout_invoice.
+const CHECKOUT_ERROR_KEYS = new Set([
+  "FIN_PERMISSION_DENIED",
+  "FIN_TENANT_ACCESS_DENIED",
+  "FIN_SOURCE_NOT_FOUND",
+  "FIN_SOURCE_CANCELLED",
+  "FIN_LAB_DEPOSIT_STATUS_INVALID",
+  "FIN_LAB_FINAL_STATUS_INVALID",
+  "FIN_ORDER_NOT_COMPLETED",
+  "FIN_ORDER_MISSING_COST",
+  "FIN_ORDER_MISSING_HORSE",
+  "FIN_ORDER_HORSE_NOT_FOUND",
+  "FIN_ORDER_TYPE_NOT_FOUND",
+  "FIN_SOURCE_LINK_CONFLICT",
+  "FIN_TENANT_PAYMENT_ACCOUNT_MISSING",
+  "FIN_IDEMPOTENCY_CONFLICT",
+  "FIN_ITEMS_EMPTY",
+  "FIN_LINK_KIND_REQUIRED",
+  "FIN_HORSE_ORDER_LINK_KIND_INVALID",
+  "FIN_PAYLOAD_UNKNOWN_KEY",
+]);
+
+function extractErrorToken(error: unknown): string | null {
+  const message =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message?: unknown }).message ?? "")
+      : String(error ?? "");
+  for (const token of CHECKOUT_ERROR_KEYS) {
+    if (message.includes(token)) return token;
+  }
+  return null;
+}
+
 export function EmbeddedCheckout({
   open,
   onOpenChange,
   sourceType,
   sourceId,
   initialLineItems,
-  suggestedClientId,
   suggestedClientName,
-  linkKind = "final",
+  linkKind,
   onComplete,
   onCancel,
 }: EmbeddedCheckoutProps) {
@@ -73,130 +118,137 @@ export function EmbeddedCheckout({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeTenant } = useTenant();
-  const { createLinkAsync } = useBillingLinks();
+  const tenantId = activeTenant?.tenant?.id;
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [discount, setDiscount] = useState<number>(0);
   const [clientName, setClientName] = useState(suggestedClientName || "");
+
+  // ============================================================
+  // Idempotency session lifecycle
+  // ============================================================
+  // One stable idempotency key per stable submitted payload. Key is minted
+  // on open (closed→open transition), reused on retry when payload is
+  // unchanged, and rotated when the operator edits any payload-bearing
+  // field after a submission attempt.
+  const idempotencyKeyRef = useRef<string | null>(null);
+  const lastSubmittedFingerprintRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+      lastSubmittedFingerprintRef.current = null;
+    } else {
+      idempotencyKeyRef.current = null;
+      lastSubmittedFingerprintRef.current = null;
+    }
+  }, [open]);
 
   useEffect(() => {
     if (suggestedClientName) setClientName(suggestedClientName);
   }, [suggestedClientName]);
 
   // Check for missing prices
-  const itemsWithMissingPrice = useMemo(() => 
-    initialLineItems.filter(item => item.unit_price === null),
-    [initialLineItems]
+  const itemsWithMissingPrice = useMemo(
+    () => initialLineItems.filter((item) => item.unit_price === null),
+    [initialLineItems],
   );
   const hasMissingPrices = itemsWithMissingPrice.length > 0;
 
-  // Calculate totals (only include items with valid prices)
-  const subtotal = initialLineItems.reduce((sum, item) => 
-    sum + (item.unit_price !== null ? item.total_price : 0), 0);
+  // Display-only totals (backend response is authoritative)
+  const subtotal = initialLineItems.reduce(
+    (sum, item) => sum + (item.unit_price !== null ? item.total_price : 0),
+    0,
+  );
   const total = Math.max(0, subtotal - discount);
 
-  // Create invoice mutation
-  const createInvoiceMutation = useMutation({
+  const buildPayload = useCallback((): SourceCheckoutPayload => {
+    const trimmedName = clientName.trim();
+    const common = {
+      payment_method: paymentMethod,
+      discount_amount: discount,
+      ...(trimmedName.length > 0 ? { client_name: trimmedName } : {}),
+    };
+    if (sourceType === "lab_sample") {
+      return {
+        source_type: "lab_sample",
+        source_id: sourceId,
+        link_kind: linkKind,
+        ...common,
+        items: initialLineItems
+          .filter((item) => item.unit_price !== null)
+          .map((item) => ({
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price as number,
+            is_taxable: true,
+          })),
+      };
+    }
+    // horse_order: Source Checkout RPC requires link_kind "final".
+    return {
+      source_type: "horse_order",
+      source_id: sourceId,
+      link_kind: "final",
+      ...common,
+    };
+  }, [clientName, discount, paymentMethod, sourceType, sourceId, linkKind, initialLineItems]);
+
+  const checkoutMutation = useMutation<SourceCheckoutResult, unknown, void>({
     mutationFn: async () => {
-      if (!activeTenant?.tenant?.id) throw new Error("No tenant selected");
+      if (!tenantId) throw new Error("No tenant selected");
 
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user?.id) throw new Error("Not authenticated");
-
-      // Traceability for non-lab sources
-      const traceability = sourceType.startsWith("lab_") 
-        ? "" // Lab handles its own traceability
-        : `[CTX:${sourceType}:${sourceId}]`;
-
-      const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
-
-      // Create invoice
-      const { data: invoice, error: invError } = await supabase
-        .from("invoices")
-        .insert({
-          tenant_id: activeTenant.tenant.id,
-          invoice_number: invoiceNumber,
-          client_id: suggestedClientId || null,
-          client_name: clientName || "Walk-in Customer",
-          subtotal,
-          tax_amount: 0,
-          discount_amount: discount,
-          total_amount: total,
-          status: "issued",
-          issue_date: new Date().toISOString().split("T")[0],
-          due_date: new Date().toISOString().split("T")[0],
-          notes: traceability || null,
-          payment_method: paymentMethod,
-          payment_received_at: paymentMethod !== "debt" ? new Date().toISOString() : null,
-          created_by: user.user.id,
-        } as never)
-        .select()
-        .single();
-
-      if (invError) throw invError;
-
-      // Create invoice items (snapshots filled by DB trigger _invoice_items_fill_snapshots)
-      const invoiceItems = initialLineItems.map((item, idx) => ({
-        invoice_id: invoice.id,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.total_price,
-        entity_type: item.entity_type || sourceType,
-        entity_id: item.entity_id || sourceId,
-        position: idx,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("invoice_items")
-        .insert(invoiceItems as never);
-
-
-      if (itemsError) throw itemsError;
-
-      // Post to ledger if client exists
-      if (suggestedClientId) {
-        await postLedgerForInvoice(invoice.id, activeTenant.tenant.id);
+      const payload = buildPayload();
+      const fingerprint = JSON.stringify(payload);
+      // Rotate idempotency key when payload changed since the previous attempt.
+      if (
+        lastSubmittedFingerprintRef.current !== null &&
+        lastSubmittedFingerprintRef.current !== fingerprint
+      ) {
+        idempotencyKeyRef.current = crypto.randomUUID();
       }
-
-      // Create billing link - show warning but don't fail checkout
-      try {
-        await createLinkAsync({
-          source_type: sourceType,
-          source_id: sourceId,
-          invoice_id: invoice.id,
-          link_kind: linkKind,
-          amount: total,
-        });
-      } catch (linkError) {
-        console.error("Failed to create billing link:", linkError);
-        // Show warning toast but don't fail the checkout
-        toast({
-          title: t("billing.linkFailed"),
-          description: String(linkError),
-          variant: "destructive",
-        });
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = crypto.randomUUID();
       }
+      lastSubmittedFingerprintRef.current = fingerprint;
 
-      return invoice;
+      return await createSourceCheckoutInvoice(
+        tenantId,
+        idempotencyKeyRef.current,
+        payload,
+      );
     },
-    onSuccess: (invoice) => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["ledger-entries"] });
-      queryClient.invalidateQueries({ queryKey: ["customer-balances"] });
+    onSuccess: (result) => {
+      invalidateFinanceQueries(queryClient, tenantId);
+      if (sourceType === "lab_sample") {
+        queryClient.invalidateQueries({ queryKey: ["lab-samples", tenantId] });
+        queryClient.invalidateQueries({ queryKey: ["lab-samples"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["horse-orders", tenantId] });
+        queryClient.invalidateQueries({ queryKey: ["horse-orders"] });
+      }
       toast({ title: t("finance.pos.checkout.success") });
-      onComplete?.(invoice.id);
+      onComplete?.(result.invoice_id);
       onOpenChange(false);
     },
-    onError: (error: Error) => {
+    onError: (error) => {
+      // Never log the payload — it can carry operator-entered client name.
       console.error("Checkout error:", error);
-      toast({ 
-        title: t("finance.pos.checkout.error"), 
-        description: error.message,
-        variant: "destructive" 
+      const token = extractErrorToken(error);
+      const description = token ?? (
+        error && typeof error === "object" && "message" in error
+          ? String((error as { message?: unknown }).message ?? "")
+          : String(error ?? "")
+      );
+      toast({
+        title: t("finance.pos.checkout.error"),
+        description,
+        variant: "destructive",
       });
     },
   });
+
+  const isPending = checkoutMutation.isPending;
 
   const handleComplete = () => {
     if (hasMissingPrices) {
@@ -207,19 +259,30 @@ export function EmbeddedCheckout({
       });
       return;
     }
-    createInvoiceMutation.mutate();
+    checkoutMutation.mutate();
   };
 
   const handleCancel = () => {
+    if (isPending) return;
     onCancel?.();
     onOpenChange(false);
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        side={isRTL ? "left" : "right"} 
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        // Prevent Sheet dismissal while the RPC is in-flight.
+        if (isPending && !next) return;
+        onOpenChange(next);
+      }}
+    >
+      <SheetContent
+        side={isRTL ? "left" : "right"}
         className={cn("w-full sm:max-w-md", isRTL && "rtl")}
+        onEscapeKeyDown={(e) => { if (isPending) e.preventDefault(); }}
+        onPointerDownOutside={(e) => { if (isPending) e.preventDefault(); }}
+        onInteractOutside={(e) => { if (isPending) e.preventDefault(); }}
       >
         <SheetHeader>
           <SheetTitle>
@@ -245,8 +308,8 @@ export function EmbeddedCheckout({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium text-sm">
-                          {lang === "ar" && item.description_ar 
-                            ? item.description_ar 
+                          {lang === "ar" && item.description_ar
+                            ? item.description_ar
                             : item.description}
                         </p>
                         {isMissingPrice && (
@@ -270,13 +333,14 @@ export function EmbeddedCheckout({
           </ScrollArea>
 
           <div className="space-y-4 pt-4 border-t mt-4">
-            {/* Client name */}
+            {/* Client name (display / walk-in only; no UUID sent) */}
             <div className="space-y-2">
               <Label>{t("finance.pos.customer")}</Label>
               <Input
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 placeholder={t("finance.pos.walkIn")}
+                disabled={isPending}
               />
             </div>
 
@@ -290,20 +354,24 @@ export function EmbeddedCheckout({
                 value={discount || ""}
                 onChange={(e) => setDiscount(Number(e.target.value) || 0)}
                 placeholder="0.00"
+                disabled={isPending}
               />
             </div>
 
             {/* Payment method */}
             <div className="space-y-2">
               <Label>{t("finance.pos.payment.method")}</Label>
-            <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {getPaymentMethods(t).map((method) => (
                   <button
                     key={method.id}
+                    type="button"
                     onClick={() => setPaymentMethod(method.id)}
+                    disabled={isPending}
                     className={cn(
                       "flex flex-col items-center justify-center p-2 rounded-lg border",
                       "transition-colors min-h-[50px] touch-manipulation",
+                      "disabled:opacity-60 disabled:cursor-not-allowed",
                       paymentMethod === method.id
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card hover:bg-accent/50 border-border"
@@ -318,7 +386,7 @@ export function EmbeddedCheckout({
 
             <Separator />
 
-            {/* Totals */}
+            {/* Totals (display-only preview; backend is authoritative) */}
             <div className="space-y-1">
               <div className={cn("flex justify-between text-sm", isRTL && "flex-row-reverse")}>
                 <span>{t("finance.pos.cart.subtotal")}</span>
@@ -342,16 +410,16 @@ export function EmbeddedCheckout({
                 variant="outline"
                 onClick={handleCancel}
                 className="flex-1 h-12 touch-manipulation"
-                disabled={createInvoiceMutation.isPending}
+                disabled={isPending}
               >
                 {t("common.cancel")}
               </Button>
               <Button
                 onClick={handleComplete}
                 className="flex-1 h-12 touch-manipulation"
-                disabled={createInvoiceMutation.isPending || total <= 0 || hasMissingPrices}
+                disabled={isPending || total <= 0 || hasMissingPrices}
               >
-                {createInvoiceMutation.isPending ? (
+                {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   t("finance.pos.actions.completeSale")
