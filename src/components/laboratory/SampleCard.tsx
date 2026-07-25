@@ -31,7 +31,7 @@ import {
   User
 } from "lucide-react";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
-import type { BillingLinkKind } from "@/hooks/billing/useBillingLinks";
+import type { SourceCheckoutLinkKind } from "@/lib/finance/invoiceRpc";
 
 interface SampleCardProps {
   sample: LabSample;
