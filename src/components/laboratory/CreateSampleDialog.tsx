@@ -1036,16 +1036,8 @@ export function CreateSampleDialog({
   const createSampleAndOpenCheckout = async () => {
     if (formData.selectedHorses.length === 0 && !isRetest) return;
 
-    // SAFETY: Source Checkout RPC accepts exactly ONE source_id. Immediate
-    // Collect-Now is only safe when exactly one sample will be created. Any
-    // other count must go through per-sample checkout on the sample cards.
-    const expectedSampleCount =
-      formData.selectedHorses.length > 0
-        ? formData.selectedHorses.length
-        : isRetest
-          ? 1
-          : 0;
-    if (expectedSampleCount !== 1) {
+    // Hard security/safety guard — see canImmediateCheckout derivation above.
+    if (!canImmediateCheckout) {
       toast.error(t("laboratory.checkout.multiSampleBlocked"));
       return;
     }
