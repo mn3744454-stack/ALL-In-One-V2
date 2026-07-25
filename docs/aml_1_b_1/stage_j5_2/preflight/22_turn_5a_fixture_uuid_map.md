@@ -1,8 +1,13 @@
-# 22 — Turn 5A.1R3 · Deterministic Fixture UUID Map (Corrected)
+# 22 — Turn 5A.1R5E · Deterministic Fixture UUID Map (Corrected)
+
+**ACTIVE TURN-5A.2.a FOUNDATION FIXTURES = 10. T1-A-32 AND ITS CROSS-TENANT FIXTURES ARE RETIRED BEFORE SQL AUTHORING.**
 
 Namespace is locked. All UUIDs are v4-shaped. A read-only collision census was
 executed against every fixture-owned UUID and its target table during Turn 5A.1R
-(see §Collision census below).
+(see §Collision census below). Turn 5A.1R5E retires `CLIENT_SECONDARY_TENANT`
+and `LS_CROSS_TENANT_CLIENT` from the executable fixture namespace after the
+Turn 5A.1R5 reachability proof.
+
 
 Existing production identity (do NOT recreate):
 
