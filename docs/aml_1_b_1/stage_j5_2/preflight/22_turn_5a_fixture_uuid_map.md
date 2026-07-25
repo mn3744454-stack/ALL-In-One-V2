@@ -147,6 +147,51 @@ them before `_finance_billing_link_upsert` fires
 | T1-P-09       | independent      | `K-TRIG-T16`           | `55555555-5555-4555-8555-000000000008`         | —                    | unique                                    | LS_FIN_JUNCTION_PAYER (link_kind=`final`; fixture status = `completed`) | trigger `payer` accept |
 | T1-A-41       | independent      | `K-TRIG-T13`           | `55555555-5555-4555-8555-000000000009`         | —                    | unique                                    | LS_DEP_OWNER_ONLY                   | trigger owner-only reject           |
 
+### H.1 Exact T1-A-01..A-33 Idempotency derivation (Turn 5A.1R4 lock — Option B)
+
+The `T1-A-01..A-33` range row in the table above is an authoring aid. The
+authoritative binding for each individual Scenario is the following
+deterministic derivation (Option B in File-17 language):
+
+```
+For each N in 1..33:
+  suffix_decimal := N + 3
+  suffix_string  := lpad(suffix_decimal::text, 12, '0')   -- 12 decimal digits
+  idem_uuid      := '11111111-1111-4111-8111-' || suffix_string
+```
+
+Worked examples (must match at authoring and execution time):
+
+| Scenario | N  | N+3 | Suffix (12 digits) | Exact Idempotency UUID                       |
+|----------|----|-----|--------------------|-----------------------------------------------|
+| T1-A-01  | 1  | 4   | `000000000004`     | `11111111-1111-4111-8111-000000000004`        |
+| T1-A-02  | 2  | 5   | `000000000005`     | `11111111-1111-4111-8111-000000000005`        |
+| T1-A-09  | 9  | 12  | `000000000012`     | `11111111-1111-4111-8111-000000000012`        |
+| T1-A-10  | 10 | 13  | `000000000013`     | `11111111-1111-4111-8111-000000000013`        |
+| T1-A-33  | 33 | 36  | `000000000036`     | `11111111-1111-4111-8111-000000000036`        |
+
+Static assertion plan (to be embedded in the T1 fixture-setup DO block
+authored in Turn 5A.2):
+
+1. Generate all 33 derived UUIDs via the derivation above.
+2. Assert every string parses as a valid `uuid` (implicit cast).
+3. Assert `count(distinct) = 33` — no internal duplicates.
+4. Assert zero overlap with the reserved keys used elsewhere:
+   - C1: `11111111-…-000000000001`.
+   - C2 deposit/final: `22222222-…-000000000002`, `22222222-…-000000000003`.
+   - C2 duplicate probes: `44444444-…-000000000001`, `44444444-…-000000000002`.
+   - Lab Final standalone: `22222222-…-000000000001`.
+   - Horse Order success + negatives: `33333333-…-000000000001..006`.
+   - Permission + trigger: `55555555-…-000000000001..009`.
+   - T2 stage keys: `66666666-…-000000000001..005`.
+5. Execution-time collision guard against `finance_request_idempotency`
+   remains mandatory per the "Collision-check contract" below (defence in
+   depth against namespace drift between authoring and execution).
+
+Range notation is retained above ONLY as a namespace reservation hint. The
+derivation in this §H.1 is the sole authoritative source for the 33 exact
+UUIDs.
+
 Rules recap (locked):
 
 1. Independent calls receive unique UUIDs.
