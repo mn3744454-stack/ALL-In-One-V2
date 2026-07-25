@@ -74,7 +74,7 @@ a member of); no Secondary-Tenant Client fixture is required or authored.
 | LS_FIN_JUNCTION_PAYER     | `dddd4444-0000-4000-8000-000000000009`   | `completed`    | Uses LH_JUNCTION_PAYER — validates trigger acceptance                                        |
 | LS_DEP_OWNER_ONLY         | `dddd4444-0000-4000-8000-00000000000a`   | `draft`        | Uses LH_OWNER_ONLY — expects trigger `Lab horse … is not linked` (SQLSTATE 42501)            |
 | **LS_COEXIST**            | `dddd4444-0000-4000-8000-00000000000b`   | `accessioned`  | **Single-source Deposit → Final coexistence fixture** (see §Coexistence lifecycle below)     |
-| LS_CROSS_TENANT_CLIENT    | `dddd4444-0000-4000-8000-00000000000c`   | `draft`        | `client_id` = CLIENT_SECONDARY_TENANT — `FIN_SOURCE_CLIENT_CROSS_TENANT`                     |
+| ~~LS_CROSS_TENANT_CLIENT~~| `dddd4444-0000-4000-8000-00000000000c`   | —              | **RETIRED (Turn 5A.1R5E)** — never inserted. `FIN_SOURCE_CLIENT_CROSS_TENANT` is Category D per File 23 row 41. UUID reserved-not-reusable. |
 | LS_SECONDARY_TENANT       | `dddd4444-0000-4000-8000-00000000000d`   | `draft`        | tenant = secondary — cross-tenant `FIN_SOURCE_NOT_FOUND` when called on primary tenant       |
 | LS_ZERO_PRICE             | `dddd4444-0000-4000-8000-00000000000e`   | `draft`        | Fixture for `FIN_CHECKOUT_TOTAL_INVALID` via `unit_price=0` accepted at item gate            |
 
