@@ -69,7 +69,7 @@ export function SampleCard({
   const { hasPermission, isOwner } = usePermissions();
   const { getCapabilityForCategory } = useTenantCapabilities();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [checkoutLinkKind, setCheckoutLinkKind] = useState<BillingLinkKind>("final");
+  const [checkoutLinkKind, setCheckoutLinkKind] = useState<SourceCheckoutLinkKind>("final");
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
@@ -158,7 +158,7 @@ export function SampleCard({
   const isComplete = hasTemplates && resultsCount >= templateCount;
   const progressPercent = hasTemplates ? (resultsCount / templateCount) * 100 : 0;
 
-  const handleOpenCheckout = (linkKind: BillingLinkKind) => {
+  const handleOpenCheckout = (linkKind: SourceCheckoutLinkKind) => {
     setCheckoutLinkKind(linkKind);
     setCheckoutOpen(true);
   };
