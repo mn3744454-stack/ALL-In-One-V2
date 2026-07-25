@@ -874,6 +874,7 @@ export const ar = {
       finalLabel: "الدفعة النهائية",
       sampleFee: "رسوم العينة",
       invoiceCreated: "تم إنشاء الفاتورة بنجاح",
+      multiSampleBlocked: "الدفع الفوري متاح فقط عند إنشاء عينة واحدة. استخدم الدفع لكل عينة عند وجود عدة خيول.",
     },
     
     // Alerts
