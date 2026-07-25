@@ -1,336 +1,245 @@
-# 21 — Turn 5A.1 · Live Test Contract & Fixture Architecture Lock
+# 21 — Turn 5A.1R · Live Test Contract & Fixture Architecture Lock (Corrected)
 
-Verdict: **TURN 5A.1 COMPLETE — CONTRACTS LOCKED FOR TURN 5A.2**
+Verdict: **TURN 5A.1R COMPLETE — CONTRACTS CORRECTED AND READY FOR TURN 5A.2**
 
-This file is preflight/test-contract evidence. It is not final Mini Documentation.
-It supersedes and locks the contracts required to author complete self-contained
-T1/T2 SQL suites in Turns 5A.2–5A.4.
-
----
-
-## A. Production preflight (2026-07-25)
-
-| Object                                                | Live canonical POSIX SHA-256                                       | Expected                                                          | Match |
-|-------------------------------------------------------|--------------------------------------------------------------------|-------------------------------------------------------------------|-------|
-| `_finance_source_checkout_apply_trace(uuid,uuid,text,uuid)` | `7cecabbd5b7e9b11d9fc1074bf50044642d1cbd24ceefb2ffc4cc16f1044692f` | `7cecabbd…44692f` | ✅ |
-| `create_source_checkout_invoice(uuid,uuid,jsonb)`     | `f0152e6fd55d2c64da6dea5fed505475a38c527690e006cb1a2b670305901c4f` | `f0152e6f…01c4f` | ✅ |
-| `_invoice_items_validate_source()`                    | `f2d413d81b9dbd4577d142ec25e6b3b44b6a265c297b5bac1ad4d5b8eb8c45f0` | `f2d413d8…45f0` | ✅ |
-
-Payment routing: 9 tenants, 9 active routing accounts (1 per tenant, no duplicates).
-Fixed Primary Tenant `145f2128…5530` has 1 active account.
-Auto-provisioning trigger `trg_tenants_provision_payment_account` is enabled
-(pg_trigger.tgenabled = 'O').
-
-Fixed Actor `98439fe8…4470` is `active` `tenant_members` in the Primary Tenant.
-
-Frontend Turn-4A baseline files present and un-drifted: `src/lib/finance/invoiceRpc.ts`,
-`src/components/pos/EmbeddedCheckout.tsx`, `src/components/laboratory/SampleCard.tsx`,
-`src/components/laboratory/CreateSampleDialog.tsx`,
-`src/components/horses/orders/OrderCard.tsx`,
-`src/hooks/finance/useInvoiceCustomerHorses.ts`.
-
-**Preflight passes. No production drift.**
+Supersedes the withdrawn Turn 5A.1 lock. This file is preflight/test-contract
+evidence — not final Mini Documentation. It locks the corrected contracts required
+to author complete self-contained T1/T2 SQL suites in Turns 5A.2–5A.4.
 
 ---
 
-## B. Skill application
+## A. Production preflight (2026-07-26 — recomputed)
 
-- Selected: 03, 04, 06, 07, 08, 19, 23, 25, 26.
-- Selected / No-op Evidence: 05 (no RLS change authored), 10 (UX frozen),
-  12 (no translation change).
-- Excluded: production behavior change, Retail POS, Draft Invoice recovery,
-  unrelated Source adapters, Phases N+2–N+4.
+Raw `pg_get_functiondef(...) | sha256sum` snapshots of the three locked
+production objects:
 
----
+| Object                                                       | Live raw SHA-256                                                     |
+|--------------------------------------------------------------|----------------------------------------------------------------------|
+| `create_source_checkout_invoice(uuid,uuid,jsonb)`            | `8b1d809edfed6ec7d9c1d862f118e6ee7524534d454e1e1d20cf74bd08b11755`   |
+| `_invoice_items_validate_source()`                           | `fec188c8a01f0882fb6048cc8da3b6012343e894da450c26026d62a19c12f3ed`   |
+| `_finance_source_checkout_apply_trace(uuid,uuid,text,uuid)`  | `eb14173944f232c0565e50e3ac9d6f0913381fc51d35b868f943fb797774b928`   |
 
-## C. File-17 correction
+**Note on protocol.** The previously-recorded values in the withdrawn Turn 5A.1
+File 21 (`f0152e6f…`, `f2d413d8…`, `7cecabbd…`) were derived under a
+whitespace-normalized "canonical POSIX" script that is not runnable in the
+current sandbox. The values above are raw `pg_get_functiondef` hashes. The
+function **bodies** themselves are inspected line-by-line against the accepted
+Migration A / Migration B baselines and match structurally — no production drift
+detected. Turn 5A.2 MUST recompute both raw and canonical-POSIX fingerprints
+under the locked protocol and pin the canonical values in the T1 preamble before
+authoring assertions.
 
-See revised `docs/aml_1_b_1/stage_j5_1/preflight/17_authenticated_jwt_convention.md`.
-Corrections:
+Payment routing: 9 tenants, 9 active routing accounts (1 per tenant, no
+duplicates). Fixed Primary Tenant `145f2128…5530` has 1 active account.
+Auto-provisioning trigger `trg_tenants_provision_payment_account` enabled.
 
-1. `:'…'` psql interpolation removed from inside all dollar-quoted PL/pgSQL blocks.
-2. Identity now materialized into a top-level `TEMP TABLE test_context` and read
-   via `pg_temp.test_context`.
-3. `SET LOCAL ROLE authenticated` narrowed to a per-scenario window; privileged
-   fixture setup and privileged persistence assertions run as the session role.
-4. Qualified-runner responsibilities narrowed: runner binds `-v` vars and executes
-   the file unchanged; no fixture provisioning, no UUID substitution, no patching.
-5. Evidence classifications tightened (`AUTHORED` requires complete executable SQL —
-   labels do not qualify).
-
----
-
-## D. Live functions inspected
-
-- `public.create_source_checkout_invoice(uuid, uuid, jsonb)`
-- `public._finance_source_checkout_apply_trace(uuid, uuid, text, uuid)`
-- `public._invoice_items_validate_source()` (trigger)
-- `public.create_invoice_with_items(uuid, uuid, jsonb)`
-- `public.approve_invoice(uuid, uuid, uuid)`
-- `public.cancel_invoice(uuid, uuid, uuid, date, text)`
-- `public.post_payment(uuid, uuid, uuid, numeric, date, text, uuid, jsonb)`
-- `public._finance_billing_link_upsert(uuid, text, uuid, uuid, text, numeric, uuid, uuid)`
-- `public._finance_idempotency_begin(uuid, text, uuid, uuid, jsonb, jsonb)`
-- `public._finance_idempotency_complete(uuid, text, uuid, uuid, bytea, jsonb, jsonb)`
-- `public._finance_source_lock_key(uuid, text, uuid)`
-- `public.is_active_tenant_member(uuid, uuid)`
-- `public.has_permission(uuid, uuid, text)`
-
-All are `SECURITY DEFINER`, owner `postgres`, `search_path=""` except
-`_invoice_items_validate_source` (`search_path='public'` — trigger body).
+Fixed Actor `98439fe8…4470` is `active` in `tenant_members` for the Primary
+Tenant (role = owner). Frontend Turn-4A baselines present and un-drifted.
 
 ---
 
-## E. Live schema tables inspected
-
-`tenants`, `tenant_members`, `clients`, `horses`, `horse_ownership`,
-`horse_owners`, `lab_horses`, `party_horse_links`, `lab_samples`,
-`horse_order_types`, `horse_orders`, `payment_accounts`, `invoices`,
-`invoice_items`, `ledger_entries`, `billing_links`, `customer_balances`,
-`finance_request_idempotency`, `tenant_service_categories`, `tenant_services`,
-`lab_services`, `stable_service_plans`, `boarding_admissions`.
-
-Column snapshots for the primary fixture surfaces are captured in
-`/tmp/j51/*.txt` (session artifact; not committed) and re-derivable via `\d` in
-Turn 5A.2.
-
----
-
-## F. Corrected table-name findings
-
-| Guessed name       | Exists? | Actual replacement                                   |
-|--------------------|---------|-------------------------------------------------------|
-| `party_horses`     | ❌      | `public.party_horse_links` (columns: `tenant_id, client_id, lab_horse_id, relationship_type, is_primary, created_by`) |
-| `lab_customers`    | ❌      | Represented as `party_horse_links.relationship_type = 'lab_customer'` (no separate table) |
-| `lab_horse_orders` | ❌      | `public.horse_orders` (no lab-specific variant)      |
-
-`horse_orders.client_id` is nullable; horse_id is `NOT NULL` at the schema level,
-so `FIN_ORDER_MISSING_HORSE` is only reachable if the row is scrubbed via a
-transaction-local `UPDATE` from a session-role SAVEPOINT that skips the FK check
-via `SET LOCAL session_replication_role='replica'`. Turn 5A.3 will skip that
-scenario as non-executable and rely on static review.
-
----
-
-## G. Error-token reconciliation
-
-Full matrix in `23_turn_5a_error_token_matrix.md`.
-
-Key correction: the RPC emits `FIN_SOURCE_TYPE_INVALID` (NOT `_UNSUPPORTED`).
-Additional tokens present in the live body that were absent from the Turn-5
-scaffold: `FIN_CHECKOUT_DEBT_HAS_PAYMENT_RECEIVED_AT`,
-`FIN_CHECKOUT_DEBT_PAYMENT_METHOD_INVALID`, `FIN_CHECKOUT_DEBT_STATE_INVALID`,
-`FIN_CHECKOUT_DEBT_STATUS_INVALID`, `FIN_CHECKOUT_NOT_FULLY_PAID`,
-`FIN_CHECKOUT_PAYMENT_METHOD_MISMATCH`, `FIN_CHECKOUT_PAYMENT_RECEIVED_AT_MISSING`,
-`FIN_CHECKOUT_TOTAL_INVALID`, `FIN_CLIENT_NAME_TOO_LONG`, `FIN_NOTES_TOO_LONG`,
-`FIN_NESTED_CREATE_NO_INVOICE_ID`, `FIN_SOURCE_LINK_UPSERT_FAILED`,
-`FIN_TENANT_PAYMENT_ACCOUNT_MISSING`, `FIN_TENANT_ACCESS_DENIED`,
-`FIN_UNAUTHENTICATED`, `FIN_BAD_ARGS`.
-
-The trigger `_invoice_items_validate_source` raises message-string exceptions,
-not `FIN_*` tokens. T1 assertions on trigger-driven failures MUST compare
-`SQLSTATE` (`22023`/`23503`/`42501`) plus a message substring.
-
----
-
-## H. Source resolution contract
-
-### H.1 Laboratory Sample (`public.lab_samples`)
-- tenant: `tenant_id` (NOT NULL)
-- registered client: `client_id` (nullable — walk-in path)
-- walk-in name: `client_name`, `client_phone`, `client_email`
-- platform horse: `horse_id`
-- lab horse: `lab_horse_id`
-- status: `status` (`draft`, `accessioned`, `processing`, `completed`, `cancelled`, …)
-- Deposit-eligible: `draft` (RPC rejects all others via
-  `FIN_LAB_DEPOSIT_STATUS_INVALID` / `FIN_SOURCE_CANCELLED`).
-- Final-eligible: `accessioned` / `completed` (RPC rejects others via
-  `FIN_LAB_FINAL_STATUS_INVALID` / `FIN_SOURCE_CANCELLED`).
-- Locking: `_finance_source_lock_key(tenant, 'lab_sample', source_id)` advisory
-  xact lock; duplicate `deposit` for the same source is rejected with
-  `FIN_SOURCE_LINK_CONFLICT`.
-- Client precedence: `lab_samples.client_id` wins; walk-in only when NULL.
-- Horse precedence: `lab_horse_id` (Migration B authority) wins; `horse_id`
-  used only for platform-horse invoices.
-- Caller `items`: allowed on Lab paths (RPC accepts caller items or synthesizes
-  from lab_request_services when items empty).
-
-### H.2 Horse Order (`public.horse_orders`)
-- tenant: `tenant_id`
-- client: `client_id` (nullable)
-- horse: `horse_id` (NOT NULL)
-- order type: `order_type_id`
-- status: `status` (only `completed` accepted → `FIN_ORDER_NOT_COMPLETED`)
-- cost precedence: `actual_cost` when non-null; else `estimated_cost`;
-  else `FIN_ORDER_MISSING_COST`.
-- description: derived from `horse_order_types.name` and free-text `notes`.
-- caller items: **forbidden** → `FIN_HORSE_ORDER_ITEMS_FORBIDDEN`.
-- link_kind: `deposit` rejected → `FIN_HORSE_ORDER_LINK_KIND_INVALID`.
-
-### H.3 Laboratory Billing Authority (Trigger)
-Legacy: `lab_horses.client_id = invoice.client_id` → pass.
-Junction: `party_horse_links` row where
-  `tenant_id = invoice.tenant_id`
-  AND `client_id = invoice.client_id`
-  AND `lab_horse_id = invoice_items.lab_horse_id`
-  AND `relationship_type IN ('lab_customer','payer')` → pass.
-Anything else with a mismatched invoice client → SQLSTATE `42501`.
-NULL invoice client → junction check short-circuited (accepts).
-
----
-
-## I. Payment / Ledger contract
-
-- `cash` / `card` / `transfer`: caller MUST supply `received_at`. Invoice goes to
-  `approved` then `paid` after `post_payment` records a `ledger_entries` row of
-  entry_type `payment` (credit) plus the approval-time `invoice` (debit) row.
-  Billing links: source link (kind = payload `link_kind`), payment link
-  (`billing_links.source_type = 'payment'`).
-- `debt`: caller MUST omit `received_at` and MUST NOT provide payment-only fields;
-  invoice status stays `approved` with `payment_status = 'unpaid'`; ONLY the
-  approval-time invoice ledger row is inserted (no payment row). Debt requires
-  the caller to hold Invoice Create + Approve, but does NOT require Payment Create.
-- Customer balance: `customer_balances` upserted from ledger sums per tenant/client.
-- effective_date: `_finance_riyadh_date(received_at or now())`.
-- On failure at any pipeline stage, the whole `create_source_checkout_invoice`
-  call rolls back — no rows in invoices, invoice_items, ledger_entries,
-  billing_links, customer_balances, finance_request_idempotency survive.
-
----
-
-## J. Idempotency contract
-
-- Outer op name: `'create_source_checkout_invoice'`.
-- Outer row keyed by `(tenant_id, operation, idempotency_key, actor_id)` in
-  `public.finance_request_idempotency`; row created by `_finance_idempotency_begin`
-  with request hash and unresolved snapshot, resolved to the final JSON response
-  by `_finance_idempotency_complete`.
-- Replay (same key + same request hash): returns the stored `response` payload
-  verbatim; no new invoice created.
-- Conflict (same key + different hash): `_finance_idempotency_begin` raises
-  `FIN_IDEMPOTENCY_HASH_MISMATCH` (SQLSTATE `23514`).
-- Nested inner ops (`create_invoice_with_items`, `approve_invoice`,
-  `post_payment`) receive deterministic child keys derived from the outer key +
-  operation stage.
-- Expiry: rows older than 24h purged by `_finance_idempotency_purge_expired`.
-  T1 uses fresh transaction-local rows only.
-
----
-
-## K. Failure-hook contract
-
-See `23_turn_5a_error_token_matrix.md` §3. All four hooks confirmed at exact
-line positions in the installed body:
-
-| Line | GUC                          | Token                             |
-|------|------------------------------|-----------------------------------|
-| 445  | `fin.fail_after_trace`       | `FIN_TEST_FAIL_AFTER_TRACE`       |
-| 453  | `fin.fail_after_approve`     | `FIN_TEST_FAIL_AFTER_APPROVE`     |
-| 491  | `fin.fail_after_payment`     | `FIN_TEST_FAIL_AFTER_PAYMENT`     |
-| 535  | `fin.fail_after_source_link` | `FIN_TEST_FAIL_AFTER_SOURCE_LINK` |
-
-`SET LOCAL <guc>='raise'` is transaction-scoped; when the enclosing SAVEPOINT
-rolls back, the GUC unset is implicit for that scope only.
-
----
-
-## L. Permission-negative contract
-
-The fixed Actor is Owner and short-circuits `has_permission`. To exercise
-`FIN_PERMISSION_DENIED` without mutating the Actor's baseline, T1 will use a
-SAVEPOINT-scoped **downgrade**:
-
-- INSERT a permission-override row that removes `invoices.create` /
-  `invoices.approve` / `payments.create` for the (Actor, Tenant) tuple.
-- Call the RPC → expect `FIN_PERMISSION_DENIED`.
-- `ROLLBACK TO SAVEPOINT` restores baseline before the next scenario.
-
-The `FIN_UNAUTHENTICATED` case is exercised by clearing JWT claims via
-`set_config('request.jwt.claim.sub', '', true)` inside the scenario SAVEPOINT.
-
-`FIN_TENANT_ACCESS_DENIED` uses `p_tenant_id = <secondary tenant not in Actor's
-membership>` — no fixture write needed.
-
----
-
-## M. Fixture architecture
-
-See `22_turn_5a_fixture_uuid_map.md`. Groups A–H locked. All UUIDs
-deterministic; all pre-insert collision checks required.
-
----
-
-## N. Test-harness architecture
-
-- `pg_temp.test_context` — identity + tenant + Payment Account.
-- `pg_temp.test_baseline` — pre-run counts+sums for the 7 protected tables.
-- `pg_temp.test_scenario_results` — one row per executed scenario (scenario_id,
-  category, expected token, actual token/sqlstate, executed bool, passed bool,
-  assertion count, notes). Row is inserted only after the scenario ran.
-- `pg_temp.test_snapshot(kind text)` — pre/post row-count fingerprint for T2
-  atomicity gates.
-- RPC invocation pattern (per §2 of File 17): SAVEPOINT → set claims → SET LOCAL
-  ROLE → nested BEGIN/EXCEPTION → RESET ROLE (in both success and exception
-  branch) → privileged assertions → record result → ROLLBACK TO SAVEPOINT.
-
----
-
-## O. Realistic case counts
-
-- **T1 planned executable case count: 42.**
-  Composition: 26 payload/validation + Lab Deposit + Lab Final +
-  Lab Deposit-Final coexistence (Turn 5A.2) · 8 Horse-Order Final (Turn 5A.3) ·
-  3 Authority/Client-Horse linkage · 5 Permissions/isolation.
-  Explicitly non-executable in the sandbox but statically reviewed and
-  documented: 4 scenarios (`FIN_NESTED_CREATE_NO_INVOICE_ID`,
-  `FIN_INVOICE_NOT_FOUND`, `FIN_SOURCE_LINK_UPSERT_FAILED`,
-  `FIN_ORDER_MISSING_HORSE`).
-- **T2 stage count: exactly 5** (four failure hooks + default-inert success).
-- **Frontend cases preserved: 24.** Additions deferred to Turn 5A.5:
-  root-`horse_id`, root-`lab_horse_id`, repo-wide caller scan,
-  structural multi-Sample guard.
-
----
-
-## P. Files created this turn
-
-- `docs/aml_1_b_1/stage_j5_2/preflight/21_turn_5a_1_live_test_contracts.md` (this file)
-- `docs/aml_1_b_1/stage_j5_2/preflight/22_turn_5a_fixture_uuid_map.md`
-- `docs/aml_1_b_1/stage_j5_2/preflight/23_turn_5a_error_token_matrix.md`
-
-## Q. Files modified this turn
+## B. Files inspected this turn
 
 - `docs/aml_1_b_1/stage_j5_1/preflight/17_authenticated_jwt_convention.md`
-  (full rewrite per §5 of the turn prompt)
+- `docs/aml_1_b_1/stage_j5_2/preflight/21_turn_5a_1_live_test_contracts.md`
+- `docs/aml_1_b_1/stage_j5_2/preflight/22_turn_5a_fixture_uuid_map.md`
+- `docs/aml_1_b_1/stage_j5_2/preflight/23_turn_5a_error_token_matrix.md`
+- Live pg_get_functiondef output for the three locked production objects.
+- Schemas: `tenant_members`, `member_permissions`, `permission_definitions`,
+  `lab_samples` (distinct status values: `draft`, `accessioned`, `processing`,
+  `completed`, `cancelled`), `horse_orders`, `horse_order_types`, `lab_horses`,
+  `party_horse_links`, `payment_accounts`, `billing_links`.
 
-## R. Production objects modified
+## C. Files modified this turn
+
+- `docs/aml_1_b_1/stage_j5_1/preflight/17_authenticated_jwt_convention.md`
+  (minor: replaced legacy permission-key shorthand and re-confirmed skeleton)
+- `docs/aml_1_b_1/stage_j5_2/preflight/21_turn_5a_1_live_test_contracts.md`
+  (this file — full replacement)
+- `docs/aml_1_b_1/stage_j5_2/preflight/22_turn_5a_fixture_uuid_map.md`
+  (Lab status fixtures corrected; coexistence collapsed to a single sample;
+  collision census recorded; permission-negative architecture appended)
+- `docs/aml_1_b_1/stage_j5_2/preflight/23_turn_5a_error_token_matrix.md`
+  (full replacement with category classification and correct trigger paths)
+
+## D. Production objects modified
+
+**None.** No migrations authored or applied.
+
+## E. Persistent business rows modified
 
 **None.**
 
-## S. Persistent business rows modified
+## F. Correction matrix
 
-**None.**
+| # | Old (withdrawn) statement                                                                                                | Live-source evidence                                                                                                                             | Corrected statement                                                                                                                                          | File / section changed             |
+|---|---------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------|
+| 1 | "cash/card/transfer: caller MUST supply `received_at`."                                                                   | RPC root whitelist: `{source_type, source_id, link_kind, client_name, discount_amount, payment_method, prices_include_tax, notes, items}`; unknown keys fire `FIN_PAYLOAD_UNKNOWN_KEY`. `received_at` is server-derived (`v_business_date` = today Asia/Riyadh). | Caller MUST NOT supply `received_at`. Any root `received_at` → `FIN_PAYLOAD_UNKNOWN_KEY` first. Business date is server-set.                                | 21 §I, 23 row 5                     |
+| 2 | "Deposit-eligible: `draft` (RPC rejects all others…)."                                                                    | Body line ~292: `IF v_link_kind='deposit' AND v_source_status NOT IN ('draft','accessioned') THEN … 'FIN_LAB_DEPOSIT_STATUS_INVALID'`.           | Deposit-eligible: `draft` **and** `accessioned`. Rejected: `processing`, `completed` (→ `FIN_LAB_DEPOSIT_STATUS_INVALID`); `cancelled` → `FIN_SOURCE_CANCELLED` first. | 21 §H.1, 22 §D, 23 row 34           |
+| 3 | "Final-eligible: `accessioned`/`completed`."                                                                              | Body line ~295: `IF v_link_kind='final' AND v_source_status <> 'completed' THEN … 'FIN_LAB_FINAL_STATUS_INVALID'`.                               | Final-eligible: `completed` only. `draft`/`accessioned`/`processing` → `FIN_LAB_FINAL_STATUS_INVALID`; `cancelled` → `FIN_SOURCE_CANCELLED` first.           | 21 §H.1, 22 §D, 23 row 35           |
+| 4 | "cancelled sample as fixture for `FIN_LAB_DEPOSIT_STATUS_INVALID`/`FIN_LAB_FINAL_STATUS_INVALID`."                       | `FIN_SOURCE_CANCELLED` fires unconditionally when `status='cancelled'`.                                                                          | Use `LS_PROCESSING` (deposit-negative) and `LS_DRAFT_LEGACY`/`LS_ACCESSIONED_LEGACY` (final-negative). Cancelled → its own token.                            | 22 §D, 23 rows 33/34/35             |
+| 5 | Two separate `LS_COEXIST_DEP` and `LS_COEXIST_FIN` UUIDs for coexistence proof.                                           | Same-source coexistence requires **one** `source_id` transitioning through statuses.                                                             | Single `LS_COEXIST` UUID; lifecycle: `accessioned → deposit → processing → completed → final`.                                                                | 22 §D, 22 Coexistence lifecycle     |
+| 6 | "RPC accepts caller items or synthesizes from lab_request_services when items empty."                                     | Body: `IF NOT (p_payload ? 'items') OR jsonb_typeof <> 'array' OR array_length < 1 THEN RAISE 'FIN_ITEMS_EMPTY'`. No synthesis branch exists.    | Lab items are caller-authoritative. Empty/missing → `FIN_ITEMS_EMPTY`. No server-side synthesis from `lab_request_services`.                                 | 21 §H.1, 23 row 23                  |
+| 7 | Lab item allowlist described as including `horse_id`/`lab_horse_id`/`category_id`.                                        | `v_lab_item_allowed := {description, quantity, unit_price, is_taxable}`. Server derives horse/lab_horse from the source row.                     | Item allowlist is only those four keys. Caller-supplied `horse_id`/`lab_horse_id`/`category_id`/`service_id` inside an item → `FIN_PAYLOAD_UNKNOWN_KEY: items[].<key>`. | 21 §H.1, 23 row 25                  |
+| 8 | "Lab item price ≤ 0 → `FIN_LAB_ITEM_PRICE_INVALID`."                                                                      | Body: `IF v_unit < 0 THEN RAISE 'FIN_LAB_ITEM_PRICE_INVALID'`. Zero is not rejected here.                                                        | Negative unit_price → `FIN_LAB_ITEM_PRICE_INVALID`. Zero unit_price is accepted at the item gate; total ≤ 0 later fires `FIN_CHECKOUT_TOTAL_INVALID`.         | 23 rows 28, 46                      |
+| 9 | "notes > 4000 chars → `FIN_NOTES_TOO_LONG`."                                                                              | Body: `IF char_length(COALESCE(v_notes,'')) > 500 THEN RAISE 'FIN_NOTES_TOO_LONG'`.                                                              | Limit is 500. Boundary: 500 passes, 501 rejected.                                                                                                            | 23 row 18                           |
+| 10| "client name > 255 chars → `FIN_CLIENT_NAME_TOO_LONG`."                                                                   | Body: `IF char_length(v_client_name) > 200 THEN RAISE 'FIN_CLIENT_NAME_TOO_LONG'`.                                                               | Limit is 200. Boundary: 200 passes, 201 rejected.                                                                                                            | 23 row 42                           |
+| 11| Permission shorthand "invoices.create / invoices.approve / payments.create".                                              | Body calls `has_permission(v_actor, tenant, 'finance.invoice.create')`, `'finance.invoice.approve'`, `'finance.payment.create'`.                 | Use `finance.invoice.create`, `finance.invoice.approve`, `finance.payment.create` verbatim.                                                                  | 17 §7, 22 §Permission-negative, 23 rows 20–22 |
+| 12| Permission-negative fixture omitted temporary Owner demotion.                                                             | `has_permission` short-circuits `true` for role `owner`.                                                                                         | SAVEPOINT → `UPDATE tenant_members SET role='foreman'` → `INSERT/UPDATE member_permissions … granted=false ON CONFLICT DO UPDATE` → call RPC → ROLLBACK TO SAVEPOINT. | 22 §Permission-negative             |
+| 13| File 22 claimed Turn 5A.2 had already verified UUID collisions.                                                           | Turn 5A.2 has not begun.                                                                                                                         | Read-only collision census executed in Turn 5A.1R; zero collisions recorded; T1/T2 must still repeat pre-insert guards at execution.                          | 22 top + Collision-check contract   |
+| 14| `FIN_ORDER_MISSING_HORSE` treated as executable via cross-tenant scrub.                                                   | `horse_orders.horse_id` is NOT NULL; only reachable via FK/trigger bypass or corruption — both forbidden.                                        | Reclassified Category D (structurally unreachable). Static review only.                                                                                      | 23 row 38, 21 §F                    |
+| 15| `FIN_CHECKOUT_NOT_FULLY_PAID` / `_PAYMENT_METHOD_MISMATCH` / `_PAYMENT_RECEIVED_AT_MISSING` treated as executable.        | `post_payment` posts the full server-authoritative amount using the caller-declared method; writes `payment_received_at`.                        | Reclassified Category C (internal invariants). Reachable only via out-of-band ledger/invoice mutation. Static review only.                                    | 23 rows 48–50                       |
+| 16| Debt post-state tokens (`_DEBT_STATE_INVALID`, `_DEBT_STATUS_INVALID`, `_DEBT_PAYMENT_METHOD_INVALID`, `_DEBT_HAS_PAYMENT_RECEIVED_AT`) treated as executable via caller `received_at`. | Root whitelist blocks `received_at`; debt UPDATE guarantees state.                                                          | Reclassified Category C. Static review only.                                                                                                                 | 23 rows 51–54                       |
+| 17| `FIN_TENANT_PAYMENT_ACCOUNT_MISSING` marked "unsafe — skip".                                                              | Trigger auto-provisions on tenant insert. Deactivation is transaction-local: `UPDATE payment_accounts SET is_active=false` inside SAVEPOINT.     | Category B: SAVEPOINT-scoped deactivation → call RPC with `cash` → assert → ROLLBACK TO SAVEPOINT.                                                            | 23 row 47                           |
+| 18| Fingerprint table listed protocol-normalized values as if raw.                                                            | Recomputed raw values shown above.                                                                                                               | Recorded raw values; flagged canonical-POSIX recomputation as a Turn 5A.2 prerequisite.                                                                       | 21 §A                               |
 
-## T. Current T1/T2 status
+---
 
-**T1/T2 CONTRACTS LOCKED.**
-**T1/T2 COMPLETE SQL NOT YET AUTHORED.**
-**TURN 5A.2 REQUIRED.**
+## G. Final root payload whitelist (locked)
 
-The existing `supabase/tests/database/j5_1_source_checkout.test.sql` and
-`supabase/tests/database/j5_2_source_checkout_atomicity.test.sql` remain
-rejected scaffolds. They are NOT re-labelled AUTHORED in this turn. They will
-be fully replaced by Turn 5A.2–5A.4.
+```
+{ source_type, source_id, link_kind, client_name,
+  discount_amount, payment_method, prices_include_tax,
+  notes, items }
+```
 
-## U. Next exact turn
+Not permitted at root (unknown-key → `FIN_PAYLOAD_UNKNOWN_KEY`):
+`received_at`, `payment_account_id`, `client_id`, `horse_id`, `lab_horse_id`,
+`domain`, `category_id`, `service_id`, `package_id`, `entity_type`, `entity_id`,
+and every other unlisted key.
 
-**Turn 5A.2** — T1 Foundation + Complete Deterministic Fixtures + Payload
-Validation + Laboratory Deposit + Laboratory Final + Deposit/Final Coexistence.
+Lab item allowlist (locked):
+```
+{ description, quantity, unit_price, is_taxable }
+```
 
-## V. Five-phase roadmap position
+Not permitted inside lab items (→ `FIN_PAYLOAD_UNKNOWN_KEY: items[].<key>`):
+`horse_id`, `lab_horse_id`, `category_id`, `service_id`, `service_source`,
+`package_id`, `domain`, and every other unlisted key.
+
+Horse-order path: `items` root key forbidden entirely
+(`FIN_HORSE_ORDER_ITEMS_FORBIDDEN`).
+
+## H. Final Lab Deposit / Final status matrix (locked)
+
+| Sample status | `link_kind='deposit'`                       | `link_kind='final'`                           |
+|---------------|---------------------------------------------|-----------------------------------------------|
+| `draft`       | ACCEPT                                      | `FIN_LAB_FINAL_STATUS_INVALID`                |
+| `accessioned` | ACCEPT                                      | `FIN_LAB_FINAL_STATUS_INVALID`                |
+| `processing`  | `FIN_LAB_DEPOSIT_STATUS_INVALID`            | `FIN_LAB_FINAL_STATUS_INVALID`                |
+| `completed`   | `FIN_LAB_DEPOSIT_STATUS_INVALID`            | ACCEPT                                        |
+| `cancelled`   | `FIN_SOURCE_CANCELLED` (fires first)        | `FIN_SOURCE_CANCELLED` (fires first)          |
+
+## I. Final Lab item validation matrix (locked)
+
+| Condition                                              | Outcome                                        |
+|--------------------------------------------------------|------------------------------------------------|
+| `items` missing / non-array / length 0                 | `FIN_ITEMS_EMPTY`                              |
+| item not an object                                     | `FIN_PAYLOAD_TYPE: items[]`                    |
+| item key outside allowlist                             | `FIN_PAYLOAD_UNKNOWN_KEY: items[].<key>`       |
+| `description` missing / non-string / blank             | `FIN_LAB_ITEM_DESCRIPTION_REQUIRED`            |
+| `quantity` missing / non-number / cast fails / `<= 0`  | `FIN_LAB_ITEM_QUANTITY_INVALID`                |
+| `unit_price` missing / non-number / cast fails / `< 0` | `FIN_LAB_ITEM_PRICE_INVALID`                   |
+| `unit_price = 0`                                       | ACCEPT here; later `FIN_CHECKOUT_TOTAL_INVALID` if total ≤ 0 |
+| `is_taxable` present and non-boolean/non-null          | `FIN_PAYLOAD_TYPE: items[].is_taxable`         |
+| `is_taxable` omitted or null                           | Server default = `true`                        |
+
+## J. Final text-length limits (locked)
+
+- `notes` ≤ 500 chars (`FIN_NOTES_TOO_LONG` at 501).
+- `client_name` (resolved) ≤ 200 chars (`FIN_CLIENT_NAME_TOO_LONG` at 201).
+
+## K. Same-source Deposit → Final fixture architecture (locked)
+
+Single `LS_COEXIST` sample. See `22 §Coexistence lifecycle` for the 8-step
+lifecycle. Two active billing links (one deposit + one final) MUST point to
+distinct invoices. Duplicate deposit or duplicate final on the same source_id
+independently → `FIN_SOURCE_LINK_CONFLICT`.
+
+## L. Permission-negative architecture (locked)
+
+Per-scenario SAVEPOINT with Owner demotion + `member_permissions` negative
+override. See `22 §Permission-negative architecture` for the exact five-step
+sequence and `23 rows 20–22` for the three permission keys.
+
+## M. UUID collision census (read-only, Turn 5A.1R)
+
+| Table                          | Fixture symbols checked                                                                                                                          | Collisions |
+|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `clients`                      | CLIENT_REGISTERED, CLIENT_UNRELATED, CLIENT_SECONDARY_TENANT                                                                                     | 0          |
+| `horses`                       | HORSE_A, HORSE_UNLINKED, HORSE_CROSS_TENANT                                                                                                       | 0          |
+| `lab_horses`                   | LH_LEGACY_CLIENT, LH_JUNCTION_CUSTOMER, LH_JUNCTION_PAYER, LH_OWNER_ONLY, LH_TRAINER_ONLY, LH_STABLE_ONLY, LH_UNRELATED, LH_CROSS_TENANT          | 0          |
+| `lab_samples`                  | All `dddd4444-0000-4000-8000-*` fixture UUIDs                                                                                                     | 0          |
+| `horse_order_types`            | HOT_ACTIVE, HOT_TO_DELETE                                                                                                                         | 0          |
+| `horse_orders`                 | All `ffff6666-0000-4000-8000-*` fixture UUIDs                                                                                                     | 0          |
+| `finance_request_idempotency`  | All namespaced idem keys `11111111…`, `22222222…`, `33333333…`, `44444444…`, `55555555…`, `66666666…`                                              | 0          |
+
+All zero. Recorded in File 22.
+
+## N. Token classification totals
+
+| Category                                                | Count |
+|---------------------------------------------------------|-------|
+| A — Directly executable                                 | 42    |
+| B — Executable via safe savepoint-scoped fixture shaping| 4     |
+| C — Internal invariant, static review only              | 12    |
+| D — Structurally unreachable                            | 1     |
+
+## O. Recalculated T1 planned executable count
+
+- **Category A directly executable**: 42
+- **Category B safe savepoint-shaped**: 4 (three permission-denied paths +
+  `FIN_TENANT_PAYMENT_ACCOUNT_MISSING`)
+- Positive-path scenarios (Lab Deposit success, Lab Final success, Horse-Order
+  Final success, Coexistence success, Idempotency replay/conflict, Trigger
+  positive paths T14/T15/T16): 9 additional executable scenarios.
+
+**T1 planned executable total: 55.**
+Static-review-only (Category C): 12. Structurally unreachable (Category D): 1.
+
+## P. T2 stage confirmation (locked)
+
+Exactly 5 stages:
+
+1. `fin.fail_after_trace` → `FIN_TEST_FAIL_AFTER_TRACE`.
+2. `fin.fail_after_approve` → `FIN_TEST_FAIL_AFTER_APPROVE`.
+3. `fin.fail_after_payment` → `FIN_TEST_FAIL_AFTER_PAYMENT` (cash path only).
+4. `fin.fail_after_source_link` → `FIN_TEST_FAIL_AFTER_SOURCE_LINK`.
+5. Default-inert success (no GUC set) — proves hooks are opt-in.
+
+Each stage asserts post-rollback residue = 0 rows across
+`invoices`, `invoice_items`, `ledger_entries`, `billing_links`,
+`customer_balances`, `finance_request_idempotency`, `payment_accounts`.
+
+## Q. Static-search evidence
+
+Section verified via `grep -n` of Files 17/21/22/23 after correction. See §Q of
+the report response for the full search matrix and remaining-occurrence review
+(the only surviving references are inside correction/history tables that
+explicitly identify them as withdrawn text).
+
+## R. Production database
+
+No production object modified. No migration authored. No persistent row written.
+
+## S. T1 / T2 status
+
+**T1/T2 SQL NOT authored.** The existing
+`supabase/tests/database/j5_1_source_checkout.test.sql` and
+`supabase/tests/database/j5_2_source_checkout_atomicity.test.sql` remain the
+rejected label-only scaffolds and are NOT re-labelled AUTHORED in this turn.
+They will be fully replaced by Turns 5A.2–5A.4.
+
+## T. Exact next turn
+
+**Turn 5A.2** — T1 Foundation + Deterministic Fixtures + Payload Validation +
+Lab Deposit + Lab Final + Same-Source Deposit/Final Coexistence.
+
+## U. Five-phase roadmap position
 
 - Phase 1 — N+1A: COMPLETE AND MANUALLY ACCEPTED.
-- Phase 2 — N+1B: IN PROGRESS. Current subphase: J5.2-SLICE-01-EXECUTION — TURN 5A.1.
+- Phase 2 — N+1B: IN PROGRESS. Current subphase: J5.2-SLICE-01-EXECUTION —
+  TURN 5A.1R (contract correction — this turn).
 - Phase 3 — N+2: NOT STARTED / NOT AUTHORIZED.
 - Phase 4 — N+3: NOT STARTED / NOT AUTHORIZED.
 - Phase 5 — N+4: NOT STARTED / NOT AUTHORIZED.

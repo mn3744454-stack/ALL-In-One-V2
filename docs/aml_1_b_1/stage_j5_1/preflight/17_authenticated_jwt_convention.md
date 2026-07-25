@@ -197,23 +197,33 @@ reproducible:
 ```sql
 -- Reserved namespaces (per scenario category):
 -- 11111111-1111-4111-8111-0000000000xx  Lab Deposit
--- 22222222-2222-4222-8222-0000000000xx  Lab Final
+-- 22222222-2222-4222-8222-0000000000xx  Lab Final + Coexistence
 -- 33333333-3333-4333-8333-0000000000xx  Horse Order Final
--- 44444444-4444-4444-8444-0000000000xx  Idempotency replay/conflict
+-- 44444444-4444-4444-8444-0000000000xx  Duplicate active source-link
 -- 55555555-5555-4555-8555-0000000000xx  Permission-denied paths
+-- 66666666-6666-4666-8666-0000000000xx  T2 failure-hook stages
 ```
 
 Full mapping is captured in `22_turn_5a_fixture_uuid_map.md`.
 
 ---
 
-## 7. Assertion Style
+## 7. Assertion Style & Permission Keys
 
 - `DO $$ BEGIN IF NOT (…) THEN RAISE EXCEPTION 'ASSERT_FAILED: <scenario>: <detail>'; END IF; END $$;`
 - Compare against server-computed totals, not caller-supplied literals.
 - For expected-error scenarios, capture `RETURNED_SQLSTATE` + `MESSAGE_TEXT` and
   assert on the exact token substring (e.g. `FIN_SOURCE_LINK_CONFLICT`). Never
   mask with a bare `EXCEPTION WHEN OTHERS THEN NULL;`.
+- Permission keys used by `create_source_checkout_invoke` are the live
+  live-registered values — `finance.invoice.create`, `finance.invoice.approve`,
+  and `finance.payment.create`. Do NOT use legacy shorthand such as
+  `invoices.create`, `invoices.approve`, or `payments.create`.
+- Owner short-circuits `has_permission`. To exercise `FIN_PERMISSION_DENIED`
+  the scenario must, inside its SAVEPOINT, temporarily demote the Actor's
+  `tenant_members.role` to a non-owner role (e.g. `foreman`) and insert or
+  upsert a `member_permissions` row with `granted=false` for the exact
+  permission key under test. `ROLLBACK TO SAVEPOINT` restores Owner baseline.
 
 ---
 
