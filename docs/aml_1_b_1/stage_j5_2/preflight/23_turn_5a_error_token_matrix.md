@@ -1,4 +1,7 @@
-# 23 — Turn 5A.1R2 · Error-Token Matrix (Live-Reconciled, Corrected)
+# 23 — Turn 5A.1R5E · Error-Token Matrix (Live-Reconciled, Corrected)
+
+**FIN_SOURCE_CLIENT_CROSS_TENANT = CATEGORY D. TOKEN MATRIX: A36 / B4 / C14 / D3 / T2-TOKENS4.**
+
 
 Captured 2026-07-26 from the currently installed
 `public.create_source_checkout_invoice` and `public._invoice_items_validate_source`.
@@ -80,7 +83,7 @@ Categories (see §11 of the turn prompt):
 | 38 | D   | `FIN_ORDER_MISSING_HORSE`                   | Order row loaded with `horse_id IS NULL` after cost-precedence block                                       | `horse_orders.horse_id` is NOT NULL in schema; only reachable by disabling FKs/triggers or scrubbing a row — **forbidden**. Static review only.                        |
 | 39 | A   | `FIN_ORDER_HORSE_NOT_FOUND`                 | `SELECT name FROM horses WHERE id=<horse> AND tenant_id=<tenant>` returns NULL                             | `HO_HORSE_CROSS_TENANT` (order tenant primary, horse tenant secondary).                                                                                               |
 | 40 | D   | `FIN_ORDER_TYPE_NOT_FOUND`                  | `order_type_id` NULL OR name lookup returns NULL under `tenant_id=p_tenant_id`                             | `horse_orders.order_type_id` is NOT NULL with FK `ON DELETE RESTRICT` on `horse_order_types.id`; the "delete order_type before RPC" path is blocked. No live trigger forbids inserting a `horse_orders` row whose `order_type_id` belongs to a different tenant, but the fixture requires disabling tenant-consistency assumptions and is deferred. Reclassified structurally unreachable via authorized fixture paths — static review only. |
-| 41 | A   | `FIN_SOURCE_CLIENT_CROSS_TENANT`            | Source row's `client_id` not resolvable in `clients WHERE tenant_id=p_tenant_id`                           | Lab sample whose `client_id` = `CLIENT_SECONDARY_TENANT`.                                                                                                             |
+| 41 | **D** | `FIN_SOURCE_CLIENT_CROSS_TENANT`            | SQLSTATE `23503`. Defensive lookup in `public.create_source_checkout_invoice`: `clients WHERE id = v_source_client_id AND tenant_id = p_tenant_id` returns 0. Branch is externally defensive. | **Structurally unreachable through legal fixtures.** Both supported Source tables enforce Client↔Tenant equality via enabled BEFORE INSERT OR UPDATE Triggers: `validate_lab_sample_trigger → public.validate_lab_sample()` and `validate_horse_order_tenant_trigger → public.validate_horse_order_tenant()`. Neither `lab_samples` nor `horse_orders` can naturally persist a row whose `client_id` belongs to another tenant. Trigger bypass, `session_replication_role`, disabling constraints, or scrubbed rows are forbidden. Static function/Trigger review only — no executable T1 fixture. Retired executable Scenario ID: `T1-A-32` (see File 21 §O retired registry and File 22 §H.2). Production branch MUST remain in code. |
 | 42 | A   | `FIN_CLIENT_NAME_TOO_LONG`                  | Resolved `client_name` length > 200                                                                        | Walk-in lab sample with 201-char `client_name` supplied on payload; **200** passes.                                                                                   |
 | 43 | A   | `FIN_SOURCE_LINK_CONFLICT`                  | Same tenant/source/kind already has a non-cancelled invoice's billing link                                 | Execute Lab Deposit successfully with idem key K1, then re-execute with new idem key K2 (same payload) — duplicate deposit is rejected before nested create.          |
 | 44 | C   | `FIN_NESTED_CREATE_NO_INVOICE_ID`           | `create_invoice_with_items` returned NULL invoice_id                                                       | Internal invariant — unreachable without patching the nested RPC. Static review only.                                                                                 |
@@ -159,23 +162,30 @@ The trigger raises message strings (not `FIN_*` tokens) with these SQLSTATEs:
 Each hook uses `pg_catalog.current_setting('<guc>', true) = 'raise'`. Activation
 is transaction-scoped via `SET LOCAL` and reverts on any enclosing rollback.
 
-## 4. Category totals (Turn 5A.1R3 corrected)
+## 4. Category totals (Turn 5A.1R5E corrected)
 
 Failure-hook tokens `FIN_TEST_FAIL_AFTER_*` (rows 56–59) belong exclusively to
 T2 and are **excluded from T1 Category A** in this table. Rows 61 and 62
 (`FIN_IDEMPOTENCY_ACTOR_MISMATCH`, `FIN_IDEMPOTENCY_IN_PROGRESS`) are
 Category C — reachable only via multi-actor or concurrent-session harnesses
-outside the single-actor/single-session T1 contract.
+outside the single-actor/single-session T1 contract. Row 41
+(`FIN_SOURCE_CLIENT_CROSS_TENANT`) is Category D — the defensive branch is
+unreachable through legal fixtures because both supported Source tables enforce
+Client↔Tenant equality at the row level.
+
+These are File-23 Token-Matrix row counts. They are NOT File-21 executable T1
+Scenario counts; do NOT copy `A = 41` (T1 Scenario count) into this table.
 
 | Category                                                                       | Count |
 |--------------------------------------------------------------------------------|-------|
-| A — Directly executable via T1 (rows 1–19, 23–37, 39, 41–43, 46, 60)           | 37    |
+| A — Directly executable via T1 (rows 1–19, 23–37, 39, 42–43, 46, 60)           | 36    |
 | B — Executable via safe savepoint-scoped fixture shaping (rows 20–22, 47)      | 4     |
 | C — Internal invariant / multi-actor / concurrent, static review only          | 14    |
 |     (rows 44–45, 48–55, 61–62)                                                 |       |
-| D — Structurally unreachable (rows 38, 40)                                     | 2     |
+| D — Structurally unreachable (rows 38, 40, 41)                                 | 3     |
 | T2 failure-hook tokens (rows 56–59, T2-owned)                                  | 4     |
 | **Total RPC-observable tokens catalogued**                                     | **61**|
 
-Turn 5A.1R3 changes vs. Turn 5A.1R2: rows 61 and 62 reclassified A → C. The
-21-row trigger surface (§2) is unchanged.
+Turn 5A.1R5E changes vs. Turn 5A.1R3: row 41 (`FIN_SOURCE_CLIENT_CROSS_TENANT`)
+reclassified A → D. The 21-row trigger surface (§2) is unchanged.
+

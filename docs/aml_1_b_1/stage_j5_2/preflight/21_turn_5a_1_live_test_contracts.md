@@ -1,10 +1,16 @@
-# 21 — Turn 5A.1R3 · Live Test Contract & Fixture Architecture Lock (Corrected)
+# 21 — Turn 5A.1R5E · Live Test Contract & Fixture Architecture Lock (Corrected)
 
-Verdict: **TURN 5A.1R3 COMPLETE — CROSS-FILE CONTRACT CONSISTENCY LOCKED FOR TURN 5A.2**
+Verdict: **TURN 5A.1R5E COMPLETE — UNREACHABLE CLIENT-TENANT BRANCH RECONCILED. EXECUTABLE T1 = 54. TURN 5A.2.a RETRY REQUIRED.**
 
-Supersedes the withdrawn Turn 5A.1 lock. This file is preflight/test-contract
+Supersedes the Turn 5A.1R3/R4 lock in scope. This file is preflight/test-contract
 evidence — not final Mini Documentation. It locks the corrected contracts required
-to author complete self-contained T1/T2 SQL suites in Turns 5A.2–5A.4.
+to author complete self-contained T1/T2 SQL suites in Turns 5A.2–5A.4. Turn 5A.1R5
+proved that `FIN_SOURCE_CLIENT_CROSS_TENANT` is structurally unreachable through
+legal fixtures because `validate_lab_sample_trigger` and
+`validate_horse_order_tenant_trigger` both enforce Client↔Tenant equality
+BEFORE INSERT OR UPDATE. Turn 5A.1R5E retires `T1-A-32` from the executable T1
+inventory and reconciles all downstream counts.
+
 
 ---
 
@@ -196,7 +202,7 @@ sequence and `23 rows 20–22` for the three permission keys.
 
 | Table                          | Fixture symbols checked                                                                                                                          | Collisions |
 |--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `clients`                      | CLIENT_REGISTERED, CLIENT_UNRELATED, CLIENT_SECONDARY_TENANT                                                                                     | 0          |
+| `clients`                      | CLIENT_REGISTERED, CLIENT_UNRELATED                                                                                                              | 0          |
 | `horses`                       | HORSE_A, HORSE_UNLINKED, HORSE_CROSS_TENANT                                                                                                       | 0          |
 | `lab_horses`                   | LH_LEGACY_CLIENT, LH_JUNCTION_CUSTOMER, LH_JUNCTION_PAYER, LH_OWNER_ONLY, LH_TRAINER_ONLY, LH_STABLE_ONLY, LH_UNRELATED, LH_CROSS_TENANT          | 0          |
 | `lab_samples`                  | All `dddd4444-0000-4000-8000-*` fixture UUIDs                                                                                                     | 0          |
@@ -206,19 +212,22 @@ sequence and `23 rows 20–22` for the three permission keys.
 
 All zero. Recorded in File 22.
 
-## N. Token classification totals (Turn 5A.1R3)
+## N. Token classification totals (Turn 5A.1R5E)
 
-Aligned with File 23 §4 after rows 61/62 A→C reclassification.
+Aligned with File 23 §4 after Turn 5A.1R5E moved `FIN_SOURCE_CLIENT_CROSS_TENANT`
+from Category A to Category D. These are File-23 Token-Matrix row counts and
+must NOT be confused with File-21 executable T1 Scenario counts (see §O.5).
 
 | Category                                                | Count |
 |---------------------------------------------------------|-------|
-| A — Directly executable                                 | 37    |
+| A — Directly executable                                 | 36    |
 | B — Executable via safe savepoint-scoped fixture shaping| 4     |
 | C — Internal invariant / multi-actor / concurrent       | 14    |
-| D — Structurally unreachable                            | 2     |
+| D — Structurally unreachable                            | 3     |
 | T2 failure-hook tokens (T2-owned, not counted as T1)    | 4     |
 
-## O. Exact T1 Scenario Inventory (Turn 5A.1R3 lock)
+
+## O. Exact T1 Scenario Inventory (Turn 5A.1R5E lock)
 
 Every executable T1 case has a unique stable Scenario ID. Every referenced
 fixture symbol is defined exactly once in File 22 (see File 22 §A–F). Every
@@ -226,7 +235,7 @@ call resolves to an exact Idempotency UUID via File 22 §H. Dependent
 scenarios share one Group SAVEPOINT per Chain (see File 22 §I). T2 failure
 stages appear in §O.4 and are NOT counted as T1.
 
-Sub-turn ownership (Turn 5A.1R3 lock):
+Sub-turn ownership (Turn 5A.1R5E lock):
 
 - **Turn 5A.2 owns**: payload validation, Lab Deposit, Lab Final, **Chain C1**
   (base success + replay + idempotency conflict), and **Chain C2**
@@ -235,7 +244,35 @@ Sub-turn ownership (Turn 5A.1R3 lock):
   (T14/T15/T16 accepts + T13 reject), permission-negative matrix, and the
   Payment-Account-absence case.
 
+Turn-5A.2 decomposition (Turn 5A.1R5E lock):
+
+- **Turn 5A.2.a Retry** — Harness + 10 deterministic Fixture rows + Temp ACLs +
+  protected baseline + active idempotency-key census + partial File 24 +
+  **zero RPC calls**.
+- **Turn 5A.2.b** — T1-A-01…T1-A-31 plus T1-A-33 (T1-A-32 retired; NOT re-executed
+  and NOT reassigned). Total = **32 independent Category-A validation Scenarios**.
+- **Turn 5A.2.c** — T1-P-02, plus Chain C1 (T1-P-01, T1-P-06, T1-A-40), plus
+  Chain C2 (T1-P-03, T1-A-34, T1-P-04, T1-A-42). Total = **8 Scenarios**
+  (3 Category-A + 5 positive).
+
+Sub-turn 5A.2 executable total = 32 + 8 = **40**.
+
+Retired executable Scenario registry:
+
+- **T1-A-32** — former target `FIN_SOURCE_CLIENT_CROSS_TENANT` / SQLSTATE `23503`.
+  Reclassified Category D (structurally unreachable) in File 23 row 41.
+  Reason: both supported Source tables enforce Client↔Tenant equality via
+  enabled BEFORE INSERT OR UPDATE Triggers (`validate_lab_sample_trigger` and
+  `validate_horse_order_tenant_trigger`); no legal fixture can persist an
+  inconsistent `client_id`/`tenant_id` combination on `lab_samples` or
+  `horse_orders`. The defensive branch remains in production code and MUST NOT
+  be removed. Scenario ID `T1-A-32` MUST NOT be reassigned. Its retired
+  Idempotency UUID (deterministic derivation N=32, N+3=35) is
+  `11111111-1111-4111-8111-000000000035`; that key is reserved-not-executable
+  and MUST NOT be consumed by any other Scenario or fixture insert.
+
 Dependency chains are NEVER split across sub-turns.
+
 
 ### O.1 T1 rows — Sub-turn 5A.2 (Payload + Lab Deposit/Final + Chain C1 + Chain C2)
 
@@ -272,7 +309,7 @@ Dependency chains are NEVER split across sub-turns.
 | T1-A-29     | A   | independent               | lab_sample  | LS_PROCESSING             | deposit   | cash           | processing status                                    | `FIN_LAB_DEPOSIT_STATUS_INVALID` / 42501         | zero-delta                                                                                              | sp_A29                          | `11111111-…-000000000020`     | —                      |
 | T1-A-30     | A   | independent               | lab_sample  | LS_DRAFT_LEGACY           | final     | cash           | draft via final path                                 | `FIN_LAB_FINAL_STATUS_INVALID` / 42501           | zero-delta                                                                                              | sp_A30                          | `11111111-…-000000000021`     | —                      |
 | T1-A-31     | A   | independent               | lab_sample  | LS_WALKIN_LONG_NAME       | deposit   | cash           | walk-in; payload `client_name` length=201            | `FIN_CLIENT_NAME_TOO_LONG` / 23514               | zero-delta                                                                                              | sp_A31                          | `11111111-…-000000000022`     | —                      |
-| T1-A-32     | A   | independent               | lab_sample  | LS_CROSS_TENANT_CLIENT    | deposit   | cash           | fixture `client_id` = secondary-tenant client        | `FIN_SOURCE_CLIENT_CROSS_TENANT` / 23503         | zero-delta                                                                                              | sp_A32                          | `11111111-…-000000000023`     | —                      |
+| ~~T1-A-32~~ | —   | RETIRED (5A.1R5E)         | —           | —                         | —         | —              | Retired: `FIN_SOURCE_CLIENT_CROSS_TENANT` reclassified Category D — see §O retired registry. Reserved key `11111111-…-000000000035` (Decimal N+3). Scenario ID and Idempotency key MUST NOT be reassigned. | Category D — structurally unreachable | zero-delta (not executed) | — | `11111111-…-000000000035` (reserved) | — |
 | T1-A-33     | A   | independent               | lab_sample  | LS_ZERO_PRICE             | deposit   | cash           | item unit_price=0, qty=1, discount=0                 | `FIN_CHECKOUT_TOTAL_INVALID` / 23514             | zero-delta                                                                                              | sp_A33                          | `11111111-…-000000000024`     | —                      |
 | T1-P-02     | pos | independent               | lab_sample  | LS_COMPLETED_LEGACY       | final     | cash           | valid Final on completed sample                      | success, invoice status=`paid`                   | Δinvoices=1, Δbilling_links=1 (kind=final)                                                              | sp_P02                          | `22222222-…-000000000001`     | —                      |
 | T1-P-01     | pos | **C1** `sp_chain_lab_replay` | lab_sample | LS_ACCESSIONED_LEGACY   | deposit   | cash           | base valid single-item deposit                        | success, invoice status=`paid`                   | Δinvoices=1, Δinvoice_items=1, Δbilling_links=1 (kind=deposit), Δledger≥2, `_finance_idempotency_complete` row present | (chain: `sp_chain_lab_replay`)  | `11111111-…-000000000001`     | starts C1              |
@@ -289,7 +326,7 @@ still hold); duplicate-Final fires AFTER the transition (final-eligibility
 must already hold). See File 22 §Live validation order and §Coexistence
 lifecycle.
 
-**Sub-turn 5A.2 T1 row count = 41** (33 A + 3 A moved into C1 + 1 A moved from C2 top + 1 A new C2-dup-final; positives = P-01, P-02, P-03, P-04, P-06). Breakdown: **34 A + 0 B + 7 positive → 41 rows** with A = {A-01..A-33, A-34, A-40, A-42} = 33+3 = 36 A, positives = {P-01, P-02, P-03, P-04, P-06} = 5. **36 A + 5 positive = 41 rows.**
+**Sub-turn 5A.2 T1 executable row count = 40** (Turn 5A.1R5E). Breakdown: Category A executable rows = {A-01..A-31, A-33, A-34, A-40, A-42} = 35 (T1-A-32 RETIRED and NOT counted). Positives = {P-01, P-02, P-03, P-04, P-06} = 5. **35 A + 5 positive = 40 executable rows.** Turn 5A.2.b owns 32 (A-01..A-31, A-33); Turn 5A.2.c owns 8 (P-02 + Chain C1 (3) + Chain C2 (4)).
 
 ### O.2 T1 rows — Sub-turn 5A.3 (Horse Order + trigger + permissions + payment-account absence)
 
@@ -312,24 +349,24 @@ lifecycle.
 
 **Sub-turn 5A.3 T1 row count = 14** (6 A + 4 B + 4 positive).
 
-### O.3 T1 counts (row-count derived, Turn 5A.1R3)
+### O.3 T1 counts (row-count derived, Turn 5A.1R5E)
 
 | Sub-turn | A | B | Positive | Row total |
 |----------|---|---|----------|-----------|
-| 5A.2     | 36 | 0 | 5        | **41**    |
+| 5A.2     | 35 | 0 | 5        | **40**    |
 | 5A.3     | 6  | 4 | 4        | **14**    |
-| **Total executable T1** | **42** | **4** | **9** | **55** |
+| **Total executable T1** | **41** | **4** | **9** | **54** |
 
-The prior Turn 5A.1R2 total of **54** is superseded. Turn 5A.1R3 changes:
+Turn 5A.1R5E changes vs. Turn 5A.1R3/R4:
 
-- Chain C1 (T1-P-01, T1-P-06, T1-A-40) moved wholly into Sub-turn 5A.2 with
-  shared idem UUID `11111111-…-000000000001`.
-- Chain C2 gains T1-A-42 (duplicate Final with fresh idem UUID) alongside
-  T1-A-34 (duplicate Deposit with fresh idem UUID).
-- Rows 61/62 of File 23 are Category C (multi-actor/concurrent — outside T1).
+- T1-A-32 (`FIN_SOURCE_CLIENT_CROSS_TENANT`) is RETIRED from the executable
+  inventory; the token is Category D in File 23. Scenario ID and reserved
+  Idempotency key `11111111-…-000000000035` (Decimal N+3) MUST NOT be reused.
+- Sub-turn 5A.2 executable total drops 41 → 40; overall executable T1 drops
+  55 → 54; File-23 Category A drops 37 → 36; File-23 Category D rises 2 → 3.
+- Chain C1 and Chain C2 shapes unchanged.
 - Row 40 (`FIN_ORDER_TYPE_NOT_FOUND`) remains Category D; `HOT_TO_DELETE` and
-  `HO_ORDER_TYPE_MISSING` are withdrawn from the executable fixture namespace
-  (see File 22 §E note).
+  `HO_ORDER_TYPE_MISSING` remain withdrawn (see File 22 §E note).
 
 ### O.4 T2 stages (T2-owned; not counted in T1)
 
@@ -341,19 +378,32 @@ Exactly 5 stages, each a distinct SAVEPOINT in `j5_2_source_checkout_atomicity.t
 4. `fin.fail_after_source_link='raise'` → `FIN_TEST_FAIL_AFTER_SOURCE_LINK`.
 5. Default-inert success (no GUC) — proves hooks are opt-in.
 
-### O.5 Reported counts (row-count derived)
+### O.5 Reported counts (row-count derived — File-21 T1 Scenario counts)
+
+These are File-21 executable T1 Scenario counts. They are NOT the File-23
+Token-Matrix row counts (see §N above and File 23 §4).
 
 | Bucket                                     | Count |
 |--------------------------------------------|-------|
-| T1 5A.2 (rows in §O.1)                     | 41    |
+| T1 5A.2 (rows in §O.1)                     | 40    |
 | T1 5A.3 (rows in §O.2)                     | 14    |
-| **Total executable T1**                    | **55**|
-| Category A (executable)                    | 42    |
-| Category B (savepoint-shaped)              | 4     |
-| Positive (executable)                      | 9     |
+| **Total executable T1 Scenarios**          | **54**|
+| Category A T1 Scenarios (executable)       | 41    |
+| Category B T1 Scenarios (savepoint-shaped) | 4     |
+| Positive T1 Scenarios (executable)         | 9     |
 | Static-review-only (Category C, File 23)   | 14    |
-| Structurally unreachable (Category D)      | 2     |
+| Structurally unreachable (Category D)      | 3     |
 | T2 stage count                             | 5     |
+
+Turn-5A.2.a Foundation fixture inventory (locked):
+
+| Object type | Count | Symbols                                                                                                              |
+|-------------|-------|-----------------------------------------------------------------------------------------------------------------------|
+| Clients     | 1     | CLIENT_REGISTERED                                                                                                     |
+| Lab Horses  | 1     | LH_LEGACY_CLIENT                                                                                                      |
+| Lab Samples | 8     | LS_DRAFT_LEGACY, LS_ACCESSIONED_LEGACY, LS_COMPLETED_LEGACY, LS_PROCESSING, LS_CANCELLED, LS_WALKIN_LONG_NAME, LS_COEXIST, LS_ZERO_PRICE |
+| **Total**   | **10**| —                                                                                                                     |
+
 
 ## P. T2 stage confirmation (locked)
 
@@ -390,16 +440,17 @@ They will be fully replaced by Turns 5A.2–5A.4.
 
 ## T. Exact next turn
 
-**Turn 5A.2** — T1 Foundation + Complete Deterministic Fixtures + Payload
-Validation + Laboratory Deposit + Laboratory Final + Replay/Conflict Chain (C1) +
-Same-Source Deposit/Final Coexistence Chain (C2, including duplicate-Deposit and
-duplicate-Final rejections).
+**Turn 5A.2.a Retry** — T1 Live-Catalog Harness + 10 Deterministic Fixture Rows
+(1 Client + 1 Lab Horse + 8 Lab Samples) + Temp ACLs + Protected Baseline +
+Active Idempotency-Key Census + Partial File 24. **Zero RPC Scenarios** in
+Turn 5A.2.a; RPC Scenarios begin at Turn 5A.2.b.
 
 ## U. Five-phase roadmap position
 
 - Phase 1 — N+1A: COMPLETE AND MANUALLY ACCEPTED.
 - Phase 2 — N+1B: IN PROGRESS. Current subphase: J5.2-SLICE-01-EXECUTION —
-  TURN 5A.1R3 (cross-file consistency lock — this turn).
+  TURN 5A.1R5E (unreachable contract reclassification — this turn).
 - Phase 3 — N+2: NOT STARTED / NOT AUTHORIZED.
 - Phase 4 — N+3: NOT STARTED / NOT AUTHORIZED.
 - Phase 5 — N+4: NOT STARTED / NOT AUTHORIZED.
+
