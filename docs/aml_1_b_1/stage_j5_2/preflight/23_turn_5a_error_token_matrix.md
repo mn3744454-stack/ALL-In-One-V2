@@ -162,23 +162,30 @@ The trigger raises message strings (not `FIN_*` tokens) with these SQLSTATEs:
 Each hook uses `pg_catalog.current_setting('<guc>', true) = 'raise'`. Activation
 is transaction-scoped via `SET LOCAL` and reverts on any enclosing rollback.
 
-## 4. Category totals (Turn 5A.1R3 corrected)
+## 4. Category totals (Turn 5A.1R5E corrected)
 
 Failure-hook tokens `FIN_TEST_FAIL_AFTER_*` (rows 56–59) belong exclusively to
 T2 and are **excluded from T1 Category A** in this table. Rows 61 and 62
 (`FIN_IDEMPOTENCY_ACTOR_MISMATCH`, `FIN_IDEMPOTENCY_IN_PROGRESS`) are
 Category C — reachable only via multi-actor or concurrent-session harnesses
-outside the single-actor/single-session T1 contract.
+outside the single-actor/single-session T1 contract. Row 41
+(`FIN_SOURCE_CLIENT_CROSS_TENANT`) is Category D — the defensive branch is
+unreachable through legal fixtures because both supported Source tables enforce
+Client↔Tenant equality at the row level.
+
+These are File-23 Token-Matrix row counts. They are NOT File-21 executable T1
+Scenario counts; do NOT copy `A = 41` (T1 Scenario count) into this table.
 
 | Category                                                                       | Count |
 |--------------------------------------------------------------------------------|-------|
-| A — Directly executable via T1 (rows 1–19, 23–37, 39, 41–43, 46, 60)           | 37    |
+| A — Directly executable via T1 (rows 1–19, 23–37, 39, 42–43, 46, 60)           | 36    |
 | B — Executable via safe savepoint-scoped fixture shaping (rows 20–22, 47)      | 4     |
 | C — Internal invariant / multi-actor / concurrent, static review only          | 14    |
 |     (rows 44–45, 48–55, 61–62)                                                 |       |
-| D — Structurally unreachable (rows 38, 40)                                     | 2     |
+| D — Structurally unreachable (rows 38, 40, 41)                                 | 3     |
 | T2 failure-hook tokens (rows 56–59, T2-owned)                                  | 4     |
 | **Total RPC-observable tokens catalogued**                                     | **61**|
 
-Turn 5A.1R3 changes vs. Turn 5A.1R2: rows 61 and 62 reclassified A → C. The
-21-row trigger surface (§2) is unchanged.
+Turn 5A.1R5E changes vs. Turn 5A.1R3: row 41 (`FIN_SOURCE_CLIENT_CROSS_TENANT`)
+reclassified A → D. The 21-row trigger surface (§2) is unchanged.
+
