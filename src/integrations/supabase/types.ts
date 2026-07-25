@@ -12815,6 +12815,15 @@ export type Database = {
         Returns: string
       }
       _finance_riyadh_date: { Args: { p_ts: string }; Returns: string }
+      _finance_source_checkout_apply_trace: {
+        Args: {
+          p_invoice_id: string
+          p_source_id: string
+          p_source_type: string
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
       _finance_source_lock_key: {
         Args: {
           p_source_id: string
