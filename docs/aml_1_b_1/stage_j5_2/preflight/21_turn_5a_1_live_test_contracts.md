@@ -202,7 +202,7 @@ sequence and `23 rows 20–22` for the three permission keys.
 
 | Table                          | Fixture symbols checked                                                                                                                          | Collisions |
 |--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `clients`                      | CLIENT_REGISTERED, CLIENT_UNRELATED, CLIENT_SECONDARY_TENANT                                                                                     | 0          |
+| `clients`                      | CLIENT_REGISTERED, CLIENT_UNRELATED                                                                                                              | 0          |
 | `horses`                       | HORSE_A, HORSE_UNLINKED, HORSE_CROSS_TENANT                                                                                                       | 0          |
 | `lab_horses`                   | LH_LEGACY_CLIENT, LH_JUNCTION_CUSTOMER, LH_JUNCTION_PAYER, LH_OWNER_ONLY, LH_TRAINER_ONLY, LH_STABLE_ONLY, LH_UNRELATED, LH_CROSS_TENANT          | 0          |
 | `lab_samples`                  | All `dddd4444-0000-4000-8000-*` fixture UUIDs                                                                                                     | 0          |
