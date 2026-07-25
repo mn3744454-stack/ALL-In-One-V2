@@ -1,6 +1,6 @@
-# 22 — Turn 5A.1R5E · Deterministic Fixture UUID Map (Corrected)
+# 22 — Turn 5A.1R5F · Deterministic Fixture UUID Map (Corrected)
 
-**ACTIVE TURN-5A.2.a FOUNDATION FIXTURES = 10. T1-A-32 AND ITS CROSS-TENANT FIXTURES ARE RETIRED BEFORE SQL AUTHORING.**
+**ACTIVE FOUNDATION FIXTURES = 10. SECONDARY TENANT IS CONTEXT-ONLY. NO SECONDARY-TENANT SOURCE FIXTURE IS ACTIVE.**
 
 Namespace is locked. All UUIDs are v4-shaped. A read-only collision census was
 executed against every fixture-owned UUID and its target table during Turn 5A.1R
@@ -75,8 +75,19 @@ a member of); no Secondary-Tenant Client fixture is required or authored.
 | LS_DEP_OWNER_ONLY         | `dddd4444-0000-4000-8000-00000000000a`   | `draft`        | Uses LH_OWNER_ONLY — expects trigger `Lab horse … is not linked` (SQLSTATE 42501)            |
 | **LS_COEXIST**            | `dddd4444-0000-4000-8000-00000000000b`   | `accessioned`  | **Single-source Deposit → Final coexistence fixture** (see §Coexistence lifecycle below)     |
 | ~~LS_CROSS_TENANT_CLIENT~~| `dddd4444-0000-4000-8000-00000000000c`   | —              | **RETIRED (Turn 5A.1R5E)** — never inserted. `FIN_SOURCE_CLIENT_CROSS_TENANT` is Category D per File 23 row 41. UUID reserved-not-reusable. |
-| LS_SECONDARY_TENANT       | `dddd4444-0000-4000-8000-00000000000d`   | `draft`        | tenant = secondary — cross-tenant `FIN_SOURCE_NOT_FOUND` when called on primary tenant       |
+| ~~LS_SECONDARY_TENANT~~   | `dddd4444-0000-4000-8000-00000000000d`   | —              | **RETIRED (Turn 5A.1R5F)** — never inserted. No executable Scenario requires an inserted Secondary-Tenant Sample. T1-A-04 fails at Tenant-membership before Source lookup and uses only a Secondary-Tenant ID resolved at runtime. T1-A-27 uses the Reserved Missing-ID Registry (§D.2), not a Fixture. UUID reserved-not-reusable. |
 | LS_ZERO_PRICE             | `dddd4444-0000-4000-8000-00000000000e`   | `draft`        | Fixture for `FIN_CHECKOUT_TOTAL_INVALID` via `unit_price=0` accepted at item gate            |
+
+### D.2 — Reserved Missing-ID Registry (never inserted)
+
+Valid UUID-shaped identifiers guaranteed absent from the target table. Used only
+for not-found absence tests. NOT Fixtures. NOT part of active Fixture count,
+dependency order, or Fixture collision census. Turn 5A.2.a Retry must assert
+absence from `public.lab_samples` before executing T1-A-27.
+
+| Symbol                  | UUID                                     | Absence table         | Consumer  |
+|-------------------------|------------------------------------------|-----------------------|-----------|
+| MISSING_LAB_SAMPLE_ID   | `deadbeef-0000-4000-8000-000000000027`   | `public.lab_samples`  | T1-A-27   |
 
 There is exactly ONE coexistence sample. Deposit and Final MUST run against the
 same `source_id`; File 22 no longer allocates separate deposit / final source
