@@ -154,7 +154,7 @@ there.** Do not derive UUIDs from the ranges alone.
 | Trigger positive/negative + T14–T16 accepts   | `55555555-5555-4555-8555-000000000006..010`   |
 | T2 stage keys (per hook + inert-success)      | `66666666-6666-4666-8666-000000000001..005`   |
 
-## H — Exact Idempotency UUID assignment (Turn 5A.1R3 lock)
+## H — Exact Idempotency UUID assignment (Turn 5A.1R5E lock)
 
 Every executable T1 Scenario or Scenario-Chain call is bound to exactly one
 UUID below. Intentional sharing is called out in the `Shared with` column and
@@ -166,9 +166,14 @@ them before `_finance_billing_link_upsert` fires
 (`66666666-…`). Every UUID is still collision-checked at execution against
 `finance_request_idempotency` (per §Collision-check contract).
 
-| Scenario ID   | Chain            | Symbol                 | Exact UUID                                     | Shared with          | Reason for sharing / freshness           | Source fixture                     | Expected use                        |
-|---------------|------------------|------------------------|------------------------------------------------|----------------------|-------------------------------------------|-------------------------------------|-------------------------------------|
-| T1-A-01..A-33 | independent      | `K-PAYLOAD-01..33`     | `11111111-1111-4111-8111-000000000004..036`    | —                    | unique per call                           | LS_ACCESSIONED_LEGACY (as-needed)   | payload/status/item validation      |
+The `T1-A-32` executable key `11111111-1111-4111-8111-000000000035` (Decimal
+N+3 for N=32) is RESERVED-NOT-EXECUTABLE and MUST NOT be consumed by any other
+Scenario, fixture insert, or execution-time collision guard. See §H.2 below.
+
+| Scenario ID                        | Chain            | Symbol                 | Exact UUID                                     | Shared with          | Reason for sharing / freshness           | Source fixture                     | Expected use                        |
+|------------------------------------|------------------|------------------------|------------------------------------------------|----------------------|-------------------------------------------|-------------------------------------|-------------------------------------|
+| T1-A-01..A-31, A-33 (A-32 retired) | independent      | `K-PAYLOAD-*`          | Derived per §H.1 — `11111111-1111-4111-8111-<lpad(N+3,12,'0')>` (skip N=32) | — | unique per call                           | LS_ACCESSIONED_LEGACY (as-needed)   | payload/status/item validation      |
+
 | T1-P-01       | C1               | `K-C1-BASE`            | `11111111-1111-4111-8111-000000000001`         | T1-P-06, T1-A-40     | C1 replay/conflict reuse this key         | LS_ACCESSIONED_LEGACY               | base Lab Deposit success            |
 | T1-P-06       | C1               | `K-C1-BASE` (reuse)    | `11111111-1111-4111-8111-000000000001`         | T1-P-01              | same-key + same-payload replay            | LS_ACCESSIONED_LEGACY               | replay → stored_response returned   |
 | T1-A-40       | C1               | `K-C1-BASE` (reuse)    | `11111111-1111-4111-8111-000000000001`         | T1-P-01              | same-key + changed `notes` payload        | LS_ACCESSIONED_LEGACY               | → `FIN_IDEMPOTENCY_CONFLICT`        |
