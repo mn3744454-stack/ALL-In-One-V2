@@ -1,104 +1,149 @@
-# 23 — Turn 5A.1 · Error-Token Matrix (Live-Reconciled)
+# 23 — Turn 5A.1R · Error-Token Matrix (Live-Reconciled, Corrected)
 
-Captured 2026-07-25 from installed `public.create_source_checkout_invoice` and
-`public._invoice_items_validate_source`.
+Captured 2026-07-26 from the currently installed
+`public.create_source_checkout_invoke` and `public._invoice_items_validate_source`.
+Every token below appears verbatim in the installed function bodies.
 
-Source token in the RPC is `FIN_SOURCE_TYPE_INVALID` (NOT `_UNSUPPORTED`). All
-tokens below appear verbatim in the installed function bodies.
+Correction notes vs. the withdrawn Turn 5A.1 file:
 
-## 1. `public.create_source_checkout_invoice` (SQLSTATE varies; see body)
+- `received_at` and `payment_account_id` are **not** root payload keys and cannot
+  be caller-supplied. Any post-state token that references caller-supplied
+  `received_at` is reclassified.
+- Lab Deposit accepts `draft` **and** `accessioned` (not just `draft`). The
+  cancelled-fixture path for `FIN_LAB_DEPOSIT_STATUS_INVALID` is invalid —
+  cancelled fires `FIN_SOURCE_CANCELLED` earlier.
+- Lab Final accepts only `completed`. `accessioned` is rejected with
+  `FIN_LAB_FINAL_STATUS_INVALID`.
+- `unit_price < 0` fires `FIN_LAB_ITEM_PRICE_INVALID`. `unit_price = 0` passes
+  the item-price gate; a non-positive resulting invoice total is later rejected
+  by `FIN_CHECKOUT_TOTAL_INVALID`.
+- `notes` limit is **500** chars. `client_name` limit is **200** chars.
+- Permission keys are `finance.invoice.create`, `finance.invoice.approve`,
+  `finance.payment.create` (no `invoices.create` / `payments.create` shorthand).
 
-| # | Scenario                                              | Token                                       | Fixture precondition                          |
-|---|-------------------------------------------------------|---------------------------------------------|------------------------------------------------|
-| 1 | Non-object payload                                    | `FIN_PAYLOAD_TYPE`                          | `p_payload := '[]'::jsonb`                     |
-| 2 | Root unknown key                                      | `FIN_PAYLOAD_UNKNOWN_KEY`                   | payload contains `"foo": 1`                    |
-| 3 | Root `link_kind` missing                              | `FIN_LINK_KIND_REQUIRED`                    | omit `link_kind`                               |
-| 4 | Root `link_kind` invalid                              | `FIN_LINK_KIND_INVALID`                     | `link_kind := 'bogus'`                         |
-| 5 | Horse-order + `link_kind='deposit'`                   | `FIN_HORSE_ORDER_LINK_KIND_INVALID`         | `source_type='horse_order'`, `link_kind='deposit'` |
-| 6 | Source type missing                                   | `FIN_SOURCE_TYPE_REQUIRED`                  | omit `source_type`                             |
-| 7 | Source type unsupported                               | `FIN_SOURCE_TYPE_INVALID`                   | `source_type := 'foo'`                         |
-| 8 | Source id missing                                     | `FIN_SOURCE_ID_REQUIRED`                    | omit `source_id`                               |
-| 9 | Source id malformed                                   | `FIN_SOURCE_ID_INVALID`                     | `source_id := 'not-a-uuid'`                    |
-|10 | Payment method missing                                | `FIN_PAYMENT_METHOD_REQUIRED`               | omit `payment_method`                          |
-|11 | Payment method invalid                                | `FIN_PAYMENT_METHOD_INVALID`                | `payment_method := 'bitcoin'`                  |
-|12 | Debt + `received_at` present                          | `FIN_CHECKOUT_DEBT_HAS_PAYMENT_RECEIVED_AT` | `payment_method='debt'` + `received_at` set    |
-|13 | Debt payment method conflict                          | `FIN_CHECKOUT_DEBT_PAYMENT_METHOD_INVALID`  | conflicting debt fields                        |
-|14 | Debt final state invalid                              | `FIN_CHECKOUT_DEBT_STATE_INVALID`           | debt with invalid post-state                   |
-|15 | Debt status invalid                                   | `FIN_CHECKOUT_DEBT_STATUS_INVALID`          | debt with invalid status                       |
-|16 | Non-debt missing `received_at`                        | `FIN_CHECKOUT_PAYMENT_RECEIVED_AT_MISSING`  | cash/card/transfer w/o `received_at`           |
-|17 | Payment-method mismatch                               | `FIN_CHECKOUT_PAYMENT_METHOD_MISMATCH`      | payment routed via mismatched method           |
-|18 | Not fully paid                                        | `FIN_CHECKOUT_NOT_FULLY_PAID`               | payment amount < invoice total                 |
-|19 | Total invalid                                         | `FIN_CHECKOUT_TOTAL_INVALID`                | computed total ≤ 0                             |
-|20 | Client name > 255 chars                               | `FIN_CLIENT_NAME_TOO_LONG`                  | walk-in client_name too long                   |
-|21 | Notes > 4000 chars                                    | `FIN_NOTES_TOO_LONG`                        | oversized notes                                |
-|22 | Discount invalid (negative or > line total)           | `FIN_DISCOUNT_INVALID`                      | bad discount on lab item                       |
-|23 | Lab items empty on non-source-derived path            | `FIN_ITEMS_EMPTY`                           | omit `items` array where required              |
-|24 | Lab item description missing                          | `FIN_LAB_ITEM_DESCRIPTION_REQUIRED`         | item without `description`                     |
-|25 | Lab item price ≤ 0                                    | `FIN_LAB_ITEM_PRICE_INVALID`                | `unit_price := 0`                              |
-|26 | Lab item quantity ≤ 0                                 | `FIN_LAB_ITEM_QUANTITY_INVALID`             | `quantity := 0`                                |
-|27 | Horse-order caller items forbidden                    | `FIN_HORSE_ORDER_ITEMS_FORBIDDEN`           | `source_type='horse_order'` + payload `items`  |
-|28 | Lab deposit source status invalid                     | `FIN_LAB_DEPOSIT_STATUS_INVALID`            | sample.status = `'cancelled'`                  |
-|29 | Lab final source status invalid                       | `FIN_LAB_FINAL_STATUS_INVALID`              | sample.status = `'draft'`                      |
-|30 | Order not completed                                   | `FIN_ORDER_NOT_COMPLETED`                   | horse_order.status = `'draft'`                 |
-|31 | Order missing cost                                    | `FIN_ORDER_MISSING_COST`                    | both `actual_cost` and `estimated_cost` null   |
-|32 | Order missing horse                                   | `FIN_ORDER_MISSING_HORSE`                   | horse_order.horse_id = NULL (impossible via schema — negative fixture is via cross-tenant scrub) |
-|33 | Order type not found                                  | `FIN_ORDER_TYPE_NOT_FOUND`                  | `order_type_id` deleted                         |
-|34 | Order horse not found                                 | `FIN_ORDER_HORSE_NOT_FOUND`                 | `horse_id` deleted                              |
-|35 | Source not found                                      | `FIN_SOURCE_NOT_FOUND`                      | unknown source_id                              |
-|36 | Source cancelled                                      | `FIN_SOURCE_CANCELLED`                      | sample/order status `'cancelled'`              |
-|37 | Source client cross-tenant                            | `FIN_SOURCE_CLIENT_CROSS_TENANT`            | sample.client_id belongs to other tenant       |
-|38 | Nested `create_invoice_with_items` returned no invoice_id | `FIN_NESTED_CREATE_NO_INVOICE_ID`       | (internal invariant — non-executable)          |
-|39 | Approved invoice not found post-create                | `FIN_INVOICE_NOT_FOUND`                     | (internal invariant)                           |
-|40 | Tenant payment account missing                        | `FIN_TENANT_PAYMENT_ACCOUNT_MISSING`        | delete-then-restore secondary tenant (unsafe — skip) |
-|41 | Tenant access denied                                  | `FIN_TENANT_ACCESS_DENIED`                  | actor not member of `p_tenant_id`              |
-|42 | Permission denied (invoices.create / approve / payments.create) | `FIN_PERMISSION_DENIED`         | permission override transaction-local          |
-|43 | Unauthenticated (auth.uid() NULL)                     | `FIN_UNAUTHENTICATED`                       | omit JWT claims                                |
-|44 | Bad args (generic)                                    | `FIN_BAD_ARGS`                              | NULL required parameter                        |
-|45 | Duplicate active source link                          | `FIN_SOURCE_LINK_CONFLICT`                  | run once, then rerun w/ new idem key           |
-|46 | Source link upsert internal failure                   | `FIN_SOURCE_LINK_UPSERT_FAILED`             | (internal invariant)                           |
-|47 | Failure hook — after trace                            | `FIN_TEST_FAIL_AFTER_TRACE`                 | `SET LOCAL fin.fail_after_trace='raise'`       |
-|48 | Failure hook — after approve                          | `FIN_TEST_FAIL_AFTER_APPROVE`               | `SET LOCAL fin.fail_after_approve='raise'`     |
-|49 | Failure hook — after payment                          | `FIN_TEST_FAIL_AFTER_PAYMENT`               | `SET LOCAL fin.fail_after_payment='raise'`     |
-|50 | Failure hook — after source link                      | `FIN_TEST_FAIL_AFTER_SOURCE_LINK`           | `SET LOCAL fin.fail_after_source_link='raise'` |
+## 1. `public.create_source_checkout_invoice` — full token classification
 
-## 2. `public._invoice_items_validate_source` (trigger)
+Categories (see §11 of the turn prompt):
+`A` = Directly executable ·
+`B` = Executable via safe savepoint-scoped fixture shaping ·
+`C` = Internal invariant, static review only ·
+`D` = Structurally unreachable under current schema without forbidden bypasses.
+
+| #  | Cat | Token                                       | Trigger path (from live body)                                                                              | Fixture / natural reproduction                                                                                                                                       |
+|----|-----|---------------------------------------------|------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|  1 | A   | `FIN_UNAUTHENTICATED`                       | `auth.uid() IS NULL`                                                                                       | Clear JWT claims before RPC call inside SAVEPOINT.                                                                                                                    |
+|  2 | A   | `FIN_BAD_ARGS`                              | Any of `p_tenant_id` / `p_idempotency_key` / `p_payload` NULL                                              | Pass `NULL::jsonb`.                                                                                                                                                   |
+|  3 | A   | `FIN_PAYLOAD_TYPE`                          | `jsonb_typeof(p_payload) <> 'object'`                                                                      | `p_payload := '[]'::jsonb`.                                                                                                                                           |
+|  4 | A   | `FIN_TENANT_ACCESS_DENIED`                  | `NOT is_active_tenant_member(actor, tenant)`                                                               | Use a tenant UUID Actor is not a member of.                                                                                                                           |
+|  5 | A   | `FIN_PAYLOAD_UNKNOWN_KEY: <root>`           | root key not in `{source_type, source_id, link_kind, client_name, discount_amount, payment_method, prices_include_tax, notes, items}` | Include `"foo": 1` at root. Also covers `received_at` and `payment_account_id` at root — both are unknown keys and reach this token first. |
+|  6 | A   | `FIN_SOURCE_TYPE_REQUIRED`                  | root missing `source_type` or non-string                                                                   | Omit `source_type`.                                                                                                                                                   |
+|  7 | A   | `FIN_SOURCE_TYPE_INVALID`                   | `source_type NOT IN ('lab_sample','horse_order')`                                                          | `source_type := 'foo'`.                                                                                                                                               |
+|  8 | A   | `FIN_SOURCE_ID_REQUIRED`                    | root missing `source_id` / non-string / empty after btrim                                                  | Omit `source_id`.                                                                                                                                                     |
+|  9 | A   | `FIN_SOURCE_ID_INVALID`                     | `source_id::uuid` cast fails                                                                               | `source_id := 'not-a-uuid'`.                                                                                                                                          |
+| 10 | A   | `FIN_LINK_KIND_REQUIRED`                    | root missing `link_kind` or non-string                                                                     | Omit `link_kind`.                                                                                                                                                     |
+| 11 | A   | `FIN_LINK_KIND_INVALID`                     | `link_kind NOT IN ('deposit','final')`                                                                     | `link_kind := 'bogus'`.                                                                                                                                               |
+| 12 | A   | `FIN_PAYMENT_METHOD_REQUIRED`               | root missing `payment_method` or non-string                                                                | Omit `payment_method`.                                                                                                                                                |
+| 13 | A   | `FIN_PAYMENT_METHOD_INVALID`                | `payment_method NOT IN ('cash','card','transfer','debt')`                                                  | `payment_method := 'bitcoin'`.                                                                                                                                        |
+| 14 | A   | `FIN_PAYLOAD_TYPE: prices_include_tax`      | `prices_include_tax` present, non-boolean                                                                  | `prices_include_tax := "yes"`.                                                                                                                                        |
+| 15 | A   | `FIN_PAYLOAD_TYPE: discount_amount`         | `discount_amount` present, non-number and non-null                                                         | `discount_amount := "10"`.                                                                                                                                            |
+| 16 | A   | `FIN_DISCOUNT_INVALID`                      | discount cast fails OR final `v_discount < 0`                                                              | `discount_amount := -1`.                                                                                                                                              |
+| 17 | A   | `FIN_PAYLOAD_TYPE: notes`                   | `notes` present, non-string and non-null                                                                   | `notes := 123`.                                                                                                                                                       |
+| 18 | A   | `FIN_NOTES_TOO_LONG`                        | `char_length(notes) > 500`                                                                                 | Notes = 501-char string. **500-char** case passes.                                                                                                                    |
+| 19 | A   | `FIN_PAYLOAD_TYPE: client_name`             | `client_name` present, non-string and non-null                                                             | `client_name := 42`.                                                                                                                                                  |
+| 20 | B   | `FIN_PERMISSION_DENIED` — `finance.invoice.create`   | Owner short-circuit; must demote                                                                    | SAVEPOINT → downgrade Actor's `tenant_members.role` to `foreman` → insert `member_permissions(tenant_member_id, permission_key='finance.invoice.create', granted=false, granted_by=<any profile>)` → call RPC → assert token → ROLLBACK TO SAVEPOINT. |
+| 21 | B   | `FIN_PERMISSION_DENIED` — `finance.invoice.approve`  | same                                                                                                | Same as row 20 but revoking `finance.invoice.approve`.                                                                                                                |
+| 22 | B   | `FIN_PERMISSION_DENIED` — `finance.payment.create`   | Only checked when `payment_method IN ('cash','card','transfer')`                                    | Same downgrade with `finance.payment.create=false`, `payment_method='cash'`. Debt path does NOT require this permission.                                              |
+| 23 | A   | `FIN_ITEMS_EMPTY`                           | Lab source + `items` missing OR non-array OR length 0                                                      | Lab path with `items` omitted or `[]`.                                                                                                                                |
+| 24 | A   | `FIN_PAYLOAD_TYPE: items[]`                 | Any lab item element not an object                                                                         | `"items":[1]`.                                                                                                                                                        |
+| 25 | A   | `FIN_PAYLOAD_UNKNOWN_KEY: items[].<key>`    | Item key not in `{description, quantity, unit_price, is_taxable}`                                          | Include `"horse_id":"…"` or `"category_id":"…"` inside an item — the item allowlist is only these 4 keys; caller-supplied item horse/lab_horse/category/service are rejected here. |
+| 26 | A   | `FIN_LAB_ITEM_DESCRIPTION_REQUIRED`         | Missing/non-string/blank description                                                                       | Item `{"quantity":1,"unit_price":10}`.                                                                                                                                |
+| 27 | A   | `FIN_LAB_ITEM_QUANTITY_INVALID`             | Missing/non-number quantity OR cast fails OR `quantity <= 0`                                               | `"quantity":0`.                                                                                                                                                       |
+| 28 | A   | `FIN_LAB_ITEM_PRICE_INVALID`                | Missing/non-number unit_price OR cast fails OR `unit_price < 0`                                            | `"unit_price":-1`. **`unit_price=0` is accepted here** — reaches `FIN_CHECKOUT_TOTAL_INVALID` later.                                                                  |
+| 29 | A   | `FIN_PAYLOAD_TYPE: items[].is_taxable`      | `is_taxable` present, non-boolean and non-null                                                             | `"is_taxable":"true"`.                                                                                                                                                |
+| 30 | A   | `FIN_HORSE_ORDER_ITEMS_FORBIDDEN`           | `source_type='horse_order'` and payload has `items` key                                                    | Horse-order path with `items:[…]`.                                                                                                                                    |
+| 31 | A   | `FIN_HORSE_ORDER_LINK_KIND_INVALID`         | `source_type='horse_order'` and `link_kind='deposit'`                                                      | Order + `link_kind='deposit'`.                                                                                                                                        |
+| 32 | A   | `FIN_SOURCE_NOT_FOUND`                      | `SELECT … FOR UPDATE` on `lab_samples`/`horse_orders` returns 0 for tenant                                 | Unknown source_id inside primary tenant.                                                                                                                              |
+| 33 | A   | `FIN_SOURCE_CANCELLED`                      | `v_source_status = 'cancelled'`                                                                            | Fixture `LS_CANCELLED` (fires for both deposit and final).                                                                                                            |
+| 34 | A   | `FIN_LAB_DEPOSIT_STATUS_INVALID`            | `link_kind='deposit'` and status IN (`processing`,`completed`)                                             | Fixture `LS_PROCESSING` (status='processing'). Do **not** use cancelled.                                                                                              |
+| 35 | A   | `FIN_LAB_FINAL_STATUS_INVALID`              | `link_kind='final'` and status IN (`draft`,`accessioned`,`processing`)                                     | Fixture `LS_DRAFT_LEGACY` or `LS_ACCESSIONED_LEGACY` — do **not** use cancelled.                                                                                      |
+| 36 | A   | `FIN_ORDER_NOT_COMPLETED`                   | `source_type='horse_order'` and status not `completed`                                                     | `HO_DRAFT`.                                                                                                                                                           |
+| 37 | A   | `FIN_ORDER_MISSING_COST`                    | Order with `actual_cost IS NULL AND estimated_cost IS NULL`                                                | `HO_MISSING_COST`.                                                                                                                                                    |
+| 38 | D   | `FIN_ORDER_MISSING_HORSE`                   | Order row loaded with `horse_id IS NULL` after cost-precedence block                                       | `horse_orders.horse_id` is NOT NULL in schema; only reachable by disabling FKs/triggers or scrubbing a row — **forbidden**. Static review only.                        |
+| 39 | A   | `FIN_ORDER_HORSE_NOT_FOUND`                 | `SELECT name FROM horses WHERE id=<horse> AND tenant_id=<tenant>` returns NULL                             | `HO_HORSE_CROSS_TENANT` (order tenant primary, horse tenant secondary).                                                                                               |
+| 40 | A   | `FIN_ORDER_TYPE_NOT_FOUND`                  | `order_type_id` NULL OR name lookup returns NULL                                                           | Fixture-owned order with a deterministic `order_type_id` deleted before RPC call inside SAVEPOINT.                                                                    |
+| 41 | A   | `FIN_SOURCE_CLIENT_CROSS_TENANT`            | Source row's `client_id` not resolvable in `clients WHERE tenant_id=p_tenant_id`                           | Lab sample whose `client_id` = `CLIENT_SECONDARY_TENANT`.                                                                                                             |
+| 42 | A   | `FIN_CLIENT_NAME_TOO_LONG`                  | Resolved `client_name` length > 200                                                                        | Walk-in lab sample with 201-char `client_name` supplied on payload; **200** passes.                                                                                   |
+| 43 | A   | `FIN_SOURCE_LINK_CONFLICT`                  | Same tenant/source/kind already has a non-cancelled invoice's billing link                                 | Execute Lab Deposit successfully with idem key K1, then re-execute with new idem key K2 (same payload) — duplicate deposit is rejected before nested create.          |
+| 44 | C   | `FIN_NESTED_CREATE_NO_INVOICE_ID`           | `create_invoice_with_items` returned NULL invoice_id                                                       | Internal invariant — unreachable without patching the nested RPC. Static review only.                                                                                 |
+| 45 | C   | `FIN_INVOICE_NOT_FOUND`                     | Post-approve re-read misses the invoice                                                                    | Internal invariant — unreachable without out-of-band DELETE. Static review only.                                                                                      |
+| 46 | A   | `FIN_CHECKOUT_TOTAL_INVALID`                | Approved invoice total ≤ 0                                                                                 | Lab item with `unit_price=0`, `quantity=1`, `discount_amount=0` — total = 0 → rejected.                                                                               |
+| 47 | B   | `FIN_TENANT_PAYMENT_ACCOUNT_MISSING`        | Non-debt path with no active tenant `payment_accounts` row                                                 | SAVEPOINT → `UPDATE payment_accounts SET is_active=false WHERE tenant_id=<primary> AND owner_type='tenant'` → call RPC with `cash` → assert token → ROLLBACK TO SAVEPOINT. |
+| 48 | C   | `FIN_CHECKOUT_NOT_FULLY_PAID`               | Post-payment invoice status ≠ `paid`                                                                       | `post_payment` uses server-authoritative amount = `v_inv_row.total_amount`; naturally always fully pays. Reachable only via out-of-band ledger mutation. Static review only. |
+| 49 | C   | `FIN_CHECKOUT_PAYMENT_METHOD_MISMATCH`      | Post-payment invoice `payment_method` differs from caller's                                                | `post_payment` writes the same `payment_method`. Reachable only via out-of-band UPDATE. Static review only.                                                            |
+| 50 | C   | `FIN_CHECKOUT_PAYMENT_RECEIVED_AT_MISSING`  | Post-payment invoice `payment_received_at` NULL                                                            | Root payload cannot supply/omit `received_at` (unknown-key), and `post_payment` sets `payment_received_at`. Reachable only via out-of-band mutation. Static review only. |
+| 51 | C   | `FIN_CHECKOUT_DEBT_STATE_INVALID`           | Debt path UPDATE affected 0 rows (invoice not `approved` or already had `payment_received_at`)             | Cannot be forced through the public contract — the inline `approve_invoice` guarantees `approved`. Static review only.                                                |
+| 52 | C   | `FIN_CHECKOUT_DEBT_STATUS_INVALID`          | Debt post-state status ≠ `approved`                                                                        | Same reason as row 51. Static review only.                                                                                                                            |
+| 53 | C   | `FIN_CHECKOUT_DEBT_PAYMENT_METHOD_INVALID`  | Debt post-state `payment_method` ≠ `debt`                                                                  | Debt branch UPDATE sets `payment_method='debt'`. Static review only.                                                                                                  |
+| 54 | C   | `FIN_CHECKOUT_DEBT_HAS_PAYMENT_RECEIVED_AT` | Debt post-state has `payment_received_at IS NOT NULL`                                                      | Root cannot supply `received_at`; debt UPDATE preserves NULL. Static review only.                                                                                     |
+| 55 | C   | `FIN_SOURCE_LINK_UPSERT_FAILED`             | `_finance_billing_link_upsert(...)` returned NULL                                                          | Internal invariant. Static review only.                                                                                                                               |
+| 56 | A   | `FIN_TEST_FAIL_AFTER_TRACE`                 | `SET LOCAL fin.fail_after_trace='raise'`                                                                   | T2 stage 1.                                                                                                                                                           |
+| 57 | A   | `FIN_TEST_FAIL_AFTER_APPROVE`               | `SET LOCAL fin.fail_after_approve='raise'`                                                                 | T2 stage 2.                                                                                                                                                           |
+| 58 | A   | `FIN_TEST_FAIL_AFTER_PAYMENT`               | `SET LOCAL fin.fail_after_payment='raise'`                                                                 | T2 stage 3.                                                                                                                                                           |
+| 59 | A   | `FIN_TEST_FAIL_AFTER_SOURCE_LINK`           | `SET LOCAL fin.fail_after_source_link='raise'`                                                             | T2 stage 4.                                                                                                                                                           |
+
+Idempotency-helper tokens raised by `_finance_idempotency_begin` (Category A,
+same-key-different-hash replay path): `FIN_IDEMPOTENCY_HASH_MISMATCH`.
+Idempotency replay (same key + same hash) is a positive path, not an error.
+
+## 2. `public._invoice_items_validate_source` (trigger) — unchanged token surface
 
 The trigger raises message strings (not `FIN_*` tokens) with these SQLSTATEs:
 
-| # | Scenario                                          | SQLSTATE | Message substring                                                |
-|---|---------------------------------------------------|----------|-------------------------------------------------------------------|
-| T1| Unsupported `service_source`                      | `22023`  | `invoice_items.service_source % is not supported`                 |
-| T2| service_id not found                              | `23503`  | `Service % not found in %`                                        |
-| T3| Cross-tenant service_id                           | `42501`  | `Cross-tenant service_id rejected on invoice_items`               |
-| T4| Inactive service on INSERT                        | `22023`  | `Service % is inactive and cannot be added to invoice`            |
-| T5| category_id not found                             | `23503`  | `Category % not found`                                            |
-| T6| Cross-tenant category_id                          | `42501`  | `Cross-tenant category_id rejected on invoice_items`              |
-| T7| horse_id not found                                | `23503`  | `Horse % not found`                                               |
-| T8| Cross-tenant horse_id                             | `42501`  | `Cross-tenant horse_id rejected on invoice_items`                 |
-| T9| horse_id unrelated to invoice client              | `42501`  | `Horse % is not linked to invoice client % on tenant %`           |
-|T10| lab_horse_id not found                            | `23503`  | `Lab horse % not found`                                           |
-|T11| Cross-tenant lab_horse_id                         | `42501`  | `Cross-tenant lab_horse_id rejected on invoice_items`             |
-|T12| lab_horse_id unrelated (no legacy client_id AND no `party_horse_links` row with `relationship_type IN ('lab_customer','payer')`) | `42501` | `Lab horse % is not linked to invoice client %` |
-|T13| Owner-only / trainer-only / stable-only link      | `42501`  | same as T12 (only `lab_customer` / `payer` are accepted)          |
-|T14| Legacy client accepted                            | (pass)   | `lh_client = inv_client` short-circuits the junction check        |
-|T15| `lab_customer` junction accepted                  | (pass)   | `party_horse_links.relationship_type='lab_customer'`              |
-|T16| `payer` junction accepted                         | (pass)   | `party_horse_links.relationship_type='payer'`                     |
-|T17| Unsupported `package_source`                      | `22023`  | `invoice_items.package_source % is not supported`                 |
-|T18| package_id not found                              | `23503`  | `Package % not found`                                             |
-|T19| Cross-tenant package_id                           | `42501`  | `Cross-tenant package_id rejected on invoice_items`               |
-|T20| Inactive package on INSERT                        | `22023`  | `Package % is inactive and cannot be added to invoice`            |
-|T21| `package_services_snapshot` not JSON array        | `22023`  | `package_services_snapshot must be a JSON array`                  |
+| #   | Scenario                                          | SQLSTATE | Message substring                                                |
+|-----|---------------------------------------------------|----------|-------------------------------------------------------------------|
+| T1  | Unsupported `service_source`                      | `22023`  | `invoice_items.service_source % is not supported`                 |
+| T2  | service_id not found                              | `23503`  | `Service % not found in %`                                        |
+| T3  | Cross-tenant service_id                           | `42501`  | `Cross-tenant service_id rejected on invoice_items`               |
+| T4  | Inactive service on INSERT                        | `22023`  | `Service % is inactive and cannot be added to invoice`            |
+| T5  | category_id not found                             | `23503`  | `Category % not found`                                            |
+| T6  | Cross-tenant category_id                          | `42501`  | `Cross-tenant category_id rejected on invoice_items`              |
+| T7  | horse_id not found                                | `23503`  | `Horse % not found`                                               |
+| T8  | Cross-tenant horse_id                             | `42501`  | `Cross-tenant horse_id rejected on invoice_items`                 |
+| T9  | horse_id unrelated to invoice client              | `42501`  | `Horse % is not linked to invoice client % on tenant %`           |
+| T10 | lab_horse_id not found                            | `23503`  | `Lab horse % not found`                                           |
+| T11 | Cross-tenant lab_horse_id                         | `42501`  | `Cross-tenant lab_horse_id rejected on invoice_items`             |
+| T12 | lab_horse_id unrelated (no legacy client AND no `party_horse_links` row where `relationship_type IN ('lab_customer','payer')`) | `42501` | `Lab horse % is not linked to invoice client %` |
+| T13 | Owner-only / trainer-only / stable-only link      | `42501`  | Same as T12 (only `lab_customer` / `payer` accepted)              |
+| T14 | Legacy client accepted                            | (pass)   | `lh_client = inv_client` short-circuits the junction check        |
+| T15 | `lab_customer` junction accepted                  | (pass)   | `party_horse_links.relationship_type='lab_customer'`              |
+| T16 | `payer` junction accepted                         | (pass)   | `party_horse_links.relationship_type='payer'`                     |
+| T17 | Unsupported `package_source`                      | `22023`  | `invoice_items.package_source % is not supported`                 |
+| T18 | package_id not found                              | `23503`  | `Package % not found`                                             |
+| T19 | Cross-tenant package_id                           | `42501`  | `Cross-tenant package_id rejected on invoice_items`               |
+| T20 | Inactive package on INSERT                        | `22023`  | `Package % is inactive and cannot be added to invoice`            |
+| T21 | `package_services_snapshot` not JSON array        | `22023`  | `package_services_snapshot must be a JSON array`                  |
 
-## 3. Failure-hook positions (verified line numbers in installed body)
+## 3. Failure-hook contract (verified against installed body)
 
-| Hook GUC                       | Line | Emitted token                     | Fires AFTER                                     |
-|--------------------------------|------|-----------------------------------|-------------------------------------------------|
-| `fin.fail_after_trace`         | 445  | `FIN_TEST_FAIL_AFTER_TRACE`       | `_finance_source_checkout_apply_trace(...)`     |
-| `fin.fail_after_approve`       | 453  | `FIN_TEST_FAIL_AFTER_APPROVE`     | inline approve (`approve_invoice`)              |
-| `fin.fail_after_payment`       | 491  | `FIN_TEST_FAIL_AFTER_PAYMENT`     | `post_payment(...)` / non-debt payment          |
-| `fin.fail_after_source_link`   | 535  | `FIN_TEST_FAIL_AFTER_SOURCE_LINK` | `_finance_billing_link_upsert(...)` final link  |
+| Hook GUC                       | Emitted token                     | Fires AFTER                                     |
+|--------------------------------|-----------------------------------|-------------------------------------------------|
+| `fin.fail_after_trace`         | `FIN_TEST_FAIL_AFTER_TRACE`       | `_finance_source_checkout_apply_trace(...)`     |
+| `fin.fail_after_approve`       | `FIN_TEST_FAIL_AFTER_APPROVE`     | `approve_invoice(...)`                          |
+| `fin.fail_after_payment`       | `FIN_TEST_FAIL_AFTER_PAYMENT`     | `post_payment(...)` — non-debt only             |
+| `fin.fail_after_source_link`   | `FIN_TEST_FAIL_AFTER_SOURCE_LINK` | `_finance_billing_link_upsert(...)` final link  |
 
-Each hook uses `pg_catalog.current_setting('<guc>', true) = 'raise'`. `true`
-argument makes the read missing-GUC-tolerant. Because the GUC is set with
-`SET LOCAL`, activation is transaction-scoped and reverts on any `ROLLBACK` or
-`ROLLBACK TO SAVEPOINT` that undoes the `SET LOCAL`.
+Each hook uses `pg_catalog.current_setting('<guc>', true) = 'raise'`. Activation
+is transaction-scoped via `SET LOCAL` and reverts on any enclosing rollback.
+
+## 4. Category totals
+
+| Category                                                | Count |
+|---------------------------------------------------------|-------|
+| A — Directly executable                                 | 42    |
+| B — Executable via safe savepoint-scoped fixture shaping| 4     |
+| C — Internal invariant, static review only              | 12    |
+| D — Structurally unreachable                            | 1     |
+| **Total RPC tokens catalogued**                         | **59**|
+
+Failure-hook tokens (56–59) are included in Category A because they are naturally
+reachable through the T2 stage suite.
