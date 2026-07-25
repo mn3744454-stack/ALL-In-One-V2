@@ -46,14 +46,23 @@ export function useInvoiceCustomerHorses({
       if (!issuerTenantId || !customerId) return [];
 
       if (source === "lab_services") {
-        // Lab issuer → junction-based lab_horses lookup
+        // Lab issuer → junction-based lab_horses lookup.
+        // Only billing-authorizing relationships (aligned with Migration B
+        // `_invoice_items_validate_source`).
         const { data: links, error: linkErr } = await supabase
           .from("party_horse_links")
           .select("lab_horse_id")
           .eq("tenant_id", issuerTenantId)
-          .eq("client_id", customerId);
+          .eq("client_id", customerId)
+          .in("relationship_type", ["lab_customer", "payer"]);
         if (linkErr) throw linkErr;
-        const ids = (links || []).map((l) => l.lab_horse_id);
+        const ids = Array.from(
+          new Set(
+            (links || [])
+              .map((l) => l.lab_horse_id)
+              .filter((v): v is string => !!v),
+          ),
+        );
         if (ids.length === 0) return [];
         const { data, error } = await supabase
           .from("lab_horses")
