@@ -26,7 +26,17 @@ Deterministic fixture UUIDs (each transaction-local; rolled back):
 |-------------------------|------------------------------------------|-------------------------------------|
 | CLIENT_REGISTERED       | `aaaa1111-0000-4000-8000-000000000001`   | Positive-path invoice client        |
 | CLIENT_UNRELATED        | `aaaa1111-0000-4000-8000-000000000002`   | Cross-authority negative test       |
-| CLIENT_SECONDARY_TENANT | `aaaa1111-0000-4000-8000-000000000003`   | Belongs to a different tenant — for `FIN_SOURCE_CLIENT_CROSS_TENANT` |
+
+**Retired before SQL authoring (Turn 5A.1R5E):**
+
+| Symbol                  | UUID                                     | Reason                                                                                                                                              |
+|-------------------------|------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| CLIENT_SECONDARY_TENANT | `aaaa1111-0000-4000-8000-000000000003`   | Never inserted. The required cross-Tenant Client↔Source relationship is blocked by active production Triggers (`validate_lab_sample_trigger`, `validate_horse_order_tenant_trigger`) BEFORE Source Checkout is called. UUID reserved-not-reusable. |
+
+Secondary-Tenant context (for `T1-A-04 FIN_TENANT_ACCESS_DENIED` and Tenant-isolation
+assertions) is resolved at runtime from `tenant_members` (any tenant Actor is NOT
+a member of); no Secondary-Tenant Client fixture is required or authored.
+
 
 ## B — Platform Horses (tenant = Primary unless noted)
 
