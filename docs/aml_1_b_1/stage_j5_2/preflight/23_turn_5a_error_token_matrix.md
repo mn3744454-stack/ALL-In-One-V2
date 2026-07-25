@@ -1,4 +1,7 @@
-# 23 — Turn 5A.1R2 · Error-Token Matrix (Live-Reconciled, Corrected)
+# 23 — Turn 5A.1R5E · Error-Token Matrix (Live-Reconciled, Corrected)
+
+**FIN_SOURCE_CLIENT_CROSS_TENANT = CATEGORY D. TOKEN MATRIX: A36 / B4 / C14 / D3 / T2-TOKENS4.**
+
 
 Captured 2026-07-26 from the currently installed
 `public.create_source_checkout_invoice` and `public._invoice_items_validate_source`.
