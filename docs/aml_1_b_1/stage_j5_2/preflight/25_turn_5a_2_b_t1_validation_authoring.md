@@ -2,288 +2,316 @@
 
 ## A. Verdict
 
-**TURN 5A.2.b PARTIALLY AUTHORED — EXACT SCENARIO OR ROLE-GATE GAP REMAINS**
+**TURN 5A.2.b1 AUTHORED — T1-A-01 THROUGH T1-A-08 READY FOR TURN 5A.2.b2**
 
-- Temp-Schema Role-Switch Runtime Gate (spec §7): **AUTHORED and STATICALLY REVIEWED**.
-- T1-A-01..T1-A-31 and T1-A-33 (32 RPC Scenarios, spec §12): **NOT AUTHORED IN THIS TURN**.
-- Foundation (Turn 5A.2.aR/aE) preserved byte-identical except for the appended Gate + Section-13 gap notice + Section-14 relabel.
+`TURN 5A.2.b1 INCREMENTAL AUTHORING EVIDENCE.
+T1-A-01 THROUGH T1-A-08 AUTHORED.
+TURN 5A.2.b PROGRESS: 8/32.
+TURN 5A.2 PROGRESS: 8/40.
+OVERALL T1 PROGRESS: 8/54.
+SCENARIOS NOT EXECUTED.
+TURN 5A.2.b2 REQUIRED.`
 
 ## B. Roadmap Position
 
-Phase 2 — N+1B, Subphase J5.2-SLICE-01-EXECUTION, Turn 5A.2.b (partial).
-Preceded by Turn 5A.2.aE (Foundation Evidence Corrected — Closed).
-Succeeded by Turn 5A.2.b continuation (32-Scenario body) → Turn 5A.2.c
-(T1-P-02 + Chain C1 + Chain C2) → Turn 5A.3 → Turn 5A.4 (T2) → Turn 5A.5 →
-Turn 5R (qualified authenticated execution) → Turn 6 (Manual Acceptance) →
-Final Re-Audit → Mini Documentation → Slice 01 Closure → Slice 02.
+Phase 2 — N+1B · Subphase J5.2-SLICE-01-EXECUTION · Turn 5A.2.b1.
+Preceded by Turn 5A.2.b (Temp-Schema Role-Switch Gate authoring only).
+Succeeded by Turn 5A.2.b2 (T1-A-09..T1-A-16).
 
 ## C. Skill Application
 
-Applied: 03 Workflow Completeness, 04 Tenant Isolation Guard, 06 API/RPC
-Hardening, 08 Schema/Migration Safety, 19 Platform Billing/Finance,
-23 Performance/Reliability, 25 QA/Release Readiness, 26 Skill Network
-Governance.
+Applied: 03, 04, 06, 08, 19, 23, 25, 26.
+No-op evidence: 05 (no RLS), 07 (no production TS), 10 (no UX), 12 (no i18n).
+Excluded: Positive Checkout, Horse Order, permission-negative, T2,
+Retail POS, Draft Invoice recovery, Phases N+2..N+4.
 
-No-op evidence: 05 (no RLS change), 07 (no production TS change), 10 (no
-UX change), 12 (no i18n change).
+## D. Artifact Preflight
 
-Excluded: successful Checkout authoring, Horse Order Scenarios, permission-
-negative Scenarios, T2, Retail POS, Slice 02, Phases N+2..N+4.
-
-## D. Artifact and Production Preflight
-
-- Current HEAD: `be4f20b197840d2b5b0b6b3ddeb29770f6366bf0`
-- Foundation pre-edit SHA-256: `a23b260819ff5dbae683557ac8b0baa4ad2aee6bd982fb5c0ffbfc5a2a4ddd02` (matches locked value in spec §5.1).
-- Foundation pre-edit line count: `796` (matches locked).
-- Foundation last-touch commit (pre-edit): `8c1a2b6a85e93841ffe59d04558d913359725a48`
+- Current HEAD: `c140f085d0f7c3af32ddf2865dc4df7e76d759d2`
+- SQL last-touch commit (pre-edit): `6c6347caebcaf381b6f66724c7472d9474482915`
 - File-24 last-touch commit: `378c5d1ebb34da33aaff812402cad46ef4284110`
-- Foundation post-edit SHA-256: `4d965cee9ca33d1fdd436b59c6d37cd9d9455f4e558350bca456376460a33f15`
-- Foundation post-edit line count: `959`
-- Outer `BEGIN;` count: **1**
-- Final `ROLLBACK;` count: **1**
-- `COMMIT` count: **0**
-- Executable `create_source_checkout_invoice(` invocations added: **0**
-  (per §7 the Gate performs zero RPC calls; §12 32 Scenarios not yet
-  authored.)
+- File-25 last-touch commit (pre-edit): `cbd751a5d3ddee366efc2b757cc944546dab0bbd`
+- Pre-edit SQL SHA-256: `4d965cee9ca33d1fdd436b59c6d37cd9d9455f4e558350bca456376460a33f15`
+- Pre-edit SQL line count: `959`
+- Foundation Sections 0–11 preserved unchanged.
+- Temp-Schema Role-Switch Gate preserved unchanged (before Section 13).
+- File 25 updated in place (no false final Turn-5A.2.b report).
 
-Six locked production fingerprints (per Turn 5A.2.aR):
-NOT RE-CAPTURED IN THIS TURN. No production function was modified. The
-last authoritative fingerprint capture is Turn 5A.2.aR, and no migration
-has run between Turn 5A.2.aE and Turn 5A.2.b. The qualified runner MUST
-recompute the six fingerprints before executing this file.
+## E. Six Locked Fingerprints
 
-## E. Temp-Schema Role-Switch Gate (§7)
+Not re-captured this turn. No production DDL executed between Turn 5A.2.aE
+and Turn 5A.2.b1. Qualified runner MUST recompute prior to execution.
+Accepted values:
 
-Authored in Section 12 of `supabase/tests/database/j5_1_source_checkout.test.sql`.
+- `create_source_checkout_invoice` Raw   `38f3b740c984cb69f6d99005e6513305cba4117adea994beeed9a60bc7b7d0b0`
+- `create_source_checkout_invoice` Canonical `f0152e6fd55d2c64da6dea5fed505475a38c527690e006cb1a2b670305901c4f`
+- `_finance_source_checkout_apply_trace` Raw   `8653bd79116b2502c229e5b1971adeb88cdbacb4e6684eb41719e662ee9fe7d9`
+- `_finance_source_checkout_apply_trace` Canonical `7cecabbd5b7e9b11d9fc1074bf50044642d1cbd24ceefb2ffc4cc16f1044692f`
+- `_invoice_items_validate_source` Raw   `8ee852ec40fd2ac678b2cdf4af454e61646609d06d09c6a0a4e9f2b9a93bf772`
+- `_invoice_items_validate_source` Canonical `f2d413d81b9dbd4577d142ec25e6b3b44b6a265c297b5bac1ad4d5b8eb8c45f0`
 
-Structure:
+Live pre-authoring inspection of `pg_get_function_identity_arguments` for
+`create_source_checkout_invoice` returned exactly
+`p_tenant_id uuid, p_idempotency_key uuid, p_payload jsonb` — matches the
+argument shape used in all 8 Scenario invocations.
 
-1. `SAVEPOINT sp_temp_role_gate;`
-2. Privileged INSERT of one Gate input into `pg_temp.test_scenario_inputs`
-   using Scenario ID `__TEMP_ROLE_GATE__`, no production Source ID, no
-   active Idempotency key, payload `{"gate":"temp_role_switch"}`.
-3. `set_config` bindings for scalar `request.jwt.claim.sub`,
-   `request.jwt.claim.role`, and object `request.jwt.claims` (all
-   transaction-local).
-4. `SET LOCAL ROLE authenticated;`
-5. Authenticated `DO $$` block: SELECTs context row, SELECTs Gate input,
-   INSERTs one marker Capture row (uses ONLY the three granted Temp
-   privileges).
-6. `RESET ROLE;` (top-level, not inside the DO block).
-7. Privileged assertions: exactly one Gate Capture, context values equal
-   locked identity, `current_user = original_user`.
-8. `ROLLBACK TO SAVEPOINT sp_temp_role_gate; RELEASE SAVEPOINT sp_temp_role_gate;`
-9. Post-rollback assertions: Gate input, Capture, and Result rows all
-   zero; role still equals original.
+Live pre-authoring inspection of `pg_proc.prosrc` confirmed the exact
+Section-0/1 error ordering used by this batch:
 
-**Gate execution classification: AUTHORED — NOT EXECUTED.** The sandbox
-runner cannot safely execute `SET LOCAL ROLE authenticated` (File 17 §3).
-No command, log, or exit code is preserved because none was produced.
+1. `FIN_UNAUTHENTICATED` (`42501`) — before any NULL-arg check.
+2. `FIN_BAD_ARGS` (`22023`) — NULL tenant/key/payload.
+3. `FIN_PAYLOAD_TYPE` (`23514`) — jsonb_typeof ≠ 'object'.
+4. `FIN_TENANT_ACCESS_DENIED` (`42501`) — before payload-shape checks.
+5. `FIN_PAYLOAD_UNKNOWN_KEY: <k>` (`23514`) — root whitelist.
+6. `FIN_SOURCE_TYPE_REQUIRED` (`23514`).
+7. `FIN_SOURCE_TYPE_INVALID` (`23514`) — value NOT IN ('lab_sample','horse_order').
+8. `FIN_SOURCE_ID_REQUIRED` (`23514`).
 
-## F. Foundation SQL Extension
+## F. Temp Role-Switch Gate
+
+Preserved byte-identical from Turn 5A.2.b. Not executed this turn.
+
+Classification:
+```text
+TEMP ROLE-SWITCH GATE:
+AUTHORED AND STATICALLY REVIEWED.
+EXECUTION NOT PROVEN.
+```
+
+## G. SQL Extension
 
 - Final path: `supabase/tests/database/j5_1_source_checkout.test.sql`
-- Pre-edit lines / SHA: 796 / `a23b26…4ddd02`
-- Post-edit lines / SHA: 959 / `4d965c…60a33f15`
-- Outer BEGIN: 1 · Final ROLLBACK: 1 · COMMIT: 0
-- Delta: +163 lines. Zero lines deleted from the accepted Foundation body
-  (only the tail comment banner "12. Terminate…" was re-numbered to
-  "14. Terminate…" to make room for the Gate at Section 12 and the
-  32-Scenario gap notice at Section 13).
+- Pre-edit SHA / lines:  `4d965cee…60a33f15` / 959
+- Post-edit SHA / lines: `a8ae069ed42fd8730ddc3342c3fecba42f356fda9006066da4a1b3c4e29b6dd6` / 1777
+- Outer BEGIN: 1
+- Final ROLLBACK: 1
+- COMMIT: 0
+- Delta: +818 lines, zero deletions from Foundation or Gate.
 
-## G. Scenario Inventory
+## H. Scenario Inventory
 
-Authorized Scenario IDs (32): T1-A-01, T1-A-02, T1-A-03, T1-A-04,
-T1-A-05, T1-A-06, T1-A-07, T1-A-08, T1-A-09, T1-A-10, T1-A-11, T1-A-12,
-T1-A-13, T1-A-14, T1-A-15, T1-A-16, T1-A-17, T1-A-18, T1-A-19, T1-A-20,
-T1-A-21, T1-A-22, T1-A-23, T1-A-24, T1-A-25, T1-A-26, T1-A-27, T1-A-28,
-T1-A-29, T1-A-30, T1-A-31, T1-A-33.
+Authored (8): T1-A-01, T1-A-02, T1-A-03, T1-A-04, T1-A-05, T1-A-06,
+T1-A-07, T1-A-08.
+Deferred to Turn 5A.2.b2..b4: T1-A-09..T1-A-31, T1-A-33.
+Retired (unchanged): T1-A-32.
 
-Authored in this turn's SQL: **0 of 32.** T1-A-32 remains RETIRED and is
-not authored, not counted, and its reserved key
-`11111111-1111-4111-8111-000000000035` remains only in
-`pg_temp.test_reserved_keys`.
+## I. RPC Invocation Count
 
-## H. RPC Invocation Count
+Explicit `public.create_source_checkout_invoice(...)` paths in the file:
+**8** (required 8). Zero loops, zero dispatchers, zero dynamic SQL.
 
-Explicit executable `public.create_source_checkout_invoice(...)` paths in
-`supabase/tests/database/j5_1_source_checkout.test.sql`: **0**.
-Required by Turn 5A.2.b: **32**. Delta: **−32.**
+## J. SAVEPOINT Map
 
-## I. SAVEPOINT Count
+| Scenario  | SAVEPOINT       | ROLLBACK TO | RELEASE |
+|-----------|-----------------|-------------|---------|
+| T1-A-01   | `sp_t1_a_01`    | ✓           | ✓       |
+| T1-A-02   | `sp_t1_a_02`    | ✓           | ✓       |
+| T1-A-03   | `sp_t1_a_03`    | ✓           | ✓       |
+| T1-A-04   | `sp_t1_a_04`    | ✓           | ✓       |
+| T1-A-05   | `sp_t1_a_05`    | ✓           | ✓       |
+| T1-A-06   | `sp_t1_a_06`    | ✓           | ✓       |
+| T1-A-07   | `sp_t1_a_07`    | ✓           | ✓       |
+| T1-A-08   | `sp_t1_a_08`    | ✓           | ✓       |
 
-Independent Scenario SAVEPOINTs authored: **0** (required: 32).
-Non-Scenario Gate SAVEPOINT (`sp_temp_role_gate`): **1** (excluded from
-the 32-count per §7).
+Gate SAVEPOINT `sp_temp_role_gate` preserved separately (not counted).
 
-## J. JWT Claim Handling
+## K. JWT Claim Handling
 
-Gate uses File-17 §2 dual claim shape (scalar + JSON object) via
-`set_config(..., true)`, reads Actor/Tenant from `pg_temp.test_context`,
-and never interpolates a `psql :'…'` variable inside a dollar-quoted
-block. The 32-Scenario body will replicate this pattern.
+- T1-A-01: both scalar (`request.jwt.claim.sub`) and JSON object
+  (`request.jwt.claims`) cleared to `''` and `'{}'` respectively via
+  `set_config(..., true)`; DB role authenticated remains set.
+- T1-A-02..A-08: scalar sub + object shape both bound to fixed Actor
+  from `pg_temp.test_context`, transaction-local, read via SELECT (no
+  `psql :'…'` interpolation inside any dollar-quoted block).
+- `RESET ROLE` executed as the next top-level statement after each
+  authenticated DO block. Every Scenario asserts
+  `current_user = pg_temp.test_context.original_user`.
 
-## K. SQLSTATE and Token Capture
+## L. SQLSTATE / Token Matrix
 
-Gate: none (no RPC). 32 Scenarios: not yet authored.
+| ID       | SQLSTATE | Token                              | Mutation                     |
+|----------|----------|------------------------------------|------------------------------|
+| T1-A-01  | 42501    | FIN_UNAUTHENTICATED                | JWT cleared                  |
+| T1-A-02  | 22023    | FIN_BAD_ARGS                       | payload NULL                 |
+| T1-A-03  | 23514    | FIN_PAYLOAD_TYPE                   | payload `[]::jsonb`          |
+| T1-A-04  | 42501    | FIN_TENANT_ACCESS_DENIED           | Secondary Tenant             |
+| T1-A-05  | 23514    | `FIN_PAYLOAD_UNKNOWN_KEY: foo`     | base ‖ `{"foo":1}`           |
+| T1-A-06  | 23514    | FIN_SOURCE_TYPE_REQUIRED           | base minus `source_type`     |
+| T1-A-07  | 23514    | FIN_SOURCE_TYPE_INVALID            | `source_type = "foo"`        |
+| T1-A-08  | 23514    | FIN_SOURCE_ID_REQUIRED             | base minus `source_id`       |
 
-## L. Result Survival
+Base payload: `source_type=lab_sample`, `source_id=dddd4444-…-0001` (Draft
+Fixture), `link_kind=deposit`, `payment_method=cash`, `discount_amount=0`,
+1 item `{description,'J5.2 Test Item', quantity 1, unit_price 100,
+is_taxable true}`.
 
-Gate does not insert into `pg_temp.test_scenario_results` and is
-explicitly asserted to leave zero Result rows after rollback. The
-`\gset` capture-survival mechanism required by §10 is documented in
-File 17 §2 and will be applied per-Scenario in the follow-up authoring
-sub-turn.
+## M. Idempotency Key Map
 
-## M. T1-A-18 Boundary Proof
+Resolved from `pg_temp.test_active_idem_keys` — never hardcoded inline.
 
-Not authored (Scenario body pending). The construction contract is
-locked: `notes = repeat('x', 501)` MUST be asserted `length()=501` in a
-privileged `DO` block before the RPC call to prove the boundary is
-exercised rather than an earlier gate.
+| ID       | Key                                        |
+|----------|--------------------------------------------|
+| T1-A-01  | `11111111-1111-4111-8111-000000000004`     |
+| T1-A-02  | `11111111-1111-4111-8111-000000000005`     |
+| T1-A-03  | `11111111-1111-4111-8111-000000000006`     |
+| T1-A-04  | `11111111-1111-4111-8111-000000000007`     |
+| T1-A-05  | `11111111-1111-4111-8111-000000000008`     |
+| T1-A-06  | `11111111-1111-4111-8111-000000000009`     |
+| T1-A-07  | `11111111-1111-4111-8111-000000000010`     |
+| T1-A-08  | `11111111-1111-4111-8111-000000000011`     |
 
-## N. T1-A-27 Missing-ID Proof
+8 distinct keys. A-32 retired key absent. Live collision check remains in
+Section 7 (`ACTIVE_IDEM_KEY_DB_COLLISION_*`).
 
-The reserved missing UUID
-`deadbeef-0000-4000-8000-000000000027` is captured in Section 0/6 of the
-Foundation. Absence in `public.lab_samples` is already asserted
-pre-Scenario (Section 6). Scenario-27 body pending.
+## N. Capture-Survival Map (`\gset` prefixes)
 
-## O. T1-A-31 Boundary Proof
+`a01_*, a02_*, a03_*, a04_*, a05_*, a06_*, a07_*, a08_*` — each prefix
+appears exactly once, exported after per-Scenario assertions and before
+`ROLLBACK TO SAVEPOINT`.
 
-Not authored. Contract locked: caller `client_name = repeat('c', 201)`
-MUST be asserted `length()=201` before the RPC call.
+## O. Post-Rollback Result Ledger (Authored Expectation)
 
-## P. T1-A-33 Zero-Total Proof
+After the 8 Scenarios and before final outer ROLLBACK:
 
-Not authored. Contract locked: single Item with `quantity=1`,
-`unit_price=0`, `discount_amount=0`, expected token
-`FIN_CHECKOUT_TOTAL_INVALID` / SQLSTATE `23514`, with post-rollback
-financial-zero-residue assertion.
+- `pg_temp.test_scenario_results` rows = **8**
+- Unique Scenario IDs = **8**
+- Category A rows = **8**
+- Rows with `actual_status='success'` = **0**
+- Rows with `result_json IS NOT NULL` = **0**
+- Rows with `passed=true` = **8**
+- Rows with `assertion_count > 0` = **8**
+- Foreign Scenario rows (not in the 8 IDs) = **0**
+- `T1-A-32` rows = **0**
+- `pg_temp.test_scenario_inputs` rows = **0**
+- `pg_temp.test_rpc_capture` rows = **0**
 
-## Q. Post-Scenario Result Ledger
+Rows are NOT claimed as runtime-passed; no qualified runner executed
+this file.
 
-After the outer ROLLBACK of the currently-authored file:
-- `pg_temp.test_scenario_results` = **0 rows** (required at end-of-Turn:
-  32). Delta: **−32.**
-- `pg_temp.test_scenario_inputs` = 0 (matches spec).
-- `pg_temp.test_rpc_capture` = 0 (matches spec).
+## P. Financial Zero-Residue Assertions
 
-Rows are NOT claimed as runtime-passed; the Gate itself was not
-executed.
+Section 13.Z re-verifies after the 8 Scenario rollbacks:
 
-## R. Financial Zero-Residue Assertions
+- Active idempotency rows for the 8 keys under
+  `create_source_checkout_invoice` = 0.
+- Payment Account row still present and active for
+  `test_context.payment_account_id`.
+- Fixture Section-9 integrity and Section-11 preservation assertions
+  remain the terminal preservation gate (unchanged from Foundation).
 
-Foundation Section 11 pre-rollback preservation assertions remain
-unchanged and continue to enforce byte-identical baselines on:
-invoices, invoice_items, ledger_entries, billing_links,
-customer_balances, finance_request_idempotency, payment_accounts,
-actor_membership_primary, primary_tenant_finance_config.
+## Q. Static Integrity Results
 
-Per-Scenario zero-residue assertions required by §14 items 9–17 are
-NOT yet authored (blocked on Scenario body authoring).
+Counts against post-edit SQL:
 
-## S. Static Integrity Results
+- Explicit RPC paths: 8/8
+- Independent Scenario SAVEPOINTs: 8/8
+- `ROLLBACK TO SAVEPOINT sp_t1_a_*`: 8/8
+- `RELEASE SAVEPOINT sp_t1_a_*`: 8/8
+- Unique `\gset` prefixes: 8/8
+- Post-rollback authoritative Result inserts: 8/8
+- Gate preserved: YES
+- Prohibited patterns `TODO|FIXME|pseudocode|runner extends|future runner`: **0**
+- Loop-based / dispatcher / dynamic RPC construction: **0**
+- `psql :'…'` occurrences inside any dollar-quoted block: **0**
+- `COMMIT;`, `session_replication_role`, `DISABLE TRIGGER`: **0**
+- Production-object modification: **0**
 
-Prohibited patterns scan (§18) against post-edit foundation:
-`runner extends`, `fixtures intentionally omitted`, `scenario ledger only`,
-`pseudocode`, `TODO`, `FIXME`, `future runner`, `v_scenarios`,
-`j5_1.inject_`, `trg_j5_1_inject_`, `session_replication_role`,
-`DISABLE TRIGGER`, `COMMIT;`, placeholder Scenario arrays, commented fake
-RPC calls — **all absent**. The Section-13 gap notice explicitly
-documents "NOT AUTHORED" as a status statement, not as a TODO placeholder
-for future execution.
+## R. Live-Catalog Static Review
 
-No `psql :'…'` interpolation occurs inside any dollar-quoted block in
-either the Foundation or the Gate.
+Live inspection of `pg_proc` confirmed:
 
-## T. Live-Catalog Static Review
+- Function `create_source_checkout_invoice` signature matches
+  `(uuid, uuid, jsonb)` — as used in all 8 invocations.
+- Section-0/1 error tokens/SQLSTATEs match the L. matrix character-for-
+  character (`FIN_UNAUTHENTICATED`, `FIN_BAD_ARGS`, `FIN_PAYLOAD_TYPE`,
+  `FIN_TENANT_ACCESS_DENIED`, `FIN_PAYLOAD_UNKNOWN_KEY: %`,
+  `FIN_SOURCE_TYPE_REQUIRED`, `FIN_SOURCE_TYPE_INVALID`,
+  `FIN_SOURCE_ID_REQUIRED`).
 
-No live-catalog re-audit occurred in this turn. The Turn-5A.2.aR/aE
-live evidence is inherited unchanged. Because no production DDL was
-executed between Turn 5A.2.aE and Turn 5A.2.b, the six locked
-fingerprints are expected to still match; the qualified runner MUST
-recompute them prior to executing the file.
+No production DDL executed this turn.
 
-## U. Files Created
+## S. Files Created
 
-- `docs/aml_1_b_1/stage_j5_2/preflight/25_turn_5a_2_b_t1_validation_authoring.md` (this file).
+None.
 
-## V. Files Modified
+## T. Files Modified
 
-- `supabase/tests/database/j5_1_source_checkout.test.sql` (+163 lines, Gate + gap notice).
+- `supabase/tests/database/j5_1_source_checkout.test.sql`
+  (+818 lines: 8 Scenario blocks + batch integrity block; Foundation
+  and Gate preserved byte-identical).
+- `docs/aml_1_b_1/stage_j5_2/preflight/25_turn_5a_2_b_t1_validation_authoring.md`
+  (this file, updated in place per §4).
 
-## W. Production Objects Modified
+## U. Production Objects Modified
 
-**None.**
+None.
 
-## X. Persistent Business Rows Modified
+## V. Persistent Business Rows Modified
 
-**None.**
+None.
 
-## Y. Execution Classification
+## W. Execution Classification
 
 ```text
 TEMP ROLE-SWITCH GATE:
 AUTHORED AND STATICALLY REVIEWED.
 EXECUTION NOT PROVEN.
 
-T1 5A.2.b SCENARIOS:
-0/32 AUTHORED.
-0/32 STATICALLY REVIEWED.
-0/32 EXECUTED.
-0/32 PASSED.
+TURN 5A.2.b1:
+8/8 SCENARIOS AUTHORED.
+8/8 STATICALLY REVIEWED.
+0/8 EXECUTED.
+0/8 PASSED.
+
+TURN 5A.2.b:
+8/32 SCENARIOS AUTHORED.
+
+TURN 5A.2:
+8/40 EXECUTABLE SCENARIOS AUTHORED.
 
 OVERALL T1:
-0/54 EXECUTABLE SCENARIOS AUTHORED (Gate is not a Scenario).
+8/54 EXECUTABLE SCENARIOS AUTHORED.
 T1 NOT EXECUTED.
 T1 NOT PASSED.
 ```
 
-## Z. Current T1/T2 Status
+## X. Current T1/T2 Status
 
 ```text
-T1 HARNESS AND ACTIVE FIXTURES: AUTHORED (from Turn 5A.2.aE).
-T1 EXECUTABLE RPC SCENARIOS: 0/54 AUTHORED (Turn 5A.2.b body pending).
-TURN 5A.2 EXECUTABLE RPC SCENARIOS: 0/40 AUTHORED.
-TEMP ROLE-SWITCH GATE: AUTHORED (new in this turn).
+T1 HARNESS AND ACTIVE FIXTURES: AUTHORED.
+T1 EXECUTABLE RPC SCENARIOS: 8/54 AUTHORED.
+TURN 5A.2 EXECUTABLE RPC SCENARIOS: 8/40 AUTHORED.
+TURN 5A.2.b VALIDATION SCENARIOS: 8/32 AUTHORED.
 T1 EXECUTED: NO.
 T1 PASSED: NO.
 T2: NOT YET AUTHORED.
 ```
 
-## AA. Next Exact Turn
-
-Turn 5A.2.b continuation: author the 32 explicit T1-A independent
-Validation Scenario bodies (T1-A-01..T1-A-31, T1-A-33) with independent
-SAVEPOINTs, explicit RPC calls, exception-handler capture, `\gset`
-survival, post-rollback Result inserts, and per-Scenario zero-residue
-assertions — then progress to:
+## Y. Next Exact Turn
 
 ```text
-Turn 5A.2.c:
-T1-P-02 Standalone Final
-+ Chain C1:
-  T1-P-01 → T1-P-06 → T1-A-40
-+ Chain C2:
-  T1-P-03 → T1-A-34
-  → processing → completed
-  → T1-P-04 → T1-A-42
-+ Final 40-Scenario Turn-5A.2 Integrity Lock
+Turn 5A.2.b2:
+T1-A-09 through T1-A-16
++ 8 Independent SAVEPOINT Scenarios
++ Exact SQLSTATE/Token Capture
++ \gset Result Survival
++ 8 Additional Post-Rollback Scenario Summaries
++ Cumulative Turn-5A.2.b Progress 16/32
 ```
 
-Do not begin either.
+Do not begin it.
 
-## AB. Complete Five-Phase Roadmap
+## Z. Complete Five-Phase Roadmap
 
 - Phase 1 — N+1A: COMPLETE AND MANUALLY ACCEPTED.
-- Phase 2 — N+1B: IN PROGRESS. Current subphase: J5.2-SLICE-01-EXECUTION — TURN 5A.2.b (partial).
+- Phase 2 — N+1B: IN PROGRESS. Current subphase:
+  J5.2-SLICE-01-EXECUTION — TURN 5A.2.b1.
 - Phase 3 — N+2: NOT STARTED AND NOT AUTHORIZED.
 - Phase 4 — N+3: NOT STARTED AND NOT AUTHORIZED.
 - Phase 5 — N+4: NOT STARTED AND NOT AUTHORIZED.
 
-## AC. Stop Gate
+## AA. Stop Gate
 
-Stopping after this Turn-5A.2.b partial report. Not beginning Turn
-5A.2.b continuation, Turn 5A.2.c, Turn 5A.3, T2, Turn 5R, Manual
-Acceptance, Slice 02, or Mini Documentation.
+Stopping after this Turn-5A.2.b1 report. Not beginning Turn 5A.2.b2,
+Turn 5A.2.c, Turn 5A.3, T2, Turn 5R, Manual Acceptance, Slice 02, or
+final Mini Documentation.
