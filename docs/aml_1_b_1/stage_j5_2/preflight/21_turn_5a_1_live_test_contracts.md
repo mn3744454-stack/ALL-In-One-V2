@@ -370,7 +370,7 @@ Lab Deposit + Lab Final + Same-Source Deposit/Final Coexistence.
 
 - Phase 1 — N+1A: COMPLETE AND MANUALLY ACCEPTED.
 - Phase 2 — N+1B: IN PROGRESS. Current subphase: J5.2-SLICE-01-EXECUTION —
-  TURN 5A.1R (contract correction — this turn).
+  TURN 5A.1R2 (fingerprint + harness + inventory lock — this turn).
 - Phase 3 — N+2: NOT STARTED / NOT AUTHORIZED.
 - Phase 4 — N+3: NOT STARTED / NOT AUTHORIZED.
 - Phase 5 — N+4: NOT STARTED / NOT AUTHORIZED.
