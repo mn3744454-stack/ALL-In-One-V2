@@ -2675,7 +2675,7 @@ export function CreateSampleDialog({
       />
 
       {/* Embedded Checkout Sheet */}
-      {createdSampleIds.length > 0 && (
+      {createdSampleIds.length === 1 && (
         <EmbeddedCheckout
           open={checkoutOpen}
           onOpenChange={setCheckoutOpen}
@@ -2685,7 +2685,7 @@ export function CreateSampleDialog({
             ...item,
             entity_id: createdSampleIds[0],
           }))}
-          suggestedClientId={formData.client_id || undefined}
+          linkKind="deposit"
           onComplete={handleCheckoutComplete}
         />
       )}
