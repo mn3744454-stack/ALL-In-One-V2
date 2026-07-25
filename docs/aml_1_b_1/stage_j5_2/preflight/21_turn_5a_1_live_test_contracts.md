@@ -227,7 +227,7 @@ must NOT be confused with File-21 executable T1 Scenario counts (see §O.5).
 | T2 failure-hook tokens (T2-owned, not counted as T1)    | 4     |
 
 
-## O. Exact T1 Scenario Inventory (Turn 5A.1R3 lock)
+## O. Exact T1 Scenario Inventory (Turn 5A.1R5E lock)
 
 Every executable T1 case has a unique stable Scenario ID. Every referenced
 fixture symbol is defined exactly once in File 22 (see File 22 §A–F). Every
@@ -235,7 +235,7 @@ call resolves to an exact Idempotency UUID via File 22 §H. Dependent
 scenarios share one Group SAVEPOINT per Chain (see File 22 §I). T2 failure
 stages appear in §O.4 and are NOT counted as T1.
 
-Sub-turn ownership (Turn 5A.1R3 lock):
+Sub-turn ownership (Turn 5A.1R5E lock):
 
 - **Turn 5A.2 owns**: payload validation, Lab Deposit, Lab Final, **Chain C1**
   (base success + replay + idempotency conflict), and **Chain C2**
@@ -244,7 +244,35 @@ Sub-turn ownership (Turn 5A.1R3 lock):
   (T14/T15/T16 accepts + T13 reject), permission-negative matrix, and the
   Payment-Account-absence case.
 
+Turn-5A.2 decomposition (Turn 5A.1R5E lock):
+
+- **Turn 5A.2.a Retry** — Harness + 10 deterministic Fixture rows + Temp ACLs +
+  protected baseline + active idempotency-key census + partial File 24 +
+  **zero RPC calls**.
+- **Turn 5A.2.b** — T1-A-01…T1-A-31 plus T1-A-33 (T1-A-32 retired; NOT re-executed
+  and NOT reassigned). Total = **32 independent Category-A validation Scenarios**.
+- **Turn 5A.2.c** — T1-P-02, plus Chain C1 (T1-P-01, T1-P-06, T1-A-40), plus
+  Chain C2 (T1-P-03, T1-A-34, T1-P-04, T1-A-42). Total = **8 Scenarios**
+  (3 Category-A + 5 positive).
+
+Sub-turn 5A.2 executable total = 32 + 8 = **40**.
+
+Retired executable Scenario registry:
+
+- **T1-A-32** — former target `FIN_SOURCE_CLIENT_CROSS_TENANT` / SQLSTATE `23503`.
+  Reclassified Category D (structurally unreachable) in File 23 row 41.
+  Reason: both supported Source tables enforce Client↔Tenant equality via
+  enabled BEFORE INSERT OR UPDATE Triggers (`validate_lab_sample_trigger` and
+  `validate_horse_order_tenant_trigger`); no legal fixture can persist an
+  inconsistent `client_id`/`tenant_id` combination on `lab_samples` or
+  `horse_orders`. The defensive branch remains in production code and MUST NOT
+  be removed. Scenario ID `T1-A-32` MUST NOT be reassigned. Its retired
+  Idempotency UUID (deterministic derivation N=32, N+3=35) is
+  `11111111-1111-4111-8111-000000000035`; that key is reserved-not-executable
+  and MUST NOT be consumed by any other Scenario or fixture insert.
+
 Dependency chains are NEVER split across sub-turns.
+
 
 ### O.1 T1 rows — Sub-turn 5A.2 (Payload + Lab Deposit/Final + Chain C1 + Chain C2)
 
