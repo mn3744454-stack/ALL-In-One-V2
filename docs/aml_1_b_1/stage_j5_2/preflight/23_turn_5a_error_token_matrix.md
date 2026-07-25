@@ -100,9 +100,24 @@ Categories (see §11 of the turn prompt):
 | 58 | A   | `FIN_TEST_FAIL_AFTER_PAYMENT`               | `SET LOCAL fin.fail_after_payment='raise'`                                                                 | T2 stage 3.                                                                                                                                                           |
 | 59 | A   | `FIN_TEST_FAIL_AFTER_SOURCE_LINK`           | `SET LOCAL fin.fail_after_source_link='raise'`                                                             | T2 stage 4.                                                                                                                                                           |
 
-Idempotency-helper tokens raised by `_finance_idempotency_begin` (Category A,
-same-key-different-hash replay path): `FIN_IDEMPOTENCY_HASH_MISMATCH`.
-Idempotency replay (same key + same hash) is a positive path, not an error.
+## 1a. Idempotency-helper token (externally observable)
+
+The nested helper `public._finance_idempotency_begin(...)` raises the following
+token under same-key/changed-payload replay; `public.create_source_checkout_invoice`
+does NOT catch or remap it — it propagates verbatim to the caller.
+
+| #  | Cat | Token                          | SQLSTATE | Trigger path                                                                                                                                     | Fixture / natural reproduction                                                                                                             |
+|----|-----|--------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| 60 | A   | `FIN_IDEMPOTENCY_CONFLICT`     | `23514`  | `_finance_idempotency_begin`: existing row for `(tenant_id, operation, idempotency_key)` has `request_hash <> new hash` (same actor).            | Execute successful checkout with idem key `K1` and payload `P1`; re-invoke with the same `K1` but modified `P1'` (e.g. changed `notes`).   |
+| 61 | A   | `FIN_IDEMPOTENCY_ACTOR_MISMATCH` | `42501` | `_finance_idempotency_begin`: existing row for `(tenant_id, operation, idempotency_key)` has `actor_id <> auth.uid()`.                           | Not scheduled for T1 (requires a second authenticated fixture actor). Static review only in Turn 5A — deferred to a future harness turn.   |
+| 62 | A   | `FIN_IDEMPOTENCY_IN_PROGRESS`  | `40001`  | `_finance_idempotency_begin`: existing row with `response IS NULL` (a concurrent invocation is mid-flight).                                       | Requires two concurrent sessions; not reachable from a single-session T1 SAVEPOINT harness. Static review only.                            |
+
+Idempotency replay (same key + same request_hash + same actor) is a **positive
+path** — the helper returns `stored_response` unchanged and `create_source_checkout_invoice`
+short-circuits with the original response.
+
+The prior File-23 label `FIN_IDEMPOTENCY_HASH_MISMATCH` was **wrong** — no such
+token exists in `_finance_idempotency_begin`. All references to it are withdrawn.
 
 ## 2. `public._invoice_items_validate_source` (trigger) — unchanged token surface
 
