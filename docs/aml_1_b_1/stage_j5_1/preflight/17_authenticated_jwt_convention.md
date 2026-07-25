@@ -215,7 +215,7 @@ Full mapping is captured in `22_turn_5a_fixture_uuid_map.md`.
 - For expected-error scenarios, capture `RETURNED_SQLSTATE` + `MESSAGE_TEXT` and
   assert on the exact token substring (e.g. `FIN_SOURCE_LINK_CONFLICT`). Never
   mask with a bare `EXCEPTION WHEN OTHERS THEN NULL;`.
-- Permission keys used by `create_source_checkout_invoke` are the live
+- Permission keys used by `create_source_checkout_invoice` are the live
   live-registered values — `finance.invoice.create`, `finance.invoice.approve`,
   and `finance.payment.create`. Do NOT use legacy shorthand such as
   `invoices.create`, `invoices.approve`, or `payments.create`.
