@@ -1,4 +1,4 @@
-# 22 — Turn 5A.1R · Deterministic Fixture UUID Map (Corrected)
+# 22 — Turn 5A.1R3 · Deterministic Fixture UUID Map (Corrected)
 
 Namespace is locked. All UUIDs are v4-shaped. A read-only collision census was
 executed against every fixture-owned UUID and its target table during Turn 5A.1R
@@ -72,7 +72,13 @@ UUIDs for coexistence.
 | Symbol            | UUID                                     | Notes                              |
 |-------------------|------------------------------------------|-------------------------------------|
 | HOT_ACTIVE        | `eeee5555-0000-4000-8000-000000000001`   | `is_active=true`                    |
-| HOT_TO_DELETE     | `eeee5555-0000-4000-8000-000000000002`   | Deleted intra-scenario for `FIN_ORDER_TYPE_NOT_FOUND` |
+
+Withdrawn (Turn 5A.1R3): `HOT_TO_DELETE` (`eeee5555-0000-4000-8000-000000000002`)
+is REMOVED from the executable fixture namespace. `FIN_ORDER_TYPE_NOT_FOUND`
+is Category D in File 23 §1 (row 40): `horse_orders.order_type_id` is
+NOT NULL and the FK uses `ON DELETE RESTRICT`, so the "delete order-type
+inside scenario" path is blocked. Do NOT insert or delete this symbol; no
+collision-check entry is required.
 
 ## F — Horse Orders (tenant = Primary; created_by = Actor)
 
@@ -83,23 +89,105 @@ UUIDs for coexistence.
 | HO_DRAFT                  | `ffff6666-0000-4000-8000-000000000003`   | `draft` → `FIN_ORDER_NOT_COMPLETED`               |
 | HO_MISSING_COST           | `ffff6666-0000-4000-8000-000000000004`   | `completed`, both costs NULL → `FIN_ORDER_MISSING_COST` |
 | HO_HORSE_CROSS_TENANT     | `ffff6666-0000-4000-8000-000000000005`   | `completed`, `horse_id=HORSE_CROSS_TENANT` → `FIN_ORDER_HORSE_NOT_FOUND` |
-| HO_ORDER_TYPE_MISSING     | `ffff6666-0000-4000-8000-000000000006`   | `completed`, `order_type_id=HOT_TO_DELETE`; delete HOT_TO_DELETE inside scenario → `FIN_ORDER_TYPE_NOT_FOUND` |
 | HO_CANCELLED              | `ffff6666-0000-4000-8000-000000000007`   | `cancelled` → `FIN_SOURCE_CANCELLED`              |
 
-## G — Idempotency keys (outer `p_idempotency_key`)
+Withdrawn (Turn 5A.1R3): `HO_ORDER_TYPE_MISSING`
+(`ffff6666-0000-4000-8000-000000000006`) is REMOVED from the executable
+fixture namespace along with `HOT_TO_DELETE`. See §E note.
 
-Deterministic per-namespace UUIDs:
+## G — Idempotency keys (outer `p_idempotency_key`) — legacy ranges
+
+The broad namespace ranges below remain reserved for readability. **The
+authoritative binding is §H "Exact Idempotency UUID assignment" — every
+executable Scenario/Chain call resolves to one of the exact UUIDs listed
+there.** Do not derive UUIDs from the ranges alone.
 
 | Namespace                                     | UUID range                                   |
 |-----------------------------------------------|-----------------------------------------------|
-| Lab Deposit success + replay + conflict       | `11111111-1111-4111-8111-000000000001..003`   |
-| Lab Final success                             | `22222222-2222-4222-8222-000000000001`        |
-| Lab Coexistence deposit                       | `22222222-2222-4222-8222-000000000002`        |
-| Lab Coexistence final                         | `22222222-2222-4222-8222-000000000003`        |
-| Horse Order Final success                     | `33333333-3333-4333-8333-000000000001`        |
-| Duplicate-active source-link (rerun w/new key)| `44444444-4444-4444-8444-000000000001..003`   |
+| Payload validation + Lab Deposit success      | `11111111-1111-4111-8111-000000000001..040`   |
+| Lab Final standalone success                  | `22222222-2222-4222-8222-000000000001`        |
+| Lab Coexistence (Chain C2) deposit/final      | `22222222-2222-4222-8222-000000000002..003`   |
+| Horse Order Final success + negatives         | `33333333-3333-4333-8333-000000000001..010`   |
+| Duplicate active source-link (fresh keys)     | `44444444-4444-4444-8444-000000000001..003`   |
 | Permission-denied paths                       | `55555555-5555-4555-8555-000000000001..005`   |
+| Trigger positive/negative + T14–T16 accepts   | `55555555-5555-4555-8555-000000000006..010`   |
 | T2 stage keys (per hook + inert-success)      | `66666666-6666-4666-8666-000000000001..005`   |
+
+## H — Exact Idempotency UUID assignment (Turn 5A.1R3 lock)
+
+Every executable T1 Scenario or Scenario-Chain call is bound to exactly one
+UUID below. Intentional sharing is called out in the `Shared with` column and
+occurs ONLY inside Chain C1 (same-key replay + same-key/changed-payload
+conflict, per contract). Duplicate Source-Link scenarios (C2 dup-deposit /
+dup-final) use FRESH keys so `_finance_idempotency_begin` does not intercept
+them before `_finance_billing_link_upsert` fires
+`FIN_SOURCE_LINK_CONFLICT`. No T1 UUID overlaps any T2 stage UUID
+(`66666666-…`). Every UUID is still collision-checked at execution against
+`finance_request_idempotency` (per §Collision-check contract).
+
+| Scenario ID   | Chain            | Symbol                 | Exact UUID                                     | Shared with          | Reason for sharing / freshness           | Source fixture                     | Expected use                        |
+|---------------|------------------|------------------------|------------------------------------------------|----------------------|-------------------------------------------|-------------------------------------|-------------------------------------|
+| T1-A-01..A-33 | independent      | `K-PAYLOAD-01..33`     | `11111111-1111-4111-8111-000000000004..036`    | —                    | unique per call                           | LS_ACCESSIONED_LEGACY (as-needed)   | payload/status/item validation      |
+| T1-P-01       | C1               | `K-C1-BASE`            | `11111111-1111-4111-8111-000000000001`         | T1-P-06, T1-A-40     | C1 replay/conflict reuse this key         | LS_ACCESSIONED_LEGACY               | base Lab Deposit success            |
+| T1-P-06       | C1               | `K-C1-BASE` (reuse)    | `11111111-1111-4111-8111-000000000001`         | T1-P-01              | same-key + same-payload replay            | LS_ACCESSIONED_LEGACY               | replay → stored_response returned   |
+| T1-A-40       | C1               | `K-C1-BASE` (reuse)    | `11111111-1111-4111-8111-000000000001`         | T1-P-01              | same-key + changed `notes` payload        | LS_ACCESSIONED_LEGACY               | → `FIN_IDEMPOTENCY_CONFLICT`        |
+| T1-P-02       | independent      | `K-LAB-FIN-STANDALONE` | `22222222-2222-4222-8222-000000000001`         | —                    | unique                                    | LS_COMPLETED_LEGACY                 | Lab Final standalone success        |
+| T1-P-03       | C2               | `K-C2-DEP`             | `22222222-2222-4222-8222-000000000002`         | —                    | unique                                    | LS_COEXIST                          | C2 Deposit                          |
+| T1-P-04       | C2               | `K-C2-FIN`             | `22222222-2222-4222-8222-000000000003`         | —                    | unique (different link_kind, same source) | LS_COEXIST                          | C2 Final                            |
+| T1-A-34       | C2               | `K-C2-DUP-DEP`         | `44444444-4444-4444-8444-000000000001`         | —                    | FRESH — bypass idempotency, reach link conflict | LS_COEXIST                    | duplicate Deposit → `FIN_SOURCE_LINK_CONFLICT` |
+| T1-A-42 (NEW) | C2               | `K-C2-DUP-FIN`         | `44444444-4444-4444-8444-000000000002`         | —                    | FRESH — bypass idempotency, reach link conflict | LS_COEXIST                    | duplicate Final → `FIN_SOURCE_LINK_CONFLICT`   |
+| T1-A-35..A-39 | independent      | `K-HO-NEG-01..05`      | `33333333-3333-4333-8333-000000000002..006`    | —                    | unique                                    | HO_* negative fixtures              | horse-order negatives               |
+| T1-P-05       | independent      | `K-HO-FIN-P`           | `33333333-3333-4333-8333-000000000001`         | —                    | unique                                    | HO_COMPLETED_ACTUAL                 | Horse Order Final success           |
+| T1-B-01       | independent      | `K-PERM-CREATE`        | `55555555-5555-4555-8555-000000000001`         | —                    | unique                                    | LS_ACCESSIONED_LEGACY               | invoice.create denial               |
+| T1-B-02       | independent      | `K-PERM-APPROVE`       | `55555555-5555-4555-8555-000000000002`         | —                    | unique (Create explicitly allowed)        | LS_ACCESSIONED_LEGACY               | invoice.approve denial              |
+| T1-B-03       | independent      | `K-PERM-PAYMENT`       | `55555555-5555-4555-8555-000000000003`         | —                    | unique (Create+Approve allowed)           | LS_ACCESSIONED_LEGACY               | payment.create denial (cash path)   |
+| T1-B-04       | independent      | `K-NOACCT`             | `55555555-5555-4555-8555-000000000004`         | —                    | unique                                    | LS_ACCESSIONED_LEGACY               | payment-account absence             |
+| T1-P-07       | independent      | `K-TRIG-T14`           | `55555555-5555-4555-8555-000000000006`         | —                    | unique                                    | LS_DEP_JUNCTION_CUSTOMER (T14 accept via legacy client on LH_LEGACY_CLIENT-backed sample) | trigger accept |
+| T1-P-08       | independent      | `K-TRIG-T15`           | `55555555-5555-4555-8555-000000000007`         | —                    | unique                                    | LS_DEP_JUNCTION_CUSTOMER            | trigger `lab_customer` accept       |
+| T1-P-09       | independent      | `K-TRIG-T16`           | `55555555-5555-4555-8555-000000000008`         | —                    | unique                                    | LS_FIN_JUNCTION_PAYER (link_kind=`final`; fixture status = `completed`) | trigger `payer` accept |
+| T1-A-41       | independent      | `K-TRIG-T13`           | `55555555-5555-4555-8555-000000000009`         | —                    | unique                                    | LS_DEP_OWNER_ONLY                   | trigger owner-only reject           |
+
+Rules recap (locked):
+
+1. Independent calls receive unique UUIDs.
+2. Same-key/same-payload replay reuses the original base call's UUID.
+3. Same-key/changed-payload conflict reuses the original base call's UUID.
+4. Duplicate Source-Link conflict uses a FRESH UUID (idempotency must not intercept).
+5. Deposit and Final on the same Sample use DIFFERENT UUIDs.
+6. Duplicate Deposit and duplicate Final each use a FRESH, separate UUID.
+7. No T1 UUID overlaps a T2 stage UUID.
+8. Every UUID is collision-checked at execution time.
+
+## I — Scenario-Chain SAVEPOINT names (Turn 5A.1R3 lock)
+
+Dependent-scenario chains share ONE Group SAVEPOINT. No rollback occurs
+between dependent calls; one final `ROLLBACK TO SAVEPOINT <group>` restores
+the whole chain.
+
+### Chain C1 — `sp_chain_lab_replay`  (Lab Deposit success → replay → conflict)
+
+1. T1-P-01 — execute base Lab Deposit (idem `K-C1-BASE`).
+2. Assert persisted Invoice/Items/Ledger/Links; capture the 17-key response.
+3. T1-P-06 — re-invoke with same `K-C1-BASE` and byte-equivalent payload;
+   assert `stored_response` returned unchanged; assert Δrows = 0.
+4. T1-A-40 — re-invoke with same `K-C1-BASE` and changed `notes`; assert
+   `FIN_IDEMPOTENCY_CONFLICT` (SQLSTATE 23514); assert Δrows = 0.
+5. `ROLLBACK TO SAVEPOINT sp_chain_lab_replay`.
+
+### Chain C2 — `sp_chain_lab_coexistence`  (single-sample Deposit → Final → dup Deposit → dup Final)
+
+1. `LS_COEXIST` starts `accessioned`.
+2. T1-P-03 — Deposit (idem `K-C2-DEP`); assert one active Deposit link.
+3. Privileged `UPDATE lab_samples SET status='processing' WHERE id=<LS_COEXIST>`.
+4. Privileged `UPDATE lab_samples SET status='completed'  WHERE id=<LS_COEXIST>`.
+5. T1-P-04 — Final (idem `K-C2-FIN`); assert one active Final link.
+6. Assert exactly one active Deposit + one active Final link on
+   `(tenant_id, 'lab_sample', LS_COEXIST)` and two distinct invoice IDs.
+7. T1-A-34 — duplicate Deposit with FRESH `K-C2-DUP-DEP`; assert
+   `FIN_SOURCE_LINK_CONFLICT`; assert no additional financial rows.
+8. T1-A-42 (NEW) — duplicate Final with FRESH `K-C2-DUP-FIN`; assert
+   `FIN_SOURCE_LINK_CONFLICT`; assert no additional financial rows.
+9. `ROLLBACK TO SAVEPOINT sp_chain_lab_coexistence`.
 
 ## Coexistence lifecycle (single-source Deposit → Final proof)
 
@@ -161,18 +249,35 @@ for FK satisfaction during setup.
 
 ## Permission-negative architecture (matches File 21 §L)
 
-Inside a per-scenario SAVEPOINT (Actor is Owner; naked call would short-circuit):
+Inside a per-scenario SAVEPOINT (Actor is Owner; naked call would short-circuit
+because `has_permission` returns `true` for role `owner`):
 
 1. Look up `tm_id := (SELECT id FROM tenant_members WHERE user_id=<Actor> AND tenant_id=<Primary>)`.
 2. `UPDATE tenant_members SET role='foreman' WHERE id=tm_id` (transaction-local demotion).
-3. `INSERT INTO member_permissions (tenant_member_id, permission_key, granted, granted_by)
-   VALUES (tm_id, '<finance.invoice.create | finance.invoice.approve | finance.payment.create>', false, <Actor>)
-   ON CONFLICT (tenant_member_id, permission_key)
-   DO UPDATE SET granted = EXCLUDED.granted`.
+3. Apply the exact per-scenario permission shape below via `INSERT INTO
+   member_permissions … ON CONFLICT (tenant_member_id, permission_key) DO
+   UPDATE SET granted = EXCLUDED.granted` (transaction-local override).
 4. Bind JWT claims for Actor; `SET LOCAL ROLE authenticated`.
-5. Call `public.create_source_checkout_invoice(...)` → assert `FIN_PERMISSION_DENIED`.
+5. Call `public.create_source_checkout_invoice(...)` → assert
+   `FIN_PERMISSION_DENIED` for the intended key.
 6. `RESET ROLE`; `ROLLBACK TO SAVEPOINT sp_scenario_N` restores Owner role and
    removes the negative override.
 
-Payment-permission fixture uses `payment_method='cash'` (the only branch that
-consults `finance.payment.create`).
+### Per-scenario prerequisite gates (Turn 5A.1R3 lock)
+
+`foreman` does not inherit every finance permission. To prove each denial
+reaches the *intended* gate rather than failing at an earlier check, each
+scenario must explicitly seed the prerequisites shown below.
+
+| Scenario | payment_method | `finance.invoice.create` | `finance.invoice.approve` | `finance.payment.create` | Notes                                                                              |
+|----------|----------------|--------------------------|---------------------------|--------------------------|------------------------------------------------------------------------------------|
+| T1-B-01  | cash           | **false**                | (irrelevant)              | (irrelevant)             | Create is checked first — no later permissions matter.                             |
+| T1-B-02  | debt           | **true (explicit)**      | **false**                 | (not checked on debt)    | Use debt to avoid triggering the earlier payment-permission failure.               |
+| T1-B-03  | cash           | **true (explicit)**      | **true (explicit)**       | **false**                | Cash is the representative non-debt method used to reach the payment gate.         |
+
+### Payment-permission consultation (correction)
+
+`finance.payment.create` is consulted for **every non-debt** `payment_method`
+— that is, `cash`, `card`, AND `transfer`. Cash is only the *representative*
+method chosen for T1-B-03; it is NOT the sole branch that consults the
+permission. The `debt` branch does not consult `finance.payment.create`.

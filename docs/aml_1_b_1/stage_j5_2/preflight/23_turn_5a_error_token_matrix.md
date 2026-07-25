@@ -109,8 +109,8 @@ does NOT catch or remap it — it propagates verbatim to the caller.
 | #  | Cat | Token                          | SQLSTATE | Trigger path                                                                                                                                     | Fixture / natural reproduction                                                                                                             |
 |----|-----|--------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 | 60 | A   | `FIN_IDEMPOTENCY_CONFLICT`     | `23514`  | `_finance_idempotency_begin`: existing row for `(tenant_id, operation, idempotency_key)` has `request_hash <> new hash` (same actor).            | Execute successful checkout with idem key `K1` and payload `P1`; re-invoke with the same `K1` but modified `P1'` (e.g. changed `notes`).   |
-| 61 | A   | `FIN_IDEMPOTENCY_ACTOR_MISMATCH` | `42501` | `_finance_idempotency_begin`: existing row for `(tenant_id, operation, idempotency_key)` has `actor_id <> auth.uid()`.                           | Not scheduled for T1 (requires a second authenticated fixture actor). Static review only in Turn 5A — deferred to a future harness turn.   |
-| 62 | A   | `FIN_IDEMPOTENCY_IN_PROGRESS`  | `40001`  | `_finance_idempotency_begin`: existing row with `response IS NULL` (a concurrent invocation is mid-flight).                                       | Requires two concurrent sessions; not reachable from a single-session T1 SAVEPOINT harness. Static review only.                            |
+| 61 | C   | `FIN_IDEMPOTENCY_ACTOR_MISMATCH` | `42501` | `_finance_idempotency_begin`: existing row for `(tenant_id, operation, idempotency_key)` has `actor_id <> auth.uid()`.                           | Requires a second authenticated fixture actor; not reachable from the single-actor T1 harness. Static review only.                          |
+| 62 | C   | `FIN_IDEMPOTENCY_IN_PROGRESS`  | `40001`  | `_finance_idempotency_begin`: existing row with `response IS NULL` (a concurrent invocation is mid-flight).                                       | Requires two concurrent sessions; not reachable from a single-session T1 SAVEPOINT harness. Static review only.                            |
 
 Idempotency replay (same key + same request_hash + same actor) is a **positive
 path** — the helper returns `stored_response` unchanged and `create_source_checkout_invoice`
@@ -159,19 +159,23 @@ The trigger raises message strings (not `FIN_*` tokens) with these SQLSTATEs:
 Each hook uses `pg_catalog.current_setting('<guc>', true) = 'raise'`. Activation
 is transaction-scoped via `SET LOCAL` and reverts on any enclosing rollback.
 
-## 4. Category totals (Turn 5A.1R2 corrected)
+## 4. Category totals (Turn 5A.1R3 corrected)
 
 Failure-hook tokens `FIN_TEST_FAIL_AFTER_*` (rows 56–59) belong exclusively to
-T2 and are **excluded from T1 Category A** in this table.
+T2 and are **excluded from T1 Category A** in this table. Rows 61 and 62
+(`FIN_IDEMPOTENCY_ACTOR_MISMATCH`, `FIN_IDEMPOTENCY_IN_PROGRESS`) are
+Category C — reachable only via multi-actor or concurrent-session harnesses
+outside the single-actor/single-session T1 contract.
 
 | Category                                                                       | Count |
 |--------------------------------------------------------------------------------|-------|
-| A — Directly executable via T1 (rows 1–19, 23–37, 39, 41–43, 46 + row 60)      | 39    |
+| A — Directly executable via T1 (rows 1–19, 23–37, 39, 41–43, 46, 60)           | 37    |
 | B — Executable via safe savepoint-scoped fixture shaping (rows 20–22, 47)      | 4     |
-| C — Internal invariant, static review only (rows 44–45, 48–55, 61–62)          | 12    |
+| C — Internal invariant / multi-actor / concurrent, static review only          | 14    |
+|     (rows 44–45, 48–55, 61–62)                                                 |       |
 | D — Structurally unreachable (rows 38, 40)                                     | 2     |
 | T2 failure-hook tokens (rows 56–59, T2-owned)                                  | 4     |
 | **Total RPC-observable tokens catalogued**                                     | **61**|
 
-Row-40 reclassification and row-60/61/62 additions are the only changes vs.
-Turn 5A.1R. The 21-row trigger surface (§2) is unchanged.
+Turn 5A.1R3 changes vs. Turn 5A.1R2: rows 61 and 62 reclassified A → C. The
+21-row trigger surface (§2) is unchanged.
