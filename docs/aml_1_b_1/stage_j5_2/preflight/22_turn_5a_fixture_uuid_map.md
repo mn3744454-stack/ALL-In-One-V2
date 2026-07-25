@@ -49,7 +49,7 @@ Deterministic fixture UUIDs (each transaction-local; rolled back):
 | Symbol                    | UUID                                     | Initial status | Notes                                                                                       |
 |---------------------------|------------------------------------------|----------------|----------------------------------------------------------------------------------------------|
 | LS_DRAFT_LEGACY           | `dddd4444-0000-4000-8000-000000000001`   | `draft`        | Deposit-positive **and** final-negative fixture (`draft` → `FIN_LAB_FINAL_STATUS_INVALID`) |
-| LS_ACCESSIONED_LEGACY     | `dddd4444-0000-4000-8000-000000000002`   | `accessioned`  | Deposit-positive **and** final-negative fixture (`accessioned` → `FIN_LAB_FINAL_STATUS_INVALID`) |
+| LS_ACCESSIONED_LEGACY     | `dddd4444-0000-4000-8000-000000000002`   | `accessioned`  | Deposit-positive **and** final-negative fixture (`accessioned` → `FIN_LAB_FINAL_STATUS_INVALID`); `lab_horse_id = LH_LEGACY_CLIENT` (backs T1-P-07 T14 legacy-client accept) |
 | LS_COMPLETED_LEGACY       | `dddd4444-0000-4000-8000-000000000003`   | `completed`    | Final-positive fixture                                                                       |
 | LS_PROCESSING             | `dddd4444-0000-4000-8000-000000000004`   | `processing`   | Deposit-negative (`processing` → `FIN_LAB_DEPOSIT_STATUS_INVALID`) and final-negative (`FIN_LAB_FINAL_STATUS_INVALID`) |
 | LS_CANCELLED              | `dddd4444-0000-4000-8000-000000000005`   | `cancelled`    | Always `FIN_SOURCE_CANCELLED` (fires before status gates)                                    |
@@ -142,10 +142,55 @@ them before `_finance_billing_link_upsert` fires
 | T1-B-02       | independent      | `K-PERM-APPROVE`       | `55555555-5555-4555-8555-000000000002`         | —                    | unique (Create explicitly allowed)        | LS_ACCESSIONED_LEGACY               | invoice.approve denial              |
 | T1-B-03       | independent      | `K-PERM-PAYMENT`       | `55555555-5555-4555-8555-000000000003`         | —                    | unique (Create+Approve allowed)           | LS_ACCESSIONED_LEGACY               | payment.create denial (cash path)   |
 | T1-B-04       | independent      | `K-NOACCT`             | `55555555-5555-4555-8555-000000000004`         | —                    | unique                                    | LS_ACCESSIONED_LEGACY               | payment-account absence             |
-| T1-P-07       | independent      | `K-TRIG-T14`           | `55555555-5555-4555-8555-000000000006`         | —                    | unique                                    | LS_DEP_JUNCTION_CUSTOMER (T14 accept via legacy client on LH_LEGACY_CLIENT-backed sample) | trigger accept |
+| T1-P-07       | independent      | `K-TRIG-T14`           | `55555555-5555-4555-8555-000000000006`         | —                    | unique                                    | LS_ACCESSIONED_LEGACY (backed by LH_LEGACY_CLIENT — T14 legacy-client accept) | trigger accept |
 | T1-P-08       | independent      | `K-TRIG-T15`           | `55555555-5555-4555-8555-000000000007`         | —                    | unique                                    | LS_DEP_JUNCTION_CUSTOMER            | trigger `lab_customer` accept       |
 | T1-P-09       | independent      | `K-TRIG-T16`           | `55555555-5555-4555-8555-000000000008`         | —                    | unique                                    | LS_FIN_JUNCTION_PAYER (link_kind=`final`; fixture status = `completed`) | trigger `payer` accept |
 | T1-A-41       | independent      | `K-TRIG-T13`           | `55555555-5555-4555-8555-000000000009`         | —                    | unique                                    | LS_DEP_OWNER_ONLY                   | trigger owner-only reject           |
+
+### H.1 Exact T1-A-01..A-33 Idempotency derivation (Turn 5A.1R4 lock — Option B)
+
+The `T1-A-01..A-33` range row in the table above is an authoring aid. The
+authoritative binding for each individual Scenario is the following
+deterministic derivation (Option B in File-17 language):
+
+```
+For each N in 1..33:
+  suffix_decimal := N + 3
+  suffix_string  := lpad(suffix_decimal::text, 12, '0')   -- 12 decimal digits
+  idem_uuid      := '11111111-1111-4111-8111-' || suffix_string
+```
+
+Worked examples (must match at authoring and execution time):
+
+| Scenario | N  | N+3 | Suffix (12 digits) | Exact Idempotency UUID                       |
+|----------|----|-----|--------------------|-----------------------------------------------|
+| T1-A-01  | 1  | 4   | `000000000004`     | `11111111-1111-4111-8111-000000000004`        |
+| T1-A-02  | 2  | 5   | `000000000005`     | `11111111-1111-4111-8111-000000000005`        |
+| T1-A-09  | 9  | 12  | `000000000012`     | `11111111-1111-4111-8111-000000000012`        |
+| T1-A-10  | 10 | 13  | `000000000013`     | `11111111-1111-4111-8111-000000000013`        |
+| T1-A-33  | 33 | 36  | `000000000036`     | `11111111-1111-4111-8111-000000000036`        |
+
+Static assertion plan (to be embedded in the T1 fixture-setup DO block
+authored in Turn 5A.2):
+
+1. Generate all 33 derived UUIDs via the derivation above.
+2. Assert every string parses as a valid `uuid` (implicit cast).
+3. Assert `count(distinct) = 33` — no internal duplicates.
+4. Assert zero overlap with the reserved keys used elsewhere:
+   - C1: `11111111-…-000000000001`.
+   - C2 deposit/final: `22222222-…-000000000002`, `22222222-…-000000000003`.
+   - C2 duplicate probes: `44444444-…-000000000001`, `44444444-…-000000000002`.
+   - Lab Final standalone: `22222222-…-000000000001`.
+   - Horse Order success + negatives: `33333333-…-000000000001..006`.
+   - Permission + trigger: `55555555-…-000000000001..009`.
+   - T2 stage keys: `66666666-…-000000000001..005`.
+5. Execution-time collision guard against `finance_request_idempotency`
+   remains mandatory per the "Collision-check contract" below (defence in
+   depth against namespace drift between authoring and execution).
+
+Range notation is retained above ONLY as a namespace reservation hint. The
+derivation in this §H.1 is the sole authoritative source for the 33 exact
+UUIDs.
 
 Rules recap (locked):
 
@@ -174,42 +219,93 @@ the whole chain.
    `FIN_IDEMPOTENCY_CONFLICT` (SQLSTATE 23514); assert Δrows = 0.
 5. `ROLLBACK TO SAVEPOINT sp_chain_lab_replay`.
 
-### Chain C2 — `sp_chain_lab_coexistence`  (single-sample Deposit → Final → dup Deposit → dup Final)
+### Chain C2 — `sp_chain_lab_coexistence`  (single-sample Deposit → dup Deposit → status transitions → Final → dup Final)
+
+Reachability lock (Turn 5A.1R4): the installed RPC validates Source status
+BEFORE the same-kind Source-Link conflict guard (see §Live validation order
+below). Therefore duplicate Deposit MUST run while the Sample is still in a
+Deposit-eligible status (`accessioned`), and duplicate Final MUST run while
+the Sample is `completed`. Reordered accordingly.
 
 1. `LS_COEXIST` starts `accessioned`.
-2. T1-P-03 — Deposit (idem `K-C2-DEP`); assert one active Deposit link.
-3. Privileged `UPDATE lab_samples SET status='processing' WHERE id=<LS_COEXIST>`.
-4. Privileged `UPDATE lab_samples SET status='completed'  WHERE id=<LS_COEXIST>`.
-5. T1-P-04 — Final (idem `K-C2-FIN`); assert one active Final link.
-6. Assert exactly one active Deposit + one active Final link on
-   `(tenant_id, 'lab_sample', LS_COEXIST)` and two distinct invoice IDs.
-7. T1-A-34 — duplicate Deposit with FRESH `K-C2-DUP-DEP`; assert
-   `FIN_SOURCE_LINK_CONFLICT`; assert no additional financial rows.
-8. T1-A-42 (NEW) — duplicate Final with FRESH `K-C2-DUP-FIN`; assert
-   `FIN_SOURCE_LINK_CONFLICT`; assert no additional financial rows.
-9. `ROLLBACK TO SAVEPOINT sp_chain_lab_coexistence`.
+2. T1-P-03 — Deposit (idem `K-C2-DEP`); assert exactly one active Deposit
+   link, exactly one Deposit invoice, and the expected invoice / item /
+   ledger / payment rows.
+3. T1-A-34 — while the Sample is STILL `accessioned`, duplicate Deposit with
+   FRESH `K-C2-DUP-DEP`; assert `FIN_SOURCE_LINK_CONFLICT` (SQLSTATE 23514);
+   assert no new invoice, no new item, no new ledger row, no new billing
+   link; original Deposit remains unchanged.
+4. Privileged `UPDATE lab_samples SET status='processing' WHERE id=<LS_COEXIST>`.
+5. Privileged `UPDATE lab_samples SET status='completed'  WHERE id=<LS_COEXIST>`.
+6. T1-P-04 — Final (idem `K-C2-FIN`); assert one active Deposit link retained,
+   one active Final link created, distinct Deposit and Final invoice IDs, and
+   no rewrite of the Deposit link.
+7. T1-A-42 — while the Sample remains `completed`, duplicate Final with FRESH
+   `K-C2-DUP-FIN`; assert `FIN_SOURCE_LINK_CONFLICT` (SQLSTATE 23514); assert
+   no new financial rows; original Final remains unchanged.
+8. Assert final C2 terminal state (one active Deposit link + one active Final
+   link, two distinct invoices) inside the Group SAVEPOINT.
+9. `ROLLBACK TO SAVEPOINT sp_chain_lab_coexistence` (single, final rollback);
+   assert zero residue against the pre-chain baseline.
+
+## Live validation order (Turn 5A.1R4 lock)
+
+The installed `public.create_source_checkout_invoice` executes:
+
+```
+Outer Idempotency Begin
+  → Source Lock
+  → Source Row Load
+  → Source Status Validation
+  → Active Same-Kind Source-Link Conflict Guard
+  → Invoice Creation
+```
+
+Consequences:
+
+- Duplicate-Deposit conflict testing MUST occur while the Source is still in a
+  Deposit-eligible status (`draft` or `accessioned` for `lab_sample`).
+- Duplicate-Final conflict testing MUST occur after the Source reaches a
+  Final-eligible status (`completed` for `lab_sample`).
+- A `completed` sample CANNOT be used to reach the Deposit Source-Link conflict
+  because `FIN_LAB_DEPOSIT_STATUS_INVALID` fires first.
+- The same-kind Source-Link conflict guard does NOT precede Source status
+  validation. Any prescription that ordered it earlier is withdrawn.
 
 ## Coexistence lifecycle (single-source Deposit → Final proof)
 
-Single sample `LS_COEXIST` (initial status `accessioned`).
+Single sample `LS_COEXIST` (initial status `accessioned`). Executed inside the
+single Group SAVEPOINT `sp_chain_lab_coexistence`; no rollback occurs between
+dependent calls.
 
 1. Fixture insert with `status='accessioned'` and `client_id=CLIENT_REGISTERED`.
-2. Call RPC with `link_kind='deposit'` and idem key
+2. T1-P-03 — Call RPC with `link_kind='deposit'` and idem key
    `22222222-2222-4222-8222-000000000002` → asserts one new invoice + one
    `billing_links` row with `link_kind='deposit'`.
-3. Privileged status transition inside the same outer transaction:
+3. T1-A-34 — while `LS_COEXIST.status` is STILL `accessioned`, call RPC with
+   `link_kind='deposit'` and FRESH idem key
+   `44444444-4444-4444-8444-000000000001` → asserts
+   `FIN_SOURCE_LINK_CONFLICT`; asserts no additional financial rows.
+4. Privileged status transition inside the same outer transaction:
    `UPDATE lab_samples SET status='processing' WHERE id=<LS_COEXIST>`.
-4. Privileged status transition:
+5. Privileged status transition:
    `UPDATE lab_samples SET status='completed' WHERE id=<LS_COEXIST>`.
-5. Call RPC with `link_kind='final'` and idem key
+6. T1-P-04 — Call RPC with `link_kind='final'` and idem key
    `22222222-2222-4222-8222-000000000003` → asserts a second invoice + one
    `billing_links` row with `link_kind='final'`.
-6. Assert: exactly one active `deposit` link and exactly one active `final` link
-   for `(tenant_id, source_type='lab_sample', source_id=LS_COEXIST)`.
-7. Assert: the two invoices are distinct rows.
-8. Independent same-kind conflict proof: within a new SAVEPOINT, re-run
-   `link_kind='deposit'` with a fresh idem key → assert `FIN_SOURCE_LINK_CONFLICT`.
-   Repeat for `link_kind='final'`.
+7. T1-A-42 — while `LS_COEXIST.status` remains `completed`, call RPC with
+   `link_kind='final'` and FRESH idem key
+   `44444444-4444-4444-8444-000000000002` → asserts
+   `FIN_SOURCE_LINK_CONFLICT`; asserts no additional financial rows.
+8. Assert: exactly one active `deposit` link and exactly one active `final`
+   link for `(tenant_id, source_type='lab_sample', source_id=LS_COEXIST)`;
+   two distinct invoice rows.
+9. Single final `ROLLBACK TO SAVEPOINT sp_chain_lab_coexistence` proves zero
+   residue against the pre-chain baseline.
+
+Do NOT use separate independent SAVEPOINTs for the duplicate probes: doing so
+would remove the prerequisite Deposit or Final row and the conflict guard
+could never fire.
 
 ## Collision-check contract
 

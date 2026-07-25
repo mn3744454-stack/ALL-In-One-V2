@@ -172,12 +172,19 @@ Horse-order path: `items` root key forbidden entirely
 - `notes` ≤ 500 chars (`FIN_NOTES_TOO_LONG` at 501).
 - `client_name` (resolved) ≤ 200 chars (`FIN_CLIENT_NAME_TOO_LONG` at 201).
 
-## K. Same-source Deposit → Final fixture architecture (locked)
+## K. Same-source Deposit → Final fixture architecture (locked, Turn 5A.1R4 reachability corrected)
 
-Single `LS_COEXIST` sample. See `22 §Coexistence lifecycle` for the 8-step
-lifecycle. Two active billing links (one deposit + one final) MUST point to
-distinct invoices. Duplicate deposit or duplicate final on the same source_id
-independently → `FIN_SOURCE_LINK_CONFLICT`.
+Single `LS_COEXIST` sample. Live validation order (Outer Idempotency → Source
+Lock → Source Row Load → **Source Status Validation** → **Same-Kind
+Source-Link Conflict Guard** → Invoice Creation) forces the C2 order:
+`Deposit → Duplicate Deposit (while still accessioned) → status transitions
+to completed → Final → Duplicate Final (while completed)`. See `22
+§Coexistence lifecycle` for the 9-step lifecycle. Two active billing links
+(one deposit + one final) MUST point to distinct invoices. Duplicate deposit
+or duplicate final on the same source_id independently →
+`FIN_SOURCE_LINK_CONFLICT` (with FRESH idempotency keys so
+`_finance_idempotency_begin` does not intercept before
+`_finance_billing_link_upsert`).
 
 ## L. Permission-negative architecture (locked)
 
@@ -272,9 +279,15 @@ Dependency chains are NEVER split across sub-turns.
 | T1-P-06     | pos | **C1** `sp_chain_lab_replay` | lab_sample | LS_ACCESSIONED_LEGACY   | deposit   | cash           | same key + byte-equal payload                         | success (replay); `stored_response` returned     | Δinvoices=0, Δbilling_links=0, replay path exercised                                                    | (chain: `sp_chain_lab_replay`)  | `11111111-…-000000000001` (shared with T1-P-01) | after T1-P-01 |
 | T1-A-40     | A   | **C1** `sp_chain_lab_replay` | lab_sample | LS_ACCESSIONED_LEGACY   | deposit   | cash           | same key + changed `notes`                            | `FIN_IDEMPOTENCY_CONFLICT` / 23514               | zero-delta beyond T1-P-01 baseline                                                                       | (chain: `sp_chain_lab_replay`)  | `11111111-…-000000000001` (shared with T1-P-01) | after T1-P-06 |
 | T1-P-03     | pos | **C2** `sp_chain_lab_coexistence` | lab_sample | LS_COEXIST         | deposit   | cash           | Deposit on `accessioned` LS_COEXIST                  | success                                          | Δinvoices=1, Δbilling_links=1 (kind=deposit)                                                            | (chain: `sp_chain_lab_coexistence`) | `22222222-…-000000000002` | starts C2              |
-| T1-P-04     | pos | **C2** `sp_chain_lab_coexistence` | lab_sample | LS_COEXIST         | final     | cash           | privileged UPDATE `processing`→`completed`; Final    | success                                          | Δinvoices=+1, Δbilling_links=+1 (kind=final), pre-existing deposit link retained                        | (chain: `sp_chain_lab_coexistence`) | `22222222-…-000000000003` | after T1-P-03          |
-| T1-A-34     | A   | **C2** `sp_chain_lab_coexistence` | lab_sample | LS_COEXIST         | deposit   | cash           | duplicate deposit with FRESH idem key                | `FIN_SOURCE_LINK_CONFLICT` / 23514               | zero-delta beyond T1-P-04 baseline                                                                       | (chain: `sp_chain_lab_coexistence`) | `44444444-…-000000000001` (FRESH) | after T1-P-04       |
-| T1-A-42     | A   | **C2** `sp_chain_lab_coexistence` | lab_sample | LS_COEXIST         | final     | cash           | duplicate final with FRESH idem key (NEW)            | `FIN_SOURCE_LINK_CONFLICT` / 23514               | zero-delta beyond T1-P-04 baseline                                                                       | (chain: `sp_chain_lab_coexistence`) | `44444444-…-000000000002` (FRESH) | after T1-A-34       |
+| T1-A-34     | A   | **C2** `sp_chain_lab_coexistence` | lab_sample | LS_COEXIST         | deposit   | cash           | duplicate deposit with FRESH idem key WHILE STILL `accessioned` | `FIN_SOURCE_LINK_CONFLICT` / 23514        | zero-delta beyond T1-P-03 baseline                                                                       | (chain: `sp_chain_lab_coexistence`) | `44444444-…-000000000001` (FRESH) | after T1-P-03, before status transition |
+| T1-P-04     | pos | **C2** `sp_chain_lab_coexistence` | lab_sample | LS_COEXIST         | final     | cash           | privileged UPDATE `accessioned`→`processing`→`completed`; Final | success                                    | Δinvoices=+1, Δbilling_links=+1 (kind=final), pre-existing deposit link retained                        | (chain: `sp_chain_lab_coexistence`) | `22222222-…-000000000003` | after T1-A-34          |
+| T1-A-42     | A   | **C2** `sp_chain_lab_coexistence` | lab_sample | LS_COEXIST         | final     | cash           | duplicate final with FRESH idem key WHILE `completed` | `FIN_SOURCE_LINK_CONFLICT` / 23514              | zero-delta beyond T1-P-04 baseline                                                                       | (chain: `sp_chain_lab_coexistence`) | `44444444-…-000000000002` (FRESH) | after T1-P-04          |
+
+C2 reachability lock (Turn 5A.1R4): duplicate-Deposit fires BEFORE the
+`accessioned → processing → completed` transition (deposit-eligibility must
+still hold); duplicate-Final fires AFTER the transition (final-eligibility
+must already hold). See File 22 §Live validation order and §Coexistence
+lifecycle.
 
 **Sub-turn 5A.2 T1 row count = 41** (33 A + 3 A moved into C1 + 1 A moved from C2 top + 1 A new C2-dup-final; positives = P-01, P-02, P-03, P-04, P-06). Breakdown: **34 A + 0 B + 7 positive → 41 rows** with A = {A-01..A-33, A-34, A-40, A-42} = 33+3 = 36 A, positives = {P-01, P-02, P-03, P-04, P-06} = 5. **36 A + 5 positive = 41 rows.**
 

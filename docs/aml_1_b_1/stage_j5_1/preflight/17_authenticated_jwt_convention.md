@@ -192,10 +192,19 @@ The runner MUST NOT:
 
 ## 4. Reset & Residue Discipline
 
-Every scenario is self-contained inside its own `SAVEPOINT`. The whole file is
-inside a single outer `BEGIN … ROLLBACK`. After the outer `ROLLBACK` the
-following tables MUST show byte-identical counts and sums to their pre-run
-snapshot (captured in `pg_temp.test_baseline`):
+Two Scenario shapes are permitted (see §2.5):
+
+- **Independent Scenarios** are isolated inside their own `SAVEPOINT` and
+  rolled back immediately after their assertions.
+- **Dependent Scenario Chains** share ONE Group `SAVEPOINT`. Multiple
+  separately-counted Scenario IDs run in sequence; NO `ROLLBACK TO SAVEPOINT`
+  occurs between dependent calls; each Scenario records its own result row;
+  exactly one final `ROLLBACK TO SAVEPOINT <group>` restores the whole chain
+  and MUST prove zero residue against the pre-chain baseline.
+
+Both shapes sit inside a single outer `BEGIN … ROLLBACK`. After the outer
+`ROLLBACK` the following tables MUST show byte-identical counts and sums to
+their pre-run snapshot (captured in `pg_temp.test_baseline`):
 
 - `public.invoices`
 - `public.invoice_items`
