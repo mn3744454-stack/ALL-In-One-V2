@@ -1,9 +1,9 @@
-# 17 — Authenticated SQL Test Authoring Convention (Turn 5A.1 Correction)
+# 17 — Authenticated SQL Test Authoring Convention (Turn 5A.1R3 Correction)
 
 Status: PREFLIGHT / TEST CONTRACT (not final Mini Documentation).
 Scope: authenticated SQL tests authored under `supabase/tests/database/` and executed by a **qualified runner** with `authenticated`-role membership.
 
-This revision (Turn 5A.1) corrects the earlier convention on four points:
+This revision (Turn 5A.1R3) locks the convention on the following points:
 
 1. `psql` `:'…'` variables must NEVER appear inside dollar-quoted PL/pgSQL bodies —
    `psql` interpolation occurs *before* the block is parsed, and inside `DO $$ … $$`
@@ -12,12 +12,31 @@ This revision (Turn 5A.1) corrects the earlier convention on four points:
    (ON COMMIT DROP), and every PL/pgSQL block reads it via `pg_temp.test_context`.
 3. `SET LOCAL ROLE authenticated` is scoped narrowly around each RPC invocation
    only; privileged fixture setup and privileged persistence assertions run as the
-   session (privileged) role. `RESET ROLE` is executed *before* privileged reads
-   and inside any expected-error `EXCEPTION` handler.
+   session (privileged) role. `RESET ROLE` is executed *before* privileged reads.
+   For expected-error scenarios, the authenticated `DO $$ … $$` block catches the
+   RPC error inside its `EXCEPTION WHEN OTHERS THEN … END;` handler, inserts
+   `SQLSTATE`/`MESSAGE_TEXT` into the granted `pg_temp` result table, and returns
+   normally. `RESET ROLE` then runs as the **next top-level SQL statement** —
+   never inside the PL/pgSQL exception handler.
 4. The qualified runner does NOT provision replacement `auth.users` or
    `public.tenant_members` rows, does NOT edit the SQL file, and does NOT
    substitute the fixed UUIDs. The runner only binds `-v test_actor_id=… -v
    test_tenant_id=…` and executes the file unchanged.
+5. **Scenario SAVEPOINT rule (Turn 5A.1R3 lock).** Two shapes are permitted:
+   - **Independent Scenario** — one Scenario, one SAVEPOINT (`sp_scenario_<id>`),
+     rolled back immediately after its assertions. Default shape.
+   - **Dependent Scenario Chain** — several separately counted Scenario IDs
+     share ONE named Group SAVEPOINT (e.g. `sp_chain_lab_replay`,
+     `sp_chain_lab_coexistence`) when later scenarios mechanically depend on
+     rows created by earlier scenarios. Inside a chain: every Scenario still
+     performs a real RPC call; every Scenario records an independent result
+     row in `pg_temp.test_scenario_results`; NO `ROLLBACK TO SAVEPOINT` occurs
+     between dependent calls; exactly one final `ROLLBACK TO SAVEPOINT
+     <group>` restores the whole chain; the chain must leave zero residue;
+     dependencies (and the group SAVEPOINT name) are explicit in the File-21
+     inventory. A Scenario is NOT considered executed merely because a sibling
+     call in the same chain ran — each ID needs its own RPC call and its own
+     result row.
 
 ---
 
