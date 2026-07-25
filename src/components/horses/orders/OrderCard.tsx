@@ -204,7 +204,6 @@ export function OrderCard({
         sourceType="horse_order"
         sourceId={order.id}
         initialLineItems={checkoutItems}
-        suggestedClientId={order.client_id}
         linkKind="final"
         onComplete={() => setCheckoutOpen(false)}
         onCancel={() => setCheckoutOpen(false)}
