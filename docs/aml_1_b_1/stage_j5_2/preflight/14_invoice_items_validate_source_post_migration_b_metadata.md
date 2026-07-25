@@ -19,15 +19,24 @@ Database: postgres · Project ref: vhxglsvxwwpmoqjabfmj
 - ACL: unchanged (`CREATE OR REPLACE` does not reset ACL)
 - Trigger binding: `trg_invoice_items_validate_source` on `public.invoice_items`, unchanged
 
-## Fingerprints (post-Migration-B)
+## Fingerprints (post-Migration-B) — corrected in Turn 3B
 
-- Raw DB SHA-256 (`sha256(pg_get_functiondef(oid))`):
-  `8ee852ec40fd2ac678b2cdf4af454e61646609d06d09c6a0a4e9f2b9a93bf772`
-- Canonical POSIX SHA-256 (LF-normalized, single trailing LF):
-  `8ee852ec40fd2ac678b2cdf4af454e61646609d06d09c6a0a4e9f2b9a93bf772`
-- Raw-of-dump file SHA-256:
-  `fec188c8a01f0882fb6048cc8da3b6012343e894da450c26026d62a19c12f3ed`
-- Definition size: 5824 bytes (baseline was 5216; delta = new lab_horse branch).
+Protocols (locked):
+- **Raw DB-side**: SHA-256 of the exact UTF-8 bytes returned by
+  `pg_get_functiondef(oid)`, with any psql-appended trailing newline stripped.
+- **Canonical POSIX**: CRLF/CR → LF, then `[[:space:]]+` collapsed to a single
+  ASCII space, then `btrim`, then SHA-256 of the resulting UTF-8 bytes.
+
+Recomputed 2026-07-25 UTC against the live definition:
+
+- Raw DB SHA-256: `8ee852ec40fd2ac678b2cdf4af454e61646609d06d09c6a0a4e9f2b9a93bf772`
+- Canonical POSIX SHA-256: `f2d413d81b9dbd4577d142ec25e6b3b44b6a265c297b5bac1ad4d5b8eb8c45f0`
+- Raw definition size: 5823 bytes (delta vs 5216-byte baseline = new lab_horse branch).
+
+The prior draft of this file mislabelled the canonical POSIX hash as
+"LF-normalized, single trailing LF" and reused the raw hash for both slots.
+Semantic body is unchanged from Migration B; only the hash-protocol labels and
+canonical POSIX value are corrected.
 
 ## Semantic change (only branch modified)
 
