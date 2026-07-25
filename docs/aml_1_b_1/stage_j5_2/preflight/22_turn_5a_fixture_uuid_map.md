@@ -1,6 +1,6 @@
-# 22 — Turn 5A.1R5E · Deterministic Fixture UUID Map (Corrected)
+# 22 — Turn 5A.1R5F · Deterministic Fixture UUID Map (Corrected)
 
-**ACTIVE TURN-5A.2.a FOUNDATION FIXTURES = 10. T1-A-32 AND ITS CROSS-TENANT FIXTURES ARE RETIRED BEFORE SQL AUTHORING.**
+**ACTIVE FOUNDATION FIXTURES = 10. SECONDARY TENANT IS CONTEXT-ONLY. NO SECONDARY-TENANT SOURCE FIXTURE IS ACTIVE.**
 
 Namespace is locked. All UUIDs are v4-shaped. A read-only collision census was
 executed against every fixture-owned UUID and its target table during Turn 5A.1R
