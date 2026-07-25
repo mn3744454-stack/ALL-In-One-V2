@@ -159,15 +159,19 @@ The trigger raises message strings (not `FIN_*` tokens) with these SQLSTATEs:
 Each hook uses `pg_catalog.current_setting('<guc>', true) = 'raise'`. Activation
 is transaction-scoped via `SET LOCAL` and reverts on any enclosing rollback.
 
-## 4. Category totals
+## 4. Category totals (Turn 5A.1R2 corrected)
 
-| Category                                                | Count |
-|---------------------------------------------------------|-------|
-| A — Directly executable                                 | 42    |
-| B — Executable via safe savepoint-scoped fixture shaping| 4     |
-| C — Internal invariant, static review only              | 12    |
-| D — Structurally unreachable                            | 1     |
-| **Total RPC tokens catalogued**                         | **59**|
+Failure-hook tokens `FIN_TEST_FAIL_AFTER_*` (rows 56–59) belong exclusively to
+T2 and are **excluded from T1 Category A** in this table.
 
-Failure-hook tokens (56–59) are included in Category A because they are naturally
-reachable through the T2 stage suite.
+| Category                                                                       | Count |
+|--------------------------------------------------------------------------------|-------|
+| A — Directly executable via T1 (rows 1–19, 23–37, 39, 41–43, 46 + row 60)      | 39    |
+| B — Executable via safe savepoint-scoped fixture shaping (rows 20–22, 47)      | 4     |
+| C — Internal invariant, static review only (rows 44–45, 48–55, 61–62)          | 12    |
+| D — Structurally unreachable (rows 38, 40)                                     | 2     |
+| T2 failure-hook tokens (rows 56–59, T2-owned)                                  | 4     |
+| **Total RPC-observable tokens catalogued**                                     | **61**|
+
+Row-40 reclassification and row-60/61/62 additions are the only changes vs.
+Turn 5A.1R. The 21-row trigger surface (§2) is unchanged.
