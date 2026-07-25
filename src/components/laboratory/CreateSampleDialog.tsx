@@ -2339,7 +2339,7 @@ export function CreateSampleDialog({
               <Button
                 className="flex-1"
                 onClick={createSampleAndOpenCheckout}
-                disabled={loading || (requirePricesForCheckout && hasMissingPrices)}
+                disabled={loading || (requirePricesForCheckout && hasMissingPrices) || !canImmediateCheckout}
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
