@@ -249,18 +249,35 @@ for FK satisfaction during setup.
 
 ## Permission-negative architecture (matches File 21 §L)
 
-Inside a per-scenario SAVEPOINT (Actor is Owner; naked call would short-circuit):
+Inside a per-scenario SAVEPOINT (Actor is Owner; naked call would short-circuit
+because `has_permission` returns `true` for role `owner`):
 
 1. Look up `tm_id := (SELECT id FROM tenant_members WHERE user_id=<Actor> AND tenant_id=<Primary>)`.
 2. `UPDATE tenant_members SET role='foreman' WHERE id=tm_id` (transaction-local demotion).
-3. `INSERT INTO member_permissions (tenant_member_id, permission_key, granted, granted_by)
-   VALUES (tm_id, '<finance.invoice.create | finance.invoice.approve | finance.payment.create>', false, <Actor>)
-   ON CONFLICT (tenant_member_id, permission_key)
-   DO UPDATE SET granted = EXCLUDED.granted`.
+3. Apply the exact per-scenario permission shape below via `INSERT INTO
+   member_permissions … ON CONFLICT (tenant_member_id, permission_key) DO
+   UPDATE SET granted = EXCLUDED.granted` (transaction-local override).
 4. Bind JWT claims for Actor; `SET LOCAL ROLE authenticated`.
-5. Call `public.create_source_checkout_invoice(...)` → assert `FIN_PERMISSION_DENIED`.
+5. Call `public.create_source_checkout_invoice(...)` → assert
+   `FIN_PERMISSION_DENIED` for the intended key.
 6. `RESET ROLE`; `ROLLBACK TO SAVEPOINT sp_scenario_N` restores Owner role and
    removes the negative override.
 
-Payment-permission fixture uses `payment_method='cash'` (the only branch that
-consults `finance.payment.create`).
+### Per-scenario prerequisite gates (Turn 5A.1R3 lock)
+
+`foreman` does not inherit every finance permission. To prove each denial
+reaches the *intended* gate rather than failing at an earlier check, each
+scenario must explicitly seed the prerequisites shown below.
+
+| Scenario | payment_method | `finance.invoice.create` | `finance.invoice.approve` | `finance.payment.create` | Notes                                                                              |
+|----------|----------------|--------------------------|---------------------------|--------------------------|------------------------------------------------------------------------------------|
+| T1-B-01  | cash           | **false**                | (irrelevant)              | (irrelevant)             | Create is checked first — no later permissions matter.                             |
+| T1-B-02  | debt           | **true (explicit)**      | **false**                 | (not checked on debt)    | Use debt to avoid triggering the earlier payment-permission failure.               |
+| T1-B-03  | cash           | **true (explicit)**      | **true (explicit)**       | **false**                | Cash is the representative non-debt method used to reach the payment gate.         |
+
+### Payment-permission consultation (correction)
+
+`finance.payment.create` is consulted for **every non-debt** `payment_method`
+— that is, `cash`, `card`, AND `transfer`. Cash is only the *representative*
+method chosen for T1-B-03; it is NOT the sole branch that consults the
+permission. The `debt` branch does not consult `finance.payment.create`.
