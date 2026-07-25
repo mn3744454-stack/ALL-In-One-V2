@@ -1024,14 +1024,33 @@ export function CreateSampleDialog({
   const createSampleAndOpenCheckout = async () => {
     if (formData.selectedHorses.length === 0 && !isRetest) return;
 
+    // SAFETY: Source Checkout RPC accepts exactly ONE source_id. Immediate
+    // Collect-Now is only safe when exactly one sample will be created. Any
+    // other count must go through per-sample checkout on the sample cards.
+    const expectedSampleCount =
+      formData.selectedHorses.length > 0
+        ? formData.selectedHorses.length
+        : isRetest
+          ? 1
+          : 0;
+    if (expectedSampleCount !== 1) {
+      toast.error(t("laboratory.checkout.multiSampleBlocked"));
+      return;
+    }
+
     setLoading(true);
     try {
       const sampleIds = await createSamplesForAllHorses();
-      
-      if (sampleIds.length > 0) {
-        setCreatedSampleIds(sampleIds);
-        setCheckoutOpen(true);
+
+      // Post-creation guard: still must be exactly one sample before opening
+      // the single-source checkout sheet.
+      if (sampleIds.length !== 1) {
+        toast.error(t("laboratory.checkout.multiSampleBlocked"));
+        return;
       }
+
+      setCreatedSampleIds(sampleIds);
+      setCheckoutOpen(true);
     } finally {
       setLoading(false);
     }
