@@ -1,10 +1,16 @@
-# 21 — Turn 5A.1R3 · Live Test Contract & Fixture Architecture Lock (Corrected)
+# 21 — Turn 5A.1R5E · Live Test Contract & Fixture Architecture Lock (Corrected)
 
-Verdict: **TURN 5A.1R3 COMPLETE — CROSS-FILE CONTRACT CONSISTENCY LOCKED FOR TURN 5A.2**
+Verdict: **TURN 5A.1R5E COMPLETE — UNREACHABLE CLIENT-TENANT BRANCH RECONCILED. EXECUTABLE T1 = 54. TURN 5A.2.a RETRY REQUIRED.**
 
-Supersedes the withdrawn Turn 5A.1 lock. This file is preflight/test-contract
+Supersedes the Turn 5A.1R3/R4 lock in scope. This file is preflight/test-contract
 evidence — not final Mini Documentation. It locks the corrected contracts required
-to author complete self-contained T1/T2 SQL suites in Turns 5A.2–5A.4.
+to author complete self-contained T1/T2 SQL suites in Turns 5A.2–5A.4. Turn 5A.1R5
+proved that `FIN_SOURCE_CLIENT_CROSS_TENANT` is structurally unreachable through
+legal fixtures because `validate_lab_sample_trigger` and
+`validate_horse_order_tenant_trigger` both enforce Client↔Tenant equality
+BEFORE INSERT OR UPDATE. Turn 5A.1R5E retires `T1-A-32` from the executable T1
+inventory and reconciles all downstream counts.
+
 
 ---
 
