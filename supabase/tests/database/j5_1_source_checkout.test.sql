@@ -277,7 +277,7 @@ SELECT 'invoices',
 INSERT INTO test_baseline (scope, row_count, numeric_sum, ordered_hash, notes)
 SELECT 'invoice_items',
        count(*),
-       coalesce(sum(total),0),
+       coalesce(sum(total_price),0),
        md5(coalesce(string_agg(id::text, ',' ORDER BY id::text), '')),
        'pre-fixture'
   FROM public.invoice_items;
@@ -725,7 +725,7 @@ BEGIN
              md5(coalesce(string_agg(id::text,',' ORDER BY id::text),''))
         INTO cur_count, cur_sum, cur_hash FROM public.invoices;
     ELSIF b.scope = 'invoice_items' THEN
-      SELECT count(*), coalesce(sum(total),0),
+      SELECT count(*), coalesce(sum(total_price),0),
              md5(coalesce(string_agg(id::text,',' ORDER BY id::text),''))
         INTO cur_count, cur_sum, cur_hash FROM public.invoice_items;
     ELSIF b.scope = 'ledger_entries' THEN
