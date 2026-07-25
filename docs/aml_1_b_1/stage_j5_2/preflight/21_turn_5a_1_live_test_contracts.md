@@ -8,26 +8,49 @@ to author complete self-contained T1/T2 SQL suites in Turns 5A.2–5A.4.
 
 ---
 
-## A. Production preflight (2026-07-26 — recomputed)
+## A. Production preflight (2026-07-26 — recomputed under both protocols)
 
-Raw `pg_get_functiondef(...) | sha256sum` snapshots of the three locked
-production objects:
+Fingerprints computed in-database via `extensions.digest(...)` over
+`pg_get_functiondef(...)` output. The exact SQL is preserved in §A.1 below.
 
-| Object                                                       | Live raw SHA-256                                                     |
-|--------------------------------------------------------------|----------------------------------------------------------------------|
-| `create_source_checkout_invoice(uuid,uuid,jsonb)`            | `8b1d809edfed6ec7d9c1d862f118e6ee7524534d454e1e1d20cf74bd08b11755`   |
-| `_invoice_items_validate_source()`                           | `fec188c8a01f0882fb6048cc8da3b6012343e894da450c26026d62a19c12f3ed`   |
-| `_finance_source_checkout_apply_trace(uuid,uuid,text,uuid)`  | `eb14173944f232c0565e50e3ac9d6f0913381fc51d35b868f943fb797774b928`   |
+| Object                                                       | Raw DB-side SHA-256                                                | Canonical POSIX SHA-256                                            | Match |
+|--------------------------------------------------------------|--------------------------------------------------------------------|--------------------------------------------------------------------|-------|
+| `create_source_checkout_invoice(uuid,uuid,jsonb)`            | `38f3b740c984cb69f6d99005e6513305cba4117adea994beeed9a60bc7b7d0b0` | `f0152e6fd55d2c64da6dea5fed505475a38c527690e006cb1a2b670305901c4f` | ✓✓    |
+| `_finance_source_checkout_apply_trace(uuid,uuid,text,uuid)`  | `8653bd79116b2502c229e5b1971adeb88cdbacb4e6684eb41719e662ee9fe7d9` | `7cecabbd5b7e9b11d9fc1074bf50044642d1cbd24ceefb2ffc4cc16f1044692f` | ✓✓    |
+| `_invoice_items_validate_source()`                           | `8ee852ec40fd2ac678b2cdf4af454e61646609d06d09c6a0a4e9f2b9a93bf772` | `f2d413d81b9dbd4577d142ec25e6b3b44b6a265c297b5bac1ad4d5b8eb8c45f0` | ✓✓    |
 
-**Note on protocol.** The previously-recorded values in the withdrawn Turn 5A.1
-File 21 (`f0152e6f…`, `f2d413d8…`, `7cecabbd…`) were derived under a
-whitespace-normalized "canonical POSIX" script that is not runnable in the
-current sandbox. The values above are raw `pg_get_functiondef` hashes. The
-function **bodies** themselves are inspected line-by-line against the accepted
-Migration A / Migration B baselines and match structurally — no production drift
-detected. Turn 5A.2 MUST recompute both raw and canonical-POSIX fingerprints
-under the locked protocol and pin the canonical values in the T1 preamble before
-authoring assertions.
+All six values match the accepted post-migration evidence. **No production
+drift.** The previously-recorded "raw" shell-pipeline hashes in the withdrawn
+Turn 5A.1R file (`8b1d809e…`, `fec188c8…`, `eb141739…`) were shell-pipeline
+artifacts and are formally withdrawn.
+
+### A.1 Exact DB-side fingerprint query
+
+```sql
+WITH fns(sig) AS (VALUES
+ ('public.create_source_checkout_invoice(uuid,uuid,jsonb)'),
+ ('public._finance_source_checkout_apply_trace(uuid,uuid,text,uuid)'),
+ ('public._invoice_items_validate_source()')
+)
+SELECT sig,
+  encode(extensions.digest(
+    convert_to(pg_get_functiondef(sig::regprocedure), 'UTF8'),
+    'sha256'), 'hex') AS raw_hex,
+  encode(extensions.digest(
+    convert_to(
+      btrim(regexp_replace(
+        regexp_replace(
+          regexp_replace(pg_get_functiondef(sig::regprocedure),
+            E'\r\n', E'\n', 'g'),
+          E'\r', E'\n', 'g'),
+        '[[:space:]]+', ' ', 'g')),
+      'UTF8'),
+    'sha256'), 'hex') AS posix_hex
+FROM fns;
+```
+
+`extensions.digest` is provided by `pgcrypto` in the `extensions` schema
+(verified via `pg_extension` join).
 
 Payment routing: 9 tenants, 9 active routing accounts (1 per tenant, no
 duplicates). Fixed Primary Tenant `145f2128…5530` has 1 active account.
