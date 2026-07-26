@@ -43,7 +43,7 @@ export interface InvoicePaymentRowForPdf {
   effective_date: string | null;
   created_at: string | null;
   reference: string | null;
-  payment_session_id: string | null;
+  payment_session_id?: string | null;
 }
 
 export interface InvoicePaymentSummaryForPdf {
@@ -52,8 +52,9 @@ export interface InvoicePaymentSummaryForPdf {
   outstandingAmount: number;
   totalAmount: number;
   payments: InvoicePaymentRowForPdf[];
-  /** Payment rows regrouped by session for grouped disclosure. */
-  sessions: InvoicePaymentSessionForPdf[];
+  /** Payment rows regrouped by session for grouped disclosure. Optional
+   *  so legacy call sites/tests that predate Slice 2.1 keep compiling. */
+  sessions?: InvoicePaymentSessionForPdf[];
 }
 
 export async function fetchInvoicePaymentSummaryForPdf(
