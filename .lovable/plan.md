@@ -1,170 +1,230 @@
-
-# Phase N+3 · Slice 2 — Single-Invoice Payment Allocation Editor
+# Slice 2.1 — Payment Dialog UX Consolidation and PDF Horse-Allocation Disclosure
 
 ## A. Verdict
-`SINGLE-INVOICE PAYMENT ALLOCATION CONTRACT ALIGNED — EXECUTION-READY PLAN PROVIDED`
 
-The installed `public.post_payment_session` RPC already accepts `client_level_amount` and `horse_allocations[]` per allocation row, and `postPaymentSession` typings already expose them. No backend change is required for Stable/mixed invoices. Lab-only horse allocation (`lab_horse_id` without `horse_id`) remains unsupported by the RPC and is preserved behind the existing block.
+`SLICE 2 UX AND PDF ALLOCATION CONTRACT ALIGNED — EXECUTION-READY PLAN PROVIDED`
 
-## B. Screenshot Findings
-- **Screenshot 40**: Current `RecordPaymentDialog` shows the Phase-4 block (`requiresPhase4Allocation`) with `تشمل هذه الفاتورة أكثر من حصان...` and disables submit. Nothing else is broken.
-- **Screenshot 41**: `INV-0986` — invoice_items already carry `horse_id` (Fatin 500, Maha 150) with correct `total_price` and horse-scoped attribution rendered in `InvoiceDetailsSheet`. Data model is ready.
+## B. Evidence findings (screenshots 41/45/46/47/48 + INV-0986.pdf)
 
-## C. Current Payment Dialog Architecture
-`InvoiceDetailsSheet` → `RecordPaymentDialog` → `useInvoicePayments` → `postLedgerForPayments` → `postPaymentSession` → `public.post_payment_session`.
-- `useInvoicePayments` computes `requiresPhase4Allocation` from an `invoice_items` composition query (`distinctHorses > 1 || (distinctHorses ≥ 1 && hasClientLevel)`) and throws `FIN_HORSE_ALLOCATION_REQUIRED` before contacting the RPC.
-- `postLedgerForPayments` builds one `PaymentSessionAllocation` per tender row; currently it never sets `client_level_amount` or `horse_allocations`.
-- Idempotency: fingerprint keyed on `(invoiceId, paymentDate, rows[a/m/r/n])`. Adding allocation extends the fingerprint.
+- **45**: Current dialog uses `sm:max-w-[550px]` — narrow modal that scrolls a lot.
+- **46**: Items are listed with description + amount only; the Horse owner (Fatin/Maha) is **not** shown in the top summary. Users only learn horse attribution in the allocation cards further down.
+- **47/48**: Payment Method rows appear **before** the Horse allocation cards. The two Horse cards each render below the tender rows, producing a long scroll and visually implying "Cash → Fatin, Card → Maha" (which is not the persisted truth).
+- **INV-0986.pdf**: Payment Summary (Paid SAR 550, Outstanding SAR 100) and per-tender history (Cash 250, Card 300) print correctly. The **Horse distribution** (Fatin/Maha) recorded in `payment_horse_allocations` does not print.
 
-## D. Current Invoice-Item Data
-`invoice_items` columns used: `id, description, quantity, unit_price, total_price, horse_id, lab_horse_id, package_id, category_name_snapshot, service_name_snapshot, position`. Financial contribution = `total_price > 0`. No `line_gross_amount` column exists — `total_price` is the frozen line total.
+## C. Current architecture
 
-Package handling: rows with `package_id IS NOT NULL AND total_price > 0` are the financial "package parent"; child snapshot rows in `package_services_snapshot` are informational only and never appear as separate `invoice_items` rows. Classifier keys on the parent row's `horse_id`.
+- **Dialog shell**: `src/components/finance/RecordPaymentDialog.tsx` uses `SafeFormDialog` with `sm:max-w-[550px] max-h-[90vh]`.
+- **Width reference (Create Invoice)**: `src/components/finance/InvoiceFormDialog.tsx` L353 uses `sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0` — this is the approved shell to reuse.
+- **Section order today**: Items summary → Invoice summary → Payment Date → Payment Method rows → PaymentAllocationEditor → totals → sticky footer. Allocation is AFTER methods.
+- **Items summary**: Flat list from `useInvoiceItems`; no horse grouping.
+- **Allocation editor**: `PaymentAllocationEditor.tsx` already groups items by horse bucket internally (via `itemsByBucket`) with labels `المخصص` and `المتبقي: X` — labels do NOT match the locked contract (`المبلغ المدفوع` / `المتبقي`), and `المخصص` is present. Proposal + reset + assignAll helpers already exist.
+- **PDF**: `InvoicePDFGenerator.tsx` L282–315 renders per-tender rows (method, effective date, recorded at, amount). It does NOT group by Payment Session and does NOT render horse distribution.
+- **PDF data source**: `fetchInvoicePaymentSummaryForPdf` reads `ledger_entries` only — no session join, no allocation fetch. `payment_session_id` exists on ledger rows (unselected). `get_payment_session` RPC exists in generated types with no frontend wrapper.
 
-## E. Financial Item Classifier (pure)
+## D. Stale test finding
+
+- File: `src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts`
+- Failing assertion (L126): `expect(payment).toContain('.rpc("post_invoice_payments"')` against `src/lib/finance/postLedgerForPayments.ts`, which was rewritten in N+2 Slice 3 to delegate to `postPaymentSession` (which calls `post_payment_session`). The legacy `post_invoice_payments` SQL function still exists in the migration (dead code) but is no longer invoked from the frontend.
+- Verdict: **mechanically obsolete** for the frontend writer contract; the migration-level assertions in the same file (checking the SQL definition still contains the tokens) remain valid. The narrowest correction is to replace the frontend regex to assert `.rpc("post_payment_session"` in `src/lib/finance/postPaymentSession.ts` and read that file instead. No SQL removal in this slice.
+
+## E. Read contract for PDF horse allocation
+
+- Every payment ledger row already carries `payment_session_id` (nullable for historical rows before N+2 Slice 1 backfill was completed).
+- Canonical read path: extend `fetchInvoicePaymentSummaryForPdf` to also `select("payment_session_id")`, then batch-load allocation rows via one query:
+  - `payment_allocations` filtered by `invoice_id` + `payment_session_id IN (…)` — gives `client_level_amount` per session.
+  - Nested `payment_horse_allocations(horse_id, amount)` — same join used by `useInvoicePriorAllocations`.
+  - Resolve horse names in one `horses` `.in("id", …)` call.
+- **No new backend RPC needed.** `get_payment_session` exists but returns single-session JSON; a direct batch SELECT is narrower for print-time enrichment.
+- **Historical gap detection**: sessions whose ledger rows have `payment_session_id IS NULL` OR whose allocation query returns no rows → the PDF omits the "Payment Distribution" subsection for that session and prints methods + total only. No fabricated numbers, no warning banner.
+
+---
+
+## F. Desktop wireframe (approved shell)
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│  $  تسجيل دفعة — INV-0986                              [X]      │  sticky
+├──────────────────────────────────────────────────────────────────┤
+│  Invoice Items (grouped by Horse)                    [▼ collapse]│
+│  ┌─────────────────────────────┬─────────────────────────────┐   │
+│  │ 🐴 فاتن (Fatin) — 1 item   │ 🐴 مها (Maha) — 1 item     │   │
+│  │   Emergency Visit  SAR 500  │   General Exam    SAR 150   │   │
+│  │   Subtotal:        SAR 500  │   Subtotal:       SAR 150   │   │
+│  └─────────────────────────────┴─────────────────────────────┘   │
+│  Total: SAR 650   Paid: SAR 0   Outstanding: SAR 650             │
+│                                                                  │
+│  Payment Amount * [       550.00 ]     [ Pay Full Outstanding ]  │
+│  Payment Date  * [ 26  ][ July ][ 2026 ]                         │
+│                                                                  │
+│  Payment Distribution   [Distribute by Items] [Distribute Equal] │
+│  ┌─────────────────────────────┬─────────────────────────────┐   │
+│  │ فاتن   remaining: SAR 500   │ مها    remaining: SAR 150   │   │
+│  │ المبلغ المدفوع [ 400.00 ]   │ المبلغ المدفوع [ 150.00 ]  │   │
+│  │ المتبقي:  SAR 100           │ المتبقي:  SAR 0             │   │
+│  └─────────────────────────────┴─────────────────────────────┘   │
+│                                                                  │
+│  Payment Method Details                    [+ Add Method]        │
+│  Cash    [ 250.00 ]  Ref [        ]      🗑                      │
+│  Card    [ 300.00 ]  Ref [        ]      🗑                      │
+├──────────────────────────────────────────────────────────────────┤  sticky
+│ Amount 550  Allocated 550  Unallocated 0  After 100 │ [Cancel][$│
+└──────────────────────────────────────────────────────────────────┘
 ```
-if total_price <= 0     → non-financial (display-only, excluded)
-else if horse_id != null → horse-scoped (bucket = horse_id)
-else if lab_horse_id != null → lab-horse-scoped (LAB boundary — Section L)
-else                    → client-level (bucket = "__client__")
+
+Shell: `sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0` (identical to Create Invoice).
+
+## G. Mobile wireframe
+
+```text
+┌───────────────────────────┐
+│ $ تسجيل دفعة   [X]        │  sticky
+├───────────────────────────┤
+│ Items (2)         [▼]     │
+│ 🐴 Fatin                  │
+│   Emergency Visit  500    │
+│ 🐴 Maha                   │
+│   General Exam     150    │
+│ Outstanding: SAR 650      │
+│                           │
+│ Payment Amount *          │
+│ [       550.00       ]    │
+│ [ Pay Full Outstanding ]  │
+│ Date [26][Jul][2026]      │
+│                           │
+│ Payment Distribution      │
+│ [Distribute by Items]     │
+│ Fatin  remaining 500      │
+│  المبلغ المدفوع [400.00]  │
+│  المتبقي: SAR 100         │
+│ Maha   remaining 150      │
+│  المبلغ المدفوع [150.00]  │
+│  المتبقي: SAR 0           │
+│                           │
+│ Payment Methods           │
+│ Cash [250.00]  🗑         │
+│ Card [300.00]  🗑         │
+│ [+ Add Method]            │
+├───────────────────────────┤  sticky
+│ Allocated 550 / 550       │
+│ [ Cancel ] [ $ تسجيل ]    │
+└───────────────────────────┘
 ```
-No parsing of descriptions, no catalog lookups, no positional grouping.
 
-## F. Item-to-Horse Display
-Reuse `InvoiceLineWithHorse` composition already used by `InvoiceDetailsSheet`. Each row shows: item description + horse label (`الخيل: فاتن` / `Horse: Fatin`) or client-level pill, and frozen `total_price`. Horse name resolved via existing `useHorses` cache (fallback to a stable fetch by ids used elsewhere). Never render raw uuids.
+## H. Locked contracts
 
-## G. Full-Payment Proposal
-When `paymentAmount ≈ outstandingAmount` (±0.01), initial allocation = `remainingAttributablePerBucket` (Section K). Displayed and **editable** (safer than silent submit: preserves user intent to override). Proposal is capped per-bucket by `remainingAttributable` and the total is guaranteed equal to Payment amount by construction; if the user edits, submit re-validates.
+- **Section order**: Items (grouped by horse) → Payment Amount + Date + "Pay Full Outstanding" → Payment Distribution (buckets) → Payment Methods (tenders) → Sticky summary/footer.
+- **Item grouping**: Group `useInvoiceItems` rows by `horse_id` / `lab_horse_id` / client-level. Header per horse: `الخيل: <name>` — <count> items; body: description + frozen `total_price`; subtotal per horse.
+- **Payment amount**: single input + optional link "Pay Full Outstanding" (Arabic `دفع المبلغ كاملًا`). No Full/Partial segmented control.
+- **Amount-change safety**: when the user changes `paymentAmount` after entering bucket values, the `validateBucketAllocations` result already flips to invalid (sum ≠ payment). We (1) leave user values intact but (2) surface a clear inline `الرصيد غير متطابق` badge and (3) disable Submit until user re-runs a helper or manually rebalances. This never silently trims allocations or auto-invents new ones.
+- **Bucket card labels**: replace `المخصص` → `المبلغ المدفوع`; replace `المتبقي لها` → keep already-neutral `المتبقي`. `Remaining after this allocation = bucket.remaining − input` computed live and rendered under the input.
+- **Allocation helpers**: keep both — "توزيع حسب البنود" (existing `applyProposal`, generalized so it also runs for partial payments) and add "توزيع بالتساوي" (cent-safe equal split respecting caps, with residual-cent redistribution to buckets still under cap). Both are explicit buttons and always editable.
+- **Simple-flow bypass**: when composition has 0 horses (client-level only) OR 1 horse with no client-level, the `PaymentAllocationEditor` block is not rendered; allocation defaults to the sole bucket at submit — same as today.
+- **Tender section**: unchanged behavior (methods, references, split tender, dup guard, idempotency fingerprint), moved below allocation.
+- **Sticky summary**: `مبلغ الدفعة / المبلغ الموزع / غير الموزع / المتبقي بعد الدفع`.
+- **PDF grouping**: for each distinct `payment_session_id`, print one block: header (effective date + recorded time + session total) → "Payment Methods" (tender rows already loaded) → "Payment Distribution" (persisted horse/client rows, when available). Sessions with unknown allocation print methods only. Rows without a session_id (legacy) group under a single "Historical" block, methods only.
 
-## H. Partial-Payment Contract
-No proration. All buckets start at `0`. Live indicators: allocated total, unallocated remainder, per-bucket remaining. Submit disabled unless `Σ bucketAllocations === paymentAmount` (rounded to cents), no negatives, no fractions > 2 decimals, each bucket ≤ its `remainingAttributable`.
+## I. Execution-ready plan (4 steps)
 
-## I. Split-Tender Contract
-The RPC treats horse/client allocation as a **per-allocation-row** dimension. Chosen mapping: the editor collects a **single invoice-scoped bucket allocation** (Fatin/Maha/Client) and a separate **tender breakdown** (Cash/Card/…). At submit time, bucket amounts are distributed across tender rows using a **stable proportional split rounded to cents with residual assigned to the largest tender**. Each resulting `PaymentSessionAllocation` carries its own `horse_allocations[]` + `client_level_amount` summing to that row's `amount`. Guarantees:
-- `Σ(row.amount) == totalPayment`
-- for every bucket: `Σ across rows == bucketAllocation`
-- no duplicate `(invoice, method)` — existing pre-RPC guard preserved
-- `external_reference` per tender row preserved
+### Step 1 — Widen and reorder RecordPaymentDialog
 
-## J. Mixed Horse + Client-Level Contract
-Separate "Client-Level" bucket surfaced only when `hasClientLevel` composition is true. Its allocation maps to `client_level_amount` (never to a horse_id). Fatin services + client-level admin fee → two independent buckets; user assigns each explicitly.
+- **Files**: `src/components/finance/RecordPaymentDialog.tsx`.
+- **Current**: `sm:max-w-[550px]`, sections in Items/Methods/Allocation order, label `المخصص`, `المتبقي لها` absent (already), `Pay Full Amount` present.
+- **Proposed**: switch shell className to the Create-Invoice-parity `sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0`; reorder JSX so Amount+Date render first, then `<PaymentAllocationEditor>`, then the tender rows block; keep sticky header/footer; keep dirty-guard.
+- **Financial impact**: none (payload builder untouched).
+- **Payload impact**: none.
+- **PDF impact**: none.
+- **Bilingual impact**: reuses existing keys; no new keys in this step.
+- **Desktop**: two-column-friendly width; grouped items sit comfortably side-by-side.
+- **Mobile**: `w-[95vw]` collapses; existing stacking preserved.
+- **Tests**: new `RecordPaymentDialog.layout.test.tsx` snapshot-asserting section order and dialog max-width class.
+- **Risk**: low; layout only.
+- **Rollback**: revert className + JSX reordering.
 
-## K. Previous Allocation & Remaining Limits
-One canonical read via a new hook `useInvoicePriorAllocations(invoiceId)`:
-```
-select payment_allocations.id, client_level_amount,
-       payment_horse_allocations(horse_id, amount)
-from payment_allocations
-left join payment_horse_allocations on ...
-where invoice_id = :id
-```
-Compute per-bucket:
-- `grossPerBucket` = sum of `invoice_items.total_price` grouped by classifier bucket
-- `priorPerBucket` = sum of horse allocations + client_level_amount for that invoice
-- `remainingAttributable = max(0, gross - prior)`
-Outstanding invoice number still comes from `useInvoicePayments.summary.outstandingAmount` (ledger truth). Sanity assert: `Σ remainingAttributable ≈ outstandingAmount` — mismatch → surface `FIN_ALLOCATION_HISTORY_UNRESOLVED` and block.
+### Step 2 — Group Invoice Items by horse & rename allocation labels
 
-## L. Laboratory Boundary
-The installed RPC accepts only `horse_id` in `horse_allocations` (no `lab_horse_id`). Lab invoices with only `lab_horse_id` remain unsupported for horse-scoped allocation. Behavior:
-- lab_horse only, single scope, no client-level → allowed as today (client-level-style flow, no editor needed)
-- multi lab_horse, or mixed lab_horse + horse_id → **keep the existing block** with a clearer bilingual message; Slice 2 does not attempt to invent a `lab_horse → horse` mapping.
+- **Files**: `src/components/finance/RecordPaymentDialog.tsx` (Items summary block), `src/components/finance/PaymentAllocationEditor.tsx` (label swap + generalized proposal + equal-distribution helper), `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts`.
+- **Current**: flat items list; labels `المخصص`, `توزيع مقترح` only for full payments.
+- **Proposed**:
+  - Replace items summary block with a helper that buckets items by `horse_id` / `lab_horse_id` / client-level, renders `الخيل: <name>` header + item rows + horse subtotal, respecting `الخيل` (not `حصان`).
+  - In `PaymentAllocationEditor.tsx`: change `finance.payments.allocation.allocated` Arabic value from `المخصص` to `المبلغ المدفوع`; add `finance.payments.allocation.remainingAfter` (`المتبقي`) rendered as live `bucket.remaining − input`; enable `applyProposal` for partial payments too; add `distributeEqually()` with cent-safe residual redistribution respecting caps.
+  - Add keys: `finance.payments.groupedItems.horseHeader`, `.itemCount`, `.subtotal`, `.clientLevel`; rename `finance.payments.allocation.useProposal` label to `توزيع حسب البنود` / `Distribute by Items`; add `finance.payments.allocation.distributeEqually` / `توزيع بالتساوي`.
+- **Financial impact**: none (helpers only fill inputs; all values remain user-editable and pass through existing `validateBucketAllocations`).
+- **Payload impact**: none.
+- **PDF impact**: none.
+- **Bilingual impact**: adds Arabic strings using `الخيل`; no `حصان`, no gendered forms.
+- **Desktop**: horse-grouped items render as a 2-column grid at ≥ md.
+- **Mobile**: single-column stacking.
+- **Tests**:
+  - Extend `src/lib/finance/__tests__/allocationDistribution.test.ts` with equal-distribution + cap-respecting residual redistribution cases.
+  - New `PaymentAllocationEditor.labels.test.tsx`: asserts `المبلغ المدفوع` present, `المخصص` absent from the input label, `المتبقي` updates live.
+  - New `RecordPaymentDialog.itemGrouping.test.tsx`: 1 horse × 5 items groups under one header; 2 horses render distinctly; client-level renders its own group.
+- **Risk**: label change is user-visible; contained via i18n keys.
+- **Rollback**: revert label values + delete `distributeEqually` + revert `applyProposal` gating.
 
-## M. Mobile UX
-Same `SafeFormDialog` shell. Section order (top→bottom): (1) collapsible Invoice Items with horse labels, (2) Payment amount + full/partial helper, (3) Allocation buckets (Horse cards + Client-Level card) with per-bucket remaining + input + quick "assign remainder", (4) Tender rows (existing), (5) sticky footer with `Allocated / Payment / Unallocated`, disabled-submit reason, Cancel/Submit. Numeric inputs `inputMode="decimal"`, RTL-safe with `dir="ltr"` for amounts, IBM Plex, existing tokens only.
+### Step 3 — PDF Payment Session grouping + horse distribution
 
-## N. Backend Compatibility
-Verified against live `pg_get_functiondef('post_payment_session')`. `p_payload.allocations[i]` accepts `payment_method`, `amount`, `client_level_amount`, `horse_allocations:[{horse_id, amount}]`, `external_reference`. Aggregates across allocations for the same `(invoice, horse)` are summed on the server for the response. **No RPC change needed.**
+- **Files**: `src/lib/finance/fetchInvoicePaymentSummary.ts`, `src/components/finance/InvoicePDFGenerator.tsx`, `src/components/finance/InvoiceDetailsSheet.tsx` and `src/components/finance/InvoicesList.tsx` (labels bundle only), `src/i18n/locales/*.ts`.
+- **Current**: PDF prints a flat per-tender table; no session grouping; no distribution.
+- **Proposed**:
+  - Extend `fetchInvoicePaymentSummaryForPdf` to also select `payment_session_id`; then in one round-trip fetch `payment_allocations(id, payment_session_id, client_level_amount, payment_horse_allocations(horse_id, amount))` filtered by `tenant_id`, `invoice_id`, and `IN (session_ids)`; resolve horse names via one `horses` batch select. Return a new `sessions` array shaped `{ sessionId | null, effectiveDate, recordedAt, total, methods:[{method, amount, reference}], distribution?: { horses:[{name, nameAr, amount}], clientLevel?: number } }`. Sessions with no allocation rows or `sessionId === null` omit `distribution`.
+  - Extend `InvoicePDFLabels` with keys: `paymentMethodsHeading`, `paymentDistributionHeading`, `clientLevelLabel`, `horseColumn`, `sessionLabel`.
+  - In `InvoicePDFGenerator.tsx` replace the flat history table with a session-by-session block; each block renders header (localized date + 12h time + session total) → methods sub-table → distribution sub-table (when present). Preserve RTL/LTR, Latin digits, and existing styling; keep sessions grouped visually so page breaks fall between sessions when feasible (`page-break-inside: avoid` on each block).
+  - Extend `InvoiceDetailsSheet.tsx` and `InvoicesList.tsx` labels bundles with the new keys (English + Arabic — Arabic uses `خيل`).
+- **Financial impact**: none (read-only enrichment).
+- **Payload impact**: none.
+- **PDF impact**: new sub-sections inside the existing optional Payment History block; summary (status/paid/outstanding) unchanged.
+- **Bilingual impact**: adds `خيل` distribution heading + `الطرق` methods heading + `التوزيع` label.
+- **Desktop/Mobile**: PDF only; no on-screen change.
+- **Tests**:
+  - Extend `InvoicePDFGenerator.paymentDisclosure.test.ts`:
+    - Session with methods+allocations renders both sub-blocks; distribution shows persisted horse names + amounts.
+    - Session with methods only (no allocation rows) renders methods and omits distribution — no fabricated amounts, no warning banner.
+    - Legacy ledger rows with `payment_session_id = null` group under a single Historical block, methods only.
+    - Print/Download use identical enriched data (single fetch shared by both handlers).
+    - History OFF omits every session block (unchanged privacy behavior).
+- **Risk**: extra allocation query per PDF; scoped to invoice; sessions per invoice are small in practice.
+- **Rollback**: revert `fetchInvoicePaymentSummaryForPdf` shape and PDF template to flat table.
 
-## O. Exact Files Proposed for Modification
-Created:
-- `src/hooks/finance/useInvoicePriorAllocations.ts`
-- `src/lib/finance/allocationDistribution.ts` (pure bucket→tender splitter + validators)
-- `src/components/finance/PaymentAllocationEditor.tsx`
-- `src/components/finance/__tests__/allocationDistribution.test.ts`
-- `src/components/finance/__tests__/PaymentAllocationEditor.test.tsx`
-- `src/lib/finance/__tests__/paymentAllocationPayload.test.ts`
+### Step 4 — Realign the stale runtime-wiring test
 
-Modified:
-- `src/hooks/finance/useInvoicePayments.ts` — accept optional `allocation` (bucket map) in `recordPayment`, pass through; keep block only for lab-horse unsupported shapes; extend fingerprint with bucket map.
-- `src/lib/finance/postLedgerForPayments.ts` — accept optional `bucketAllocations`; when present, distribute across rows and set `horse_allocations` / `client_level_amount` per allocation.
-- `src/components/finance/RecordPaymentDialog.tsx` — mount `PaymentAllocationEditor` in place of the current block for supported shapes; keep the block only for lab-horse-unsupported invoices.
-- `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts` — new keys under `finance.payments.allocation.*` (`title`, `clientLevel`, `remaining`, `allocated`, `unallocated`, `assignAll`, `remainderMismatch`, `overBucket`, `labUnsupported`, `historyUnresolved`, `useProposal`, `resetProposal`, plus error mappings for `FIN_HORSE_ALLOCATION_MISMATCH`, `FIN_CLIENT_LEVEL_ALLOCATION_INVALID`, `FIN_HORSE_NOT_ON_INVOICE`).
+- **File**: `src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts`.
+- **Current**: L126 asserts frontend still calls `.rpc("post_invoice_payments"`; N+2 Slice 3 moved the writer to `post_payment_session` via `src/lib/finance/postPaymentSession.ts`.
+- **Proposed**: change the single frontend-writer assertion to read `src/lib/finance/postPaymentSession.ts` and expect `.rpc("post_payment_session"`. Keep every SQL-migration assertion untouched (the `post_invoice_payments` SQL body still exists in the migration and continues to be verified as internal historical contract).
+- **Financial impact**: none.
+- **Tests**: this test itself; verify green.
+- **Risk**: none if the migration-level checks are preserved; documented as "mechanically proven stale" per §24.
+- **Rollback**: revert single-line change.
 
-## P. Execution-Ready Plan (4 steps)
+## J. Database changes required
 
-### Step 1 — Data & distribution primitives
-- **Files**: `useInvoicePriorAllocations.ts`, `allocationDistribution.ts`.
-- **Current**: no per-bucket read; no bucket→tender splitter.
-- **Proposed**: hook returns `{ buckets: {key, kind, horseId?, label, gross, prior, remaining}[], outstanding }`; splitter returns `PaymentSessionAllocation[]` given tender rows + bucket map.
-- **Payload impact**: none yet (helpers only).
-- **Backend impact**: none.
-- **Bilingual**: none.
-- **Mobile**: none.
-- **Tests**: `allocationDistribution.test.ts` — full/partial/split/mixed/rounding-residual/no-negatives.
-- **Rollback**: delete files.
+**None.** No RPC, no migration, no RLS, no permission, no schema change. All financial reads use existing tables/columns; all financial writes remain via `post_payment_session`.
 
-### Step 2 — Allocation editor UI
-- **File**: `PaymentAllocationEditor.tsx`.
-- **Current**: block-only alert.
-- **Proposed**: per-bucket cards with description, horse label, remaining, input; totals bar; proposal button when payment==outstanding.
-- **Payload impact**: emits `{ bucketKey → amount }` upward; no direct RPC.
-- **Backend impact**: none.
-- **Bilingual**: new `finance.payments.allocation.*` keys (EN/AR, `خيل`).
-- **Mobile**: mobile-first vertical stack, sticky totals inside scroll area.
-- **Tests**: component test — display, proposal fill, over-bucket disables, unallocated disables, negative/fraction rejected, mixed shows client-level bucket.
-- **Rollback**: revert file + i18n additions.
+## K. Files created / modified / production objects / persistent rows
 
-### Step 3 — Writer wiring
-- **Files**: `postLedgerForPayments.ts`, `useInvoicePayments.ts`.
-- **Current**: builds allocations without horse/client-level.
-- **Proposed**: when `bucketAllocations` provided, call `distributeAcrossTenders` and attach `horse_allocations` + `client_level_amount` per row; extend idempotency fingerprint with the bucket map; when absent (single-bucket invoices) keep today's payload byte-for-byte.
-- **Payload impact**: adds optional fields already accepted by the RPC.
-- **Backend impact**: none.
-- **Bilingual**: extend `ERROR_TOKEN_KEYS` with mismatch/overflow codes.
-- **Mobile**: n/a.
-- **Tests**: `paymentAllocationPayload.test.ts` — multi-horse, mixed, split-tender, prior-reduced remaining, no-double-count, unchanged single-horse payload.
-- **Rollback**: revert both files (fingerprint reverts too).
+- **Created**: no new source files; tests only (`RecordPaymentDialog.layout.test.tsx`, `PaymentAllocationEditor.labels.test.tsx`, `RecordPaymentDialog.itemGrouping.test.tsx`, expanded existing tests).
+- **Modified**: `RecordPaymentDialog.tsx`, `PaymentAllocationEditor.tsx`, `fetchInvoicePaymentSummary.ts`, `InvoicePDFGenerator.tsx`, `InvoiceDetailsSheet.tsx`, `InvoicesList.tsx`, `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts`, `n2_5InvoiceRpcRuntimeWiring.test.ts`, `allocationDistribution.test.ts`, `InvoicePDFGenerator.paymentDisclosure.test.ts`.
+- **Production DB objects modified**: none.
+- **Persistent rows modified**: none.
 
-### Step 4 — Dialog integration & gate replacement
-- **File**: `RecordPaymentDialog.tsx`.
-- **Current**: renders block alert when `requiresPhase4Allocation`.
-- **Proposed**: for supported shapes, render `PaymentAllocationEditor` and pass bucket map into `recordPayment`; retain a narrower block (with `finance.payments.allocation.labUnsupported`) only when unsupported lab-horse composition is detected. Single-horse and client-level-only invoices bypass the editor and keep today's flow unchanged.
-- **Payload impact**: via Step 3.
-- **Backend impact**: none.
-- **Bilingual**: consumes Step 2 keys.
-- **Mobile**: layout audited in Section M.
-- **Tests**: component test — INV-0986-like fixture renders 2 buckets, proposal fills 500/150, submit calls writer with correct payload; lab-horse-unsupported fixture still shows block.
-- **Rollback**: restore previous return branch.
+## L. Manual acceptance scenarios
 
-## Q. Compact Test Plan
-20 assertions per §19 across `allocationDistribution.test.ts`, `PaymentAllocationEditor.test.tsx`, `paymentAllocationPayload.test.ts`, plus untouched existing `paymentRpcCutover.test.ts` re-run. No SQL harness. Commands: `bunx vitest run` on the new + existing payment tests, `bunx tsgo --noEmit`, `bun run build`.
+Executed per §28 — 1 horse × N items, INV-0986 full, INV-0986 partial, equal distribution (partial), PDF w/o History, PDF w/ History (horses printed), multi-session invoice (each session grouped independently).
 
-## R. Manual Acceptance Plan
-Scenarios 1–5 exactly as specified (§20). Not claimed here.
+## M. Roadmap after this slice
 
-## S. Database Changes Required
-None.
+- N+3 Slice 2 → CLOSED after this Slice 2.1.
+- N+3 Slice 3 (Multi-Invoice UI) → NOT STARTED.
+- N+3 Slice 4 (session detail / receipts) → NOT STARTED.
+- N+4 → NOT STARTED.
 
-## T. Files Created
-See §O — 6 files.
+## N. Next exact action
 
-## U. Files Modified
-See §O — 5 files.
-
-## V. Production Objects Modified
-None.
-
-## W. Persistent Rows Modified
-None.
-
-## X. Current Roadmap
-Phase 1–3 closed. Phase 4 Slice 1 closed. Slice 2 (this plan) pending approval. Slices 3–4 and Phase 5 untouched.
-
-## Y. Next Exact Action
-`AWAIT USER APPROVAL OF THE SINGLE-INVOICE ALLOCATION PLAN.`
+`AWAIT USER APPROVAL OF THE SLICE-2 UX AND PDF ALLOCATION PLAN.`
 
 ---
 
 `APPROVAL HANDOFF — SEND THIS EXACT MESSAGE`
 
-> Approved. Execute Phase N+3 Slice 2 exactly as planned: implement the single-invoice Payment Allocation Editor with per-item horse display, horse-scoped and client-level allocation buckets, full/partial/split-tender support, proposal for full payments, prior-allocation-aware remaining limits, and safe replacement of the existing block. Wire it through `useInvoicePayments` → `postLedgerForPayments` → `postPaymentSession` using the existing RPC contract (no backend change). Add only the files listed in §O, add the specified bilingual keys (Arabic uses `خيل`), and run the focused tests, `bunx tsgo --noEmit`, and `bun run build`; report counts. Do NOT implement Multi-Invoice UI, refunds, reversals, void, chargeback, credit, overpayment, or Retail POS. Do NOT modify RPCs, RLS, permissions, migrations, ledger rows, invoices, sessions, allocations, customer balances, idempotency semantics, or the Payment PDF from Slice 1.
+> Approved. Execute Phase N+3 Slice 2.1 exactly as planned: (1) widen `RecordPaymentDialog` to the Create-Invoice shell and reorder sections to Items(grouped-by-horse) → Amount + "Pay Full Outstanding" → Payment Distribution → Payment Methods → sticky summary; (2) group invoice items by horse using `الخيل`, rename the bucket input label to `المبلغ المدفوع`, render live `المتبقي` under each bucket, generalize `Distribute by Items` for partial payments, and add cent-safe `Distribute Equally`; (3) extend `fetchInvoicePaymentSummaryForPdf` to select `payment_session_id` and batch-load `payment_allocations` + `payment_horse_allocations` + horse names, and rewrite the PDF Payment History block into per-session groups with Payment Methods and Payment Distribution sub-sections, omitting distribution when allocation rows are missing; (4) realign the single stale frontend-writer assertion in `n2_5InvoiceRpcRuntimeWiring.test.ts` from `post_invoice_payments` to `post_payment_session` while preserving every SQL-migration assertion. Add only the files listed in §K, add the specified bilingual keys (Arabic uses `الخيل` in the dialog and `خيل` in the PDF per the locked contract), and run the focused tests, `bunx tsgo --noEmit`, and `bun run build`; report counts.
+>
+> Do NOT modify the payment backend, `post_payment_session`, `get_payment_session`, RPCs, migrations, RLS, permissions, invoice rows, ledger rows, payment sessions, payment allocations, horse allocations, customer balances, idempotency semantics, or the Payment PDF privacy toggle from Slice 1. Do NOT begin Multi-Invoice Payment UI, item-level payment ledger, horse ledger, installment schedules, refunds, reversals, void, chargeback, credit, overpayment, or Retail POS.
