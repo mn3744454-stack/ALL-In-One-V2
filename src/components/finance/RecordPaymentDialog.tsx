@@ -304,8 +304,18 @@ export function RecordPaymentDialog({
               </Alert>
             )}
 
+            {/* Phase 4 gate — multi-horse / mixed invoices need the allocation editor */}
+            {!summary.isPaid && requiresPhase4Allocation && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {t("finance.payments.errors.allocationRequired")}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Payment Rows */}
-            {!summary.isPaid && (
+            {!summary.isPaid && !requiresPhase4Allocation && (
               <>
                 <div className="grid gap-2">
                   <Label>
