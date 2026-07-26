@@ -1768,10 +1768,3 @@ BEGIN
   IF v_pa_n <> 1 THEN RAISE EXCEPTION 'B1_PAYMENT_ACCOUNT_%', v_pa_n; END IF;
 END $$;
 
--- ---------------------------------------------------------------------------
--- 14. Terminate. Zero invocations of public.create_source_checkout_invoice
---     occurred in this file. Full ROLLBACK discards all 10 Fixture rows and
---     all Gate-related Temp state.
--- ---------------------------------------------------------------------------
-ROLLBACK;
-
