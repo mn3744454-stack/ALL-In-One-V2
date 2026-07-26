@@ -112,6 +112,54 @@ export function PaymentAllocationEditor({
     onChange(next);
   }
 
+  function distributeEqually() {
+    // Split paymentAmount evenly across buckets that still have remaining
+    // capacity, capping each bucket at its remaining. Any residual from
+    // capped buckets rolls over to buckets that still have headroom.
+    const next: Record<string, string> = {};
+    const eligible = composition.buckets.filter((b) => b.remaining > 0.005);
+    if (eligible.length === 0 || paymentAmount <= 0) {
+      onChange(next);
+      return;
+    }
+    const capsCents = new Map<string, number>(
+      eligible.map((b) => [b.key, Math.round(b.remaining * 100)]),
+    );
+    const assignedCents = new Map<string, number>(eligible.map((b) => [b.key, 0]));
+    let remainingCents = Math.round(paymentAmount * 100);
+    let active = new Set(eligible.map((b) => b.key));
+
+    // Iterative equal-share pass; each round distributes floor(remaining/N)
+    // to active buckets and retires any that hit their cap.
+    while (remainingCents > 0 && active.size > 0) {
+      const share = Math.floor(remainingCents / active.size);
+      if (share === 0) break;
+      for (const key of Array.from(active)) {
+        const cap = capsCents.get(key)!;
+        const cur = assignedCents.get(key)!;
+        const room = cap - cur;
+        const give = Math.min(share, room);
+        assignedCents.set(key, cur + give);
+        remainingCents -= give;
+        if (cur + give >= cap) active.delete(key);
+      }
+    }
+    // Distribute any 1-cent residual to active buckets in order.
+    for (const key of Array.from(active)) {
+      if (remainingCents <= 0) break;
+      const cap = capsCents.get(key)!;
+      const cur = assignedCents.get(key)!;
+      if (cur < cap) {
+        assignedCents.set(key, cur + 1);
+        remainingCents -= 1;
+      }
+    }
+    for (const [key, cents] of assignedCents) {
+      next[key] = cents > 0 ? (cents / 100).toFixed(2) : "";
+    }
+    onChange(next);
+  }
+
   function resetAllocations() {
     const next: Record<string, string> = {};
     for (const b of composition.buckets) next[b.key] = "";
