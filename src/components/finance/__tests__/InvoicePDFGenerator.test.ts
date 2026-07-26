@@ -60,6 +60,18 @@ const enLabels: InvoicePDFLabels = {
   included: "Included",
   packageChip: "Package",
   horseGroupLabel: "Horse",
+  paymentStatusLabel: "Payment Status",
+  statusUnpaid: "Unpaid",
+  statusPartial: "Partially Paid",
+  statusPaid: "Paid in Full",
+  paidToDate: "Paid to Date",
+  outstanding: "Outstanding",
+  paymentHistoryHeading: "Payment History",
+  colMethod: "Method",
+  colEffectiveDate: "Effective Date",
+  colRecordedAt: "Recorded At",
+  colAmount: "Amount",
+  methodLabels: { cash: "Cash", card: "Card", transfer: "Bank Transfer", check: "Check" },
 };
 
 const baseInvoice = {
