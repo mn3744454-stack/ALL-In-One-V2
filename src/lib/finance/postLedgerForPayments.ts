@@ -89,7 +89,7 @@ export async function postLedgerForPayments(
     allocations,
   });
 
-  if (!result.success) {
+  if (result.success !== true) {
     return {
       success: false,
       error: result.message,
