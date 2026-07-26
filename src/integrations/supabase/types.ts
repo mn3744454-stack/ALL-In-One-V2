@@ -8414,6 +8414,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ledger_entries_payment_session_id_fkey"
+            columns: ["payment_session_id"]
+            isOneToOne: false
+            referencedRelation: "payment_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ledger_entries_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -9296,6 +9303,160 @@ export type Database = {
           },
         ]
       }
+      payment_allocations: {
+        Row: {
+          amount: number
+          client_level_amount: number
+          created_at: string
+          detail_status: string
+          external_reference: string | null
+          id: string
+          invoice_id: string
+          ledger_entry_id: string | null
+          payment_method: string
+          session_id: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          client_level_amount?: number
+          created_at?: string
+          detail_status?: string
+          external_reference?: string | null
+          id?: string
+          invoice_id: string
+          ledger_entry_id?: string | null
+          payment_method: string
+          session_id: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          client_level_amount?: number
+          created_at?: string
+          detail_status?: string
+          external_reference?: string | null
+          id?: string
+          invoice_id?: string
+          ledger_entry_id?: string | null
+          payment_method?: string
+          session_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_allocations_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: true
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_allocations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "payment_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_allocations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_allocations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_horse_allocations: {
+        Row: {
+          allocation_id: string
+          amount: number
+          created_at: string
+          horse_id: string
+          id: string
+          invoice_id: string
+          session_id: string
+          tenant_id: string
+        }
+        Insert: {
+          allocation_id: string
+          amount: number
+          created_at?: string
+          horse_id: string
+          id?: string
+          invoice_id: string
+          session_id: string
+          tenant_id: string
+        }
+        Update: {
+          allocation_id?: string
+          amount?: number
+          created_at?: string
+          horse_id?: string
+          id?: string
+          invoice_id?: string
+          session_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_horse_allocations_composite_fk"
+            columns: ["allocation_id", "session_id", "tenant_id", "invoice_id"]
+            isOneToOne: false
+            referencedRelation: "payment_allocations"
+            referencedColumns: ["id", "session_id", "tenant_id", "invoice_id"]
+          },
+          {
+            foreignKeyName: "payment_horse_allocations_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_horse_allocations_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
+            foreignKeyName: "payment_horse_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_horse_allocations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_horse_allocations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_intents: {
         Row: {
           amount_display: string | null
@@ -9363,6 +9524,83 @@ export type Database = {
           },
           {
             foreignKeyName: "payment_intents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_sessions: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          metadata: Json
+          payment_account_id: string
+          payment_date: string
+          reference_note: string | null
+          status: string
+          tenant_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          id?: string
+          metadata?: Json
+          payment_account_id: string
+          payment_date: string
+          reference_note?: string | null
+          status?: string
+          tenant_id: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json
+          payment_account_id?: string
+          payment_date?: string
+          reference_note?: string | null
+          status?: string
+          tenant_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
