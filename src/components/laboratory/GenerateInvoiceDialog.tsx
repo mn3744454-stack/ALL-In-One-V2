@@ -194,7 +194,10 @@ export function GenerateInvoiceDialog({
       notes: notes || undefined,
     };
 
-    const invoiceId = await generateInvoice(input);
+    const invoiceId = await generateInvoice(input, {
+      horseId: sample?.horse_id ?? null,
+      labHorseId: sample?.lab_horse_id ?? null,
+    });
     if (invoiceId) {
       // Silent close after success — bypass dirty discard prompt.
       resetBaseline(dirtySnapshot);
