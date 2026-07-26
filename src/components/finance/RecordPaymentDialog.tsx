@@ -497,7 +497,7 @@ export function RecordPaymentDialog({
             {!summary?.isPaid && (
               <Button
                 onClick={handleSubmit}
-                disabled={isRecording || !canRecordPayment}
+                disabled={isRecording || !canRecordPayment || requiresPhase4Allocation}
               >
                 {isRecording ? (
                   <>
