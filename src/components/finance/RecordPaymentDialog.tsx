@@ -455,6 +455,25 @@ export function RecordPaymentDialog({
                   </Button>
                 </div>
 
+                {/* Multi-horse / mixed allocation editor */}
+                {needsEditor && composition && (
+                  <PaymentAllocationEditor
+                    composition={composition}
+                    paymentAmount={totalPayment}
+                    currency={effectiveCurrency}
+                    invoiceItems={invoiceItems as Array<{
+                      id: string;
+                      description: string;
+                      total_price: number;
+                      horse_id?: string | null;
+                      lab_horse_id?: string | null;
+                    }>}
+                    value={bucketValues}
+                    onChange={setBucketValues}
+                    onValidityChange={setAllocationValid}
+                  />
+                )}
+
                 {/* Validation Errors */}
                 {isOverpayment && (
                   <Alert variant="destructive">
@@ -464,6 +483,7 @@ export function RecordPaymentDialog({
                     </AlertDescription>
                   </Alert>
                 )}
+
 
                 {/* Payment Summary */}
                 <Separator />
