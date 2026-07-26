@@ -48,6 +48,10 @@ import {
   type RawInvoiceItemForPresentation,
 } from "@/lib/finance/invoicePresentation";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
+import {
+  parseLabSourceMarker,
+  stripLabSourceMarker,
+} from "@/lib/finance/labInvoiceMarker";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -289,42 +293,73 @@ export function InvoiceDetailsSheet({
 
       setItems(enrichedItems as unknown as InvoiceItem[]);
 
-      // Resolve horse/sample context from items
+      // Resolve horse/sample context from items or from the persisted
+      // [LAB:<sourceType>:<uuid>] marker written into invoices.notes by the
+      // atomic RPC path. Marker takes precedence; entity_type='lab_sample'
+      // remains a legacy fallback for pre-RPC invoices.
       try {
-        if (labSampleIds.length > 0) {
-          const { data: samplesWithHorse } = await supabase
-            .from('lab_samples')
-            .select('id, daily_number, physical_sample_id, lab_horse_id')
-            .in('id', labSampleIds);
-          
-          if (samplesWithHorse && samplesWithHorse.length > 0) {
-            const sample = samplesWithHorse[0] as any;
-            const sLabel = sample.daily_number ? `#${sample.daily_number}` : sample.physical_sample_id?.slice(0, 12) || null;
+        const marker = parseLabSourceMarker((invoiceData as any).notes);
+        const sampleId =
+          (marker?.sourceType === "lab_sample" ? marker.sourceId : null) ||
+          labSampleIds[0] ||
+          null;
+
+        if (sampleId) {
+          const { data: s } = await supabase
+            .from("lab_samples")
+            .select("id, daily_number, physical_sample_id, lab_horse_id, horse_id")
+            .eq("id", sampleId)
+            .eq("tenant_id", (invoiceData as any).tenant_id)
+            .maybeSingle();
+
+          if (s) {
+            const sample = s as any;
+            const sLabel = sample.daily_number
+              ? `#${sample.daily_number}`
+              : sample.physical_sample_id?.slice(0, 12) || null;
             let hName: string | null = null;
-            
+
             if (sample.lab_horse_id) {
               const { data: horse } = await supabase
-                .from('lab_horses')
-                .select('name, name_ar')
-                .eq('id', sample.lab_horse_id)
+                .from("lab_horses")
+                .select("name, name_ar")
+                .eq("id", sample.lab_horse_id)
                 .maybeSingle();
               if (horse) {
-                hName = dir === 'rtl' 
+                hName = dir === "rtl"
+                  ? ((horse as any).name_ar || (horse as any).name || null)
+                  : ((horse as any).name || (horse as any).name_ar || null);
+              }
+            } else if (sample.horse_id) {
+              const { data: horse } = await supabase
+                .from("horses")
+                .select("name, name_ar")
+                .eq("id", sample.horse_id)
+                .maybeSingle();
+              if (horse) {
+                hName = dir === "rtl"
                   ? ((horse as any).name_ar || (horse as any).name || null)
                   : ((horse as any).name || (horse as any).name_ar || null);
               }
             }
-            setInvoiceContext({ horseName: hName || undefined, sampleLabel: sLabel || undefined });
+            setInvoiceContext({
+              horseName: hName || undefined,
+              sampleLabel: sLabel || undefined,
+            });
           } else {
-            setInvoiceContext(null);
+            const stableEntityIds = Object.keys(stableEntityMap);
+            if (stableEntityIds.length > 0) {
+              const firstEnriched = stableEntityMap[stableEntityIds[0]];
+              setInvoiceContext({ horseName: firstEnriched || undefined });
+            } else {
+              setInvoiceContext(null);
+            }
           }
         } else {
           // Try to extract horse context from stable-origin entities
           const stableEntityIds = Object.keys(stableEntityMap);
           if (stableEntityIds.length > 0) {
-            // Use first enriched entity's horse name from the map
             const firstEnriched = stableEntityMap[stableEntityIds[0]];
-            // The map values contain "description — horseName", extract horse context
             setInvoiceContext({ horseName: firstEnriched || undefined });
           } else {
             setInvoiceContext(null);
@@ -697,16 +732,21 @@ export function InvoiceDetailsSheet({
               </div>
             </div>
 
-            {/* Notes (positioned near header for context) */}
-            {invoice.notes && (
-              <Card className="bg-muted/30 border-dashed">
-                <CardContent className="p-3">
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {invoice.notes}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Notes (positioned near header for context).
+                Sanitizes the internal [LAB:<type>:<uuid>] source marker
+                from view while preserving it in storage for dedupe. */}
+            {(() => {
+              const visibleNotes = stripLabSourceMarker(invoice.notes);
+              return visibleNotes ? (
+                <Card className="bg-muted/30 border-dashed">
+                  <CardContent className="p-3">
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {visibleNotes}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
 
             {/* Invoice Info */}
             <Card>

@@ -1,351 +1,274 @@
 
-# Final Mini Investigative Alignment Audit — Collision-Safe Entity Keys, Normalized Customer Dedup, Truly Non-Blocking Client Enrichment, Type-Safe Horse Identity
+# Lab Invoice Details — Hide Internal Marker, Restore Sample-Number Context
 
-Read-only audit. Zero files, translations, DB objects, or records modified.
+## A. Verdict
 
-## A. Executive Verdict
+`LAB INVOICE DISPLAY CONTRACT ALIGNED — EXECUTION-READY PLAN PROVIDED`
 
-**READY FOR NARROW EXECUTION PROMPT.**
+No DB migration, no RPC change, no marker-storage change. Presentation-only fix in `InvoiceDetailsSheet.tsx` plus one tiny helper.
 
-All four remaining contradictions have a code-verified, three-file-scoped correction that does not require any backend, schema, translation-key-count expansion beyond the two already agreed, or query-budget increase.
+## B. What the Screenshots Prove
 
-## B. Documentation and Skills Applied
+- Screenshot 31: `lab_samples.daily_number` is the user-visible number (`#4`); this column is persisted and stable — not a row index.
+- Screenshot 38: `INV-9921` (created via the RPC path) renders `[LAB:lab_sample:<uuid>]` because the Notes card prints `invoice.notes` verbatim, and no Sample-number row appears because the RPC-created row has no `entity_type/entity_id` on `invoice_items` (only the pre-RPC legacy path populated those).
 
-- Doc 10 (Financial Architecture Maturation) — invoice/statement freeze scope and money-truth invariants.
-- Doc 12 (Backend Permission Enforcement) — confirms Invoice Details already uses `hasPermission` gates; no permission surface change.
-- Doc 13 (Operational Truth Stabilization) — reinforces snapshot-as-truth (`invoices.client_name`, `invoice_items.*_snapshot`).
-- Skill 04 (Tenant Isolation) — client lookup must be `tenant_id`-scoped.
-- Skill 06 (API/RPC Hardening) — no new RPC/round-trips; PostgREST embed reuse only.
-- Skill 07 (TS/React Review) — discriminated-union recommendation for `ResolvedHorse`; no `any` for header keys.
-- Skill 10/11/12 (UX / Content Truth / Bilingual) — snapshot preservation, no fabrication, RTL/LTR ordering.
-- Skill 16 (Customer Identity) — historical snapshot governs; master is supplement-only.
-- Skill 19 (Money Truth) — consulted only to confirm the freeze boundary; totals unchanged.
-- Skill 23 (Perf/Reliability) — non-blocking enrichment separation of render-critical vs optional queries.
-- Skill 24 (Mobile/Responsive) — 375/768/1280 acceptance retained.
-- Skill 25 (QA Readiness) — typecheck + one existing test are necessary but not sufficient; visual + scenario acceptance required.
-- Skill 26 (Skill Network Governance) — Skill 01 not treated as ceremonial approval.
-- Skills 03, 05, 08 consulted; no new tables/policies/workflows, so they only bound the "no schema change" guarantee.
+## C. Current Component and Data Flow
 
-## C. Current Invoice Details Loading and Enrichment Trace
+- Route: `/dashboard/finance/invoices` → `src/pages/DashboardFinance.tsx`
+- Drawer: `src/components/finance/InvoiceDetailsSheet.tsx` (single generic layout for all invoices).
+- Fetches: direct `supabase.from("invoices").select("*")` + `supabase.from("invoice_items").select("*")` inside `fetchInvoiceDetails` (lines 129–342).
+- Notes rendering: lines 700–709 render `invoice.notes` unescaped/unfiltered.
+- Header context: `invoiceContext` state `{ horseName, sampleLabel }` computed at lines 292–335. Sample resolution today runs ONLY when `invoice_items.entity_type === 'lab_sample'` (line 155). RPC-generated items never satisfy that, so `sampleLabel`/header horse stay empty for all new Lab invoices.
+- Per-line enrichment: line 254–288 uses `horse_id` / `lab_horse_id` on items — those DO work on RPC-created rows.
+- No source-aware branch exists; presentation is unified.
 
-File: `src/components/finance/InvoiceDetailsSheet.tsx` (1048 lines).
+## D. Git-History Findings
 
-- Local state: `invoice`, `items`, `loading`, `invoiceContext`.
-- Effect (L114–122): on `open && invoiceId` calls `fetchInvoiceDetails`; on close resets state.
-- `fetchInvoiceDetails` (L124+) is a **single serial async** that:
-  1. `invoices` fetch → `setInvoice`.
-  2. `invoice_items` fetch.
-  3. Optional `lab_samples` batch.
-  4. Four **sequential** entity enrichment queries in a `for … of Object.entries(stableTypes)` loop (vet_treatment, vaccination, breeding_attempt, foaling).
-  5. `horses` batch and `lab_horses` batch.
-  6. Builds enriched items → `setItems`.
-  7. Secondary context resolution → `setInvoiceContext`.
-  8. `finally { setLoading(false) }` — so every one of the above serially gates the render skeleton.
-- Render commit: primary state (invoice header, totals, items) is not visible until `loading === false`.
-- Customer render today: L686 → `invoice.client_name || t('finance.invoices.noClient')`. No `clients` fetch exists.
+The persisted marker convention (`[LAB:<type>:<uuid>]` in `invoices.notes`) was added in the Lab RPC cutover (`useLabInvoiceDraft.ts`) that is already in the tree; the older Lab-specific summary card was replaced by the generic `invoiceContext` block above. The current `invoiceContext.sampleLabel` display (Sample No. row) is the intended "restored" surface — it just no longer fires because sample resolution never walks the marker. No obsolete component needs to be resurrected; we extend the existing `invoiceContext` computation to also read the marker.
 
-## D. Canonical Entity Types and Current Map-Key Evidence
+## E. Previous Laboratory Invoice Presentation
 
-Canonical literals actually stored/compared in `invoice_items.entity_type` (verified from L150, L171–174, L179, L262, L268):
+Client + Issue Date + Horse + Sample No. rows already exist in the Invoice Info card (lines 712–779). They render correctly whenever `invoiceContext` is populated. Fix = repopulate `invoiceContext` for RPC-origin Lab invoices; do not add a new card.
 
-- `lab_sample`
-- `vet_treatment`
-- `vaccination`
-- `breeding_attempt`
-- `foaling`
+## F. Internal Marker Contract
 
-All **singular**. No plural aliases handled or emitted. `stableTypes` keys L171–174 are the source-of-truth for the four "stable-origin" enrichment types.
+- Producer: `src/hooks/laboratory/useLabInvoiceDraft.ts::composeNotesWithMarker` → appends `\n[LAB:<sourceType>:<uuid>]` to `invoices.notes`.
+- Consumer (dedupe): `useLabInvoiceDraft.checkExistingInvoice` — `.ilike("notes", "%[LAB:...]%")`.
+- Regex source of truth: `LAB_SOURCE_MARKER_RE = /\[LAB:(lab_sample|lab_request):([0-9a-fA-F-]{36})\]/`.
+- Persisted only in `invoices.notes`. No other feature reads it. Genuine user notes may precede the marker (blank line separator).
+- Display sanitization must remove ONLY the exact marker substring + adjacent whitespace; unrelated bracketed text must survive.
 
-Current map (L169): `stableEntityMap: Record<string, string>` — keyed by **bare `entity_id`**. Lookup at L268 (`stableEntityMap[item.entity_id]`) is also keyed by bare `entity_id`. This is the collision surface: a UUID equal across `vet_treatments.id` and `foalings.id` (astronomically rare but not schema-forbidden) will silently overwrite/mis-attribute.
+## G. Exact Sample-Number Source
 
-Also: L316 uses `stableEntityMap[stableEntityIds[0]]` — which is a joined display string ("`title — horseName`"), then `setInvoiceContext({ horseName: firstEnriched })`. That is not a horse name; it is a description. This is the same defect class the prior audit already flagged for removal.
+`public.lab_samples.daily_number` (nullable integer). Rendered elsewhere as `#${daily_number}` (see `SamplesList.tsx` / `SampleCard.tsx` / `ResultsList.tsx`). This is a persisted, tenant/date-scoped stable number — safe to display from an Invoice long after creation. No new numbering needed.
 
-## E. Collision-Safe Composite Entity-Key Contract
+## H. Sample Resolution Strategy
 
-Corrected pseudocode (drop-in replacement for the current `stableEntityMap`, still one map, still zero extra queries):
+Primary: parse marker in `invoice.notes` with the shared regex → `{ sourceType, sourceId }` → `select id, daily_number, physical_sample_id, lab_horse_id, horse_id from lab_samples where id = sourceId and tenant_id = invoice.tenant_id`.
 
-```ts
-type EntityType = 'vet_treatment' | 'vaccination' | 'breeding_attempt' | 'foaling';
-const ENTITY_TYPES: readonly EntityType[] = ['vet_treatment','vaccination','breeding_attempt','foaling'];
+Fallback (legacy invoices only): keep the existing `entity_type='lab_sample'` path already in `fetchInvoiceDetails` untouched.
 
-type EntityRecord = {
-  itemTitle: string | null;                  // was the joined display string
-  horse: { id: string; name: string | null; name_ar: string | null } | null;
-};
+Degradation: on any resolver error / missing row → `invoiceContext.sampleLabel = undefined` (row silently hidden). Never render the UUID.
 
-// Composite key: `${canonicalEntityType}:${entityId}`
-const entityMap = new Map<string, EntityRecord>();
-const keyOf = (t: EntityType, id: string) => `${t}:${id}`;
+## I. Horse Resolution Strategy
 
-// Enrichment adds `horse.id` / `mare.id` to existing embeds (same 4 queries, no new round-trip).
-// Insertion:
-entityMap.set(keyOf('vet_treatment', d.id), {
-  itemTitle: d.title ?? null,
-  horse: d.horse ? { id: d.horse.id, name: d.horse.name, name_ar: d.horse.name_ar } : null,
-});
-// (breeding_attempt / foaling use `mare` embed and store it under `horse`.)
+For Lab-origin header horse: prefer resolved sample's `lab_horse_id` → `lab_horses.name/name_ar`, else `horse_id` → `horses.name/name_ar`. Existing per-line horse chips (from `resolvedHorseName`) still suppress the header horse via the existing `!items.some(...resolvedHorseName)` guard — no duplicate display.
 
-// Lookup (per item):
-const et = ENTITY_TYPES.includes(item.entity_type as EntityType) ? item.entity_type as EntityType : null;
-const rec = et && item.entity_id ? entityMap.get(keyOf(et, item.entity_id)) ?? null : null;
-```
+## J. Laboratory-Origin Discriminator
 
-Guarantees:
-- `vet_treatment:X` and `foaling:X` occupy distinct keys — cross-table UUID collisions cannot overwrite each other, cannot mis-attribute another line's horse.
-- Insert-site and lookup-site both go through `keyOf` — one canonical normalization path.
-- Unknown/legacy `entity_type` values fall through to `null` (never accidentally hit another type's data).
-- Direct `item.horse_id` / `item.lab_horse_id` still take absolute precedence in `resolvedHorse` construction; `entityMap` only supplies fallback identity/title.
-- No entity type invented; no per-line query; still exactly the four existing enrichment queries.
-- Any `horses.id` produced by these embeds is unioned into the single `platform-horses` batch request set before the batch fires — still ≤1 platform-horse query.
+`LAB_SOURCE_MARKER_RE.test(invoice.notes ?? "")`. Source-trace based, not description text, not account-type. If false → sheet behaves exactly as today (no sanitation, no extra sample lookup).
 
-## F. Corrected Historical Customer Snapshot Algorithm
+## K. Stable and Manual Invoice Preservation
+
+Because the discriminator is marker presence, invoices without the marker take zero new code paths. Notes card renders verbatim, no sample lookup, no header horse override, no per-line changes. `InvoicePDFGenerator`, list view, edit dialog, approve/cancel/delete, ledger, dedupe — all untouched.
+
+## L. Bilingual and UI Contract
+
+All labels already exist: `finance.invoices.client`, `finance.invoices.issueDate`, `finance.invoices.horse`, `finance.invoices.sample`. Latin digits via existing `#${daily_number}` template and `dir="ltr"` on the value. IBM Plex / card layout unchanged.
+
+## M. Exact Files Proposed for Modification
+
+1. `src/lib/finance/labInvoiceMarker.ts` — NEW tiny helper (regex + `parseLabSourceMarker` + `stripLabSourceMarker`). Single source of truth reused by hook and sheet.
+2. `src/hooks/laboratory/useLabInvoiceDraft.ts` — swap local `LAB_SOURCE_MARKER_RE` / `buildLabSourceMarker` to re-export from the helper (no behavior change; keeps existing tests green).
+3. `src/components/finance/InvoiceDetailsSheet.tsx` — two localized edits (notes sanitation + marker-based sample resolution).
+4. `src/lib/finance/__tests__/labInvoiceMarker.test.ts` — NEW unit tests.
+
+No other files touched. No PDF / list / form / edge function / migration.
+
+## N. Execution-Ready Implementation Plan
+
+### N.1 `src/lib/finance/labInvoiceMarker.ts` (new, ~30 lines)
 
 ```ts
-const norm = (s: string) => s.trim().replace(/\s+/g, ' ');
-const snapshot = (invoice.client_name ?? '').trim() || null;
+export const LAB_SOURCE_MARKER_RE =
+  /\[LAB:(lab_sample|lab_request):([0-9a-fA-F-]{36})\]/;
 
-// Rendering — computed lazily; does NOT gate primary render.
-function renderCustomer(
-  client: { name: string | null; name_ar: string | null } | null | undefined,
-  clientLoaded: boolean, // true only after optional lookup settles successfully
+export type LabSourceType = "lab_sample" | "lab_request";
+
+export function parseLabSourceMarker(
+  notes: string | null | undefined,
+): { sourceType: LabSourceType; sourceId: string } | null {
+  if (!notes) return null;
+  const m = notes.match(LAB_SOURCE_MARKER_RE);
+  return m ? { sourceType: m[1] as LabSourceType, sourceId: m[2] } : null;
+}
+
+/** Removes the exact recognized marker plus at most one adjacent newline
+ * on each side. Trims trailing whitespace only. Never touches other text. */
+export function stripLabSourceMarker(notes: string | null | undefined): string {
+  if (!notes) return "";
+  return notes
+    .replace(new RegExp(`\\n?${LAB_SOURCE_MARKER_RE.source}\\n?`), "")
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function buildLabSourceMarker(
+  sourceType: LabSourceType,
+  sourceId: string,
 ): string {
-  if (!snapshot) return t('finance.invoices.noClient');
-  if (!invoice.client_id || !clientLoaded || !client) return snapshot;
+  return `[LAB:${sourceType}:${sourceId}]`;
+}
+```
 
-  const cEn = client.name?.trim()    || null;
-  const cAr = client.name_ar?.trim() || null;
-  const sN  = norm(snapshot);
-  const matchEn = !!cEn && norm(cEn) === sN;
-  const matchAr = !!cAr && norm(cAr) === sN;
+### N.2 `src/hooks/laboratory/useLabInvoiceDraft.ts`
 
-  // Case 6: matches neither → renamed/unrelated → snapshot only.
-  if (!matchEn && !matchAr) return snapshot;
+- Replace the local `LAB_SOURCE_MARKER_RE` / `buildLabSourceMarker` definitions with imports from `@/lib/finance/labInvoiceMarker`. `composeNotesWithMarker`, `checkExistingInvoice`, and the `__internal` export continue to work unchanged. Existing `useLabInvoiceDraftRpcCutover.test.ts` assertions (`buildLabSourceMarker`, `[LAB:`, `.ilike("notes"`) still pass because the strings and behavior are identical.
 
-  // Case 5: matches BOTH sides (after normalization) → snapshot once, no bilingual pair.
-  if (matchEn && matchAr) return snapshot;
+### N.3 `src/components/finance/InvoiceDetailsSheet.tsx`
 
-  if (matchEn) {
-    // Add AR supplement only if genuinely distinct from the normalized snapshot.
-    if (cAr && norm(cAr) !== sN) {
-      return displayClientName(snapshot, cAr); // snapshot verbatim on EN side
+**Edit 1 — Notes card (lines 700–709):**
+
+```tsx
+{(() => {
+  const visibleNotes = stripLabSourceMarker(invoice.notes);
+  return visibleNotes ? (
+    <Card className="bg-muted/30 border-dashed">
+      <CardContent className="p-3">
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+          {visibleNotes}
+        </p>
+      </CardContent>
+    </Card>
+  ) : null;
+})()}
+```
+
+Add import: `import { parseLabSourceMarker, stripLabSourceMarker } from "@/lib/finance/labInvoiceMarker";`
+
+**Edit 2 — Sample resolution (lines 292–335):**
+
+Wrap the existing sample-lookup block so it ALSO runs when the marker is present. New logic (drop-in inside `fetchInvoiceDetails`, replacing the current `try { if (labSampleIds.length > 0) ... }` block):
+
+```ts
+try {
+  const marker = parseLabSourceMarker((invoiceData as any).notes);
+  const sampleId =
+    (marker?.sourceType === "lab_sample" && marker.sourceId) ||
+    labSampleIds[0] /* legacy entity_type path */ ||
+    null;
+
+  if (sampleId) {
+    const { data: s } = await supabase
+      .from("lab_samples")
+      .select("id, daily_number, physical_sample_id, lab_horse_id, horse_id")
+      .eq("id", sampleId)
+      .eq("tenant_id", (invoiceData as any).tenant_id)
+      .maybeSingle();
+
+    if (s) {
+      const sLabel = (s as any).daily_number
+        ? `#${(s as any).daily_number}`
+        : ((s as any).physical_sample_id?.slice(0, 12) || null);
+
+      let hName: string | null = null;
+      if ((s as any).lab_horse_id) {
+        const { data: h } = await supabase
+          .from("lab_horses")
+          .select("name, name_ar")
+          .eq("id", (s as any).lab_horse_id).maybeSingle();
+        if (h) hName = dir === "rtl" ? ((h as any).name_ar || (h as any).name) : ((h as any).name || (h as any).name_ar);
+      } else if ((s as any).horse_id) {
+        const { data: h } = await supabase
+          .from("horses")
+          .select("name, name_ar")
+          .eq("id", (s as any).horse_id).maybeSingle();
+        if (h) hName = dir === "rtl" ? ((h as any).name_ar || (h as any).name) : ((h as any).name || (h as any).name_ar);
+      }
+      setInvoiceContext({ horseName: hName || undefined, sampleLabel: sLabel || undefined });
+    } else if (Object.keys(stableEntityMap).length > 0) {
+      const firstEnriched = stableEntityMap[Object.keys(stableEntityMap)[0]];
+      setInvoiceContext({ horseName: firstEnriched || undefined });
+    } else {
+      setInvoiceContext(null);
     }
-    return snapshot;
+  } else if (Object.keys(stableEntityMap).length > 0) {
+    const firstEnriched = stableEntityMap[Object.keys(stableEntityMap)[0]];
+    setInvoiceContext({ horseName: firstEnriched || undefined });
+  } else {
+    setInvoiceContext(null);
   }
-  // matchAr
-  if (cEn && norm(cEn) !== sN) {
-    return displayClientName(cEn, snapshot);   // snapshot verbatim on AR side
-  }
-  return snapshot;
+} catch {
+  setInvoiceContext(null);
 }
 ```
 
-Guarantees:
-- Master value is never rendered on the side the snapshot already matched.
-- Internal whitespace, punctuation, casing, spelling of the snapshot are preserved after outer trim only.
-- Empty-parens and duplicate normalized names cannot appear.
-- `displayHelpers.ts` is not modified; existing `displayClientName(en, ar)` used with snapshot pre-placed on the matched side.
+Behavior: for non-Lab invoices `marker` is null and `labSampleIds` empty → falls through to today's stable/none branches unchanged.
 
-## G. Customer Scenario Matrix
+### N.4 Data/query impact
 
-Ordering: AR UI puts AR outer, EN parenthetical; EN UI reverses.
++1 lightweight `lab_samples` select (`.maybeSingle()`, tenant-scoped, indexed PK) and at most +1 horse select per Lab invoice open. No new writes, no schema, no RLS/grants.
 
-| # | Snapshot | Cur EN | Cur AR | AR UI | EN UI |
-|---|---|---|---|---|---|
-| 1 EN match | `Nawaf Al-Otaibi` | `Nawaf Al-Otaibi` | `نواف العتيبي` | `نواف العتيبي (Nawaf Al-Otaibi)` | `Nawaf Al-Otaibi (نواف العتيبي)` |
-| 2 AR match | `نواف العتيبي` | `Nawaf Al-Otaibi` | `نواف العتيبي` | `نواف العتيبي (Nawaf Al-Otaibi)` | `Nawaf Al-Otaibi (نواف العتيبي)` |
-| 3 renamed | `Nawaf Al-Otaibi` | `Nawaf Al-Fadel` | `نواف الفاضل` | `Nawaf Al-Otaibi` | `Nawaf Al-Otaibi` |
-| 4 internal 2-space snapshot | `Nawaf  Al-Otaibi` | `Nawaf Al-Otaibi` | `نواف العتيبي` | `نواف العتيبي (Nawaf  Al-Otaibi)` | `Nawaf  Al-Otaibi (نواف العتيبي)` |
-| 5 both sides normalize to snapshot | `ACME LLC` | `ACME LLC` | `ACME  LLC` | `ACME LLC` | `ACME LLC` |
-| 6 no client_id | `Legacy Buyer LLC` | — | — | `Legacy Buyer LLC` | `Legacy Buyer LLC` |
-| 7 query fails / RLS-hidden / null row | any snapshot | — | — | snapshot | snapshot |
-| 8 missing snapshot, client_id present | `null` | `X` | `س` | `t('finance.invoices.noClient')` | `t('finance.invoices.noClient')` |
-| 9 EN matches, AR missing on master | `Nawaf Al-Otaibi` | `Nawaf Al-Otaibi` | `null` | `Nawaf Al-Otaibi` | `Nawaf Al-Otaibi` |
-| 10 EN==AR on master | `ACME` | `ACME` | `ACME` | `ACME` | `ACME` |
+### N.5 Translation impact
 
-## H. Truly Non-Blocking Client-Enrichment Architecture
+None — reuses `finance.invoices.{client,issueDate,horse,sample}`.
 
-Verified: current `fetchInvoiceDetails` serially awaits everything before `setLoading(false)`. Adding the optional `clients` query inside that function (even under `Promise.allSettled`) inherits the same latency gate. Fix contract:
+### N.6 Rollback
 
-1. `invoice.client_name` renders immediately from `invoice` state — no dependency on any `clients` lookup.
-2. Add a **separate `useEffect`** keyed on `[invoice?.id, invoice?.tenant_id, invoice?.client_id]` that runs after `invoice` is committed and issues **one** `clients` query. This effect must NOT touch `loading`.
-3. New local state: `clientEnrichment: { forInvoiceId: string; client: { name, name_ar } | null } | null` (nullable, defaulted to `null` on every invoice change).
-4. Effect body:
-   ```ts
-   if (!invoice?.client_id) { setClientEnrichment(null); return; }
-   let cancelled = false;
-   const activeInvoiceId = invoice.id;
-   const activeTenantId = invoice.tenant_id;
-   const activeClientId = invoice.client_id;
-   supabase.from('clients')
-     .select('name, name_ar')
-     .eq('tenant_id', activeTenantId)
-     .eq('id', activeClientId)
-     .maybeSingle()
-     .then(({ data, error }) => {
-       if (cancelled) return;
-       if (error || !data) { /* silent */ return; }
-       // Guard against stale invoice: only commit if the currently-mounted invoice still matches.
-       setClientEnrichment(prev => ({ forInvoiceId: activeInvoiceId, client: data }));
-     })
-     .catch(() => { /* silent — no toast, no error state */ });
-   return () => { cancelled = true; };
-   ```
-5. Render:
-   ```ts
-   const client = clientEnrichment?.forInvoiceId === invoice?.id ? clientEnrichment.client : null;
-   const clientLoaded = !!client;
-   const customerText = renderCustomer(client, clientLoaded);
-   ```
-6. No toast, no `throw`, no `setLoading`, no invoice-level error propagation from this effect. Latency of the `clients` query never delays invoice open, items, totals, or horse chips.
-7. No new hook, no new file. Effect lives inside `InvoiceDetailsSheet.tsx`.
+Revert the three touched files. Marker storage and dedupe are unaffected because `useLabInvoiceDraft` behavior is byte-equivalent.
 
-## I. Async Race, Cleanup, Stale-Result Contract
+## O. Narrow Test Plan
 
-Guards:
-- **Cleanup flag** (`cancelled`) drops any late-arriving result of a superseded effect run.
-- **Identity binding**: commit is gated by `activeInvoiceId === invoice.id` at render time via `clientEnrichment.forInvoiceId`. If the user switches A→B and A's fetch resolves last, `A.forInvoiceId !== B.id` so it will not display.
-- **Tenant binding**: tenant switch triggers unmount / route change; the sheet effect either re-runs (new invoice) or is torn down. The `tenant_id` embedded in the query prevents cross-tenant reads even under RLS bypass hypotheticals.
-- **Reset**: on `!open || invoiceId change`, existing L114–122 effect already clears `invoice`/`items`/`invoiceContext`; add `setClientEnrichment(null)` to that same reset.
-- **Locale toggle**: enrichment effect does NOT depend on `dir`/locale — no re-query on locale switch. `renderCustomer` reads `dir` at render time and reorders bilingual pair without re-fetching.
-- **Reopen same invoice**: same `invoiceId` → same effect dependency → one query per open (acceptable; still ≤1 per applicable invoice open).
+New file `src/lib/finance/__tests__/labInvoiceMarker.test.ts`:
 
-## J. Latency and Failure Matrix
+1. `parseLabSourceMarker` returns `{lab_sample, uuid}` for `"note\n[LAB:lab_sample:<uuid>]"`.
+2. Returns `null` for `null`, `""`, plain text, and malformed brackets like `"[LAB:foo]"` / `"[LAB:lab_sample:not-a-uuid]"`.
+3. `stripLabSourceMarker` marker-only note → `""`.
+4. Genuine note + marker → returns genuine note only.
+5. Unrelated bracket text (`"[URGENT] check horse"`) preserved verbatim.
+6. Marker never present in the returned string; UUID never returned.
+7. Multiline note above marker retains internal newlines.
 
-| Scenario | Primary render | Customer display |
-|---|---|---|
-| Fast client success | immediate | briefly snapshot → upgraded to bilingual on resolve |
-| Slow client success (2s) | immediate | snapshot for 2s → upgraded to bilingual |
-| Client query rejection | immediate | snapshot; no toast; no error UI |
-| RLS-hidden / null row | immediate | snapshot |
-| Rapid A → B switch, A resolves late | B renders immediately | A's client never displays on B (id guard) |
-| Close before resolve | n/a | discarded (cancelled flag) |
-| Reopen same invoice | immediate | one fresh lookup |
-| Locale toggle mid-flight | unchanged | no re-fetch; on resolve, ordering follows current `dir` |
-| Reopen different invoice, prior enrichment cached | immediate | prior enrichment ignored (forInvoiceId mismatch) until new resolves |
+Update `useLabInvoiceDraftRpcCutover.test.ts`: no change (contract stable). Re-run to confirm.
 
-## K. Type-Safe `ResolvedHorse` and `headerKey` Contract
+Manual `tsgo` + `bun run build` + `bunx vitest run` for the two test files.
 
-Discriminated union (recommended):
+## P. Manual Acceptance Plan
 
-```ts
-type PlatformResolvedHorse = {
-  identitySource: 'platform';
-  identityId: string;                        // guaranteed non-null
-  resolutionSource: 'direct' | 'entity';
-  entityType?: EntityType;
-  entityId?: string;
-  name: string | null;
-  name_ar: string | null;
-};
-type LabResolvedHorse = {
-  identitySource: 'lab';
-  identityId: string;                        // guaranteed non-null
-  resolutionSource: 'direct';                // lab horses only via item.lab_horse_id today
-  name: string | null;
-  name_ar: string | null;
-};
-type EnrichedResolvedHorse = {
-  identitySource: 'enrich';
-  identityId: null;
-  resolutionSource: 'entity';
-  entityType: EntityType;                    // required
-  entityId: string;                          // required
-  name: string | null;
-  name_ar: string | null;
-};
-type ResolvedHorse = PlatformResolvedHorse | LabResolvedHorse | EnrichedResolvedHorse;
+Exactly the 15 steps in §16 of the prompt. Run against `INV-9921` and one manual + one Stable invoice.
 
-function headerKey(h: ResolvedHorse): string {
-  switch (h.identitySource) {
-    case 'platform': return `platform:${h.identityId}`;
-    case 'lab':      return `lab:${h.identityId}`;
-    case 'enrich':   return `enrich:${h.entityType}:${h.entityId}`;
-  }
-}
-```
+## Q. Risks and Rollback
 
-Call-site narrowing:
+- Risk: marker regex over-strip — mitigated by anchoring to full `LAB_SOURCE_MARKER_RE` and unit tests 5 & 7.
+- Risk: extra select on non-Lab invoices — guarded by `if (sampleId)`, so it only fires when marker parses or legacy `entity_type='lab_sample'` items exist.
+- Risk: cache/permissions — reads use existing RLS on `lab_samples`/`lab_horses`/`horses`; failure returns `null` and degrades silently.
+- Rollback: `git revert` on the three files (no DB state to undo).
 
-```ts
-const distinct = new Map<string, ResolvedHorse>();
-for (const it of items) {
-  const h = it.resolvedHorse;              // ResolvedHorse | null
-  if (!h) continue;                        // <-- TS narrows to non-null in the body
-  const k = headerKey(h);
-  if (!distinct.has(k)) distinct.set(k, h);
-}
-```
+## R. Database Changes Required
 
-Runtime guards (data trust):
-- When building `PlatformResolvedHorse` from `horseNameMap`, only construct it if `identityId` is truthy string.
-- When building `EnrichedResolvedHorse`, require `entityType && entityId` both truthy.
-- No `any`, no unsafe cast to hide null; typechecker enforces `platform:null` / `enrich:undefined:undefined` cannot be emitted.
+`None`
 
-## L. Corrected Consolidated Narrow Execution Blueprint (plan only)
+## S. Files Created
 
-Files (exactly three): `src/components/finance/InvoiceDetailsSheet.tsx`, `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts`.
+`None` (this turn is plan-only).
 
-1. **Enrichment embed extension**: add `id` to the existing `horse:` / `mare:` embeds on all four enrichment queries (`vet_treatments`, `horse_vaccinations`, `breeding_attempts`, `foalings`). Same 4 queries, no new round-trip.
-2. **Collision-safe entity map**: replace `stableEntityMap: Record<string,string>` with `entityMap: Map<string, EntityRecord>` keyed by ``${entityType}:${entityId}``, storing structured `{ itemTitle, horse: {id, name, name_ar} | null }`. Insertion and lookup both go through `keyOf`.
-3. **Union entity-surfaced platform IDs**: before firing the `horses` batch, union any `horse.id` / `mare.id` produced by enrichment into `platformHorseIds`. Still one `horses` query.
-4. **Per-line `resolvedHorse` (discriminated union §K)**: precedence direct `horse_id` → direct `lab_horse_id` → entity horse with real ID (`platform`) → identity-less enrichment (`enrich`). Never overwrite direct with entity. Never invent `identityId`. Never parse display strings.
-5. **Enriched description rebuild** from structured `entityMap` values (title + bilingual horse), not from the previous joined string.
-6. **Remove secondary context misuse** at current L282–325: delete the `invoiceContext.horseName = firstEnriched` path. `invoiceContext` is either removed or narrowed to `sampleLabel`-only.
-7. **Header Horse/Horses card**: iterate items → dedup via `headerKey` (§K); render bilingual via existing `displayHorseName`; label `finance.invoices.horse` (singular) / `finance.invoices.horses` (plural); text always visible; decorative glyph `aria-hidden`. Remove the current L719 `!items.some(...)` suppression.
-8. **Independent horse-name warning row**: capture platform/lab query errors and per-namespace unresolved-ID sets; render as sibling row after Due Date, before Horse card; key `finance.invoices.horseNamesUnavailable`; EN `Some horse names could not be loaded.` / AR `تعذر تحميل بعض أسماء الخيل.`; no toast; independent of card rendering.
-9. **Truly non-blocking client enrichment (§H)**: new local state `clientEnrichment`, dedicated `useEffect` keyed on `[invoice?.id, invoice?.tenant_id, invoice?.client_id]`, cancellable, silent-on-failure, forInvoiceId-guarded. Reset alongside existing state resets.
-10. **Customer render (§F)**: replace L686's `invoice.client_name || t(...)` with `renderCustomer(client, clientLoaded)`.
-11. **Item/Service chip dedup** unchanged: `normalize(s) = s.trim().replace(/\s+/g,' ')`; equal ⇒ hide Service chip; unequal ⇒ keep both; packages excluded; category snapshots retained.
-12. **i18n additions**: `finance.invoices.horses` (EN `Horses` / AR `الخيل`), `finance.invoices.horseNamesUnavailable` (copy above). All other keys reused.
-13. **No changes** to: `useInvoiceCustomerHorses.ts`, `HorseLinePicker.tsx`, `InvoiceFormDialog.tsx`, `InvoiceLineItemsEditor.tsx`, `displayHelpers.ts`, `ClientStatementTab.tsx`, statement exports, PDF/print, RPCs, ledger, billing_links, invoice numbering, payment intents, tax, discount, currency, totals, package pricing, `supabase/**`.
+## T. Files Modified
 
-## M. Exact Future File Scope
+`None` (this turn is plan-only).
 
-Three files, zero others. `displayHelpers.ts` is NOT modified — the algorithm supplies the snapshot on the matched side and calls existing `displayClientName(en, ar)`. `useInvoiceCustomerHorses.ts` is a create-invoice concern and is unaffected. Scope expansion is not required by any evidence.
+## U. Production Objects Modified
 
-## N. Query Count and Critical-Path Classification
+`None`
 
-Per invoice open:
+## V. Persistent Rows Modified
 
-| Query | Max | Critical path? |
-|---|---|---|
-| `invoices` | 1 | yes |
-| `invoice_items` | 1 | yes |
-| `lab_samples` (existing) | ≤1 | yes |
-| Entity enrichment (vet_treatment/vaccination/breeding_attempt/foaling) | ≤4 | yes |
-| `horses` batch | ≤1 | yes |
-| `lab_horses` batch | ≤1 | yes |
-| `clients` (optional) | ≤1 | **no** — non-blocking, own effect |
-| Header-specific horse query | 0 | — |
-| Per-line query | 0 | — |
-| All-tenant fallback | 0 | — |
+`None`
 
-No N+1 possible: horse lookups are single batched `.in('id', ids)` calls.
+## W. Roadmap
 
-## O. Acceptance and Verification Plan
+1. Phase 1 — N+1A: COMPLETE AND MANUALLY ACCEPTED.
+2. Phase 2 — N+1B: FUNCTIONALLY CLOSED. LABORATORY INVOICE DISPLAY ALIGNMENT IN THIS TURN. DEEP HARDENING DEFERRED.
+3. Phase 3 — N+2: CONTRACT ALIGNED. SLICE 1 NEXT AFTER THIS DISPLAY PLAN IS APPROVED AND EXECUTED.
+4. Phase 4 — N+3: NOT STARTED.
+5. Phase 5 — N+4: NOT STARTED.
 
-Horse identity: INV-0982, 3× same direct platform horse, 3× same direct lab horse, Maha+Faten, direct+entity same platform horse, two different entities same platform horse, two different entity tables with equal simulated UUIDs, two enrich-fallback rows with equal IDs different types, one enrich row on multiple lines, vet_treatment invoice, vaccination invoice, breeding_attempt invoice, foaling/mare-only, horse-free invoice, simulated platform batch failure, simulated lab batch failure, partial resolution.
+## X. Next Exact Action
 
-Customer: EN match, AR match, renamed, whitespace-only master diff, internal double-space snapshot preservation, both-sides normalize to snapshot, missing opposite language, no client_id, missing snapshot, RLS-hidden, query rejection, null row.
+`AWAIT USER APPROVAL OF THE PLAN BELOW.`
 
-Non-blocking / race: slow client + fast invoice (invoice visible first), rapid A→B (A's late result suppressed), close before resolve, reopen same invoice, reopen different invoice, locale toggle mid-flight (no re-fetch), locale toggle after enrichment (order flips), no duplicate query on rerender.
+---
 
-Responsive/bilingual: 375 / 768 / 1280 px; AR/RTL + EN/LTR; ≥5 distinct horses at 375px.
+## APPROVAL HANDOFF — SEND THIS EXACT MESSAGE
 
-Technical (necessary, not sufficient):
-```
-bunx tsgo --noEmit
-bunx vitest run src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts
-```
-Plus visual acceptance of the scenarios above. Financial totals byte-identical pre/post.
-
-## P. Residual Unknowns
-
-- Whether any tenant has vet/vaccination rows where the embedded `horses` row is RLS-hidden while the parent event is visible — under the contract this degrades safely to `enrich` fallback.
-- Runtime behavior of the client-enrichment effect against a real renamed-customer invoice not exercised in read-only mode.
-- Header rendering with ≥5 distinct horses at 375 px not visually verified in-audit.
-- Breeding-attempt stallion inclusion in Header remains deliberately out of scope; future product decision.
-
-## Q. Final Readiness Rationale
-
-The four contradictions each map to a concrete, code-visible defect with a correction that is (i) internally consistent with the previously frozen contracts, (ii) implementable strictly within the three-file scope, (iii) query-budget neutral, (iv) TypeScript-provable, (v) financially inert. The remaining unknowns are runtime-verification items appropriate for the acceptance phase, not design gaps. **READY FOR NARROW EXECUTION PROMPT.**
+`APPROVED — EXECUTE EXACTLY THE LABORATORY INVOICE DISPLAY PLAN ABOVE. DO NOT EXPAND SCOPE. PRESERVE THE INTERNAL SOURCE MARKER, DUPLICATE-INVOICE PROTECTION, AND ALL STABLE/MANUAL INVOICE PRESENTATION. RUN THE SPECIFIED NARROW TESTS, TYPESCRIPT CHECK, AND PRODUCTION BUILD. STOP AFTER THE IMPLEMENTATION REPORT AND USER MANUAL-ACCEPTANCE SCRIPT.`
