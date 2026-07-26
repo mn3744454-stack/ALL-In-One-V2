@@ -41,6 +41,8 @@ import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
+import { InvoicePrintOptionsDialog, type InvoicePrintAction } from "./InvoicePrintOptionsDialog";
+import type { InvoicePaymentSummaryForPdf } from "@/lib/finance/fetchInvoicePaymentSummary";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import {
