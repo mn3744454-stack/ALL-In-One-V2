@@ -76,7 +76,8 @@ export async function postPaymentSession(
     const { data, error } = await supabase.rpc("post_payment_session", {
       p_tenant_id: tenantId,
       p_idempotency_key: idempotencyKey,
-      p_payload: payload as unknown as Record<string, unknown>,
+      // Supabase-generated `Json` is a recursive union; JSON-encoded payload conforms.
+      p_payload: JSON.parse(JSON.stringify(payload)),
     });
     if (error) {
       if (import.meta.env.DEV) console.error("postPaymentSession error", error);
