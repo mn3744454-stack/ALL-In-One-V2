@@ -558,6 +558,15 @@ export function InvoiceDetailsSheet({
       credit: t("finance.paymentMethods.credit"),
       mixed: t("finance.paymentMethods.mixed"),
     },
+    pdfPaymentSession: {
+      sessionLabel: t("finance.payments.pdfPaymentSession.sessionLabel"),
+      methodsHeading: t("finance.payments.pdfPaymentSession.methodsHeading"),
+      distributionHeading: t("finance.payments.pdfPaymentSession.distributionHeading"),
+      horseColumn: t("finance.payments.pdfPaymentSession.horseColumn"),
+      clientLevelLabel: t("finance.payments.pdfPaymentSession.clientLevelLabel"),
+      historicalLabel: t("finance.payments.pdfPaymentSession.historicalLabel"),
+      sessionTotal: t("finance.payments.pdfPaymentSession.sessionTotal"),
+    },
   });
 
   const buildPdfPaymentSummary = (): InvoicePaymentSummaryForPdf | null => {
