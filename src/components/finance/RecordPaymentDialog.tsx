@@ -89,11 +89,23 @@ export function RecordPaymentDialog({
   const { hasPermission } = usePermissions();
   const tenantCurrency = useTenantCurrency();
   const effectiveCurrency = currency || tenantCurrency;
-  const { summary, isLoading, recordPayment, isRecording, requiresPhase4Allocation, resetIdempotency } = useInvoicePayments(invoiceId);
-  const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
+  const { summary, isLoading, recordPayment, isRecording, resetIdempotency } = useInvoicePayments(invoiceId);
+  const { items: invoiceItems } = useInvoiceItems(invoiceId || undefined);
+  const { data: composition } = useInvoicePriorAllocations(invoiceId);
 
   const canRecordPayment = hasPermission("finance.payment.create");
   const [itemsExpanded, setItemsExpanded] = useState(false);
+
+  // Editor rendering conditions (derived from composition):
+  //   - `needsEditor`  → invoice actually requires user-driven bucket splits
+  //                       (>1 horse OR horse + client-level)
+  //   - `blockedLabHorse` → lab-horse-only combinations we cannot yet allocate
+  //                        (multi-lab-horse or lab-horse + horse/client)
+  const needsEditor = !!composition && composition.hasHorseScoped &&
+    (composition.distinctHorses > 1 || composition.hasClientLevel);
+  const blockedLabHorse = !!composition?.hasUnsupportedLabHorse;
+  const [bucketValues, setBucketValues] = useState<Record<string, string>>({});
+  const [allocationValid, setAllocationValid] = useState(false);
 
   // Initialize with one empty row
   const [rows, setRows] = useState<PaymentRow[]>([
