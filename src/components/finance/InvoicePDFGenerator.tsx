@@ -47,6 +47,16 @@ export interface InvoicePDFLabels {
   colRecordedAt: string;
   colAmount: string;
   methodLabels: Record<string, string>;
+  /** Optional session-grouped disclosure labels (Phase N+3 Slice 2.1). */
+  pdfPaymentSession?: {
+    sessionLabel: string;
+    methodsHeading: string;
+    distributionHeading: string;
+    horseColumn: string;
+    clientLevelLabel: string;
+    historicalLabel: string;
+    sessionTotal: string;
+  };
 }
 
 interface GeneratePDFOptions {
@@ -279,11 +289,9 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
       </div>`
     : "";
 
-  const paymentHistoryBlock =
-    paymentSummary && includePaymentHistory && paymentSummary.payments.length > 0
+  const renderFlatHistory = (): string =>
+    paymentSummary && paymentSummary.payments.length > 0
       ? `
-      <div style="margin-top: 24px;">
-        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1e3a5f; text-align: ${startAlign};">${escapeHtml(labels.paymentHistoryHeading)}</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
           <thead>
             <tr style="background: #1e3a5f;">
@@ -310,7 +318,95 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
               })
               .join("")}
           </tbody>
-        </table>
+        </table>`
+      : "";
+
+  // Session-grouped renderer — used only when the fetcher produced a
+  // `sessions` array (Phase N+3 Slice 2.1). Each session block shows its
+  // tender methods and, when persisted, the horse/client-level distribution.
+  const renderSessionGroupedHistory = (): string => {
+    if (!paymentSummary?.sessions?.length) return "";
+    const sessLabels = labels.pdfPaymentSession;
+    if (!sessLabels) return renderFlatHistory();
+    return paymentSummary.sessions
+      .map((sess, idx) => {
+        const heading = sess.sessionId
+          ? `${sessLabels.sessionLabel} #${idx + 1}`
+          : sessLabels.historicalLabel;
+        const dateLine = sess.effectiveDate
+          ? ltrBdi(escapeHtml(formatStandardDate(sess.effectiveDate)))
+          : "";
+        const methodsRows = sess.tenders
+          .map((t) => {
+            const methodLabel = labels.methodLabels[t.payment_method || ""] || t.payment_method || "—";
+            return `
+            <tr>
+              <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${startAlign};">${autoBdi(escapeHtml(methodLabel))}</td>
+              <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${endAlign}; font-weight: 600; color: #1e3a5f;">${ltrBdi(formatCurrency(t.amount))}</td>
+            </tr>`;
+          })
+          .join("");
+        const hasDistribution =
+          sess.horseAllocations.length > 0 || sess.clientLevelAmount > 0.005;
+        const distributionRows = hasDistribution
+          ? sess.horseAllocations
+              .map(
+                (h) => `
+            <tr>
+              <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${startAlign};">${autoBdi(escapeHtml(isAr && h.horseNameAr ? h.horseNameAr : h.horseName))}</td>
+              <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${endAlign}; font-weight: 600; color: #1e3a5f;">${ltrBdi(formatCurrency(h.amount))}</td>
+            </tr>`,
+              )
+              .join("") +
+            (sess.clientLevelAmount > 0.005
+              ? `
+            <tr>
+              <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${startAlign}; color:#6b7280;">${escapeHtml(sessLabels.clientLevelLabel)}</td>
+              <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${endAlign}; font-weight: 600; color: #1e3a5f;">${ltrBdi(formatCurrency(sess.clientLevelAmount))}</td>
+            </tr>`
+              : "")
+          : "";
+        return `
+        <div style="margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+            <span style="font-weight: 700; color: #1e3a5f; font-size: 13px;">${escapeHtml(heading)}${dateLine ? ` · ${dateLine}` : ""}</span>
+            <span style="font-family: monospace; color: #1e3a5f; font-weight: 700;">${escapeHtml(sessLabels.sessionTotal)}: ${ltrBdi(formatCurrency(sess.totalAmount))}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: ${hasDistribution ? "1fr 1fr" : "1fr"}; gap: 12px;">
+            <div>
+              <p style="margin: 0 0 4px 0; font-size: 11px; color: #6b7280; font-weight: 700; letter-spacing: 0.4px; text-align: ${startAlign};">${escapeHtml(sessLabels.methodsHeading)}</p>
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <tbody>${methodsRows}</tbody>
+              </table>
+            </div>
+            ${
+              hasDistribution
+                ? `<div>
+              <p style="margin: 0 0 4px 0; font-size: 11px; color: #6b7280; font-weight: 700; letter-spacing: 0.4px; text-align: ${startAlign};">${escapeHtml(sessLabels.distributionHeading)}</p>
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                  <tr>
+                    <th style="padding: 4px 10px; text-align: ${startAlign}; font-size: 10px; color: #6b7280; text-transform: uppercase;">${escapeHtml(sessLabels.horseColumn)}</th>
+                    <th style="padding: 4px 10px; text-align: ${endAlign}; font-size: 10px; color: #6b7280; text-transform: uppercase;">${escapeHtml(labels.colAmount)}</th>
+                  </tr>
+                </thead>
+                <tbody>${distributionRows}</tbody>
+              </table>
+            </div>`
+                : ""
+            }
+          </div>
+        </div>`;
+      })
+      .join("");
+  };
+
+  const paymentHistoryBlock =
+    paymentSummary && includePaymentHistory && paymentSummary.payments.length > 0
+      ? `
+      <div style="margin-top: 24px;">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1e3a5f; text-align: ${startAlign};">${escapeHtml(labels.paymentHistoryHeading)}</h3>
+        ${paymentSummary.sessions?.length ? renderSessionGroupedHistory() : renderFlatHistory()}
       </div>`
       : "";
 

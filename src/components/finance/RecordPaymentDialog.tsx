@@ -243,7 +243,7 @@ export function RecordPaymentDialog({
       open={open}
       onOpenChange={onOpenChange}
       isDirty={isDirty}
-      className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden"
+      className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden"
       dir={dir}
     >
         {/* Sticky Header */}
@@ -287,17 +287,76 @@ export function RecordPaymentDialog({
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-2">
                   <Card className="bg-muted/30">
-                    <CardContent className="p-3 space-y-1">
-                      {invoiceItems.map((item) => (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground truncate flex-1 pe-2">
-                            {item.description}
-                          </span>
-                          <span className="font-mono tabular-nums" dir="ltr">
-                            {formatAmount(item.total_price)}
-                          </span>
-                        </div>
-                      ))}
+                    <CardContent className="p-3 space-y-3">
+                      {(() => {
+                        // Group items by horse bucket for horse-scoped display.
+                        // Uses composition.buckets when available (multi-scope
+                        // invoices) so labels are already localized. Falls back
+                        // to a flat list otherwise.
+                        const bucketLabel = new Map<string, { label: string; kind: string }>();
+                        for (const b of composition?.buckets ?? []) {
+                          bucketLabel.set(b.key, {
+                            label: dir === "rtl" && b.labelAr ? b.labelAr : b.label,
+                            kind: b.kind,
+                          });
+                        }
+                        const groups = new Map<string, typeof invoiceItems>();
+                        for (const it of invoiceItems) {
+                          const key = (it as any).horse_id
+                            ? (it as any).horse_id
+                            : (it as any).lab_horse_id
+                              ? `lab:${(it as any).lab_horse_id}`
+                              : "__client__";
+                          const arr = groups.get(key) ?? [];
+                          arr.push(it);
+                          groups.set(key, arr);
+                        }
+                        const entries = Array.from(groups.entries());
+                        const useGrouping = entries.length > 1 || bucketLabel.size > 0;
+                        if (!useGrouping) {
+                          return invoiceItems.map((item) => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span className="text-muted-foreground truncate flex-1 pe-2">
+                                {item.description}
+                              </span>
+                              <span className="font-mono tabular-nums" dir="ltr">
+                                {formatAmount(item.total_price)}
+                              </span>
+                            </div>
+                          ));
+                        }
+                        return entries.map(([key, list]) => {
+                          const info = bucketLabel.get(key);
+                          const heading =
+                            key === "__client__"
+                              ? t("finance.payments.groupedItems.clientLevel")
+                              : `${t("finance.payments.groupedItems.horseHeader")}: ${info?.label ?? key.slice(0, 8)}`;
+                          const subtotal = list.reduce((s, x) => s + Number(x.total_price || 0), 0);
+                          return (
+                            <div key={key} className="space-y-1">
+                              <div className="flex items-center justify-between text-xs font-semibold text-primary uppercase tracking-wide">
+                                <span className="truncate pe-2">{heading}</span>
+                                <span className="font-mono tabular-nums" dir="ltr">
+                                  {formatAmount(subtotal)}
+                                </span>
+                              </div>
+                              {list.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="flex justify-between text-sm ps-3"
+                                >
+                                  <span className="text-muted-foreground truncate flex-1 pe-2">
+                                    {item.description}
+                                  </span>
+                                  <span className="font-mono tabular-nums" dir="ltr">
+                                    {formatAmount(item.total_price)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        });
+                      })()}
                     </CardContent>
                   </Card>
                 </CollapsibleContent>
@@ -363,21 +422,58 @@ export function RecordPaymentDialog({
                     ariaLabel={t("finance.payments.paymentDate")}
                   />
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>{t("finance.payments.paymentDetails")}</Label>
-                    {rows.length === 1 && summary.outstandingAmount > 0 && (
-                      <Button
-                        type="button"
-                        variant="link"
-                        size="sm"
-                        onClick={fillFullAmount}
-                        className="h-auto p-0 text-xs"
-                      >
-                        {t("finance.payments.payFullAmount")}
-                      </Button>
-                    )}
+                {/* Amount + Allocation Editor (comes BEFORE payment methods
+                    so the user first decides "how much and to whom", then
+                    picks tenders that add up to that amount). */}
+                <div className="grid gap-2">
+                  <Label>{t("finance.payments.paymentAmount")}</Label>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {t("finance.payments.totalPayment")}
+                    </span>
+                    <span
+                      className="font-mono tabular-nums font-semibold text-lg"
+                      dir="ltr"
+                    >
+                      {formatAmount(totalPayment)}
+                    </span>
                   </div>
+                  {rows.length === 1 && summary.outstandingAmount > 0 && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      onClick={fillFullAmount}
+                      className="h-auto p-0 text-xs self-start"
+                    >
+                      {t("finance.payments.payFullOutstanding")}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Multi-horse / mixed allocation editor */}
+                {needsEditor && composition && (
+                  <PaymentAllocationEditor
+                    composition={composition}
+                    paymentAmount={totalPayment}
+                    currency={effectiveCurrency}
+                    invoiceItems={invoiceItems as Array<{
+                      id: string;
+                      description: string;
+                      total_price: number;
+                      horse_id?: string | null;
+                      lab_horse_id?: string | null;
+                    }>}
+                    value={bucketValues}
+                    onChange={setBucketValues}
+                    onValidityChange={setAllocationValid}
+                  />
+                )}
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <Label>{t("finance.payments.paymentMethodDetails")}</Label>
 
                   {rows.map((row, index) => (
                     <Card key={row.id}>
@@ -470,25 +566,6 @@ export function RecordPaymentDialog({
                     {t("finance.payments.addPaymentMethod")}
                   </Button>
                 </div>
-
-                {/* Multi-horse / mixed allocation editor */}
-                {needsEditor && composition && (
-                  <PaymentAllocationEditor
-                    composition={composition}
-                    paymentAmount={totalPayment}
-                    currency={effectiveCurrency}
-                    invoiceItems={invoiceItems as Array<{
-                      id: string;
-                      description: string;
-                      total_price: number;
-                      horse_id?: string | null;
-                      lab_horse_id?: string | null;
-                    }>}
-                    value={bucketValues}
-                    onChange={setBucketValues}
-                    onValidityChange={setAllocationValid}
-                  />
-                )}
 
                 {/* Validation Errors */}
                 {isOverpayment && (
