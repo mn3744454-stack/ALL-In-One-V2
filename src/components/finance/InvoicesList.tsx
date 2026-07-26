@@ -91,6 +91,11 @@ export function InvoicesList({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [printTarget, setPrintTarget] = useState<{
+    invoice: Invoice;
+    action: "download" | "print";
+    hasPayments: boolean;
+  } | null>(null);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-invoices');
   const invoiceIds = useMemo(() => invoices.map(i => i.id), [invoices]);
   const { getPaidAmount } = useInvoicePaymentsBatch(invoiceIds);
