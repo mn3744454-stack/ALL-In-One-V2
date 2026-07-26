@@ -1,13 +1,19 @@
 import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useInvoices, useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getTenantTaxConfig, computeTax } from "@/lib/taxUtils";
+import {
+  createInvoiceWithItems,
+  getRiyadhDateString,
+  type InvoiceRpcItemInput,
+  type InvoiceRpcPayload,
+} from "@/lib/finance/invoiceRpc";
+import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 
 import type { LabSample } from "./useLabSamples";
 import type { LabRequest, LabRequestService } from "./useLabRequests";
@@ -41,16 +47,31 @@ export interface GenerateInvoiceInput {
   notes?: string;
 }
 
+// Marker embedded in invoice.notes to preserve lab-source trace and
+// duplicate-detection across the RPC path. The RPC contract does NOT accept
+// entity_type / entity_id keys, so we rely on this marker + horse/lab_horse
+// per-item attribution to satisfy the invariant.
+const LAB_SOURCE_MARKER_RE = /\[LAB:(lab_sample|lab_request):([0-9a-fA-F-]{36})\]/;
+function buildLabSourceMarker(sourceType: LabBillingSourceType, sourceId: string): string {
+  return `[LAB:${sourceType}:${sourceId}]`;
+}
+function composeNotesWithMarker(
+  userNotes: string | undefined,
+  sourceName: string,
+  marker: string,
+): string {
+  const base = (userNotes && userNotes.trim().length > 0) ? userNotes.trim() : sourceName;
+  return `${base}\n${marker}`;
+}
+
 export function useLabInvoiceDraft() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { activeTenant } = useTenant();
   const { user } = useAuth();
   const { hasPermission, isOwner } = usePermissions();
   const tenantId = activeTenant?.tenant?.id;
-
-  const { createInvoice, isCreating } = useInvoices(tenantId);
-  const { createItem } = useInvoiceItems();
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -59,9 +80,11 @@ export function useLabInvoiceDraft() {
   const canCreateInvoice = isOwner || hasPermission("laboratory.billing.create") || hasPermission("finance.invoice.create");
 
   /**
-   * Check if invoices already exist for a given lab source
-   * Searches in invoice_items.description for the pattern [LAB:sourceType:sourceId]
-   * Returns an array of existing invoices (up to 5)
+   * Check if invoices already exist for a given lab source.
+   * Primary path: match the [LAB:sourceType:sourceId] marker persisted in
+   * invoices.notes by the RPC path.
+   * Legacy fallback: match invoice_items.entity_type/entity_id written by
+   * the pre-RPC direct-write flow (historical rows only).
    */
   const checkExistingInvoice = useCallback(
     async (
@@ -72,8 +95,32 @@ export function useLabInvoiceDraft() {
 
       setIsChecking(true);
       try {
-        // Search in invoice_items using entity_type/entity_id (preferred clean approach)
-        const { data: items, error } = await supabase
+        const seen = new Set<string>();
+        const result: ExistingInvoicesResult = [];
+        const marker = buildLabSourceMarker(sourceType, sourceId);
+
+        // Primary: marker in invoices.notes (RPC path).
+        const { data: byNotes, error: notesErr } = await supabase
+          .from("invoices")
+          .select("id, invoice_number, created_at")
+          .eq("tenant_id", tenantId)
+          .ilike("notes", `%${marker}%`)
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (notesErr) {
+          console.error("checkExistingInvoice (notes) error:", notesErr);
+        } else if (byNotes) {
+          for (const inv of byNotes) {
+            if (!seen.has(inv.id)) {
+              seen.add(inv.id);
+              result.push({ invoiceId: inv.id, invoiceNumber: inv.invoice_number });
+            }
+          }
+        }
+
+        // Legacy fallback: entity_type/entity_id on invoice_items (historical rows).
+        const { data: items, error: itemsErr } = await supabase
           .from("invoice_items")
           .select("invoice_id, invoices!inner(id, invoice_number, tenant_id, created_at)")
           .eq("entity_type", sourceType)
@@ -82,34 +129,19 @@ export function useLabInvoiceDraft() {
           .order("invoices(created_at)", { ascending: false })
           .limit(5);
 
-        if (error) {
-          console.error("Error checking existing invoice:", error);
-          return [];
-        }
-
-        if (items && items.length > 0) {
-          // Deduplicate by invoice_id
-          const seen = new Set<string>();
-          const result: ExistingInvoicesResult = [];
-          
+        if (itemsErr) {
+          console.error("checkExistingInvoice (legacy items) error:", itemsErr);
+        } else if (items) {
           for (const item of items) {
-            const invoice = item.invoices as unknown as {
-              id: string;
-              invoice_number: string;
-            };
-            if (!seen.has(invoice.id)) {
-              seen.add(invoice.id);
-              result.push({
-                invoiceId: invoice.id,
-                invoiceNumber: invoice.invoice_number,
-              });
+            const inv = item.invoices as unknown as { id: string; invoice_number: string };
+            if (!seen.has(inv.id)) {
+              seen.add(inv.id);
+              result.push({ invoiceId: inv.id, invoiceNumber: inv.invoice_number });
             }
           }
-          
-          return result;
         }
 
-        return [];
+        return result.slice(0, 5);
       } catch (error) {
         console.error("Error checking existing invoice:", error);
         return [];
@@ -173,7 +205,7 @@ export function useLabInvoiceDraft() {
       const name = s.service_name_snapshot || s.service?.name || "Unknown Service";
       const nameAr = s.service_name_ar_snapshot || s.service?.name_ar || undefined;
       const price = s.unit_price_snapshot ?? s.service?.price ?? null;
-      
+
       return {
         templateName: name,
         templateNameAr: nameAr,
@@ -202,18 +234,18 @@ export function useLabInvoiceDraft() {
   };
 
   /**
-   * Generate a unique invoice number
+   * Main function to generate a Draft Invoice from a lab entity via the
+   * atomic RPC public.create_invoice_with_items.
+   *
+   * - One RPC call. No direct .from("invoices"/"invoice_items").insert.
+   * - Server owns invoice_number, tax, per-line frozen snapshots.
+   * - Source trace persisted via marker in invoices.notes.
+   * - Per-item horse_id / lab_horse_id forwarded when supported by tenant.
    */
-  const generateInvoiceNumber = (): string => {
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `INV-LAB-${timestamp}-${random}`;
-  };
-
-  /**
-   * Main function to generate an invoice draft from lab entity
-   */
-  const generateInvoice = async (input: GenerateInvoiceInput): Promise<string | null> => {
+  const generateInvoice = async (
+    input: GenerateInvoiceInput,
+    sourceContext?: { horseId?: string | null; labHorseId?: string | null },
+  ): Promise<string | null> => {
     if (!tenantId || !user?.id) {
       toast.error(t("laboratory.billing.noTenant") || "No active organization");
       return null;
@@ -232,66 +264,63 @@ export function useLabInvoiceDraft() {
     setIsGenerating(true);
 
     try {
-      // Calculate totals with tenant tax config
-      const subtotal = input.lineItems.reduce((sum, item) => sum + item.total, 0);
-      const tenantTaxConfig = getTenantTaxConfig(activeTenant?.tenant);
-      const taxResult = computeTax(subtotal, tenantTaxConfig);
-      const taxAmount = taxResult.taxAmount;
-      const discountAmount = 0;
-      const totalAmount = taxResult.totalAmount - discountAmount;
+      const marker = buildLabSourceMarker(input.sourceType, input.sourceId);
+      const notes = composeNotesWithMarker(input.notes, input.sourceName, marker);
 
-      // Create the invoice
-      const invoice = await createInvoice({
-        tenant_id: tenantId,
-        invoice_number: generateInvoiceNumber(),
-        client_id: input.clientId,
-        client_name: input.clientName,
-        status: "draft",
-        issue_date: new Date().toISOString().split("T")[0],
-        subtotal,
-        tax_amount: taxAmount,
-        discount_amount: discountAmount,
-        total_amount: totalAmount,
-        currency: activeTenant?.tenant?.currency || "SAR",
-        notes: input.notes || input.sourceName, // Clean notes without technical IDs
-      });
-
-      if (!invoice?.id) {
-        throw new Error("Failed to create invoice");
-      }
-
-      // Create line items - use clean descriptions, store technical links in entity_type/entity_id
-      for (let idx = 0; idx < input.lineItems.length; idx++) {
-        const item = input.lineItems[idx];
-        // Clean human-readable description (template name only, can include bilingual)
+      const rpcItems: InvoiceRpcItemInput[] = input.lineItems.map((item) => {
         const description = item.templateNameAr
           ? `${item.templateName} / ${item.templateNameAr}`
           : item.templateName;
-
-        await createItem({
-          invoice_id: invoice.id,
-          description, // Clean description without UUIDs
+        const rpcItem: InvoiceRpcItemInput = {
+          description,
           quantity: item.quantity,
-          unit_price: item.unitPrice,
-          total_price: item.total,
-          entity_type: input.sourceType, // Technical link stored here
-          entity_id: input.sourceId, // Technical link stored here
-          position: idx,
-        });
+          unit_price: item.unitPrice ?? 0,
+        };
+        if (sourceContext?.horseId) rpcItem.horse_id = sourceContext.horseId;
+        if (sourceContext?.labHorseId) rpcItem.lab_horse_id = sourceContext.labHorseId;
+        return rpcItem;
+      });
+
+      const payload: InvoiceRpcPayload = {
+        client_id: input.clientId,
+        client_name: input.clientName,
+        issue_date: getRiyadhDateString(),
+        notes,
+        discount_amount: 0,
+        items: rpcItems,
+      };
+
+      const result = await createInvoiceWithItems(tenantId, payload);
+
+      if (!result?.invoice_id) {
+        throw new Error("FIN_RPC_INVALID_RESPONSE");
       }
+
+      // Invalidate finance caches; source-specific caches are refreshed by callers.
+      invalidateFinanceQueries(queryClient, tenantId);
+      queryClient.invalidateQueries({ queryKey: ["lab-samples"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-requests"] });
 
       toast.success(t("laboratory.billing.invoiceCreated") || "Invoice created successfully");
 
-      // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
-      // NOT at creation time. Draft invoices have zero financial impact.
-
-      // Navigate to finance invoices page
+      // NOTE: Draft only — no ledger/payment/customer_balance rows are created.
       navigate("/dashboard/finance/invoices");
 
-      return invoice.id;
+      return result.invoice_id;
     } catch (error) {
-      console.error("Error generating invoice:", error);
-      toast.error(t("laboratory.billing.invoiceError") || "Failed to create invoice");
+      // Preserve full technical detail for developers; show safe fallback to user.
+      console.error("[useLabInvoiceDraft] create_invoice_with_items failed:", error);
+      const err = error as { code?: string; message?: string };
+      const code = err?.code;
+      const messageMap: Record<string, string> = {
+        FIN_PAYLOAD_UNKNOWN_KEY: t("laboratory.billing.invoiceError"),
+        FIN_PAYLOAD_TYPE: t("laboratory.billing.invoiceError"),
+        FIN_CLIENT_REQUIRED: t("laboratory.billing.invoiceError"),
+      };
+      const localized = (code && messageMap[code]) || t("laboratory.billing.invoiceError") || "Failed to create invoice";
+      const devSuffix =
+        import.meta.env.DEV && err?.message ? ` — ${err.message}` : "";
+      toast.error(`${localized}${devSuffix}`);
       return null;
     } finally {
       setIsGenerating(false);
@@ -310,7 +339,7 @@ export function useLabInvoiceDraft() {
 
   return {
     canCreateInvoice,
-    isGenerating: isGenerating || isCreating,
+    isGenerating,
     isChecking,
     getTemplatePrice,
     buildLineItemsFromSample,
@@ -319,5 +348,8 @@ export function useLabInvoiceDraft() {
     generateInvoice,
     checkExistingInvoice,
     goToInvoice,
+    // Exported for tests
+    __internal: { LAB_SOURCE_MARKER_RE, buildLabSourceMarker },
   };
 }
+
