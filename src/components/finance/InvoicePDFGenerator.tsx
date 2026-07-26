@@ -34,6 +34,19 @@ export interface InvoicePDFLabels {
   included: string;
   packageChip: string;
   horseGroupLabel: string;
+  // Payment disclosure block (Phase N+3 Slice 1)
+  paymentStatusLabel: string;
+  statusUnpaid: string;
+  statusPartial: string;
+  statusPaid: string;
+  paidToDate: string;
+  outstanding: string;
+  paymentHistoryHeading: string;
+  colMethod: string;
+  colEffectiveDate: string;
+  colRecordedAt: string;
+  colAmount: string;
+  methodLabels: Record<string, string>;
 }
 
 interface GeneratePDFOptions {
@@ -47,6 +60,10 @@ interface GeneratePDFOptions {
   lang: string;
   /** Complete localized labels contract — required. */
   labels: InvoicePDFLabels;
+  /** Ledger-truth payment summary. When present, renders the summary block. */
+  paymentSummary?: InvoicePaymentSummaryForPdf | null;
+  /** Opt-in — user chose to include the detailed payment history table. */
+  includePaymentHistory?: boolean;
 }
 
 const escapeHtml = (s: string) =>
