@@ -86,7 +86,7 @@ export function RecordPaymentDialog({
   const { hasPermission } = usePermissions();
   const tenantCurrency = useTenantCurrency();
   const effectiveCurrency = currency || tenantCurrency;
-  const { summary, isLoading, recordPayment, isRecording } = useInvoicePayments(invoiceId);
+  const { summary, isLoading, recordPayment, isRecording, requiresPhase4Allocation } = useInvoicePayments(invoiceId);
   const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
 
   const canRecordPayment = hasPermission("finance.payment.create");
