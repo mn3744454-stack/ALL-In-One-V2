@@ -287,17 +287,76 @@ export function RecordPaymentDialog({
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-2">
                   <Card className="bg-muted/30">
-                    <CardContent className="p-3 space-y-1">
-                      {invoiceItems.map((item) => (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground truncate flex-1 pe-2">
-                            {item.description}
-                          </span>
-                          <span className="font-mono tabular-nums" dir="ltr">
-                            {formatAmount(item.total_price)}
-                          </span>
-                        </div>
-                      ))}
+                    <CardContent className="p-3 space-y-3">
+                      {(() => {
+                        // Group items by horse bucket for horse-scoped display.
+                        // Uses composition.buckets when available (multi-scope
+                        // invoices) so labels are already localized. Falls back
+                        // to a flat list otherwise.
+                        const bucketLabel = new Map<string, { label: string; kind: string }>();
+                        for (const b of composition?.buckets ?? []) {
+                          bucketLabel.set(b.key, {
+                            label: dir === "rtl" && b.labelAr ? b.labelAr : b.label,
+                            kind: b.kind,
+                          });
+                        }
+                        const groups = new Map<string, typeof invoiceItems>();
+                        for (const it of invoiceItems) {
+                          const key = (it as any).horse_id
+                            ? (it as any).horse_id
+                            : (it as any).lab_horse_id
+                              ? `lab:${(it as any).lab_horse_id}`
+                              : "__client__";
+                          const arr = groups.get(key) ?? [];
+                          arr.push(it);
+                          groups.set(key, arr);
+                        }
+                        const entries = Array.from(groups.entries());
+                        const useGrouping = entries.length > 1 || bucketLabel.size > 0;
+                        if (!useGrouping) {
+                          return invoiceItems.map((item) => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span className="text-muted-foreground truncate flex-1 pe-2">
+                                {item.description}
+                              </span>
+                              <span className="font-mono tabular-nums" dir="ltr">
+                                {formatAmount(item.total_price)}
+                              </span>
+                            </div>
+                          ));
+                        }
+                        return entries.map(([key, list]) => {
+                          const info = bucketLabel.get(key);
+                          const heading =
+                            key === "__client__"
+                              ? t("finance.payments.groupedItems.clientLevel")
+                              : `${t("finance.payments.groupedItems.horseHeader")}: ${info?.label ?? key.slice(0, 8)}`;
+                          const subtotal = list.reduce((s, x) => s + Number(x.total_price || 0), 0);
+                          return (
+                            <div key={key} className="space-y-1">
+                              <div className="flex items-center justify-between text-xs font-semibold text-primary uppercase tracking-wide">
+                                <span className="truncate pe-2">{heading}</span>
+                                <span className="font-mono tabular-nums" dir="ltr">
+                                  {formatAmount(subtotal)}
+                                </span>
+                              </div>
+                              {list.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="flex justify-between text-sm ps-3"
+                                >
+                                  <span className="text-muted-foreground truncate flex-1 pe-2">
+                                    {item.description}
+                                  </span>
+                                  <span className="font-mono tabular-nums" dir="ltr">
+                                    {formatAmount(item.total_price)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        });
+                      })()}
                     </CardContent>
                   </Card>
                 </CollapsibleContent>
