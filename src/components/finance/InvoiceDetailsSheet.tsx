@@ -1128,6 +1128,17 @@ export function InvoiceDetailsSheet({
         onSuccess={handlePaymentSuccess}
       />
 
+      {/* Print / Download Options Dialog (Phase N+3 Slice 1) */}
+      <InvoicePrintOptionsDialog
+        open={printOptionsOpen}
+        onOpenChange={setPrintOptionsOpen}
+        action={printAction}
+        hasPayments={(paymentSummary?.payments.length ?? 0) > 0}
+        onConfirm={({ includePaymentHistory }) => handleExport(printAction, includePaymentHistory)}
+      />
+
+
+
       {/* Approve Confirmation Dialog */}
       <AlertDialog open={approveConfirmOpen} onOpenChange={setApproveConfirmOpen}>
         <AlertDialogContent>
