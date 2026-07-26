@@ -42,6 +42,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
 import { formatCurrency, formatDate } from "@/lib/formatters";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import {
   buildInvoicePresentation,
   formatHorseHeadingParts,
@@ -1041,7 +1042,7 @@ export function InvoiceDetailsSheet({
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-mono tabular-nums" dir="ltr">
-                              {formatDate(payment.effective_date, "dd-MM-yyyy")}
+                              {formatStandardDateTime(payment.created_at)}
                             </p>
                             {payment.payment_method && (
                               <Badge variant="outline" className="text-xs mt-1">
