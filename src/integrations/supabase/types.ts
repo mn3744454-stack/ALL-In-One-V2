@@ -13668,6 +13668,10 @@ export type Database = {
           visibility_source: string
         }[]
       }
+      get_payment_session: {
+        Args: { p_session_id: string; p_tenant_id: string }
+        Returns: Json
+      }
       get_public_tenant: {
         Args: { tenant_slug: string }
         Returns: {
@@ -13879,6 +13883,14 @@ export type Database = {
           p_payload: Json
           p_payment_date: string
           p_payment_method: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      post_payment_session: {
+        Args: {
+          p_idempotency_key: string
+          p_payload: Json
           p_tenant_id: string
         }
         Returns: Json
