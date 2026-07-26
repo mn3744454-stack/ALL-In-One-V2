@@ -422,21 +422,58 @@ export function RecordPaymentDialog({
                     ariaLabel={t("finance.payments.paymentDate")}
                   />
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>{t("finance.payments.paymentDetails")}</Label>
-                    {rows.length === 1 && summary.outstandingAmount > 0 && (
-                      <Button
-                        type="button"
-                        variant="link"
-                        size="sm"
-                        onClick={fillFullAmount}
-                        className="h-auto p-0 text-xs"
-                      >
-                        {t("finance.payments.payFullAmount")}
-                      </Button>
-                    )}
+                {/* Amount + Allocation Editor (comes BEFORE payment methods
+                    so the user first decides "how much and to whom", then
+                    picks tenders that add up to that amount). */}
+                <div className="grid gap-2">
+                  <Label>{t("finance.payments.paymentAmount")}</Label>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {t("finance.payments.totalPayment")}
+                    </span>
+                    <span
+                      className="font-mono tabular-nums font-semibold text-lg"
+                      dir="ltr"
+                    >
+                      {formatAmount(totalPayment)}
+                    </span>
                   </div>
+                  {rows.length === 1 && summary.outstandingAmount > 0 && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      onClick={fillFullAmount}
+                      className="h-auto p-0 text-xs self-start"
+                    >
+                      {t("finance.payments.payFullOutstanding")}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Multi-horse / mixed allocation editor */}
+                {needsEditor && composition && (
+                  <PaymentAllocationEditor
+                    composition={composition}
+                    paymentAmount={totalPayment}
+                    currency={effectiveCurrency}
+                    invoiceItems={invoiceItems as Array<{
+                      id: string;
+                      description: string;
+                      total_price: number;
+                      horse_id?: string | null;
+                      lab_horse_id?: string | null;
+                    }>}
+                    value={bucketValues}
+                    onChange={setBucketValues}
+                    onValidityChange={setAllocationValid}
+                  />
+                )}
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <Label>{t("finance.payments.paymentMethodDetails")}</Label>
 
                   {rows.map((row, index) => (
                     <Card key={row.id}>
@@ -529,25 +566,6 @@ export function RecordPaymentDialog({
                     {t("finance.payments.addPaymentMethod")}
                   </Button>
                 </div>
-
-                {/* Multi-horse / mixed allocation editor */}
-                {needsEditor && composition && (
-                  <PaymentAllocationEditor
-                    composition={composition}
-                    paymentAmount={totalPayment}
-                    currency={effectiveCurrency}
-                    invoiceItems={invoiceItems as Array<{
-                      id: string;
-                      description: string;
-                      total_price: number;
-                      horse_id?: string | null;
-                      lab_horse_id?: string | null;
-                    }>}
-                    value={bucketValues}
-                    onChange={setBucketValues}
-                    onValidityChange={setAllocationValid}
-                  />
-                )}
 
                 {/* Validation Errors */}
                 {isOverpayment && (
