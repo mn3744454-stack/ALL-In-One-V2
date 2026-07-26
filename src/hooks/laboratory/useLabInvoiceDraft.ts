@@ -14,6 +14,10 @@ import {
   type InvoiceRpcPayload,
 } from "@/lib/finance/invoiceRpc";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+import {
+  LAB_SOURCE_MARKER_RE,
+  buildLabSourceMarker,
+} from "@/lib/finance/labInvoiceMarker";
 
 import type { LabSample } from "./useLabSamples";
 import type { LabRequest, LabRequestService } from "./useLabRequests";
@@ -51,10 +55,9 @@ export interface GenerateInvoiceInput {
 // duplicate-detection across the RPC path. The RPC contract does NOT accept
 // entity_type / entity_id keys, so we rely on this marker + horse/lab_horse
 // per-item attribution to satisfy the invariant.
-const LAB_SOURCE_MARKER_RE = /\[LAB:(lab_sample|lab_request):([0-9a-fA-F-]{36})\]/;
-function buildLabSourceMarker(sourceType: LabBillingSourceType, sourceId: string): string {
-  return `[LAB:${sourceType}:${sourceId}]`;
-}
+// LAB_SOURCE_MARKER_RE and buildLabSourceMarker are imported from
+// `@/lib/finance/labInvoiceMarker` — the single source of truth shared with
+// the invoice-details display sanitizer.
 function composeNotesWithMarker(
   userNotes: string | undefined,
   sourceName: string,
