@@ -122,8 +122,13 @@ describe("N+2.5 invoice frontend wiring", () => {
     expect(details).toContain('hasPermission("finance.invoice.cancel")');
   });
 
-  it("records split payments through one RPC and reads effective_date", () => {
-    expect(payment).toContain('.rpc("post_invoice_payments"');
+  it("records split payments through the payment session RPC and reads effective_date", () => {
+    // Phase N+2 cutover: writer delegates to post_payment_session via the
+    // postPaymentSession wrapper rather than calling the deprecated
+    // post_invoice_payments RPC directly. The wrapper file itself owns the
+    // `.rpc("post_payment_session"` call; the payment writer must NOT touch
+    // ledger_entries or customer_balances directly.
+    expect(payment).toContain("postPaymentSession");
     expect(payment).not.toContain('.from("ledger_entries")');
     expect(payment).not.toContain('.from("customer_balances")');
     expect(paymentHook).toContain("effective_date");
