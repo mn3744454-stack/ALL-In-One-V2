@@ -202,6 +202,7 @@ export function RecordPaymentDialog({
     setAttemptedSubmit(true);
 
     if (!isValidPayment || missingIssues.length > 0) return;
+    if (needsEditor && !allocationValid) return;
 
     const payments: PaymentEntry[] = rows
       .filter((r) => parseFloat(r.amount) > 0)
@@ -214,14 +215,26 @@ export function RecordPaymentDialog({
 
     if (payments.length === 0) return;
 
+    // Build BucketAllocation[] from the editor state — only when the invoice
+    // actually needs allocation (single-horse invoices submit without buckets).
+    const bucketAllocations: BucketAllocation[] | undefined = needsEditor && composition
+      ? composition.buckets.map((b) => ({
+          key: b.key,
+          kind: b.kind,
+          horseId: b.kind === "horse" ? b.horseId : undefined,
+          amount: parseFloat(bucketValues[b.key] || "0") || 0,
+        }))
+      : undefined;
+
     try {
-      await recordPayment({ payments, paymentDate });
+      await recordPayment({ payments, paymentDate, bucketAllocations });
       onSuccess?.();
       onOpenChange(false);
     } catch {
       // Error handled in hook
     }
   };
+
 
   const formatAmount = (amount: number) => formatCurrency(amount, effectiveCurrency);
 
