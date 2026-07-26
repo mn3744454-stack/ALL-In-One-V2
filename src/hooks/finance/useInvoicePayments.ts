@@ -203,21 +203,27 @@ export function useInvoicePayments(invoiceId?: string | null) {
     mutationFn: async ({
       payments,
       paymentDate,
+      bucketAllocations,
     }: {
       payments: PaymentEntry[];
       paymentDate: string;
+      bucketAllocations?: BucketAllocation[];
     }) => {
       if (!tenantId || !invoiceId) {
         throw new Error("Missing tenant or invoice");
       }
 
-      if (requiresPhase4Allocation) {
+      // Only block when the invoice needs the editor AND the caller did not
+      // provide bucket allocations. With bucket allocations supplied, the
+      // Payment Allocation Editor is driving the submit — proceed.
+      const hasBuckets = !!bucketAllocations && bucketAllocations.some((b) => b.amount > 0);
+      if (requiresPhase4Allocation && !hasBuckets) {
         const err = new Error("FIN_HORSE_ALLOCATION_REQUIRED");
         (err as Error & { code?: string }).code = "FIN_HORSE_ALLOCATION_REQUIRED";
         throw err;
       }
 
-      const fingerprint = fingerprintPayload(invoiceId, paymentDate, payments);
+      const fingerprint = fingerprintPayload(invoiceId, paymentDate, payments, bucketAllocations);
       // Reuse the existing key when the payload is unchanged (retry). Rotate
       // when any material field changes.
       if (!idemRef.current || idemRef.current.fingerprint !== fingerprint) {
@@ -242,6 +248,7 @@ export function useInvoicePayments(invoiceId?: string | null) {
         payments,
         idempotencyKey,
         paymentDate,
+        bucketAllocations,
       );
       inFlightRef.current = promise;
       let result;
@@ -250,6 +257,7 @@ export function useInvoicePayments(invoiceId?: string | null) {
       } finally {
         inFlightRef.current = null;
       }
+
 
       if (!result.success) {
         const err = new Error(result.error || "Failed to record payment");
