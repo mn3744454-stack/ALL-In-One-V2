@@ -121,8 +121,10 @@ export const buildInvoicePdfTitle = (
 // ────────────────────────────────────────────────────────────────────────────
 
 const createInvoiceHTML = (options: GeneratePDFOptions): string => {
-  const { invoice, items, tenantName, tenantAddress, tenantPhone, tenantEmail, lang, labels } =
-    options;
+  const {
+    invoice, items, tenantName, tenantAddress, tenantPhone, tenantEmail, lang, labels,
+    paymentSummary, includePaymentHistory,
+  } = options;
 
   const isAr = lang === "ar";
   const dir = isAr ? "rtl" : "ltr";
