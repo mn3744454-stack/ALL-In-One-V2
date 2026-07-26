@@ -124,11 +124,14 @@ export function RecordPaymentDialog({
         amount: summary.outstandingAmount > 0 ? "" : "",
         reference: ""
       }]);
+      setBucketValues({});
     }
     if (!open) {
       resetIdempotency();
+      setBucketValues({});
     }
   }, [open, invoiceId, summary, resetIdempotency]);
+
 
   // Computed values
   const totalPayment = useMemo(() => {
