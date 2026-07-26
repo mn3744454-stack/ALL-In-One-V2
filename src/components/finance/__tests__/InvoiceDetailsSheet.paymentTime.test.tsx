@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { setGlobalLanguage, getCurrentLanguage } from "@/i18n/I18nContext";
-import type { Language } from "@/i18n/I18nContext";
+import type { Language } from "@/i18n/config";
 
 const ISO_MORNING = "2026-07-26T05:27:00.000Z"; // 08:27 in Asia/Riyadh
 const ISO_EVENING = "2026-07-26T17:27:00.000Z"; // 20:27 in Asia/Riyadh
