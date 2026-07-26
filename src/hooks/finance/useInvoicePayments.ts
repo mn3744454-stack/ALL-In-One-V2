@@ -6,17 +6,19 @@ import { useI18n } from "@/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { postLedgerForPayments, type PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 import { invalidateFinanceQueries } from "./invalidateFinanceQueries";
+import type { BucketAllocation } from "@/lib/finance/allocationDistribution";
 
 /**
  * Canonical fingerprint for the payment payload. A stable fingerprint means the
- * same material inputs (invoice, date, ordered rows) — retrying an unchanged
- * payload reuses the same idempotency key so the server treats it as a replay.
- * Any material change rotates the key on the next submit.
+ * same material inputs (invoice, date, ordered rows, ordered bucket splits) —
+ * retrying an unchanged payload reuses the same idempotency key so the server
+ * treats it as a replay. Any material change rotates the key on the next submit.
  */
 function fingerprintPayload(
   invoiceId: string,
   paymentDate: string,
   payments: PaymentEntry[],
+  bucketAllocations?: BucketAllocation[],
 ): string {
   const rows = payments.map((p) => ({
     a: Math.round(p.amount * 100) / 100,
@@ -24,8 +26,15 @@ function fingerprintPayload(
     r: p.reference ?? "",
     n: p.notes ?? "",
   }));
-  return JSON.stringify({ i: invoiceId, d: paymentDate, r: rows });
+  const buckets = bucketAllocations
+    ? [...bucketAllocations]
+        .filter((b) => b.amount > 0)
+        .map((b) => ({ k: b.key, t: b.kind, h: b.horseId ?? "", a: Math.round(b.amount * 100) / 100 }))
+        .sort((x, y) => x.k.localeCompare(y.k))
+    : [];
+  return JSON.stringify({ i: invoiceId, d: paymentDate, r: rows, b: buckets });
 }
+
 
 export interface InvoicePayment {
   id: string;
@@ -194,21 +203,27 @@ export function useInvoicePayments(invoiceId?: string | null) {
     mutationFn: async ({
       payments,
       paymentDate,
+      bucketAllocations,
     }: {
       payments: PaymentEntry[];
       paymentDate: string;
+      bucketAllocations?: BucketAllocation[];
     }) => {
       if (!tenantId || !invoiceId) {
         throw new Error("Missing tenant or invoice");
       }
 
-      if (requiresPhase4Allocation) {
+      // Only block when the invoice needs the editor AND the caller did not
+      // provide bucket allocations. With bucket allocations supplied, the
+      // Payment Allocation Editor is driving the submit — proceed.
+      const hasBuckets = !!bucketAllocations && bucketAllocations.some((b) => b.amount > 0);
+      if (requiresPhase4Allocation && !hasBuckets) {
         const err = new Error("FIN_HORSE_ALLOCATION_REQUIRED");
         (err as Error & { code?: string }).code = "FIN_HORSE_ALLOCATION_REQUIRED";
         throw err;
       }
 
-      const fingerprint = fingerprintPayload(invoiceId, paymentDate, payments);
+      const fingerprint = fingerprintPayload(invoiceId, paymentDate, payments, bucketAllocations);
       // Reuse the existing key when the payload is unchanged (retry). Rotate
       // when any material field changes.
       if (!idemRef.current || idemRef.current.fingerprint !== fingerprint) {
@@ -233,6 +248,7 @@ export function useInvoicePayments(invoiceId?: string | null) {
         payments,
         idempotencyKey,
         paymentDate,
+        bucketAllocations,
       );
       inFlightRef.current = promise;
       let result;
@@ -241,6 +257,7 @@ export function useInvoicePayments(invoiceId?: string | null) {
       } finally {
         inFlightRef.current = null;
       }
+
 
       if (!result.success) {
         const err = new Error(result.error || "Failed to record payment");

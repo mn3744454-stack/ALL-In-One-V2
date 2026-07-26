@@ -52,6 +52,9 @@ import {
 } from "lucide-react";
 import type { PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 import { getRiyadhDateString } from "@/lib/finance/invoiceRpc";
+import { useInvoicePriorAllocations } from "@/hooks/finance/useInvoicePriorAllocations";
+import { PaymentAllocationEditor } from "./PaymentAllocationEditor";
+import type { BucketAllocation } from "@/lib/finance/allocationDistribution";
 
 interface PaymentRow {
   id: string;
@@ -86,11 +89,23 @@ export function RecordPaymentDialog({
   const { hasPermission } = usePermissions();
   const tenantCurrency = useTenantCurrency();
   const effectiveCurrency = currency || tenantCurrency;
-  const { summary, isLoading, recordPayment, isRecording, requiresPhase4Allocation, resetIdempotency } = useInvoicePayments(invoiceId);
-  const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
+  const { summary, isLoading, recordPayment, isRecording, resetIdempotency } = useInvoicePayments(invoiceId);
+  const { items: invoiceItems } = useInvoiceItems(invoiceId || undefined);
+  const { data: composition } = useInvoicePriorAllocations(invoiceId);
 
   const canRecordPayment = hasPermission("finance.payment.create");
   const [itemsExpanded, setItemsExpanded] = useState(false);
+
+  // Editor rendering conditions (derived from composition):
+  //   - `needsEditor`  → invoice actually requires user-driven bucket splits
+  //                       (>1 horse OR horse + client-level)
+  //   - `blockedLabHorse` → lab-horse-only combinations we cannot yet allocate
+  //                        (multi-lab-horse or lab-horse + horse/client)
+  const needsEditor = !!composition && composition.hasHorseScoped &&
+    (composition.distinctHorses > 1 || composition.hasClientLevel);
+  const blockedLabHorse = !!composition?.hasUnsupportedLabHorse;
+  const [bucketValues, setBucketValues] = useState<Record<string, string>>({});
+  const [allocationValid, setAllocationValid] = useState(false);
 
   // Initialize with one empty row
   const [rows, setRows] = useState<PaymentRow[]>([
@@ -109,11 +124,14 @@ export function RecordPaymentDialog({
         amount: summary.outstandingAmount > 0 ? "" : "",
         reference: ""
       }]);
+      setBucketValues({});
     }
     if (!open) {
       resetIdempotency();
+      setBucketValues({});
     }
   }, [open, invoiceId, summary, resetIdempotency]);
+
 
   // Computed values
   const totalPayment = useMemo(() => {
@@ -184,6 +202,7 @@ export function RecordPaymentDialog({
     setAttemptedSubmit(true);
 
     if (!isValidPayment || missingIssues.length > 0) return;
+    if (needsEditor && !allocationValid) return;
 
     const payments: PaymentEntry[] = rows
       .filter((r) => parseFloat(r.amount) > 0)
@@ -196,14 +215,26 @@ export function RecordPaymentDialog({
 
     if (payments.length === 0) return;
 
+    // Build BucketAllocation[] from the editor state — only when the invoice
+    // actually needs allocation (single-horse invoices submit without buckets).
+    const bucketAllocations: BucketAllocation[] | undefined = needsEditor && composition
+      ? composition.buckets.map((b) => ({
+          key: b.key,
+          kind: b.kind,
+          horseId: b.kind === "horse" ? b.horseId : undefined,
+          amount: parseFloat(bucketValues[b.key] || "0") || 0,
+        }))
+      : undefined;
+
     try {
-      await recordPayment({ payments, paymentDate });
+      await recordPayment({ payments, paymentDate, bucketAllocations });
       onSuccess?.();
       onOpenChange(false);
     } catch {
       // Error handled in hook
     }
   };
+
 
   const formatAmount = (amount: number) => formatCurrency(amount, effectiveCurrency);
 
@@ -308,8 +339,8 @@ export function RecordPaymentDialog({
               </Alert>
             )}
 
-            {/* Phase 4 gate — multi-horse / mixed invoices need the allocation editor */}
-            {!summary.isPaid && requiresPhase4Allocation && (
+            {/* Lab-horse boundary — RPC contract can't allocate to lab horses yet */}
+            {!summary.isPaid && blockedLabHorse && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -319,8 +350,9 @@ export function RecordPaymentDialog({
             )}
 
             {/* Payment Rows */}
-            {!summary.isPaid && !requiresPhase4Allocation && (
+            {!summary.isPaid && !blockedLabHorse && (
               <>
+
                 <div className="grid gap-2">
                   <Label>
                     {t("finance.payments.paymentDate")} <span aria-hidden="true">*</span>
@@ -439,6 +471,25 @@ export function RecordPaymentDialog({
                   </Button>
                 </div>
 
+                {/* Multi-horse / mixed allocation editor */}
+                {needsEditor && composition && (
+                  <PaymentAllocationEditor
+                    composition={composition}
+                    paymentAmount={totalPayment}
+                    currency={effectiveCurrency}
+                    invoiceItems={invoiceItems as Array<{
+                      id: string;
+                      description: string;
+                      total_price: number;
+                      horse_id?: string | null;
+                      lab_horse_id?: string | null;
+                    }>}
+                    value={bucketValues}
+                    onChange={setBucketValues}
+                    onValidityChange={setAllocationValid}
+                  />
+                )}
+
                 {/* Validation Errors */}
                 {isOverpayment && (
                   <Alert variant="destructive">
@@ -448,6 +499,7 @@ export function RecordPaymentDialog({
                     </AlertDescription>
                   </Alert>
                 )}
+
 
                 {/* Payment Summary */}
                 <Separator />
@@ -501,7 +553,7 @@ export function RecordPaymentDialog({
             {!summary?.isPaid && (
               <Button
                 onClick={handleSubmit}
-                disabled={isRecording || !canRecordPayment || requiresPhase4Allocation}
+                disabled={isRecording || !canRecordPayment || blockedLabHorse || (needsEditor && !allocationValid)}
               >
                 {isRecording ? (
                   <>

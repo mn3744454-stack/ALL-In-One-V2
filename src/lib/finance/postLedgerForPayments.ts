@@ -3,6 +3,10 @@ import {
   type PaymentMethod,
   type PaymentSessionAllocation,
 } from "./postPaymentSession";
+import {
+  distributeBucketsAcrossTenders,
+  type BucketAllocation,
+} from "./allocationDistribution";
 
 export interface PaymentEntry {
   amount: number;
@@ -11,6 +15,7 @@ export interface PaymentEntry {
   reference?: string;
   notes?: string;
 }
+
 
 export interface PostPaymentsResult {
   success: boolean;
@@ -51,6 +56,7 @@ export async function postLedgerForPayments(
   payments: PaymentEntry[],
   paymentSessionId: string,
   paymentDate: string,
+  bucketAllocations?: BucketAllocation[],
 ): Promise<PostPaymentsResult> {
   if (!payments.length) {
     return { success: false, error: "No payments provided", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
@@ -90,21 +96,54 @@ export async function postLedgerForPayments(
     seenMethods.add(p.payment_method);
   }
 
-  // One allocation per row, order preserved — external references stay attached.
-  const allocations: PaymentSessionAllocation[] = payments.map((p) => {
-    const alloc: PaymentSessionAllocation = {
-      invoice_id: invoiceId,
-      payment_method: p.payment_method as PaymentMethod,
-      amount: Math.round(p.amount * 100) / 100,
-    };
-    if (p.reference) alloc.external_reference = p.reference;
-    return alloc;
-  });
+  // Build allocations. Two paths:
+  //   1. No bucketAllocations → one allocation per tender row, no horse split
+  //      (backend attributes the whole allocation to client-level implicit
+  //      or the sole horse — its own guard rails apply).
+  //   2. With bucketAllocations → distribute each bucket across tender rows
+  //      proportionally (see allocationDistribution.ts). Row order + external
+  //      references are preserved.
+  let allocations: PaymentSessionAllocation[];
+  if (bucketAllocations && bucketAllocations.some((b) => b.amount > 0)) {
+    try {
+      allocations = distributeBucketsAcrossTenders({
+        tenders: payments.map((p) => ({
+          payment_method: p.payment_method as PaymentMethod,
+          amount: Math.round(p.amount * 100) / 100,
+          external_reference: p.reference,
+        })),
+        buckets: bucketAllocations.filter((b) => b.amount > 0),
+      });
+    } catch (err) {
+      const code = (err as Error).message?.match(/FIN_[A-Z_]+/)?.[0] ?? "FIN_HORSE_ALLOCATION_MISMATCH";
+      return {
+        success: false,
+        error: (err as Error).message || code,
+        errorCode: code,
+        paidAmount: 0,
+        outstandingAmount: 0,
+        invoiceStatus: "",
+      };
+    }
+    // Fill invoice_id on each row.
+    allocations = allocations.map((a) => ({ ...a, invoice_id: invoiceId }));
+  } else {
+    allocations = payments.map((p) => {
+      const alloc: PaymentSessionAllocation = {
+        invoice_id: invoiceId,
+        payment_method: p.payment_method as PaymentMethod,
+        amount: Math.round(p.amount * 100) / 100,
+      };
+      if (p.reference) alloc.external_reference = p.reference;
+      return alloc;
+    });
+  }
 
   const result = await postPaymentSession(tenantId, paymentSessionId, {
     payment_date: paymentDate,
     allocations,
   });
+
 
   if (result.success !== true) {
     return {
