@@ -86,7 +86,7 @@ export function RecordPaymentDialog({
   const { hasPermission } = usePermissions();
   const tenantCurrency = useTenantCurrency();
   const effectiveCurrency = currency || tenantCurrency;
-  const { summary, isLoading, recordPayment, isRecording, requiresPhase4Allocation } = useInvoicePayments(invoiceId);
+  const { summary, isLoading, recordPayment, isRecording, requiresPhase4Allocation, resetIdempotency } = useInvoicePayments(invoiceId);
   const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
 
   const canRecordPayment = hasPermission("finance.payment.create");
@@ -98,18 +98,22 @@ export function RecordPaymentDialog({
   ]);
   const [paymentDate, setPaymentDate] = useState(getRiyadhDateString);
 
-  // Reset rows when dialog opens/closes or invoice changes
+  // Reset rows when dialog opens/closes or invoice changes. A fresh open
+  // clears any pending idempotency key so the next submit is a new session.
   useEffect(() => {
     if (open && summary) {
       setPaymentDate(getRiyadhDateString());
-      setRows([{ 
-        id: crypto.randomUUID(), 
-        method: "cash", 
-        amount: summary.outstandingAmount > 0 ? "" : "", 
-        reference: "" 
+      setRows([{
+        id: crypto.randomUUID(),
+        method: "cash",
+        amount: summary.outstandingAmount > 0 ? "" : "",
+        reference: ""
       }]);
     }
-  }, [open, invoiceId]);
+    if (!open) {
+      resetIdempotency();
+    }
+  }, [open, invoiceId, summary, resetIdempotency]);
 
   // Computed values
   const totalPayment = useMemo(() => {
