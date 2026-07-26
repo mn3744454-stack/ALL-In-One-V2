@@ -2639,8 +2639,1003 @@ BEGIN
   IF v_pa_n <> 1 THEN RAISE EXCEPTION 'B2C_PAYMENT_ACCOUNT_%', v_pa_n; END IF;
 END $$;
 
+-- ===========================================================================
+-- Turn 5A.2.b3 — T1-A-17 through T1-A-24 (Category-A validation batch 3).
+-- Base payload from test_a_base_payload; each Scenario mutates exactly one
+-- field so that only the target validation gate fires. Idempotency keys are
+-- resolved from test_active_idem_keys (N+3 suffix rule; A-17..A-24 → 20..27).
+-- ===========================================================================
+
+-- ===========================================================================
+-- T1-A-17 — Invalid Notes type (numeric)
+-- ===========================================================================
+SAVEPOINT sp_t1_a_17;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-17',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-17'),
+       jsonb_set((SELECT payload FROM pg_temp.test_a_base_payload), '{notes}', to_jsonb(123), true),
+       '23514', 'FIN_PAYLOAD_TYPE: notes', false, 17;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-17';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-17','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-17', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-17';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A17_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-17';
+  IF v_done THEN RAISE EXCEPTION 'A17_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A17_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_PAYLOAD_TYPE: notes' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A17_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A17_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a17_state,
+       COALESCE(actual_message,'')  AS a17_message,
+       COALESCE(call_completed,false)::text AS a17_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-17' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_17;
+RELEASE SAVEPOINT sp_t1_a_17;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-17';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-17';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A17_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-17','A','23514','FIN_PAYLOAD_TYPE: notes',
+  :'a17_state', :'a17_message',
+  CASE WHEN :'a17_done'='true' THEN 'success' ELSE 'error' END,
+  true, 20, NULL, 'Numeric notes rejected'
+);
+
+-- ===========================================================================
+-- T1-A-18 — Notes too long (exactly 501 characters)
+-- ===========================================================================
+SAVEPOINT sp_t1_a_18;
+
+-- Boundary proof (§15): assert generated Notes length equals 501 BEFORE call.
+DO $$
+DECLARE v_len int;
+BEGIN
+  SELECT char_length(repeat('x', 501)) INTO v_len;
+  IF v_len <> 501 THEN RAISE EXCEPTION 'A18_NOTES_LEN_%', v_len; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-18',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-18'),
+       jsonb_set((SELECT payload FROM pg_temp.test_a_base_payload), '{notes}', to_jsonb(repeat('x', 501)), true),
+       '23514', 'FIN_NOTES_TOO_LONG', false, 18;
+
+-- Confirm the Payload notes value is JSON string of length 501.
+DO $$
+DECLARE v_typ text; v_len int;
+BEGIN
+  SELECT jsonb_typeof(payload->'notes'), char_length(payload->>'notes')
+    INTO v_typ, v_len
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-18';
+  IF v_typ <> 'string' THEN RAISE EXCEPTION 'A18_NOTES_TYPE_%', v_typ; END IF;
+  IF v_len <> 501 THEN RAISE EXCEPTION 'A18_PAYLOAD_NOTES_LEN_%', v_len; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-18';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-18','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-18', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-18';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A18_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-18';
+  IF v_done THEN RAISE EXCEPTION 'A18_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A18_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_NOTES_TOO_LONG' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A18_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A18_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a18_state,
+       COALESCE(actual_message,'')  AS a18_message,
+       COALESCE(call_completed,false)::text AS a18_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-18' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_18;
+RELEASE SAVEPOINT sp_t1_a_18;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-18';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-18';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A18_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-18','A','23514','FIN_NOTES_TOO_LONG',
+  :'a18_state', :'a18_message',
+  CASE WHEN :'a18_done'='true' THEN 'success' ELSE 'error' END,
+  true, 22, NULL, '501-character notes rejected (boundary: 500 passes)'
+);
+
+-- ===========================================================================
+-- T1-A-19 — Invalid client_name type (numeric)
+-- ===========================================================================
+SAVEPOINT sp_t1_a_19;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-19',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-19'),
+       jsonb_set((SELECT payload FROM pg_temp.test_a_base_payload), '{client_name}', to_jsonb(42), true),
+       '23514', 'FIN_PAYLOAD_TYPE: client_name', false, 19;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-19';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-19','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-19', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-19';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A19_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-19';
+  IF v_done THEN RAISE EXCEPTION 'A19_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A19_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_PAYLOAD_TYPE: client_name' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A19_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A19_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a19_state,
+       COALESCE(actual_message,'')  AS a19_message,
+       COALESCE(call_completed,false)::text AS a19_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-19' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_19;
+RELEASE SAVEPOINT sp_t1_a_19;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-19';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-19';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A19_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-19','A','23514','FIN_PAYLOAD_TYPE: client_name',
+  :'a19_state', :'a19_message',
+  CASE WHEN :'a19_done'='true' THEN 'success' ELSE 'error' END,
+  true, 20, NULL, 'Numeric client_name rejected'
+);
+
+-- ===========================================================================
+-- T1-A-20 — items key omitted (locked missing-key variant per File 21 §H)
+-- ===========================================================================
+SAVEPOINT sp_t1_a_20;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-20',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-20'),
+       (SELECT payload FROM pg_temp.test_a_base_payload) - 'items',
+       '23514', 'FIN_ITEMS_EMPTY', false, 20;
+
+-- Locked-variant proof (§15): items key MUST be absent (not empty array).
+DO $$
+DECLARE v_has_items boolean;
+BEGIN
+  SELECT (payload ? 'items') INTO v_has_items
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-20';
+  IF v_has_items THEN RAISE EXCEPTION 'A20_ITEMS_KEY_PRESENT'; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-20';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-20','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-20', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-20';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A20_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-20';
+  IF v_done THEN RAISE EXCEPTION 'A20_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A20_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_ITEMS_EMPTY' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A20_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A20_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a20_state,
+       COALESCE(actual_message,'')  AS a20_message,
+       COALESCE(call_completed,false)::text AS a20_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-20' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_20;
+RELEASE SAVEPOINT sp_t1_a_20;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-20';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-20';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A20_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-20','A','23514','FIN_ITEMS_EMPTY',
+  :'a20_state', :'a20_message',
+  CASE WHEN :'a20_done'='true' THEN 'success' ELSE 'error' END,
+  true, 21, NULL, 'items key omitted rejected (locked missing-key variant)'
+);
+
+-- ===========================================================================
+-- T1-A-21 — Item is not an object (items=[1])
+-- ===========================================================================
+SAVEPOINT sp_t1_a_21;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-21',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-21'),
+       jsonb_set((SELECT payload FROM pg_temp.test_a_base_payload), '{items}', '[1]'::jsonb, true),
+       '23514', 'FIN_PAYLOAD_TYPE: items[]', false, 21;
+
+-- Shape proof (§15): items is array; first element is NOT object.
+DO $$
+DECLARE v_items_typ text; v_elem0_typ text;
+BEGIN
+  SELECT jsonb_typeof(payload->'items'),
+         jsonb_typeof(payload->'items'->0)
+    INTO v_items_typ, v_elem0_typ
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-21';
+  IF v_items_typ <> 'array'  THEN RAISE EXCEPTION 'A21_ITEMS_NOT_ARRAY_%', v_items_typ; END IF;
+  IF v_elem0_typ  = 'object' THEN RAISE EXCEPTION 'A21_ELEM0_IS_OBJECT'; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-21';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-21','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-21', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-21';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A21_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-21';
+  IF v_done THEN RAISE EXCEPTION 'A21_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A21_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_PAYLOAD_TYPE: items[]' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A21_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A21_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a21_state,
+       COALESCE(actual_message,'')  AS a21_message,
+       COALESCE(call_completed,false)::text AS a21_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-21' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_21;
+RELEASE SAVEPOINT sp_t1_a_21;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-21';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-21';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A21_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-21','A','23514','FIN_PAYLOAD_TYPE: items[]',
+  :'a21_state', :'a21_message',
+  CASE WHEN :'a21_done'='true' THEN 'success' ELSE 'error' END,
+  true, 22, NULL, 'items[0] not an object rejected'
+);
+
+-- ===========================================================================
+-- T1-A-22 — Unknown item key (caller-owned horse_id)
+-- ===========================================================================
+SAVEPOINT sp_t1_a_22;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-22',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-22'),
+       jsonb_set(
+         (SELECT payload FROM pg_temp.test_a_base_payload),
+         '{items}',
+         jsonb_build_array(jsonb_build_object(
+           'description','J5.2 Test Item',
+           'quantity',   1,
+           'unit_price', 100,
+           'is_taxable', true,
+           'horse_id',   'dddd4444-0000-4000-8000-000000000001'
+         )),
+         true
+       ),
+       '23514', 'FIN_PAYLOAD_UNKNOWN_KEY: items[].horse_id', false, 22;
+
+-- Item-shape proof (§15): allowed keys retained; only extra key is horse_id.
+DO $$
+DECLARE v_keys text[]; v_extra text[]; v_allowed text[] := ARRAY['description','quantity','unit_price','is_taxable'];
+BEGIN
+  SELECT array_agg(k ORDER BY k) INTO v_keys
+    FROM (SELECT jsonb_object_keys(payload->'items'->0) AS k
+            FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-22') s;
+  IF NOT (v_allowed <@ v_keys) THEN RAISE EXCEPTION 'A22_ALLOWED_KEYS_MISSING_%', v_keys; END IF;
+  SELECT array_agg(k ORDER BY k) INTO v_extra
+    FROM (SELECT jsonb_object_keys(payload->'items'->0) AS k
+            FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-22'
+          EXCEPT SELECT unnest(v_allowed)) s;
+  IF v_extra <> ARRAY['horse_id']::text[] THEN RAISE EXCEPTION 'A22_EXTRA_KEYS_%', v_extra; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-22';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-22','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-22', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-22';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A22_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-22';
+  IF v_done THEN RAISE EXCEPTION 'A22_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A22_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_PAYLOAD_UNKNOWN_KEY: items[].horse_id' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A22_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A22_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a22_state,
+       COALESCE(actual_message,'')  AS a22_message,
+       COALESCE(call_completed,false)::text AS a22_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-22' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_22;
+RELEASE SAVEPOINT sp_t1_a_22;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-22';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-22';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A22_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-22','A','23514','FIN_PAYLOAD_UNKNOWN_KEY: items[].horse_id',
+  :'a22_state', :'a22_message',
+  CASE WHEN :'a22_done'='true' THEN 'success' ELSE 'error' END,
+  true, 22, NULL, 'caller-owned horse_id inside item rejected'
+);
+
+-- ===========================================================================
+-- T1-A-23 — Missing item description
+-- ===========================================================================
+SAVEPOINT sp_t1_a_23;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-23',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-23'),
+       jsonb_set(
+         (SELECT payload FROM pg_temp.test_a_base_payload),
+         '{items}',
+         jsonb_build_array(jsonb_build_object(
+           'quantity',   1,
+           'unit_price', 100,
+           'is_taxable', true
+         )),
+         true
+       ),
+       '23514', 'FIN_LAB_ITEM_DESCRIPTION_REQUIRED', false, 23;
+
+-- Item-shape proof (§15): description absent; other fields valid.
+DO $$
+DECLARE v_has_desc boolean; v_qty numeric; v_price numeric; v_tax_typ text;
+BEGIN
+  SELECT (payload->'items'->0 ? 'description'),
+         (payload->'items'->0->>'quantity')::numeric,
+         (payload->'items'->0->>'unit_price')::numeric,
+         jsonb_typeof(payload->'items'->0->'is_taxable')
+    INTO v_has_desc, v_qty, v_price, v_tax_typ
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-23';
+  IF v_has_desc THEN RAISE EXCEPTION 'A23_DESC_PRESENT'; END IF;
+  IF v_qty     <> 1        THEN RAISE EXCEPTION 'A23_QTY_%',      v_qty; END IF;
+  IF v_price   <> 100      THEN RAISE EXCEPTION 'A23_PRICE_%',    v_price; END IF;
+  IF v_tax_typ <> 'boolean' THEN RAISE EXCEPTION 'A23_TAX_TYP_%', v_tax_typ; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-23';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-23','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-23', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-23';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A23_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-23';
+  IF v_done THEN RAISE EXCEPTION 'A23_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A23_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_LAB_ITEM_DESCRIPTION_REQUIRED' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A23_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A23_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a23_state,
+       COALESCE(actual_message,'')  AS a23_message,
+       COALESCE(call_completed,false)::text AS a23_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-23' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_23;
+RELEASE SAVEPOINT sp_t1_a_23;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-23';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-23';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A23_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-23','A','23514','FIN_LAB_ITEM_DESCRIPTION_REQUIRED',
+  :'a23_state', :'a23_message',
+  CASE WHEN :'a23_done'='true' THEN 'success' ELSE 'error' END,
+  true, 23, NULL, 'item missing description rejected'
+);
+
+-- ===========================================================================
+-- T1-A-24 — Invalid item quantity (0)
+-- ===========================================================================
+SAVEPOINT sp_t1_a_24;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+)
+SELECT 'T1-A-24',
+       (SELECT primary_tenant_id FROM pg_temp.test_context),
+       (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-24'),
+       jsonb_set(
+         (SELECT payload FROM pg_temp.test_a_base_payload),
+         '{items}',
+         jsonb_build_array(jsonb_build_object(
+           'description','J5.2 Test Item',
+           'quantity',   0,
+           'unit_price', 100,
+           'is_taxable', true
+         )),
+         true
+       ),
+       '23514', 'FIN_LAB_ITEM_QUANTITY_INVALID', false, 24;
+
+-- Item-shape proof (§15): quantity is numeric 0 (not string); all others valid.
+DO $$
+DECLARE v_qty_typ text; v_qty numeric; v_desc text; v_price numeric; v_tax_typ text;
+BEGIN
+  SELECT jsonb_typeof(payload->'items'->0->'quantity'),
+         (payload->'items'->0->>'quantity')::numeric,
+          payload->'items'->0->>'description',
+         (payload->'items'->0->>'unit_price')::numeric,
+         jsonb_typeof(payload->'items'->0->'is_taxable')
+    INTO v_qty_typ, v_qty, v_desc, v_price, v_tax_typ
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-24';
+  IF v_qty_typ <> 'number'  THEN RAISE EXCEPTION 'A24_QTY_TYP_%',   v_qty_typ; END IF;
+  IF v_qty     <> 0         THEN RAISE EXCEPTION 'A24_QTY_%',       v_qty;     END IF;
+  IF v_desc IS NULL OR length(v_desc)=0 THEN RAISE EXCEPTION 'A24_DESC_%', v_desc; END IF;
+  IF v_price   <> 100       THEN RAISE EXCEPTION 'A24_PRICE_%',     v_price;   END IF;
+  IF v_tax_typ <> 'boolean' THEN RAISE EXCEPTION 'A24_TAX_TYP_%',   v_tax_typ; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-24';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-24','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-24', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_n int; v_state text; v_msg text; v_done boolean;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-24';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'A24_CAPTURE_%', v_n; END IF;
+  SELECT actual_sqlstate, actual_message, call_completed
+    INTO v_state, v_msg, v_done
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-24';
+  IF v_done THEN RAISE EXCEPTION 'A24_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A24_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_LAB_ITEM_QUANTITY_INVALID' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A24_TOKEN_MSG_%', v_msg;
+  END IF;
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'A24_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a24_state,
+       COALESCE(actual_message,'')  AS a24_message,
+       COALESCE(call_completed,false)::text AS a24_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-24' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_a_24;
+RELEASE SAVEPOINT sp_t1_a_24;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-24';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-A-24';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'A24_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count, result_json, notes
+) VALUES (
+  'T1-A-24','A','23514','FIN_LAB_ITEM_QUANTITY_INVALID',
+  :'a24_state', :'a24_message',
+  CASE WHEN :'a24_done'='true' THEN 'success' ELSE 'error' END,
+  true, 24, NULL, 'quantity=0 rejected'
+);
+
 -- ---------------------------------------------------------------------------
--- 14. Terminate. Sixteen explicit invocations of
+-- 13.b3.Z. New-batch integrity (§16) — A-17 through A-24.
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_new_n int; v_new_uniq int; v_new_cat int; v_new_pos int;
+  v_new_json int; v_new_pass int; v_new_assn int;
+  v_inp_leak int; v_cap_leak int; v_idem_leak int;
+BEGIN
+  SELECT count(*), count(DISTINCT scenario_id)
+    INTO v_new_n, v_new_uniq
+    FROM pg_temp.test_scenario_results
+   WHERE scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_new_n    <> 8 THEN RAISE EXCEPTION 'B3_NEW_COUNT_%', v_new_n; END IF;
+  IF v_new_uniq <> 8 THEN RAISE EXCEPTION 'B3_NEW_UNIQ_%', v_new_uniq; END IF;
+
+  SELECT count(*) INTO v_new_cat FROM pg_temp.test_scenario_results
+   WHERE category='A'
+     AND scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_new_cat <> 8 THEN RAISE EXCEPTION 'B3_NEW_CAT_A_%', v_new_cat; END IF;
+
+  SELECT count(*) INTO v_new_pos FROM pg_temp.test_scenario_results
+   WHERE actual_status='success'
+     AND scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_new_pos <> 0 THEN RAISE EXCEPTION 'B3_NEW_POSITIVE_%', v_new_pos; END IF;
+
+  SELECT count(*) INTO v_new_json FROM pg_temp.test_scenario_results
+   WHERE result_json IS NOT NULL
+     AND scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_new_json <> 0 THEN RAISE EXCEPTION 'B3_NEW_RESULT_JSON_%', v_new_json; END IF;
+
+  SELECT count(*) INTO v_new_pass FROM pg_temp.test_scenario_results
+   WHERE passed IS DISTINCT FROM true
+     AND scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_new_pass <> 0 THEN RAISE EXCEPTION 'B3_NEW_PASSED_FALSE_%', v_new_pass; END IF;
+
+  SELECT count(*) INTO v_new_assn FROM pg_temp.test_scenario_results
+   WHERE COALESCE(assertion_count,0) <= 0
+     AND scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_new_assn <> 0 THEN RAISE EXCEPTION 'B3_NEW_ASSN_%', v_new_assn; END IF;
+
+  SELECT count(*) INTO v_inp_leak FROM pg_temp.test_scenario_inputs
+   WHERE scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_inp_leak <> 0 THEN RAISE EXCEPTION 'B3_INPUT_RESIDUE_%', v_inp_leak; END IF;
+
+  SELECT count(*) INTO v_cap_leak FROM pg_temp.test_rpc_capture
+   WHERE scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                         'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_cap_leak <> 0 THEN RAISE EXCEPTION 'B3_CAPTURE_RESIDUE_%', v_cap_leak; END IF;
+
+  SELECT count(*) INTO v_idem_leak
+    FROM public.finance_request_idempotency f
+    JOIN pg_temp.test_active_idem_keys k ON k.idempotency_key = f.idempotency_key
+   WHERE f.tenant_id  = (SELECT primary_tenant_id FROM pg_temp.test_context)
+     AND f.operation  = 'create_source_checkout_invoice'
+     AND k.scenario_id IN ('T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+                           'T1-A-21','T1-A-22','T1-A-23','T1-A-24');
+  IF v_idem_leak <> 0 THEN RAISE EXCEPTION 'B3_IDEM_RESIDUE_%', v_idem_leak; END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 13.b3.C. Cumulative 24-Scenario integrity lock (§17).
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_res_n     int;
+  v_uniq_n    int;
+  v_cat_a     int;
+  v_pos_n     int;
+  v_non_null  int;
+  v_bad_pass  int;
+  v_bad_assn  int;
+  v_leak_next int;
+  v_leak_a32  int;
+  v_inputs_n  int;
+  v_cap_n     int;
+  v_expected  text[] := ARRAY[
+    'T1-A-01','T1-A-02','T1-A-03','T1-A-04',
+    'T1-A-05','T1-A-06','T1-A-07','T1-A-08',
+    'T1-A-09','T1-A-10','T1-A-11','T1-A-12',
+    'T1-A-13','T1-A-14','T1-A-15','T1-A-16',
+    'T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+    'T1-A-21','T1-A-22','T1-A-23','T1-A-24'
+  ];
+BEGIN
+  SELECT count(*), count(DISTINCT scenario_id)
+    INTO v_res_n, v_uniq_n FROM pg_temp.test_scenario_results;
+  IF v_res_n  <> 24 THEN RAISE EXCEPTION 'B3C_RES_COUNT_%', v_res_n;  END IF;
+  IF v_uniq_n <> 24 THEN RAISE EXCEPTION 'B3C_RES_UNIQ_%',  v_uniq_n; END IF;
+
+  IF NOT (SELECT array_agg(scenario_id ORDER BY scenario_id)
+            FROM pg_temp.test_scenario_results) = v_expected THEN
+    RAISE EXCEPTION 'B3C_ID_SET_MISMATCH';
+  END IF;
+
+  SELECT count(*) INTO v_cat_a FROM pg_temp.test_scenario_results WHERE category='A';
+  IF v_cat_a <> 24 THEN RAISE EXCEPTION 'B3C_CAT_A_%', v_cat_a; END IF;
+
+  SELECT count(*) INTO v_pos_n FROM pg_temp.test_scenario_results
+   WHERE actual_status='success';
+  IF v_pos_n <> 0 THEN RAISE EXCEPTION 'B3C_POSITIVE_%', v_pos_n; END IF;
+
+  SELECT count(*) INTO v_non_null FROM pg_temp.test_scenario_results
+   WHERE result_json IS NOT NULL;
+  IF v_non_null <> 0 THEN RAISE EXCEPTION 'B3C_RESULT_JSON_%', v_non_null; END IF;
+
+  SELECT count(*) INTO v_bad_pass FROM pg_temp.test_scenario_results
+   WHERE passed IS DISTINCT FROM true;
+  IF v_bad_pass <> 0 THEN RAISE EXCEPTION 'B3C_PASSED_FALSE_%', v_bad_pass; END IF;
+
+  SELECT count(*) INTO v_bad_assn FROM pg_temp.test_scenario_results
+   WHERE COALESCE(assertion_count,0) <= 0;
+  IF v_bad_assn <> 0 THEN RAISE EXCEPTION 'B3C_ASSN_%', v_bad_assn; END IF;
+
+  SELECT count(*) INTO v_leak_next FROM pg_temp.test_scenario_results
+   WHERE scenario_id NOT IN (
+     'T1-A-01','T1-A-02','T1-A-03','T1-A-04',
+     'T1-A-05','T1-A-06','T1-A-07','T1-A-08',
+     'T1-A-09','T1-A-10','T1-A-11','T1-A-12',
+     'T1-A-13','T1-A-14','T1-A-15','T1-A-16',
+     'T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+     'T1-A-21','T1-A-22','T1-A-23','T1-A-24'
+   );
+  IF v_leak_next <> 0 THEN RAISE EXCEPTION 'B3C_FOREIGN_%', v_leak_next; END IF;
+
+  SELECT count(*) INTO v_leak_a32 FROM pg_temp.test_scenario_results
+   WHERE scenario_id = 'T1-A-32';
+  IF v_leak_a32 <> 0 THEN RAISE EXCEPTION 'B3C_A32_%', v_leak_a32; END IF;
+
+  SELECT count(*) INTO v_inputs_n FROM pg_temp.test_scenario_inputs;
+  SELECT count(*) INTO v_cap_n    FROM pg_temp.test_rpc_capture;
+  IF v_inputs_n <> 0 THEN RAISE EXCEPTION 'B3C_INPUT_%',   v_inputs_n; END IF;
+  IF v_cap_n    <> 0 THEN RAISE EXCEPTION 'B3C_CAPTURE_%', v_cap_n;    END IF;
+END $$;
+
+-- Cumulative Financial zero-residue re-check after 24 rollbacks.
+DO $$
+DECLARE v_idem_n int; v_pa_n int;
+BEGIN
+  SELECT count(*) INTO v_idem_n
+    FROM public.finance_request_idempotency f
+    JOIN pg_temp.test_active_idem_keys k ON k.idempotency_key = f.idempotency_key
+   WHERE f.tenant_id  = (SELECT primary_tenant_id FROM pg_temp.test_context)
+     AND f.operation  = 'create_source_checkout_invoice'
+     AND k.scenario_id IN (
+       'T1-A-01','T1-A-02','T1-A-03','T1-A-04',
+       'T1-A-05','T1-A-06','T1-A-07','T1-A-08',
+       'T1-A-09','T1-A-10','T1-A-11','T1-A-12',
+       'T1-A-13','T1-A-14','T1-A-15','T1-A-16',
+       'T1-A-17','T1-A-18','T1-A-19','T1-A-20',
+       'T1-A-21','T1-A-22','T1-A-23','T1-A-24'
+     );
+  IF v_idem_n <> 0 THEN RAISE EXCEPTION 'B3C_IDEM_RESIDUE_%', v_idem_n; END IF;
+  SELECT count(*) INTO v_pa_n FROM public.payment_accounts
+   WHERE id = (SELECT payment_account_id FROM pg_temp.test_context) AND is_active;
+  IF v_pa_n <> 1 THEN RAISE EXCEPTION 'B3C_PAYMENT_ACCOUNT_%', v_pa_n; END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 14. Terminate. Twenty-four explicit invocations of
 --     public.create_source_checkout_invoice occurred in this file inside
 --     independent SAVEPOINTs; every Scenario rolled back before this final
 --     outer ROLLBACK. Full ROLLBACK discards all 10 Fixture rows and all
