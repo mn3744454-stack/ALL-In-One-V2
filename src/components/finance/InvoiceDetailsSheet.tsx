@@ -732,16 +732,21 @@ export function InvoiceDetailsSheet({
               </div>
             </div>
 
-            {/* Notes (positioned near header for context) */}
-            {invoice.notes && (
-              <Card className="bg-muted/30 border-dashed">
-                <CardContent className="p-3">
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {invoice.notes}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Notes (positioned near header for context).
+                Sanitizes the internal [LAB:<type>:<uuid>] source marker
+                from view while preserving it in storage for dedupe. */}
+            {(() => {
+              const visibleNotes = stripLabSourceMarker(invoice.notes);
+              return visibleNotes ? (
+                <Card className="bg-muted/30 border-dashed">
+                  <CardContent className="p-3">
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {visibleNotes}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
 
             {/* Invoice Info */}
             <Card>
