@@ -1,3 +1,4 @@
+import { useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
@@ -5,6 +6,26 @@ import { useI18n } from "@/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { postLedgerForPayments, type PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 import { invalidateFinanceQueries } from "./invalidateFinanceQueries";
+
+/**
+ * Canonical fingerprint for the payment payload. A stable fingerprint means the
+ * same material inputs (invoice, date, ordered rows) — retrying an unchanged
+ * payload reuses the same idempotency key so the server treats it as a replay.
+ * Any material change rotates the key on the next submit.
+ */
+function fingerprintPayload(
+  invoiceId: string,
+  paymentDate: string,
+  payments: PaymentEntry[],
+): string {
+  const rows = payments.map((p) => ({
+    a: Math.round(p.amount * 100) / 100,
+    m: p.payment_method,
+    r: p.reference ?? "",
+    n: p.notes ?? "",
+  }));
+  return JSON.stringify({ i: invoiceId, d: paymentDate, r: rows });
+}
 
 export interface InvoicePayment {
   id: string;
@@ -154,6 +175,21 @@ export function useInvoicePayments(invoiceId?: string | null) {
       (composition.distinctHorses >= 1 && composition.hasClientLevel)
     : false;
 
+  // Idempotency ownership: one key per canonical payload fingerprint.
+  //   - unchanged retry after timeout/unknown response  → same key (server replays);
+  //   - material change (invoice/date/method/amount/ref/allocation) → fresh key;
+  //   - success → rotate to null;
+  //   - dialog close / manual reset → clear.
+  // Also serves as an in-flight guard: while a submit is running the ref holds
+  // its key, so a double-click reuses the same key and the server dedupes.
+  const idemRef = useRef<{ key: string; fingerprint: string } | null>(null);
+  const inFlightRef = useRef<Promise<Awaited<ReturnType<typeof postLedgerForPayments>>> | null>(null);
+
+  const resetIdempotency = useCallback(() => {
+    idemRef.current = null;
+    inFlightRef.current = null;
+  }, []);
+
   const recordPaymentMutation = useMutation({
     mutationFn: async ({
       payments,
@@ -172,15 +208,39 @@ export function useInvoicePayments(invoiceId?: string | null) {
         throw err;
       }
 
-      // Fresh idempotency key owned by this mutation attempt.
-      const idempotencyKey = crypto.randomUUID();
-      const result = await postLedgerForPayments(
+      const fingerprint = fingerprintPayload(invoiceId, paymentDate, payments);
+      // Reuse the existing key when the payload is unchanged (retry). Rotate
+      // when any material field changes.
+      if (!idemRef.current || idemRef.current.fingerprint !== fingerprint) {
+        idemRef.current = { key: crypto.randomUUID(), fingerprint };
+      }
+      const idempotencyKey = idemRef.current.key;
+
+      // Coalesce concurrent submits (e.g. double-click) onto one RPC call.
+      if (inFlightRef.current) {
+        const shared = await inFlightRef.current;
+        if (!shared.success) {
+          const err = new Error(shared.error || "Failed to record payment");
+          (err as Error & { code?: string }).code = shared.errorCode;
+          throw err;
+        }
+        return shared;
+      }
+
+      const promise = postLedgerForPayments(
         invoiceId,
         tenantId,
         payments,
         idempotencyKey,
         paymentDate,
       );
+      inFlightRef.current = promise;
+      let result;
+      try {
+        result = await promise;
+      } finally {
+        inFlightRef.current = null;
+      }
 
       if (!result.success) {
         const err = new Error(result.error || "Failed to record payment");
@@ -192,6 +252,9 @@ export function useInvoicePayments(invoiceId?: string | null) {
     },
     retry: 0,
     onSuccess: (result) => {
+      // Success rotates the idempotency key so the next logical submit is a
+      // fresh session, not a replay of the just-posted one.
+      idemRef.current = null;
       toast({
         title: result.outstandingAmount <= 0.01
           ? t("finance.payments.fullyPaid")
@@ -217,5 +280,6 @@ export function useInvoicePayments(invoiceId?: string | null) {
     recordPayment: recordPaymentMutation.mutateAsync,
     isRecording: recordPaymentMutation.isPending,
     requiresPhase4Allocation,
+    resetIdempotency,
   };
 }
