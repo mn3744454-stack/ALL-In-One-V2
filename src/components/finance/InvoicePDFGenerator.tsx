@@ -241,6 +241,79 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
           ${invoice.due_date ? `<p style="margin: 4px 0; color: #6b7280; font-size: 14px;">${escapeHtml(labels.dueDate)}: ${ltrBdi(escapeHtml(formatStandardDate(invoice.due_date)))}</p>` : ""}
         </div>`;
 
+  // ─── Payment disclosure blocks (Phase N+3 Slice 1) ──────────────────────
+  const paymentStatusText = paymentSummary
+    ? paymentSummary.status === "paid"
+      ? labels.statusPaid
+      : paymentSummary.status === "partial"
+        ? labels.statusPartial
+        : labels.statusUnpaid
+    : null;
+  const statusColor = paymentSummary?.status === "paid"
+    ? "#16a34a"
+    : paymentSummary?.status === "partial"
+      ? "#c9a227"
+      : "#dc2626";
+
+  const paymentSummaryBlock = paymentSummary
+    ? `
+      <div style="margin-top: 24px; padding: 16px 20px; background: #f9fafb; border-radius: 8px; text-align: ${startAlign};">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div>
+            <p style="margin: 0 0 4px 0; font-size: 11px; color: #6b7280; font-weight: bold; letter-spacing: 0.4px;">${escapeHtml(labels.paymentStatusLabel)}</p>
+            <p style="margin: 0; font-size: 16px; font-weight: bold; color: ${statusColor};">${escapeHtml(paymentStatusText || "")}</p>
+          </div>
+          <div style="text-align: ${endAlign};">
+            <div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: ${isAr ? "flex-start" : "flex-end"};">
+              <div>
+                <p style="margin: 0 0 2px 0; font-size: 11px; color: #6b7280; font-weight: bold; letter-spacing: 0.4px;">${escapeHtml(labels.paidToDate)}</p>
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e3a5f;">${ltrBdi(formatCurrency(paymentSummary.paidAmount))}</p>
+              </div>
+              <div>
+                <p style="margin: 0 0 2px 0; font-size: 11px; color: #6b7280; font-weight: bold; letter-spacing: 0.4px;">${escapeHtml(labels.outstanding)}</p>
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: ${paymentSummary.outstandingAmount > 0.01 ? "#dc2626" : "#16a34a"};">${ltrBdi(formatCurrency(paymentSummary.outstandingAmount))}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`
+    : "";
+
+  const paymentHistoryBlock =
+    paymentSummary && includePaymentHistory && paymentSummary.payments.length > 0
+      ? `
+      <div style="margin-top: 24px;">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1e3a5f; text-align: ${startAlign};">${escapeHtml(labels.paymentHistoryHeading)}</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="background: #1e3a5f;">
+              <th style="padding: 8px 10px; text-align: ${startAlign}; color: white; font-weight: 600;">${escapeHtml(labels.colMethod)}</th>
+              <th style="padding: 8px 10px; text-align: ${startAlign}; color: white; font-weight: 600;">${escapeHtml(labels.colEffectiveDate)}</th>
+              <th style="padding: 8px 10px; text-align: ${startAlign}; color: white; font-weight: 600;">${escapeHtml(labels.colRecordedAt)}</th>
+              <th style="padding: 8px 10px; text-align: ${endAlign}; color: white; font-weight: 600;">${escapeHtml(labels.colAmount)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${paymentSummary.payments
+              .map((p) => {
+                const methodKey = p.payment_method || "";
+                const methodLabel = labels.methodLabels[methodKey] || methodKey || "—";
+                const effDate = p.effective_date ? formatStandardDate(p.effective_date) : "—";
+                const recAt = p.created_at ? formatStandardDateTime(p.created_at) : "—";
+                return `
+            <tr>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${startAlign};">${autoBdi(escapeHtml(methodLabel))}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${startAlign};">${ltrBdi(escapeHtml(effDate))}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${startAlign};">${ltrBdi(escapeHtml(recAt))}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; text-align: ${endAlign}; font-weight: 600; color: #1e3a5f;">${ltrBdi(formatCurrency(p.amount))}</td>
+            </tr>`;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>`
+      : "";
+
   return `
     <div lang="${lang}" dir="${dir}" style="font-family: ${fontStack}; padding: 40px; max-width: 800px; margin: 0 auto; background: white; text-align: ${startAlign};">
       <!-- Header -->
