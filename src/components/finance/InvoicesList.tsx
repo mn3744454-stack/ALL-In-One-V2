@@ -41,6 +41,8 @@ import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/c
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { usePermissions } from "@/hooks/usePermissions";
 import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
+import { InvoicePrintOptionsDialog } from "./InvoicePrintOptionsDialog";
+import { fetchInvoicePaymentSummaryForPdf } from "@/lib/finance/fetchInvoicePaymentSummary";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoiceItems, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
