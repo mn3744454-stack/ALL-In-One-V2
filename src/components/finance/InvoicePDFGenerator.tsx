@@ -47,6 +47,16 @@ export interface InvoicePDFLabels {
   colRecordedAt: string;
   colAmount: string;
   methodLabels: Record<string, string>;
+  /** Optional session-grouped disclosure labels (Phase N+3 Slice 2.1). */
+  pdfPaymentSession?: {
+    sessionLabel: string;
+    methodsHeading: string;
+    distributionHeading: string;
+    horseColumn: string;
+    clientLevelLabel: string;
+    historicalLabel: string;
+    sessionTotal: string;
+  };
 }
 
 interface GeneratePDFOptions {
