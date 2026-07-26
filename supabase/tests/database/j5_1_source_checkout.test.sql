@@ -4781,10 +4781,10 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- 14. Terminate. Twenty-four explicit invocations of
+-- 14. Terminate. Thirty-two explicit invocations of
 --     public.create_source_checkout_invoice occurred in this file inside
---     independent SAVEPOINTs; every Scenario rolled back before this final
---     outer ROLLBACK. Full ROLLBACK discards all 10 Fixture rows and all
---     Gate-related Temp state.
+--     independent SAVEPOINTs (T1-A-01..T1-A-31 + T1-A-33; T1-A-32 retired);
+--     every Scenario rolled back before this final outer ROLLBACK. Full
+--     ROLLBACK discards all 10 Fixture rows and all Gate-related Temp state.
 -- ---------------------------------------------------------------------------
 ROLLBACK;
