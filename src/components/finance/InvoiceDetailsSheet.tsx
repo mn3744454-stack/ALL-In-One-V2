@@ -109,6 +109,8 @@ export function InvoiceDetailsSheet({
   const [cancelEffectiveDate, setCancelEffectiveDate] = useState(getRiyadhDateString);
   const [cancelReason, setCancelReason] = useState("");
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [printOptionsOpen, setPrintOptionsOpen] = useState(false);
+  const [printAction, setPrintAction] = useState<InvoicePrintAction>("download");
   const [invoiceContext, setInvoiceContext] = useState<{ horseName?: string; sampleLabel?: string } | null>(null);
 
   // Use payment hook for ledger-derived data
