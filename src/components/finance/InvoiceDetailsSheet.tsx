@@ -745,7 +745,7 @@ export function InvoiceDetailsSheet({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={handleDownloadPDF}
+                      onClick={() => { setPrintAction("download"); setPrintOptionsOpen(true); }}
                       title={t("finance.invoices.downloadPDF")}
                     >
                       <Download className="h-4 w-4" />
@@ -753,7 +753,7 @@ export function InvoiceDetailsSheet({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={handlePrint}
+                      onClick={() => { setPrintAction("print"); setPrintOptionsOpen(true); }}
                       title={t("finance.invoices.print")}
                     >
                       <Printer className="h-4 w-4" />
