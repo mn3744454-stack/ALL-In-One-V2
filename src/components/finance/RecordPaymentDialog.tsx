@@ -52,6 +52,9 @@ import {
 } from "lucide-react";
 import type { PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 import { getRiyadhDateString } from "@/lib/finance/invoiceRpc";
+import { useInvoicePriorAllocations } from "@/hooks/finance/useInvoicePriorAllocations";
+import { PaymentAllocationEditor } from "./PaymentAllocationEditor";
+import type { BucketAllocation } from "@/lib/finance/allocationDistribution";
 
 interface PaymentRow {
   id: string;
