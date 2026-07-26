@@ -4781,10 +4781,1200 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- 14. Terminate. Thirty-two explicit invocations of
---     public.create_source_checkout_invoice occurred in this file inside
---     independent SAVEPOINTs (T1-A-01..T1-A-31 + T1-A-33; T1-A-32 retired);
---     every Scenario rolled back before this final outer ROLLBACK. Full
---     ROLLBACK discards all 10 Fixture rows and all Gate-related Temp state.
+-- 13.c. TURN 5A.2.c — Final Positive & Chain Scenarios
+--
+--   Standalone : T1-P-02  (Lab Final on LS_COMPLETED_LEGACY)
+--   Chain C1   : T1-P-01, T1-P-06, T1-A-40   (sp_chain_lab_replay)
+--                base success → same-key/same-payload replay → same-key
+--                /changed-payload FIN_IDEMPOTENCY_CONFLICT
+--   Chain C2   : T1-P-03, T1-A-34, T1-P-04, T1-A-42  (sp_chain_lab_coexistence)
+--                Deposit on `accessioned` LS_COEXIST → duplicate Deposit
+--                (FRESH key, still `accessioned`) → privileged status
+--                transitions accessioned→processing→completed → Final →
+--                duplicate Final (FRESH key, still `completed`).
+--
+-- Every Positive Scenario introspects the 17-key response contract:
+--   invoice_id, invoice_number, subtotal, tax_amount, discount_amount,
+--   total_amount, prices_include_tax, currency, status, payment_method,
+--   client_id, client_name, source_type, source_id, source_link_kind,
+--   source_billing_link_id, payment_result.
+--
+-- Chain Scenarios do NOT rollback per-Scenario; the whole chain rolls back
+-- to its group SAVEPOINT after all in-chain calls, restoring zero residue
+-- against the pre-Fixture baseline.
+-- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- Cached canonical valid Lab Final payload (T1-P-02, LS_COMPLETED_LEGACY).
+-- ---------------------------------------------------------------------------
+CREATE TEMP TABLE test_p_final_payload (payload jsonb NOT NULL) ON COMMIT DROP;
+INSERT INTO test_p_final_payload (payload) VALUES (
+  jsonb_build_object(
+    'source_type',      'lab_sample',
+    'source_id',        'dddd4444-0000-4000-8000-000000000003',
+    'link_kind',        'final',
+    'payment_method',   'cash',
+    'discount_amount',  0,
+    'items',            jsonb_build_array(jsonb_build_object(
+                          'description','J5.2 Lab Final Item',
+                          'quantity',   1,
+                          'unit_price', 100,
+                          'is_taxable', true
+                        ))
+  )
+);
+
+-- Cached canonical Chain-C1 base Deposit payload (LS_ACCESSIONED_LEGACY).
+-- P-01 and P-06 MUST submit the byte-identical payload; A-40 uses jsonb_set
+-- on {notes} to force a request-hash mismatch under the shared key.
+CREATE TEMP TABLE test_c1_base_payload (payload jsonb NOT NULL) ON COMMIT DROP;
+INSERT INTO test_c1_base_payload (payload) VALUES (
+  jsonb_build_object(
+    'source_type',      'lab_sample',
+    'source_id',        'dddd4444-0000-4000-8000-000000000002',
+    'link_kind',        'deposit',
+    'payment_method',   'cash',
+    'discount_amount',  0,
+    'notes',            'C1 base notes',
+    'items',            jsonb_build_array(jsonb_build_object(
+                          'description','J5.2 C1 Deposit Item',
+                          'quantity',   1,
+                          'unit_price', 100,
+                          'is_taxable', true
+                        ))
+  )
+);
+
+-- Cached canonical Chain-C2 Deposit + Final payloads (LS_COEXIST).
+CREATE TEMP TABLE test_c2_dep_payload (payload jsonb NOT NULL) ON COMMIT DROP;
+INSERT INTO test_c2_dep_payload (payload) VALUES (
+  jsonb_build_object(
+    'source_type',      'lab_sample',
+    'source_id',        'dddd4444-0000-4000-8000-00000000000b',
+    'link_kind',        'deposit',
+    'payment_method',   'cash',
+    'discount_amount',  0,
+    'items',            jsonb_build_array(jsonb_build_object(
+                          'description','J5.2 C2 Deposit Item',
+                          'quantity',   1,
+                          'unit_price', 100,
+                          'is_taxable', true
+                        ))
+  )
+);
+
+CREATE TEMP TABLE test_c2_fin_payload (payload jsonb NOT NULL) ON COMMIT DROP;
+INSERT INTO test_c2_fin_payload (payload) VALUES (
+  jsonb_build_object(
+    'source_type',      'lab_sample',
+    'source_id',        'dddd4444-0000-4000-8000-00000000000b',
+    'link_kind',        'final',
+    'payment_method',   'cash',
+    'discount_amount',  0,
+    'items',            jsonb_build_array(jsonb_build_object(
+                          'description','J5.2 C2 Final Item',
+                          'quantity',   1,
+                          'unit_price', 100,
+                          'is_taxable', true
+                        ))
+  )
+);
+
+-- Pre-invocation payload proofs (authoring-time invariants).
+DO $$
+DECLARE
+  v_p02_notes_present  boolean;
+  v_c1_notes_val       text;
+  v_c2_dep_kind        text;
+  v_c2_fin_kind        text;
+BEGIN
+  SELECT (payload ? 'notes') INTO v_p02_notes_present FROM pg_temp.test_p_final_payload;
+  IF v_p02_notes_present THEN RAISE EXCEPTION 'C_P02_UNEXPECTED_NOTES_KEY'; END IF;
+
+  SELECT payload->>'notes' INTO v_c1_notes_val FROM pg_temp.test_c1_base_payload;
+  IF v_c1_notes_val IS DISTINCT FROM 'C1 base notes' THEN
+    RAISE EXCEPTION 'C_C1_BASE_NOTES_%', COALESCE(v_c1_notes_val,'<null>');
+  END IF;
+
+  SELECT payload->>'link_kind' INTO v_c2_dep_kind FROM pg_temp.test_c2_dep_payload;
+  SELECT payload->>'link_kind' INTO v_c2_fin_kind FROM pg_temp.test_c2_fin_payload;
+  IF v_c2_dep_kind <> 'deposit' OR v_c2_fin_kind <> 'final' THEN
+    RAISE EXCEPTION 'C_C2_KIND_%_%', v_c2_dep_kind, v_c2_fin_kind;
+  END IF;
+END $$;
+
+-- Helper: assert result_json has exactly the 17 locked response keys.
+-- Emitted as a DO block invoked after each Positive Scenario capture.
+-- ---------------------------------------------------------------------------
+
+-- ===========================================================================
+-- T1-P-02 — Standalone Lab Final success (LS_COMPLETED_LEGACY)
+-- ===========================================================================
+SAVEPOINT sp_t1_p_02;
+
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, execution_order
+) VALUES (
+  'T1-P-02',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-P-02'),
+  (SELECT payload FROM pg_temp.test_p_final_payload),
+  '00000', NULL, true, 33
+);
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object(
+    'sub',  (SELECT actor_id FROM pg_temp.test_context),
+    'role', 'authenticated'
+  )::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-02';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-02','00000','SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-02', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+-- Positive assertions: SUCCESS + 17-key response contract + business fields.
+DO $$
+DECLARE
+  v_n int; v_state text; v_msg text; v_done boolean; v_result jsonb;
+  v_key_count int; v_bad_keys text;
+  v_expected_keys constant text[] := ARRAY[
+    'invoice_id','invoice_number','subtotal','tax_amount','discount_amount',
+    'total_amount','prices_include_tax','currency','status','payment_method',
+    'client_id','client_name','source_type','source_id','source_link_kind',
+    'source_billing_link_id','payment_result'
+  ];
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-02';
+  IF v_n <> 1 THEN RAISE EXCEPTION 'P02_CAPTURE_%', v_n; END IF;
+
+  SELECT actual_sqlstate, actual_message, call_completed, result_json
+    INTO v_state, v_msg, v_done, v_result
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-02';
+
+  IF NOT v_done THEN RAISE EXCEPTION 'P02_FAILED_%_%', v_state, v_msg; END IF;
+  IF v_state <> '00000' THEN RAISE EXCEPTION 'P02_STATE_%', v_state; END IF;
+  IF v_result IS NULL OR jsonb_typeof(v_result) <> 'object' THEN
+    RAISE EXCEPTION 'P02_RESPONSE_SHAPE';
+  END IF;
+
+  -- Response key contract: exactly the 17 locked keys.
+  SELECT count(*) INTO v_key_count FROM jsonb_object_keys(v_result);
+  IF v_key_count <> 17 THEN RAISE EXCEPTION 'P02_KEY_COUNT_%', v_key_count; END IF;
+
+  SELECT string_agg(k, ',') INTO v_bad_keys
+    FROM (SELECT jsonb_object_keys(v_result) AS k) x
+   WHERE k <> ALL (v_expected_keys);
+  IF v_bad_keys IS NOT NULL THEN RAISE EXCEPTION 'P02_UNEXPECTED_KEYS_%', v_bad_keys; END IF;
+
+  SELECT string_agg(k, ',') INTO v_bad_keys
+    FROM unnest(v_expected_keys) k
+   WHERE NOT (v_result ? k);
+  IF v_bad_keys IS NOT NULL THEN RAISE EXCEPTION 'P02_MISSING_KEYS_%', v_bad_keys; END IF;
+
+  -- Business fields.
+  IF v_result->>'source_type'     <> 'lab_sample' THEN RAISE EXCEPTION 'P02_ST'; END IF;
+  IF v_result->>'source_id'       <> 'dddd4444-0000-4000-8000-000000000003' THEN RAISE EXCEPTION 'P02_SID'; END IF;
+  IF v_result->>'source_link_kind'<> 'final' THEN RAISE EXCEPTION 'P02_LK'; END IF;
+  IF v_result->>'payment_method'  <> 'cash' THEN RAISE EXCEPTION 'P02_PM'; END IF;
+  IF v_result->>'status'          <> 'paid' THEN RAISE EXCEPTION 'P02_STATUS_%', v_result->>'status'; END IF;
+  IF v_result->>'client_id'       <> 'aaaa1111-0000-4000-8000-000000000001' THEN RAISE EXCEPTION 'P02_CID'; END IF;
+  IF (v_result->>'total_amount')::numeric <= 0 THEN RAISE EXCEPTION 'P02_TOT'; END IF;
+  IF jsonb_typeof(v_result->'payment_result') <> 'object' THEN RAISE EXCEPTION 'P02_PR'; END IF;
+
+  -- Persisted rows for this invoice.
+  IF NOT EXISTS (SELECT 1 FROM public.invoices
+                  WHERE id = (v_result->>'invoice_id')::uuid
+                    AND tenant_id = (SELECT primary_tenant_id FROM pg_temp.test_context)
+                    AND status = 'paid') THEN
+    RAISE EXCEPTION 'P02_INVOICE_MISSING';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.billing_links
+                  WHERE id = (v_result->>'source_billing_link_id')::uuid
+                    AND link_kind = 'final'
+                    AND source_type = 'lab_sample'
+                    AND source_id = 'dddd4444-0000-4000-8000-000000000003'::uuid) THEN
+    RAISE EXCEPTION 'P02_BLINK_MISSING';
+  END IF;
+
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'P02_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS p02_state,
+       COALESCE(actual_message,'')  AS p02_message,
+       COALESCE(call_completed,false)::text AS p02_done,
+       COALESCE(result_json::text,'')       AS p02_result
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-02' \gset
+
+ROLLBACK TO SAVEPOINT sp_t1_p_02;
+RELEASE SAVEPOINT sp_t1_p_02;
+
+DO $$
+DECLARE i int; c int;
+BEGIN
+  SELECT count(*) INTO i FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-02';
+  SELECT count(*) INTO c FROM pg_temp.test_rpc_capture     WHERE scenario_id='T1-P-02';
+  IF i<>0 OR c<>0 THEN RAISE EXCEPTION 'P02_RESIDUE_i%_c%', i, c; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, chain_id, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count,
+  result_json, notes
+) VALUES (
+  'T1-P-02','positive',NULL,'00000',NULL,
+  :'p02_state', :'p02_message',
+  CASE WHEN :'p02_done'='true' THEN 'success' ELSE 'error' END,
+  true, 25, NULLIF(:'p02_result','')::jsonb,
+  'Standalone Lab Final on LS_COMPLETED_LEGACY; 17-key response contract'
+);
+
+
+-- ===========================================================================
+-- Chain C1 — sp_chain_lab_replay
+--   T1-P-01  base Lab Deposit success (LS_ACCESSIONED_LEGACY)
+--   T1-P-06  same key + byte-equal payload → replay stored_response
+--   T1-A-40  same key + changed notes → FIN_IDEMPOTENCY_CONFLICT (23514)
+-- ===========================================================================
+SAVEPOINT sp_chain_lab_replay;
+
+-- --- T1-P-01: base call ----------------------------------------------------
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, chain_id, execution_order
+) VALUES (
+  'T1-P-01',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-P-01'),
+  (SELECT payload FROM pg_temp.test_c1_base_payload),
+  '00000', NULL, true, 'C1', 34
+);
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),
+                    'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-01';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-01','00000','SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-01', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE
+  v_done boolean; v_result jsonb; v_key_count int; v_bad_keys text;
+  v_expected_keys constant text[] := ARRAY[
+    'invoice_id','invoice_number','subtotal','tax_amount','discount_amount',
+    'total_amount','prices_include_tax','currency','status','payment_method',
+    'client_id','client_name','source_type','source_id','source_link_kind',
+    'source_billing_link_id','payment_result'
+  ];
+BEGIN
+  SELECT call_completed, result_json INTO v_done, v_result
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-01';
+  IF NOT v_done THEN RAISE EXCEPTION 'P01_NOT_SUCCESS'; END IF;
+  IF v_result IS NULL THEN RAISE EXCEPTION 'P01_NULL_RESULT'; END IF;
+
+  SELECT count(*) INTO v_key_count FROM jsonb_object_keys(v_result);
+  IF v_key_count <> 17 THEN RAISE EXCEPTION 'P01_KEY_COUNT_%', v_key_count; END IF;
+
+  SELECT string_agg(k, ',') INTO v_bad_keys
+    FROM unnest(v_expected_keys) k WHERE NOT (v_result ? k);
+  IF v_bad_keys IS NOT NULL THEN RAISE EXCEPTION 'P01_MISSING_KEYS_%', v_bad_keys; END IF;
+
+  IF v_result->>'source_link_kind' <> 'deposit' THEN RAISE EXCEPTION 'P01_LK'; END IF;
+  IF v_result->>'status' <> 'paid'   THEN RAISE EXCEPTION 'P01_STATUS_%', v_result->>'status'; END IF;
+
+  -- Persisted invoice + billing_link + idempotency row.
+  IF NOT EXISTS (SELECT 1 FROM public.invoices
+                  WHERE id = (v_result->>'invoice_id')::uuid AND status='paid') THEN
+    RAISE EXCEPTION 'P01_INVOICE_MISSING';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.billing_links
+                  WHERE id = (v_result->>'source_billing_link_id')::uuid
+                    AND link_kind='deposit') THEN
+    RAISE EXCEPTION 'P01_BLINK_MISSING';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.finance_request_idempotency
+                  WHERE tenant_id = (SELECT primary_tenant_id FROM pg_temp.test_context)
+                    AND operation = 'create_source_checkout_invoice'
+                    AND idempotency_key = '11111111-1111-4111-8111-000000000001'::uuid
+                    AND stored_response IS NOT NULL) THEN
+    RAISE EXCEPTION 'P01_IDEM_ROW_MISSING';
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS p01_state,
+       COALESCE(actual_message,'')  AS p01_message,
+       COALESCE(call_completed,false)::text AS p01_done,
+       COALESCE(result_json::text,'')       AS p01_result,
+       COALESCE((result_json->>'invoice_id'),'') AS p01_invoice_id,
+       COALESCE((result_json->>'source_billing_link_id'),'') AS p01_blink_id
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-01' \gset
+
+-- --- T1-P-06: replay (same key + byte-equal payload) ----------------------
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, chain_id, execution_order
+) VALUES (
+  'T1-P-06',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-P-06'),
+  (SELECT payload FROM pg_temp.test_c1_base_payload),
+  '00000', NULL, true, 'C1', 35
+);
+
+-- Pre-invocation invariant: P-01 payload and P-06 payload MUST be byte-equal.
+DO $$
+DECLARE v_neq boolean;
+BEGIN
+  SELECT (SELECT payload FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-01')
+      IS DISTINCT FROM
+         (SELECT payload FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-06')
+    INTO v_neq;
+  IF v_neq THEN RAISE EXCEPTION 'P06_PAYLOAD_NOT_BYTE_EQUAL'; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),
+                    'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-06';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-06','00000','REPLAY', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-06', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+-- Replay assertions: byte-equal response to P-01; no new invoice/link/ledger.
+DO $$
+DECLARE
+  v_p01 jsonb; v_p06 jsonb; v_neq boolean;
+  v_inv_dup int; v_link_dup int;
+BEGIN
+  SELECT result_json INTO v_p01 FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-01';
+  SELECT result_json INTO v_p06 FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-06';
+  IF v_p06 IS NULL THEN RAISE EXCEPTION 'P06_NULL_RESULT'; END IF;
+  IF v_p01 IS DISTINCT FROM v_p06 THEN
+    RAISE EXCEPTION 'P06_RESPONSE_NOT_BYTE_EQUAL';
+  END IF;
+  -- Exactly one invoice + one billing_link exist under the C1 key.
+  SELECT count(*) INTO v_inv_dup FROM public.invoices
+   WHERE id = (v_p01->>'invoice_id')::uuid;
+  IF v_inv_dup <> 1 THEN RAISE EXCEPTION 'P06_INVOICE_DUP_%', v_inv_dup; END IF;
+  SELECT count(*) INTO v_link_dup FROM public.billing_links
+   WHERE source_type='lab_sample'
+     AND source_id='dddd4444-0000-4000-8000-000000000002'::uuid
+     AND link_kind='deposit';
+  IF v_link_dup <> 1 THEN RAISE EXCEPTION 'P06_BLINK_DUP_%', v_link_dup; END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS p06_state,
+       COALESCE(actual_message,'')  AS p06_message,
+       COALESCE(call_completed,false)::text AS p06_done,
+       COALESCE(result_json::text,'')       AS p06_result
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-06' \gset
+
+-- --- T1-A-40: same key + changed notes → FIN_IDEMPOTENCY_CONFLICT ---------
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, chain_id, execution_order
+) VALUES (
+  'T1-A-40',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-40'),
+  jsonb_set((SELECT payload FROM pg_temp.test_c1_base_payload),
+            '{notes}', to_jsonb('C1 CONFLICT notes'::text), true),
+  '23514', 'FIN_IDEMPOTENCY_CONFLICT', false, 'C1', 36
+);
+
+-- Pre-invocation invariant: A-40 payload differs from P-01/P-06 payload.
+DO $$
+DECLARE v_eq boolean;
+BEGIN
+  SELECT (SELECT payload FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-01')
+      IS NOT DISTINCT FROM
+         (SELECT payload FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-40')
+    INTO v_eq;
+  IF v_eq THEN RAISE EXCEPTION 'A40_PAYLOAD_NOT_CHANGED'; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),
+                    'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-40';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-40','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-40', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_done boolean; v_state text; v_msg text;
+BEGIN
+  SELECT call_completed, actual_sqlstate, actual_message
+    INTO v_done, v_state, v_msg
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-40';
+  IF v_done THEN RAISE EXCEPTION 'A40_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A40_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_IDEMPOTENCY_CONFLICT' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A40_TOKEN_%', v_msg;
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a40_state,
+       COALESCE(actual_message,'')  AS a40_message,
+       COALESCE(call_completed,false)::text AS a40_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-40' \gset
+
+-- Chain C1 terminal invariants (before group rollback).
+DO $$
+DECLARE
+  v_inv_n int; v_link_n int; v_item_n int; v_ledger_n int; v_idem_n int;
+  v_inv uuid; v_blink uuid;
+BEGIN
+  SELECT (result_json->>'invoice_id')::uuid,
+         (result_json->>'source_billing_link_id')::uuid
+    INTO v_inv, v_blink
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-01';
+  SELECT count(*) INTO v_inv_n    FROM public.invoices        WHERE id = v_inv;
+  SELECT count(*) INTO v_link_n   FROM public.billing_links
+    WHERE source_type='lab_sample'
+      AND source_id='dddd4444-0000-4000-8000-000000000002'::uuid
+      AND link_kind='deposit';
+  SELECT count(*) INTO v_item_n   FROM public.invoice_items   WHERE invoice_id = v_inv;
+  SELECT count(*) INTO v_ledger_n FROM public.ledger_entries  WHERE invoice_id = v_inv;
+  SELECT count(*) INTO v_idem_n   FROM public.finance_request_idempotency
+    WHERE tenant_id = (SELECT primary_tenant_id FROM pg_temp.test_context)
+      AND operation = 'create_source_checkout_invoice'
+      AND idempotency_key = '11111111-1111-4111-8111-000000000001'::uuid;
+  IF v_inv_n<>1  THEN RAISE EXCEPTION 'C1_INV_%',   v_inv_n; END IF;
+  IF v_link_n<>1 THEN RAISE EXCEPTION 'C1_LINK_%',  v_link_n; END IF;
+  IF v_item_n<>1 THEN RAISE EXCEPTION 'C1_ITEM_%',  v_item_n; END IF;
+  IF v_ledger_n<2 THEN RAISE EXCEPTION 'C1_LEDGER_%', v_ledger_n; END IF;
+  IF v_idem_n<>1 THEN RAISE EXCEPTION 'C1_IDEM_%',  v_idem_n; END IF;
+END $$;
+
+ROLLBACK TO SAVEPOINT sp_chain_lab_replay;
+RELEASE SAVEPOINT sp_chain_lab_replay;
+
+-- Post-rollback residue check for Chain C1.
+DO $$
+DECLARE v_inv int; v_link int; v_idem int;
+BEGIN
+  SELECT count(*) INTO v_link FROM public.billing_links
+    WHERE source_type='lab_sample'
+      AND source_id='dddd4444-0000-4000-8000-000000000002'::uuid;
+  SELECT count(*) INTO v_idem FROM public.finance_request_idempotency
+    WHERE tenant_id = (SELECT primary_tenant_id FROM pg_temp.test_context)
+      AND operation = 'create_source_checkout_invoice'
+      AND idempotency_key = '11111111-1111-4111-8111-000000000001'::uuid;
+  IF v_link<>0 THEN RAISE EXCEPTION 'C1_ROLLBACK_LINK_%', v_link; END IF;
+  IF v_idem<>0 THEN RAISE EXCEPTION 'C1_ROLLBACK_IDEM_%', v_idem; END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, chain_id, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count,
+  result_json, notes
+) VALUES
+  ('T1-P-01','positive','C1','00000',NULL,:'p01_state',:'p01_message',
+   CASE WHEN :'p01_done'='true' THEN 'success' ELSE 'error' END,
+   true, 25, NULLIF(:'p01_result','')::jsonb,
+   'Chain C1 base Lab Deposit success (LS_ACCESSIONED_LEGACY)'),
+  ('T1-P-06','positive','C1','00000',NULL,:'p06_state',:'p06_message',
+   CASE WHEN :'p06_done'='true' THEN 'replay' ELSE 'error' END,
+   true, 15, NULLIF(:'p06_result','')::jsonb,
+   'Chain C1 same-key + byte-equal payload replay; stored_response returned'),
+  ('T1-A-40','A','C1','23514','FIN_IDEMPOTENCY_CONFLICT',
+   :'a40_state', :'a40_message',
+   CASE WHEN :'a40_done'='true' THEN 'success' ELSE 'error' END,
+   true, 12, NULL,
+   'Chain C1 same-key + changed notes; FIN_IDEMPOTENCY_CONFLICT');
+
+
+-- ===========================================================================
+-- Chain C2 — sp_chain_lab_coexistence  (LS_COEXIST single-source lifecycle)
+--   T1-P-03  Deposit on `accessioned` LS_COEXIST
+--   T1-A-34  duplicate Deposit (FRESH key) still `accessioned` →
+--            FIN_SOURCE_LINK_CONFLICT (23514)
+--   privileged UPDATE lab_samples SET status='processing'
+--   privileged UPDATE lab_samples SET status='completed'
+--   T1-P-04  Final on `completed` LS_COEXIST
+--   T1-A-42  duplicate Final (FRESH key) still `completed` →
+--            FIN_SOURCE_LINK_CONFLICT (23514)
+-- ===========================================================================
+SAVEPOINT sp_chain_lab_coexistence;
+
+-- --- T1-P-03: Deposit -----------------------------------------------------
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, chain_id, execution_order
+) VALUES (
+  'T1-P-03',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-P-03'),
+  (SELECT payload FROM pg_temp.test_c2_dep_payload),
+  '00000', NULL, true, 'C2', 37
+);
+
+-- LS_COEXIST must start `accessioned`.
+DO $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM public.lab_samples
+   WHERE id = 'dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_status <> 'accessioned' THEN RAISE EXCEPTION 'C2_PRE_STATUS_%', v_status; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),
+                    'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-03';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-03','00000','SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-03', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_done boolean; v_result jsonb;
+BEGIN
+  SELECT call_completed, result_json INTO v_done, v_result
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-03';
+  IF NOT v_done THEN RAISE EXCEPTION 'P03_NOT_SUCCESS'; END IF;
+  IF v_result->>'source_link_kind' <> 'deposit' THEN RAISE EXCEPTION 'P03_LK'; END IF;
+  IF v_result->>'status' <> 'paid' THEN RAISE EXCEPTION 'P03_STATUS'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.billing_links
+                  WHERE id=(v_result->>'source_billing_link_id')::uuid
+                    AND link_kind='deposit'
+                    AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid) THEN
+    RAISE EXCEPTION 'P03_BLINK_MISSING';
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS p03_state,
+       COALESCE(actual_message,'')  AS p03_message,
+       COALESCE(call_completed,false)::text AS p03_done,
+       COALESCE(result_json::text,'')       AS p03_result,
+       COALESCE((result_json->>'invoice_id'),'') AS p03_invoice_id
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-03' \gset
+
+-- --- T1-A-34: duplicate Deposit (FRESH key) while still `accessioned` -----
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, chain_id, execution_order
+) VALUES (
+  'T1-A-34',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-34'),
+  (SELECT payload FROM pg_temp.test_c2_dep_payload),
+  '23514', 'FIN_SOURCE_LINK_CONFLICT', false, 'C2', 38
+);
+
+-- Sample must still be `accessioned` (reachability of link-conflict guard).
+DO $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM public.lab_samples
+   WHERE id = 'dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_status <> 'accessioned' THEN RAISE EXCEPTION 'A34_PRE_STATUS_%', v_status; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),
+                    'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-34';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-34','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-34', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_done boolean; v_state text; v_msg text;
+        v_dep_links int; v_dep_invs int;
+BEGIN
+  SELECT call_completed, actual_sqlstate, actual_message
+    INTO v_done, v_state, v_msg
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-34';
+  IF v_done THEN RAISE EXCEPTION 'A34_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A34_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_SOURCE_LINK_CONFLICT' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A34_TOKEN_%', v_msg;
+  END IF;
+  -- Still exactly ONE deposit link + ONE deposit invoice for LS_COEXIST.
+  SELECT count(*) INTO v_dep_links FROM public.billing_links
+   WHERE source_type='lab_sample'
+     AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid
+     AND link_kind='deposit';
+  IF v_dep_links <> 1 THEN RAISE EXCEPTION 'A34_DEP_LINKS_%', v_dep_links; END IF;
+  SELECT count(*) INTO v_dep_invs FROM public.invoices
+   WHERE id = (SELECT (result_json->>'invoice_id')::uuid FROM pg_temp.test_rpc_capture
+                WHERE scenario_id='T1-P-03');
+  IF v_dep_invs <> 1 THEN RAISE EXCEPTION 'A34_DEP_INV_%', v_dep_invs; END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a34_state,
+       COALESCE(actual_message,'')  AS a34_message,
+       COALESCE(call_completed,false)::text AS a34_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-34' \gset
+
+-- --- Privileged status transitions accessioned → processing → completed ---
+UPDATE public.lab_samples SET status='processing'
+ WHERE id = 'dddd4444-0000-4000-8000-00000000000b'::uuid;
+UPDATE public.lab_samples SET status='completed'
+ WHERE id = 'dddd4444-0000-4000-8000-00000000000b'::uuid;
+
+DO $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM public.lab_samples
+   WHERE id = 'dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_status <> 'completed' THEN RAISE EXCEPTION 'C2_TRANSITION_%', v_status; END IF;
+END $$;
+
+-- --- T1-P-04: Final on `completed` LS_COEXIST ------------------------------
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, chain_id, execution_order
+) VALUES (
+  'T1-P-04',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-P-04'),
+  (SELECT payload FROM pg_temp.test_c2_fin_payload),
+  '00000', NULL, true, 'C2', 39
+);
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),
+                    'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-P-04';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-04','00000','SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-P-04', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE
+  v_done boolean; v_result jsonb;
+  v_p03_invoice uuid; v_p04_invoice uuid;
+BEGIN
+  SELECT call_completed, result_json INTO v_done, v_result
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-04';
+  IF NOT v_done THEN RAISE EXCEPTION 'P04_NOT_SUCCESS'; END IF;
+  IF v_result->>'source_link_kind' <> 'final' THEN RAISE EXCEPTION 'P04_LK'; END IF;
+  IF v_result->>'status' <> 'paid' THEN RAISE EXCEPTION 'P04_STATUS'; END IF;
+
+  SELECT (result_json->>'invoice_id')::uuid INTO v_p03_invoice
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-03';
+  v_p04_invoice := (v_result->>'invoice_id')::uuid;
+  IF v_p03_invoice = v_p04_invoice THEN
+    RAISE EXCEPTION 'P04_INVOICE_NOT_DISTINCT_%', v_p04_invoice;
+  END IF;
+
+  -- Deposit link preserved AND new Final link created.
+  IF NOT EXISTS (SELECT 1 FROM public.billing_links
+                  WHERE source_type='lab_sample'
+                    AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid
+                    AND link_kind='deposit') THEN
+    RAISE EXCEPTION 'P04_DEPOSIT_LINK_LOST';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.billing_links
+                  WHERE id = (v_result->>'source_billing_link_id')::uuid
+                    AND link_kind='final') THEN
+    RAISE EXCEPTION 'P04_FINAL_LINK_MISSING';
+  END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS p04_state,
+       COALESCE(actual_message,'')  AS p04_message,
+       COALESCE(call_completed,false)::text AS p04_done,
+       COALESCE(result_json::text,'')       AS p04_result,
+       COALESCE((result_json->>'invoice_id'),'') AS p04_invoice_id
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-04' \gset
+
+-- --- T1-A-42: duplicate Final (FRESH key) while `completed` ---------------
+INSERT INTO pg_temp.test_scenario_inputs (
+  scenario_id, tenant_id, idempotency_key, payload,
+  expected_sqlstate, expected_token, expected_success, chain_id, execution_order
+) VALUES (
+  'T1-A-42',
+  (SELECT primary_tenant_id FROM pg_temp.test_context),
+  (SELECT idempotency_key FROM pg_temp.test_active_idem_keys WHERE scenario_id='T1-A-42'),
+  (SELECT payload FROM pg_temp.test_c2_fin_payload),
+  '23514', 'FIN_SOURCE_LINK_CONFLICT', false, 'C2', 40
+);
+
+DO $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM public.lab_samples
+   WHERE id = 'dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_status <> 'completed' THEN RAISE EXCEPTION 'A42_PRE_STATUS_%', v_status; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub',
+  (SELECT actor_id::text FROM pg_temp.test_context), true);
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claims',
+  json_build_object('sub',(SELECT actor_id FROM pg_temp.test_context),
+                    'role','authenticated')::text, true);
+
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE
+  v_tenant uuid; v_key uuid; v_payload jsonb; v_result jsonb;
+  v_state text; v_msg text;
+BEGIN
+  SELECT tenant_id, idempotency_key, payload
+    INTO v_tenant, v_key, v_payload
+    FROM pg_temp.test_scenario_inputs WHERE scenario_id='T1-A-42';
+  BEGIN
+    v_result := public.create_source_checkout_invoice(v_tenant, v_key, v_payload);
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-42','00000','UNEXPECTED_SUCCESS', v_result, true, now());
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO pg_temp.test_rpc_capture VALUES
+      ('T1-A-42', v_state, v_msg, NULL, false, now());
+  END;
+END $$;
+
+RESET ROLE;
+
+DO $$
+DECLARE v_done boolean; v_state text; v_msg text;
+        v_fin_links int;
+BEGIN
+  SELECT call_completed, actual_sqlstate, actual_message
+    INTO v_done, v_state, v_msg
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-42';
+  IF v_done THEN RAISE EXCEPTION 'A42_UNEXPECTED_SUCCESS'; END IF;
+  IF v_state <> '23514' THEN RAISE EXCEPTION 'A42_STATE_%_MSG_%', v_state, v_msg; END IF;
+  IF position('FIN_SOURCE_LINK_CONFLICT' IN v_msg) = 0 THEN
+    RAISE EXCEPTION 'A42_TOKEN_%', v_msg;
+  END IF;
+  SELECT count(*) INTO v_fin_links FROM public.billing_links
+   WHERE source_type='lab_sample'
+     AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid
+     AND link_kind='final';
+  IF v_fin_links <> 1 THEN RAISE EXCEPTION 'A42_FIN_LINKS_%', v_fin_links; END IF;
+END $$;
+
+SELECT COALESCE(actual_sqlstate,'') AS a42_state,
+       COALESCE(actual_message,'')  AS a42_message,
+       COALESCE(call_completed,false)::text AS a42_done
+  FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-A-42' \gset
+
+-- Chain C2 terminal invariants (before group rollback):
+--   1 active deposit link + 1 active final link, 2 distinct invoices,
+--   both invoices are `paid`.
+DO $$
+DECLARE
+  v_dep int; v_fin int; v_dep_inv uuid; v_fin_inv uuid;
+BEGIN
+  SELECT count(*) INTO v_dep FROM public.billing_links
+   WHERE source_type='lab_sample'
+     AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid
+     AND link_kind='deposit';
+  SELECT count(*) INTO v_fin FROM public.billing_links
+   WHERE source_type='lab_sample'
+     AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid
+     AND link_kind='final';
+  IF v_dep<>1 OR v_fin<>1 THEN RAISE EXCEPTION 'C2_LINKS_%_%',v_dep,v_fin; END IF;
+
+  SELECT (result_json->>'invoice_id')::uuid INTO v_dep_inv
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-03';
+  SELECT (result_json->>'invoice_id')::uuid INTO v_fin_inv
+    FROM pg_temp.test_rpc_capture WHERE scenario_id='T1-P-04';
+  IF v_dep_inv IS NULL OR v_fin_inv IS NULL OR v_dep_inv = v_fin_inv THEN
+    RAISE EXCEPTION 'C2_INV_DISTINCTNESS_%_%', v_dep_inv, v_fin_inv;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.invoices
+                  WHERE id IN (v_dep_inv, v_fin_inv)
+                    AND status = 'paid'
+                  HAVING count(*)=2) THEN
+    RAISE EXCEPTION 'C2_INV_STATUS';
+  END IF;
+END $$;
+
+ROLLBACK TO SAVEPOINT sp_chain_lab_coexistence;
+RELEASE SAVEPOINT sp_chain_lab_coexistence;
+
+-- Post-rollback residue check for Chain C2.
+DO $$
+DECLARE
+  v_links int; v_idem int; v_status text;
+BEGIN
+  SELECT count(*) INTO v_links FROM public.billing_links
+    WHERE source_type='lab_sample'
+      AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_links<>0 THEN RAISE EXCEPTION 'C2_ROLLBACK_LINKS_%', v_links; END IF;
+
+  SELECT count(*) INTO v_idem FROM public.finance_request_idempotency
+    WHERE tenant_id = (SELECT primary_tenant_id FROM pg_temp.test_context)
+      AND operation = 'create_source_checkout_invoice'
+      AND idempotency_key = ANY (ARRAY[
+        '22222222-2222-4222-8222-000000000002'::uuid,
+        '22222222-2222-4222-8222-000000000003'::uuid,
+        '44444444-4444-4444-8444-000000000001'::uuid,
+        '44444444-4444-4444-8444-000000000002'::uuid
+      ]);
+  IF v_idem<>0 THEN RAISE EXCEPTION 'C2_ROLLBACK_IDEM_%', v_idem; END IF;
+
+  -- LS_COEXIST status reverted to `accessioned` (pre-chain state).
+  SELECT status INTO v_status FROM public.lab_samples
+   WHERE id = 'dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_status <> 'accessioned' THEN
+    RAISE EXCEPTION 'C2_ROLLBACK_STATUS_%', v_status;
+  END IF;
+END $$;
+
+INSERT INTO pg_temp.test_scenario_results (
+  scenario_id, category, chain_id, expected_sqlstate, expected_token,
+  actual_sqlstate, actual_message, actual_status, passed, assertion_count,
+  result_json, notes
+) VALUES
+  ('T1-P-03','positive','C2','00000',NULL,:'p03_state',:'p03_message',
+   CASE WHEN :'p03_done'='true' THEN 'success' ELSE 'error' END,
+   true, 15, NULLIF(:'p03_result','')::jsonb,
+   'Chain C2 Deposit on accessioned LS_COEXIST'),
+  ('T1-A-34','A','C2','23514','FIN_SOURCE_LINK_CONFLICT',
+   :'a34_state', :'a34_message',
+   CASE WHEN :'a34_done'='true' THEN 'success' ELSE 'error' END,
+   true, 14, NULL,
+   'Chain C2 duplicate Deposit (FRESH key) still accessioned'),
+  ('T1-P-04','positive','C2','00000',NULL,:'p04_state',:'p04_message',
+   CASE WHEN :'p04_done'='true' THEN 'success' ELSE 'error' END,
+   true, 15, NULLIF(:'p04_result','')::jsonb,
+   'Chain C2 Final on completed LS_COEXIST after privileged transitions'),
+  ('T1-A-42','A','C2','23514','FIN_SOURCE_LINK_CONFLICT',
+   :'a42_state', :'a42_message',
+   CASE WHEN :'a42_done'='true' THEN 'success' ELSE 'error' END,
+   true, 13, NULL,
+   'Chain C2 duplicate Final (FRESH key) while completed');
+
+
+-- ---------------------------------------------------------------------------
+-- 13.c.Z. New-batch integrity — Turn 5A.2.c (8 Scenarios).
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_n int; v_pos int; v_neg int; v_res int; v_bad int;
+BEGIN
+  SELECT count(*) INTO v_n FROM pg_temp.test_scenario_results
+   WHERE scenario_id IN ('T1-P-02','T1-P-01','T1-P-06','T1-A-40',
+                         'T1-P-03','T1-A-34','T1-P-04','T1-A-42');
+  IF v_n <> 8 THEN RAISE EXCEPTION 'C_BATCH_%', v_n; END IF;
+
+  SELECT count(*) INTO v_pos FROM pg_temp.test_scenario_results
+   WHERE category='positive'
+     AND scenario_id IN ('T1-P-02','T1-P-01','T1-P-06','T1-P-03','T1-P-04');
+  IF v_pos <> 5 THEN RAISE EXCEPTION 'C_POS_%', v_pos; END IF;
+
+  SELECT count(*) INTO v_neg FROM pg_temp.test_scenario_results
+   WHERE category='A'
+     AND scenario_id IN ('T1-A-40','T1-A-34','T1-A-42');
+  IF v_neg <> 3 THEN RAISE EXCEPTION 'C_NEG_%', v_neg; END IF;
+
+  SELECT count(*) INTO v_res FROM pg_temp.test_scenario_results
+   WHERE scenario_id IN ('T1-P-02','T1-P-01','T1-P-06','T1-P-03','T1-P-04')
+     AND result_json IS NOT NULL;
+  IF v_res <> 5 THEN RAISE EXCEPTION 'C_POS_RESULT_JSON_%', v_res; END IF;
+
+  SELECT count(*) INTO v_bad FROM pg_temp.test_scenario_results
+   WHERE scenario_id IN ('T1-P-02','T1-P-01','T1-P-06','T1-A-40',
+                         'T1-P-03','T1-A-34','T1-P-04','T1-A-42')
+     AND (passed IS DISTINCT FROM true OR COALESCE(assertion_count,0) <= 0);
+  IF v_bad <> 0 THEN RAISE EXCEPTION 'C_BATCH_QUALITY_%', v_bad; END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 13.c.C. Cumulative 40-Scenario integrity lock.
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_total int; v_cat_a int; v_cat_pos int; v_bad_pass int; v_leak_next int;
+  v_a32 int; v_inputs int; v_capture int;
+BEGIN
+  SELECT count(*) INTO v_total FROM pg_temp.test_scenario_results;
+  IF v_total <> 40 THEN RAISE EXCEPTION 'C_TOTAL_%', v_total; END IF;
+
+  SELECT count(*) INTO v_cat_a   FROM pg_temp.test_scenario_results WHERE category='A';
+  SELECT count(*) INTO v_cat_pos FROM pg_temp.test_scenario_results WHERE category='positive';
+  IF v_cat_a   <> 35 THEN RAISE EXCEPTION 'C_CAT_A_%',   v_cat_a; END IF;
+  IF v_cat_pos <> 5  THEN RAISE EXCEPTION 'C_CAT_POS_%', v_cat_pos; END IF;
+
+  SELECT count(*) INTO v_bad_pass FROM pg_temp.test_scenario_results
+   WHERE passed IS DISTINCT FROM true;
+  IF v_bad_pass <> 0 THEN RAISE EXCEPTION 'C_PASSED_FALSE_%', v_bad_pass; END IF;
+
+  SELECT count(*) INTO v_leak_next FROM pg_temp.test_scenario_results
+   WHERE scenario_id NOT IN (
+     'T1-A-01','T1-A-02','T1-A-03','T1-A-04','T1-A-05','T1-A-06','T1-A-07','T1-A-08',
+     'T1-A-09','T1-A-10','T1-A-11','T1-A-12','T1-A-13','T1-A-14','T1-A-15','T1-A-16',
+     'T1-A-17','T1-A-18','T1-A-19','T1-A-20','T1-A-21','T1-A-22','T1-A-23','T1-A-24',
+     'T1-A-25','T1-A-26','T1-A-27','T1-A-28','T1-A-29','T1-A-30','T1-A-31','T1-A-33',
+     'T1-A-34','T1-A-40','T1-A-42',
+     'T1-P-01','T1-P-02','T1-P-03','T1-P-04','T1-P-06'
+   );
+  IF v_leak_next <> 0 THEN RAISE EXCEPTION 'C_FOREIGN_%', v_leak_next; END IF;
+
+  SELECT count(*) INTO v_a32 FROM pg_temp.test_scenario_results
+   WHERE scenario_id = 'T1-A-32';
+  IF v_a32 <> 0 THEN RAISE EXCEPTION 'C_A32_LEAK_%', v_a32; END IF;
+
+  -- Chain metadata coverage.
+  IF (SELECT count(*) FROM pg_temp.test_scenario_results WHERE chain_id='C1') <> 3 THEN
+    RAISE EXCEPTION 'C_CHAIN_C1_COUNT';
+  END IF;
+  IF (SELECT count(*) FROM pg_temp.test_scenario_results WHERE chain_id='C2') <> 4 THEN
+    RAISE EXCEPTION 'C_CHAIN_C2_COUNT';
+  END IF;
+
+  SELECT count(*) INTO v_inputs  FROM pg_temp.test_scenario_inputs;
+  SELECT count(*) INTO v_capture FROM pg_temp.test_rpc_capture;
+  IF v_inputs  <> 0 THEN RAISE EXCEPTION 'C_INPUT_%',   v_inputs;  END IF;
+  IF v_capture <> 0 THEN RAISE EXCEPTION 'C_CAPTURE_%', v_capture; END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 13.c.F. Cumulative Financial and Fixture zero-residue re-check (Turn 5A.2.c).
+--   All 8 Turn-5A.2.c Idempotency keys and both chain-related billing_links
+--   must be absent after chain rollbacks; Fixtures unchanged; payment account
+--   preserved; LS_COEXIST reverted to `accessioned`.
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_idem_n int; v_pa_n int; v_ls_status text;
+  v_ls_fx_n int; v_client_n int; v_lh_n int; v_missing_n int;
+  v_link_c1 int; v_link_c2 int;
+BEGIN
+  SELECT count(*) INTO v_idem_n
+    FROM public.finance_request_idempotency
+   WHERE tenant_id = (SELECT primary_tenant_id FROM pg_temp.test_context)
+     AND operation = 'create_source_checkout_invoice'
+     AND idempotency_key = ANY (ARRAY[
+       '22222222-2222-4222-8222-000000000001'::uuid,  -- P-02
+       '11111111-1111-4111-8111-000000000001'::uuid,  -- C1 shared
+       '22222222-2222-4222-8222-000000000002'::uuid,  -- P-03
+       '22222222-2222-4222-8222-000000000003'::uuid,  -- P-04
+       '44444444-4444-4444-8444-000000000001'::uuid,  -- A-34
+       '44444444-4444-4444-8444-000000000002'::uuid   -- A-42
+     ]);
+  IF v_idem_n <> 0 THEN RAISE EXCEPTION 'C_F_IDEM_%', v_idem_n; END IF;
+
+  SELECT count(*) INTO v_pa_n FROM public.payment_accounts
+   WHERE id = (SELECT payment_account_id FROM pg_temp.test_context) AND is_active;
+  IF v_pa_n <> 1 THEN RAISE EXCEPTION 'C_F_PA_%', v_pa_n; END IF;
+
+  SELECT count(*) INTO v_link_c1 FROM public.billing_links
+   WHERE source_type='lab_sample'
+     AND source_id='dddd4444-0000-4000-8000-000000000002'::uuid;
+  IF v_link_c1 <> 0 THEN RAISE EXCEPTION 'C_F_LINK_C1_%', v_link_c1; END IF;
+
+  SELECT count(*) INTO v_link_c2 FROM public.billing_links
+   WHERE source_type='lab_sample'
+     AND source_id='dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_link_c2 <> 0 THEN RAISE EXCEPTION 'C_F_LINK_C2_%', v_link_c2; END IF;
+
+  SELECT count(*) INTO v_ls_fx_n FROM public.lab_samples
+   WHERE id = ANY (ARRAY[
+     'dddd4444-0000-4000-8000-000000000001',
+     'dddd4444-0000-4000-8000-000000000002',
+     'dddd4444-0000-4000-8000-000000000003',
+     'dddd4444-0000-4000-8000-000000000004',
+     'dddd4444-0000-4000-8000-000000000005',
+     'dddd4444-0000-4000-8000-000000000007',
+     'dddd4444-0000-4000-8000-00000000000b',
+     'dddd4444-0000-4000-8000-00000000000e'
+   ]::uuid[]);
+  IF v_ls_fx_n <> 8 THEN RAISE EXCEPTION 'C_F_LS_%', v_ls_fx_n; END IF;
+
+  SELECT status INTO v_ls_status FROM public.lab_samples
+   WHERE id='dddd4444-0000-4000-8000-00000000000b'::uuid;
+  IF v_ls_status <> 'accessioned' THEN
+    RAISE EXCEPTION 'C_F_COEXIST_STATUS_%', v_ls_status;
+  END IF;
+
+  SELECT count(*) INTO v_client_n FROM public.clients
+   WHERE id = 'aaaa1111-0000-4000-8000-000000000001';
+  IF v_client_n <> 1 THEN RAISE EXCEPTION 'C_F_CLIENT_%', v_client_n; END IF;
+
+  SELECT count(*) INTO v_lh_n FROM public.lab_horses
+   WHERE id = 'cccc3333-0000-4000-8000-000000000001';
+  IF v_lh_n <> 1 THEN RAISE EXCEPTION 'C_F_LH_%', v_lh_n; END IF;
+
+  SELECT count(*) INTO v_missing_n FROM public.lab_samples
+   WHERE id = 'deadbeef-0000-4000-8000-000000000027'::uuid;
+  IF v_missing_n <> 0 THEN RAISE EXCEPTION 'C_F_MISSING_%', v_missing_n; END IF;
+
+  IF current_user <> (SELECT original_user FROM pg_temp.test_context) THEN
+    RAISE EXCEPTION 'C_F_ROLE_LEAK_%', current_user;
+  END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 14. Terminate. FORTY explicit invocations of
+--     public.create_source_checkout_invoice occurred in this file:
+--       - 32 independent Validation Scenarios (T1-A-01..T1-A-31 + T1-A-33;
+--         T1-A-32 retired), each inside its own SAVEPOINT.
+--       - Turn 5A.2.c:
+--           * T1-P-02 (standalone Lab Final)
+--           * Chain C1 inside sp_chain_lab_replay:
+--               T1-P-01, T1-P-06, T1-A-40
+--           * Chain C2 inside sp_chain_lab_coexistence:
+--               T1-P-03, T1-A-34, T1-P-04, T1-A-42
+--     Chain Scenarios do NOT rollback per-Scenario; each chain rolls back
+--     once to its group SAVEPOINT. Full outer ROLLBACK discards all 10
+--     Fixture rows, all Chain-local state, all Idempotency-key residue, and
+--     the transient LS_COEXIST status transitions.
 -- ---------------------------------------------------------------------------
 ROLLBACK;
