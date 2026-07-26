@@ -274,6 +274,24 @@ export function PaymentAllocationEditor({
                     aria-label={`${bucket.label} allocation`}
                   />
                 </div>
+                <div className="flex-1">
+                  <Label className="text-xs text-muted-foreground">
+                    {t("finance.payments.allocation.remainingAfter")}
+                  </Label>
+                  <div
+                    className="h-9 px-3 rounded-md border border-input bg-background flex items-center justify-end font-mono tabular-nums text-sm"
+                    dir="ltr"
+                  >
+                    {fmt(
+                      Math.max(
+                        0,
+                        Math.round(
+                          (bucket.remaining - parseAmount(value[bucket.key])) * 100,
+                        ) / 100,
+                      ),
+                    )}
+                  </div>
+                </div>
                 {unallocated > 0.005 && bucket.remaining > 0.005 && (
                   <Button
                     type="button"
