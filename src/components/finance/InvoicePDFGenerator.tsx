@@ -377,6 +377,10 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
         </div>
       </div>
 
+      ${paymentSummaryBlock}
+      ${paymentHistoryBlock}
+
+
       ${
         invoice.notes
           ? `
