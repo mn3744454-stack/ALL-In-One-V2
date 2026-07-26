@@ -1,13 +1,14 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import DOMPurify from "dompurify";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import {
   buildInvoicePresentation,
   formatHorseHeadingParts,
   type RawInvoiceItemForPresentation,
 } from "@/lib/finance/invoicePresentation";
+import type { InvoicePaymentSummaryForPdf } from "@/lib/finance/fetchInvoicePaymentSummary";
 
 /**
  * Phase N+1A refinement — strict localized labels bundle. Both call sites
