@@ -1,192 +1,170 @@
-## Phase N+3 · Slice 1 — Printed Invoice Payment Status & Optional Payment History
 
-### A. Verdict
-`INVOICE PAYMENT DISCLOSURE CONTRACT ALIGNED — EXECUTION-READY PLAN PROVIDED`
+# Phase N+3 · Slice 2 — Single-Invoice Payment Allocation Editor
 
-### B. What the Attached PDF and Screenshot Prove
-- The current Arabic PDF for `INV-9920` shows number, dates, client, item, subtotal and total — but no Payment status, paid-to-date, outstanding, or Payment History.
-- Screenshot 43 proves the financial truth already exists in the app: `INV-9920` is fully paid (SAR 230.00 paid = SAR 20 bank transfer + SAR 210 cash, outstanding SAR 0.00), each row with effective date and recording time.
-- The gap is presentation-only in the print/PDF renderer.
+## A. Verdict
+`SINGLE-INVOICE PAYMENT ALLOCATION CONTRACT ALIGNED — EXECUTION-READY PLAN PROVIDED`
 
-### C. Current Print and PDF Architecture
-One shared renderer for both Print and Download, in both Stable and Laboratory invoices. There is no separate Lab or Horse-Owner PDF generator; the same file services every account type via the `Invoice` + `InvoiceItem` payload prepared by the caller.
+The installed `public.post_payment_session` RPC already accepts `client_level_amount` and `horse_allocations[]` per allocation row, and `postPaymentSession` typings already expose them. No backend change is required for Stable/mixed invoices. Lab-only horse allocation (`lab_horse_id` without `horse_id`) remains unsupported by the RPC and is preserved behind the existing block.
 
-Output paths:
-1. `InvoiceDetailsSheet.tsx` → `handleDownloadPDF` → `downloadInvoicePDF(...)`
-2. `InvoiceDetailsSheet.tsx` → `handlePrint` → `printInvoice(...)`
-3. `InvoicesList.tsx` → `handleDownloadPDF(invoice)` → `loadEnrichedItems` → `downloadInvoicePDF(...)`
-4. `InvoicesList.tsx` → `handlePrint(invoice)` → `loadEnrichedItems` → `printInvoice(...)`
+## B. Screenshot Findings
+- **Screenshot 40**: Current `RecordPaymentDialog` shows the Phase-4 block (`requiresPhase4Allocation`) with `تشمل هذه الفاتورة أكثر من حصان...` and disables submit. Nothing else is broken.
+- **Screenshot 41**: `INV-0986` — invoice_items already carry `horse_id` (Fatin 500, Maha 150) with correct `total_price` and horse-scoped attribution rendered in `InvoiceDetailsSheet`. Data model is ready.
 
-Both callers build the same `InvoicePDFLabels` bundle and hand the current `invoice`/`items` to the generator. There is no emailed/shared PDF path today. The details sheet already re-reads the invoice via TanStack Query before opening; the list path refetches items just-in-time in `loadEnrichedItems`. Neither path currently reads Payment truth before generating.
+## C. Current Payment Dialog Architecture
+`InvoiceDetailsSheet` → `RecordPaymentDialog` → `useInvoicePayments` → `postLedgerForPayments` → `postPaymentSession` → `public.post_payment_session`.
+- `useInvoicePayments` computes `requiresPhase4Allocation` from an `invoice_items` composition query (`distinctHorses > 1 || (distinctHorses ≥ 1 && hasClientLevel)`) and throws `FIN_HORSE_ALLOCATION_REQUIRED` before contacting the RPC.
+- `postLedgerForPayments` builds one `PaymentSessionAllocation` per tender row; currently it never sets `client_level_amount` or `horse_allocations`.
+- Idempotency: fingerprint keyed on `(invoiceId, paymentDate, rows[a/m/r/n])`. Adding allocation extends the fingerprint.
 
-### D. Exact Generator and Files
-- `src/components/finance/InvoicePDFGenerator.tsx` — `createInvoiceHTML`, `generateInvoicePDF`, `downloadInvoicePDF`, `printInvoice`, `waitForInvoicePdfFonts`, `buildInvoicePdfFilename`, `buildInvoicePdfTitle`. Bilingual (`lang`), IBM Plex + IBM Plex Sans Arabic, RTL/LTR via `dir` + `<bdi>` isolation, A4 portrait, one canvas → jsPDF for Download, popup HTML for Print. Ready to receive a Payment summary block and an optional Payment History section without disturbing existing groups/totals.
-- Callers: `src/components/finance/InvoiceDetailsSheet.tsx` (lines 519–571) and `src/components/finance/InvoicesList.tsx` (lines 208–240).
+## D. Current Invoice-Item Data
+`invoice_items` columns used: `id, description, quantity, unit_price, total_price, horse_id, lab_horse_id, package_id, category_name_snapshot, service_name_snapshot, position`. Financial contribution = `total_price > 0`. No `line_gross_amount` column exists — `total_price` is the frozen line total.
 
-### E. Authoritative Payment-Status Source
-Canonical source is the already-existing `useInvoicePayments(invoiceId)` hook (`src/hooks/finance/useInvoicePayments.ts`), which reads `ledger_entries` (`entry_type='payment'`) as the source of truth and returns `{ totalAmount, paidAmount, outstandingAmount, payments, isPaid, isPartial }`. `invoice.status` is the lifecycle status (draft/approved/…), NOT the payment label; it is not used to derive the printed status. Same tolerance already applied inside the hook (`<= 0.01`).
+Package handling: rows with `package_id IS NOT NULL AND total_price > 0` are the financial "package parent"; child snapshot rows in `package_services_snapshot` are informational only and never appear as separate `invoice_items` rows. Classifier keys on the parent row's `horse_id`.
 
-Status derivation:
-- `paidAmount === 0 && outstandingAmount > 0.01` → Unpaid / غير مدفوعة
-- `paidAmount > 0 && outstandingAmount > 0.01` → Partially Paid / مدفوعة جزئيًا
-- `outstandingAmount <= 0.01` → Paid in Full / مدفوعة بالكامل
+## E. Financial Item Classifier (pure)
+```
+if total_price <= 0     → non-financial (display-only, excluded)
+else if horse_id != null → horse-scoped (bucket = horse_id)
+else if lab_horse_id != null → lab-horse-scoped (LAB boundary — Section L)
+else                    → client-level (bucket = "__client__")
+```
+No parsing of descriptions, no catalog lookups, no positional grouping.
 
-### F. Payment-History Data Source
-The same `useInvoicePayments` hook already returns each `InvoicePayment` with `payment_method`, `amount`, `effective_date`, `created_at`, and `metadata` (which carries the optional external reference). No extra query, no schema change.
+## F. Item-to-Horse Display
+Reuse `InvoiceLineWithHorse` composition already used by `InvoiceDetailsSheet`. Each row shows: item description + horse label (`الخيل: فاتن` / `Horse: Fatin`) or client-level pill, and frozen `total_price`. Horse name resolved via existing `useHorses` cache (fallback to a stable fetch by ids used elsewhere). Never render raw uuids.
 
-### G. Print-Time Refresh Contract
-Both callers must invoke a fresh fetch of the payment summary at the moment Print/Download is triggered, so a just-recorded payment is reflected. Implementation: call `queryClient.fetchQuery` for the `invoice-payments` key (same key already used by the hook) before assembling the PDF options — never rely on cached stale data.
+## G. Full-Payment Proposal
+When `paymentAmount ≈ outstandingAmount` (±0.01), initial allocation = `remainingAttributablePerBucket` (Section K). Displayed and **editable** (safer than silent submit: preserves user intent to override). Proposal is capped per-bucket by `remainingAttributable` and the total is guaranteed equal to Payment amount by construction; if the user edits, submit re-validates.
 
-### H. Toggle UX and Default
-One shared dialog `InvoicePrintOptionsDialog` opens between the user's Print/Download click and the actual render. Contents:
-- `Include Payment History` switch — default OFF on every open.
-- Short privacy note (bilingual).
-- Primary button labelled contextually (`Download` or `Print`) + Cancel.
-- If the invoice has zero payments, the switch is rendered disabled with an explanation (Payment status still prints).
+## H. Partial-Payment Contract
+No proration. All buckets start at `0`. Live indicators: allocated total, unallocated remainder, per-bucket remaining. Submit disabled unless `Σ bucketAllocations === paymentAmount` (rounded to cents), no negatives, no fractions > 2 decimals, each bucket ≤ its `remainingAttributable`.
 
-The dialog reports the action (`download` | `print`) and the toggle back to the caller. No persistence.
+## I. Split-Tender Contract
+The RPC treats horse/client allocation as a **per-allocation-row** dimension. Chosen mapping: the editor collects a **single invoice-scoped bucket allocation** (Fatin/Maha/Client) and a separate **tender breakdown** (Cash/Card/…). At submit time, bucket amounts are distributed across tender rows using a **stable proportional split rounded to cents with residual assigned to the largest tender**. Each resulting `PaymentSessionAllocation` carries its own `horse_allocations[]` + `client_level_amount` summing to that row's `amount`. Guarantees:
+- `Σ(row.amount) == totalPayment`
+- for every bucket: `Σ across rows == bucketAllocation`
+- no duplicate `(invoice, method)` — existing pre-RPC guard preserved
+- `external_reference` per tender row preserved
 
-### I. Privacy Contract
-Default OFF. Toggle scoped to a single output action. Never stored on the invoice or user profile. When ON, only these fields render per row: localized method label, amount, effective date, recording time (12-hour, `صباحاً`/`مساءً` or `AM`/`PM`, Latin digits), and external reference when present. Never rendered: UUIDs, ledger IDs, session IDs, idempotency keys, raw method tokens, notes, metadata blobs.
+## J. Mixed Horse + Client-Level Contract
+Separate "Client-Level" bucket surfaced only when `hasClientLevel` composition is true. Its allocation maps to `client_level_amount` (never to a horse_id). Fatin services + client-level admin fee → two independent buckets; user assigns each explicitly.
 
-### J. Payment Summary Layout (always visible)
-New block inserted between the totals block and the Notes/Footer inside `createInvoiceHTML`, respecting `startAlign`/`endAlign`:
-- Row 1: `Payment Status` label + coloured but formal chip-like text (green `Paid in Full`, amber `Partially Paid`, red `Unpaid`).
-- Row 2: `Paid to Date` — value.
-- Row 3: `Outstanding` — value.
-All currency wrapped in `ltrBdi` + `formatCurrency`. Same style tokens as the totals block for visual consistency.
+## K. Previous Allocation & Remaining Limits
+One canonical read via a new hook `useInvoicePriorAllocations(invoiceId)`:
+```
+select payment_allocations.id, client_level_amount,
+       payment_horse_allocations(horse_id, amount)
+from payment_allocations
+left join payment_horse_allocations on ...
+where invoice_id = :id
+```
+Compute per-bucket:
+- `grossPerBucket` = sum of `invoice_items.total_price` grouped by classifier bucket
+- `priorPerBucket` = sum of horse allocations + client_level_amount for that invoice
+- `remainingAttributable = max(0, gross - prior)`
+Outstanding invoice number still comes from `useInvoicePayments.summary.outstandingAmount` (ledger truth). Sanity assert: `Σ remainingAttributable ≈ outstandingAmount` — mismatch → surface `FIN_ALLOCATION_HISTORY_UNRESOLVED` and block.
 
-### K. Optional Payment-History Layout
-Rendered only when the toggle is ON and `payments.length > 0`:
-- Section title `Payment History` styled like the items table header.
-- Table with columns: Method | Reference | Effective Date + Recording Time | Amount.
-- Recording time formatted via existing `formatStandardDateTime(payment.created_at)`; effective date via `formatStandardDate(payment.effective_date)`.
-- Method label localized via existing i18n keys (`finance.payments.methods.cash|card|transfer|check`).
-- Rows preserve the order returned by the hook.
-- CSS `page-break-inside: avoid` on each row so long histories wrap cleanly onto a second page.
+## L. Laboratory Boundary
+The installed RPC accepts only `horse_id` in `horse_allocations` (no `lab_horse_id`). Lab invoices with only `lab_horse_id` remain unsupported for horse-scoped allocation. Behavior:
+- lab_horse only, single scope, no client-level → allowed as today (client-level-style flow, no editor needed)
+- multi lab_horse, or mixed lab_horse + horse_id → **keep the existing block** with a clearer bilingual message; Slice 2 does not attempt to invent a `lab_horse → horse` mapping.
 
-### L. Arabic and English Contract
-Existing keys already present: `finance.payments.paymentHistory`, `finance.payments.methods.*`, `finance.payments.outstanding`. Minimum new keys added under `finance.invoices.*`:
-- `paymentStatusLabel`, `statusUnpaid`, `statusPartial`, `statusPaid`
-- `paidToDate`
-- `includePaymentHistory`, `includePaymentHistoryHint`, `includePaymentHistoryDisabledEmpty`
-- `paymentMethod`, `paymentReference`
+## M. Mobile UX
+Same `SafeFormDialog` shell. Section order (top→bottom): (1) collapsible Invoice Items with horse labels, (2) Payment amount + full/partial helper, (3) Allocation buckets (Horse cards + Client-Level card) with per-bucket remaining + input + quick "assign remainder", (4) Tender rows (existing), (5) sticky footer with `Allocated / Payment / Unallocated`, disabled-submit reason, Cancel/Submit. Numeric inputs `inputMode="decimal"`, RTL-safe with `dir="ltr"` for amounts, IBM Plex, existing tokens only.
 
-### M. Print/Download Consistency
-The same dialog wraps both actions. The chosen action + toggle value drive one code path that builds a single `GeneratePDFOptions` (extended with `paymentSummary` and `includePaymentHistory`) and hands it to either `downloadInvoicePDF` or `printInvoice`. Both branches consume the identical HTML from `createInvoiceHTML`.
+## N. Backend Compatibility
+Verified against live `pg_get_functiondef('post_payment_session')`. `p_payload.allocations[i]` accepts `payment_method`, `amount`, `client_level_amount`, `horse_allocations:[{horse_id, amount}]`, `external_reference`. Aggregates across allocations for the same `(invoice, horse)` are summed on the server for the response. **No RPC change needed.**
 
-### N. Empty and Failure States
-- Payment summary fetch fails → block Print/Download with a toast (`finance.invoices.paymentSummaryFetchFailed`); never print an incorrect status.
-- No payments → toggle disabled; only Unpaid summary rendered.
-- Row missing `created_at` → time cell renders `—` (helper already handles null).
-- Missing reference → cell omitted.
-- Unknown method token → localized fallback (`finance.payments.methods.other` if key exists, else the raw token is NOT printed; we render `—`).
+## O. Exact Files Proposed for Modification
+Created:
+- `src/hooks/finance/useInvoicePriorAllocations.ts`
+- `src/lib/finance/allocationDistribution.ts` (pure bucket→tender splitter + validators)
+- `src/components/finance/PaymentAllocationEditor.tsx`
+- `src/components/finance/__tests__/allocationDistribution.test.ts`
+- `src/components/finance/__tests__/PaymentAllocationEditor.test.tsx`
+- `src/lib/finance/__tests__/paymentAllocationPayload.test.ts`
 
-### O. Exact Files Proposed for Modification
-1. `src/components/finance/InvoicePDFGenerator.tsx` — extend `GeneratePDFOptions` and `createInvoiceHTML` with an optional `paymentSummary` + `includePaymentHistory` + `paymentLabels`; add summary block + optional history section; no signature-breaking change for existing callers (new fields optional).
-2. `src/components/finance/InvoicePrintOptionsDialog.tsx` — new small dialog component.
-3. `src/components/finance/InvoiceDetailsSheet.tsx` — route Download/Print buttons through the dialog; fetch payment summary just-in-time; pass into generator.
-4. `src/components/finance/InvoicesList.tsx` — same routing + fetch for the list-row Print/Download actions.
-5. `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts` — add the minimum new keys listed in §L.
+Modified:
+- `src/hooks/finance/useInvoicePayments.ts` — accept optional `allocation` (bucket map) in `recordPayment`, pass through; keep block only for lab-horse unsupported shapes; extend fingerprint with bucket map.
+- `src/lib/finance/postLedgerForPayments.ts` — accept optional `bucketAllocations`; when present, distribute across rows and set `horse_allocations` / `client_level_amount` per allocation.
+- `src/components/finance/RecordPaymentDialog.tsx` — mount `PaymentAllocationEditor` in place of the current block for supported shapes; keep the block only for lab-horse-unsupported invoices.
+- `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts` — new keys under `finance.payments.allocation.*` (`title`, `clientLevel`, `remaining`, `allocated`, `unallocated`, `assignAll`, `remainderMismatch`, `overBucket`, `labUnsupported`, `historyUnresolved`, `useProposal`, `resetProposal`, plus error mappings for `FIN_HORSE_ALLOCATION_MISMATCH`, `FIN_CLIENT_LEVEL_ALLOCATION_INVALID`, `FIN_HORSE_NOT_ON_INVOICE`).
 
-### P. Execution-Ready Plan (4 steps)
+## P. Execution-Ready Plan (4 steps)
 
-**Step 1 — Extend the PDF generator (presentation-only).**
-- File: `src/components/finance/InvoicePDFGenerator.tsx`.
-- Current: `createInvoiceHTML` renders header, bill-to, items, totals, notes, footer.
-- Proposed: add optional `paymentSummary: { status: 'unpaid'|'partial'|'paid'; paidAmount: number; outstandingAmount: number; payments: InvoicePayment[] }`, `includePaymentHistory: boolean`, and `paymentLabels: {...}` to `GeneratePDFOptions`. Insert a Payment Summary block after the Totals block (always when `paymentSummary` provided). When `includePaymentHistory && payments.length > 0`, append a Payment History table using the same visual tokens.
-- Data/query: none — pure props.
-- Bilingual: uses `startAlign`/`endAlign`, existing `ltrBdi`/`autoBdi`, existing `formatStandardDate` + `formatStandardDateTime`.
-- Test: new unit tests for HTML fragment (see §Q).
-- Risk: layout regression on very long histories → mitigated by `page-break-inside: avoid` per row.
-- Rollback: revert this file; existing signatures remain compatible if new fields are omitted.
+### Step 1 — Data & distribution primitives
+- **Files**: `useInvoicePriorAllocations.ts`, `allocationDistribution.ts`.
+- **Current**: no per-bucket read; no bucket→tender splitter.
+- **Proposed**: hook returns `{ buckets: {key, kind, horseId?, label, gross, prior, remaining}[], outstanding }`; splitter returns `PaymentSessionAllocation[]` given tender rows + bucket map.
+- **Payload impact**: none yet (helpers only).
+- **Backend impact**: none.
+- **Bilingual**: none.
+- **Mobile**: none.
+- **Tests**: `allocationDistribution.test.ts` — full/partial/split/mixed/rounding-residual/no-negatives.
+- **Rollback**: delete files.
 
-**Step 2 — Add `InvoicePrintOptionsDialog`.**
-- File (new): `src/components/finance/InvoicePrintOptionsDialog.tsx`.
-- Props: `open`, `onOpenChange`, `action: 'print'|'download'`, `hasPayments: boolean`, `onConfirm(includeHistory: boolean)`.
-- Default state: `includeHistory = false` on every open (reset in `useEffect` on `open === true`).
-- If `!hasPayments`: switch disabled + explanatory hint text.
-- Test: rendering + default-OFF + disabled-when-empty + confirm callback (see §Q).
-- Risk: extra click → acceptable; matches the required opt-in privacy contract.
-- Rollback: delete file + revert callers.
+### Step 2 — Allocation editor UI
+- **File**: `PaymentAllocationEditor.tsx`.
+- **Current**: block-only alert.
+- **Proposed**: per-bucket cards with description, horse label, remaining, input; totals bar; proposal button when payment==outstanding.
+- **Payload impact**: emits `{ bucketKey → amount }` upward; no direct RPC.
+- **Backend impact**: none.
+- **Bilingual**: new `finance.payments.allocation.*` keys (EN/AR, `خيل`).
+- **Mobile**: mobile-first vertical stack, sticky totals inside scroll area.
+- **Tests**: component test — display, proposal fill, over-bucket disables, unallocated disables, negative/fraction rejected, mixed shows client-level bucket.
+- **Rollback**: revert file + i18n additions.
 
-**Step 3 — Wire `InvoiceDetailsSheet` through the dialog.**
-- File: `src/components/finance/InvoiceDetailsSheet.tsx`.
-- Current: buttons call `handleDownloadPDF`/`handlePrint` directly.
-- Proposed: buttons open `InvoicePrintOptionsDialog` with the intended action. On confirm, `queryClient.fetchQuery({ queryKey: ['invoice-payments', tenantId, invoice.id], queryFn: ... })` to refresh, derive status via the rules in §E, build `paymentSummary` + `paymentLabels`, then call `downloadInvoicePDF`/`printInvoice`. On fetch failure, toast and abort.
-- Rollback: revert file.
+### Step 3 — Writer wiring
+- **Files**: `postLedgerForPayments.ts`, `useInvoicePayments.ts`.
+- **Current**: builds allocations without horse/client-level.
+- **Proposed**: when `bucketAllocations` provided, call `distributeAcrossTenders` and attach `horse_allocations` + `client_level_amount` per row; extend idempotency fingerprint with the bucket map; when absent (single-bucket invoices) keep today's payload byte-for-byte.
+- **Payload impact**: adds optional fields already accepted by the RPC.
+- **Backend impact**: none.
+- **Bilingual**: extend `ERROR_TOKEN_KEYS` with mismatch/overflow codes.
+- **Mobile**: n/a.
+- **Tests**: `paymentAllocationPayload.test.ts` — multi-horse, mixed, split-tender, prior-reduced remaining, no-double-count, unchanged single-horse payload.
+- **Rollback**: revert both files (fingerprint reverts too).
 
-**Step 4 — Wire `InvoicesList` through the dialog + add i18n keys.**
-- File: `src/components/finance/InvoicesList.tsx` — same dialog routing and just-in-time fetch as Step 3, invoice-scoped.
-- Files: `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts` — add the keys from §L. No other locale files.
-- Rollback: revert files.
+### Step 4 — Dialog integration & gate replacement
+- **File**: `RecordPaymentDialog.tsx`.
+- **Current**: renders block alert when `requiresPhase4Allocation`.
+- **Proposed**: for supported shapes, render `PaymentAllocationEditor` and pass bucket map into `recordPayment`; retain a narrower block (with `finance.payments.allocation.labUnsupported`) only when unsupported lab-horse composition is detected. Single-horse and client-level-only invoices bypass the editor and keep today's flow unchanged.
+- **Payload impact**: via Step 3.
+- **Backend impact**: none.
+- **Bilingual**: consumes Step 2 keys.
+- **Mobile**: layout audited in Section M.
+- **Tests**: component test — INV-0986-like fixture renders 2 buckets, proposal fills 500/150, submit calls writer with correct payload; lab-horse-unsupported fixture still shows block.
+- **Rollback**: restore previous return branch.
 
-### Q. Compact Test Plan
-New:
-- `src/components/finance/__tests__/InvoicePDFGenerator.paymentSummary.test.ts` — asserts against `__createInvoiceHTMLForTest`:
-  1. Unpaid status text renders (ar + en).
-  2. Partially Paid renders with correct paid/outstanding.
-  3. Paid in Full renders with SAR 0.00 outstanding.
-  4. Summary block present with `includePaymentHistory=false`.
-  5. History section absent with toggle OFF.
-  6. History section present + rows in returned order with toggle ON.
-  7. Each row shows method label, amount, effective date, recording time, and reference when provided.
-  8. `صباحاً`/`مساءً` in ar mode; `AM`/`PM` in en mode; digits are Latin.
-  9. No UUIDs, ledger IDs, session IDs, idempotency keys, or raw method tokens appear anywhere in the HTML.
-  10. Existing group headings and totals unchanged (regression guard).
-- `src/components/finance/__tests__/InvoicePrintOptionsDialog.test.tsx`:
-  11. Default toggle is OFF each time it opens.
-  12. Toggle is disabled with explanation when `hasPayments=false`.
-  13. Confirm emits the current toggle value + action; Cancel emits nothing.
-- `src/components/finance/__tests__/InvoiceDetailsSheet.printWiring.test.tsx` (light):
-  14. Print and Download both go through the same dialog and receive the same toggle value.
-  15. Payment fetch failure aborts generation and surfaces a toast; no payment mutation is invoked.
+## Q. Compact Test Plan
+20 assertions per §19 across `allocationDistribution.test.ts`, `PaymentAllocationEditor.test.tsx`, `paymentAllocationPayload.test.ts`, plus untouched existing `paymentRpcCutover.test.ts` re-run. No SQL harness. Commands: `bunx vitest run` on the new + existing payment tests, `bunx tsgo --noEmit`, `bun run build`.
 
-Run: `bunx vitest run` on the three files plus existing `InvoiceDetailsSheet.paymentTime.test.tsx` and `paymentRpcCutover.test.ts`; then `bunx tsgo --noEmit`; then `bun run build`.
+## R. Manual Acceptance Plan
+Scenarios 1–5 exactly as specified (§20). Not claimed here.
 
-### R. Manual Acceptance Plan
-Scenarios 1–4 exactly as spelled out in §19 of the request, executed against an Unpaid, Partially Paid, and Fully Paid (`INV-9920`) invoice in both Arabic and English, from both `InvoiceDetailsSheet` and `InvoicesList`, for both Print and Download.
-
-### S. Database Changes Required
+## S. Database Changes Required
 None.
 
-### T. Files Created
-- `src/components/finance/InvoicePrintOptionsDialog.tsx`
-- `src/components/finance/__tests__/InvoicePDFGenerator.paymentSummary.test.ts`
-- `src/components/finance/__tests__/InvoicePrintOptionsDialog.test.tsx`
-- `src/components/finance/__tests__/InvoiceDetailsSheet.printWiring.test.tsx`
+## T. Files Created
+See §O — 6 files.
 
-### U. Files Modified
-- `src/components/finance/InvoicePDFGenerator.tsx`
-- `src/components/finance/InvoiceDetailsSheet.tsx`
-- `src/components/finance/InvoicesList.tsx`
-- `src/i18n/locales/en.ts`
-- `src/i18n/locales/ar.ts`
+## U. Files Modified
+See §O — 5 files.
 
-### V. Production Objects Modified
+## V. Production Objects Modified
 None.
 
-### W. Persistent Rows Modified
+## W. Persistent Rows Modified
 None.
 
-### X. Current Roadmap
-Phase 1 N+1A ✓ · Phase 2 N+1B ✓ · Phase 3 N+2 Slices 1–4 ✓ · Phase 4 N+3 Slice 1 = this slice · Slices 2+ (multi-invoice UI, allocation editor, receipts, reports) not started · Phase 5 N+4 not started.
+## X. Current Roadmap
+Phase 1–3 closed. Phase 4 Slice 1 closed. Slice 2 (this plan) pending approval. Slices 3–4 and Phase 5 untouched.
 
-### Y. Next Exact Action
-`AWAIT USER APPROVAL OF THE INVOICE PAYMENT DISCLOSURE PLAN.`
+## Y. Next Exact Action
+`AWAIT USER APPROVAL OF THE SINGLE-INVOICE ALLOCATION PLAN.`
 
 ---
 
 `APPROVAL HANDOFF — SEND THIS EXACT MESSAGE`
 
-> Approved. Execute Invoice Payment Disclosure Slice 1 only:
-> - Modify `src/components/finance/InvoicePDFGenerator.tsx` to render an always-visible Payment Summary block (status, paid-to-date, outstanding) and an optional Payment History section (method, amount, effective date, recording time, reference) driven by new optional options.
-> - Add `src/components/finance/InvoicePrintOptionsDialog.tsx` with `Include Payment History` toggle defaulting OFF on every open; disable it when the invoice has no payments.
-> - Route Print and Download in `src/components/finance/InvoiceDetailsSheet.tsx` and `src/components/finance/InvoicesList.tsx` through the dialog, refetch the payment summary just-in-time via the existing `invoice-payments` query key, derive Unpaid/Partially Paid/Paid in Full from the ledger-truth hook, and pass identical options to both `downloadInvoicePDF` and `printInvoice`.
-> - Add the minimum bilingual keys in `src/i18n/locales/en.ts` and `src/i18n/locales/ar.ts` listed in §L.
-> - Add the three focused test files listed in §Q, then run `bunx vitest run` on them plus the existing payment tests, `bunx tsgo --noEmit`, and `bun run build`; report counts.
->
-> Do NOT change Payment posting, RPCs, RLS, permissions, migrations, ledger rows, invoices, sessions, allocations, customer balances, idempotency, or on-screen Invoice Details. Do NOT begin the Phase-4 allocation editor, multi-invoice UI, refunds, reversals, void, chargeback, credit, overpayment, or Retail POS.
-
-### Rollback
-Revert the five modified files and delete the four new files. No data migration to undo.
+> Approved. Execute Phase N+3 Slice 2 exactly as planned: implement the single-invoice Payment Allocation Editor with per-item horse display, horse-scoped and client-level allocation buckets, full/partial/split-tender support, proposal for full payments, prior-allocation-aware remaining limits, and safe replacement of the existing block. Wire it through `useInvoicePayments` → `postLedgerForPayments` → `postPaymentSession` using the existing RPC contract (no backend change). Add only the files listed in §O, add the specified bilingual keys (Arabic uses `خيل`), and run the focused tests, `bunx tsgo --noEmit`, and `bun run build`; report counts. Do NOT implement Multi-Invoice UI, refunds, reversals, void, chargeback, credit, overpayment, or Retail POS. Do NOT modify RPCs, RLS, permissions, migrations, ledger rows, invoices, sessions, allocations, customer balances, idempotency semantics, or the Payment PDF from Slice 1.
