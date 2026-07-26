@@ -53,7 +53,12 @@ export type PostPaymentSessionResult =
 const FIN_CODE_REGEX = /FIN_[A-Z_]+/;
 
 function normalizeError(err: unknown): { code: string; message: string } {
-  const raw = (err instanceof Error ? err.message : String(err ?? "")) || "";
+  const raw =
+    err instanceof Error
+      ? err.message
+      : typeof err === "object" && err !== null && "message" in err
+        ? String((err as { message: unknown }).message ?? "")
+        : String(err ?? "");
   const match = raw.match(FIN_CODE_REGEX);
   const code = match ? match[0] : "FIN_UNKNOWN";
   return { code, message: raw || code };
