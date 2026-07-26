@@ -42,6 +42,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
 import { formatCurrency, formatDate } from "@/lib/formatters";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import {
   buildInvoicePresentation,
   formatHorseHeadingParts,
