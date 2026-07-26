@@ -41,6 +41,8 @@ import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
+import { InvoicePrintOptionsDialog, type InvoicePrintAction } from "./InvoicePrintOptionsDialog";
+import type { InvoicePaymentSummaryForPdf } from "@/lib/finance/fetchInvoicePaymentSummary";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import {
@@ -107,6 +109,8 @@ export function InvoiceDetailsSheet({
   const [cancelEffectiveDate, setCancelEffectiveDate] = useState(getRiyadhDateString);
   const [cancelReason, setCancelReason] = useState("");
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [printOptionsOpen, setPrintOptionsOpen] = useState(false);
+  const [printAction, setPrintAction] = useState<InvoicePrintAction>("download");
   const [invoiceContext, setInvoiceContext] = useState<{ horseName?: string; sampleLabel?: string } | null>(null);
 
   // Use payment hook for ledger-derived data
@@ -535,38 +539,76 @@ export function InvoiceDetailsSheet({
     included: t("finance.invoices.included"),
     packageChip: t("finance.invoices.packageSource"),
     horseGroupLabel: t("finance.invoices.horseGroupLabel"),
+    paymentStatusLabel: t("finance.invoices.paymentStatusLabel"),
+    statusUnpaid: t("finance.invoices.statusUnpaid"),
+    statusPartial: t("finance.invoices.statusPartial"),
+    statusPaid: t("finance.invoices.statusPaid"),
+    paidToDate: t("finance.invoices.paidToDate"),
+    outstanding: t("finance.payments.outstanding"),
+    paymentHistoryHeading: t("finance.payments.paymentHistory"),
+    colMethod: t("finance.invoices.colMethod"),
+    colEffectiveDate: t("finance.invoices.colEffectiveDate"),
+    colRecordedAt: t("finance.invoices.colRecordedAt"),
+    colAmount: t("finance.invoices.colAmount"),
+    methodLabels: {
+      cash: t("finance.paymentMethods.cash"),
+      card: t("finance.paymentMethods.card"),
+      transfer: t("finance.paymentMethods.transfer"),
+      check: t("finance.paymentMethods.check"),
+      credit: t("finance.paymentMethods.credit"),
+      mixed: t("finance.paymentMethods.mixed"),
+    },
   });
 
-  const handleDownloadPDF = async () => {
-    if (!invoice) return;
-    try {
-      await downloadInvoicePDF({
-        invoice,
-        items,
-        tenantName: activeTenant?.tenant.name,
-        lang,
-        labels: buildPdfLabels(),
-      });
-      toast.success(t("finance.invoices.pdfDownloaded"));
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      toast.error(t("finance.invoices.pdfFailed"));
-    }
+  const buildPdfPaymentSummary = (): InvoicePaymentSummaryForPdf | null => {
+    if (!paymentSummary) return null;
+    const status: "unpaid" | "partial" | "paid" = paymentSummary.isPaid
+      ? "paid"
+      : paymentSummary.isPartial
+        ? "partial"
+        : "unpaid";
+    return {
+      status,
+      paidAmount: paymentSummary.paidAmount,
+      outstandingAmount: paymentSummary.outstandingAmount,
+      totalAmount: paymentSummary.totalAmount,
+      payments: paymentSummary.payments.map((p) => ({
+        id: p.id,
+        amount: p.amount,
+        payment_method: p.payment_method,
+        effective_date: p.effective_date,
+        created_at: p.created_at,
+        reference: p.description ?? null,
+      })),
+    };
   };
 
-  const handlePrint = async () => {
+  const handleExport = async (action: "download" | "print", includePaymentHistory: boolean) => {
     if (!invoice) return;
+    const summary = buildPdfPaymentSummary();
     try {
-      await printInvoice({
+      const opts = {
         invoice,
         items,
         tenantName: activeTenant?.tenant.name,
         lang,
         labels: buildPdfLabels(),
-      });
+        paymentSummary: summary,
+        includePaymentHistory,
+      };
+      if (action === "download") {
+        await downloadInvoicePDF(opts);
+        toast.success(t("finance.invoices.pdfDownloaded"));
+      } else {
+        await printInvoice(opts);
+      }
     } catch (error) {
-      console.error("Print error:", error);
-      toast.error(t("finance.invoices.printFailed"));
+      console.error("PDF/Print error:", error);
+      toast.error(
+        action === "download"
+          ? t("finance.invoices.pdfFailed")
+          : t("finance.invoices.printFailed"),
+      );
     }
   };
 
@@ -703,7 +745,7 @@ export function InvoiceDetailsSheet({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={handleDownloadPDF}
+                      onClick={() => { setPrintAction("download"); setPrintOptionsOpen(true); }}
                       title={t("finance.invoices.downloadPDF")}
                     >
                       <Download className="h-4 w-4" />
@@ -711,7 +753,7 @@ export function InvoiceDetailsSheet({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={handlePrint}
+                      onClick={() => { setPrintAction("print"); setPrintOptionsOpen(true); }}
                       title={t("finance.invoices.print")}
                     >
                       <Printer className="h-4 w-4" />
@@ -1085,6 +1127,17 @@ export function InvoiceDetailsSheet({
         currency={invoice?.currency}
         onSuccess={handlePaymentSuccess}
       />
+
+      {/* Print / Download Options Dialog (Phase N+3 Slice 1) */}
+      <InvoicePrintOptionsDialog
+        open={printOptionsOpen}
+        onOpenChange={setPrintOptionsOpen}
+        action={printAction}
+        hasPayments={(paymentSummary?.payments.length ?? 0) > 0}
+        onConfirm={({ includePaymentHistory }) => handleExport(printAction, includePaymentHistory)}
+      />
+
+
 
       {/* Approve Confirmation Dialog */}
       <AlertDialog open={approveConfirmOpen} onOpenChange={setApproveConfirmOpen}>

@@ -27,6 +27,18 @@ const arLabels: InvoicePDFLabels = {
   included: "متضمن",
   packageChip: "باقة",
   horseGroupLabel: "الخيل",
+  paymentStatusLabel: "حالة الدفع",
+  statusUnpaid: "غير مدفوعة",
+  statusPartial: "مدفوعة جزئيًا",
+  statusPaid: "مدفوعة بالكامل",
+  paidToDate: "المدفوع حتى الآن",
+  outstanding: "المتبقي",
+  paymentHistoryHeading: "سجل المدفوعات",
+  colMethod: "الطريقة",
+  colEffectiveDate: "التاريخ الفعلي",
+  colRecordedAt: "وقت التسجيل",
+  colAmount: "المبلغ",
+  methodLabels: { cash: "نقدي", card: "بطاقة", transfer: "تحويل بنكي", check: "شيك" },
 };
 
 const enLabels: InvoicePDFLabels = {
@@ -48,6 +60,18 @@ const enLabels: InvoicePDFLabels = {
   included: "Included",
   packageChip: "Package",
   horseGroupLabel: "Horse",
+  paymentStatusLabel: "Payment Status",
+  statusUnpaid: "Unpaid",
+  statusPartial: "Partially Paid",
+  statusPaid: "Paid in Full",
+  paidToDate: "Paid to Date",
+  outstanding: "Outstanding",
+  paymentHistoryHeading: "Payment History",
+  colMethod: "Method",
+  colEffectiveDate: "Effective Date",
+  colRecordedAt: "Recorded At",
+  colAmount: "Amount",
+  methodLabels: { cash: "Cash", card: "Card", transfer: "Bank Transfer", check: "Check" },
 };
 
 const baseInvoice = {

@@ -41,6 +41,8 @@ import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/c
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { usePermissions } from "@/hooks/usePermissions";
 import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
+import { InvoicePrintOptionsDialog } from "./InvoicePrintOptionsDialog";
+import { fetchInvoicePaymentSummaryForPdf } from "@/lib/finance/fetchInvoicePaymentSummary";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoiceItems, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
@@ -89,6 +91,11 @@ export function InvoicesList({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [printTarget, setPrintTarget] = useState<{
+    invoice: Invoice;
+    action: "download" | "print";
+    hasPayments: boolean;
+  } | null>(null);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-invoices');
   const invoiceIds = useMemo(() => invoices.map(i => i.id), [invoices]);
   const { getPaidAmount } = useInvoicePaymentsBatch(invoiceIds);
@@ -143,6 +150,25 @@ export function InvoicesList({
     included: t("finance.invoices.included"),
     packageChip: t("finance.invoices.packageSource"),
     horseGroupLabel: t("finance.invoices.horseGroupLabel"),
+    paymentStatusLabel: t("finance.invoices.paymentStatusLabel"),
+    statusUnpaid: t("finance.invoices.statusUnpaid"),
+    statusPartial: t("finance.invoices.statusPartial"),
+    statusPaid: t("finance.invoices.statusPaid"),
+    paidToDate: t("finance.invoices.paidToDate"),
+    outstanding: t("finance.payments.outstanding"),
+    paymentHistoryHeading: t("finance.payments.paymentHistory"),
+    colMethod: t("finance.invoices.colMethod"),
+    colEffectiveDate: t("finance.invoices.colEffectiveDate"),
+    colRecordedAt: t("finance.invoices.colRecordedAt"),
+    colAmount: t("finance.invoices.colAmount"),
+    methodLabels: {
+      cash: t("finance.paymentMethods.cash"),
+      card: t("finance.paymentMethods.card"),
+      transfer: t("finance.paymentMethods.transfer"),
+      check: t("finance.paymentMethods.check"),
+      credit: t("finance.paymentMethods.credit"),
+      mixed: t("finance.paymentMethods.mixed"),
+    },
   });
 
   /**
@@ -205,39 +231,52 @@ export function InvoicesList({
     }) as unknown as InvoiceItem[];
   };
 
-  const handleDownloadPDF = async (invoice: Invoice) => {
+  const doExport = async (
+    invoice: Invoice,
+    action: "download" | "print",
+    includePaymentHistory: boolean,
+  ) => {
     try {
       const items = await loadEnrichedItems(invoice);
-      await downloadInvoicePDF({
+      const tenantId = (invoice as any).tenant_id || activeTenant?.tenant?.id;
+      const summary = tenantId
+        ? await fetchInvoicePaymentSummaryForPdf(tenantId, invoice.id)
+        : null;
+      const opts = {
         invoice,
         items,
         tenantName: activeTenant?.tenant.name,
         lang,
         labels: buildPdfLabels(),
-      });
-
-      toast.success(t("finance.invoices.pdfDownloaded"));
+        paymentSummary: summary,
+        includePaymentHistory,
+      };
+      if (action === "download") {
+        await downloadInvoicePDF(opts);
+        toast.success(t("finance.invoices.pdfDownloaded"));
+      } else {
+        await printInvoice(opts);
+      }
     } catch (error) {
-      console.error("PDF generation error:", error);
-      toast.error(t("finance.invoices.pdfFailed"));
+      console.error("PDF/Print error:", error);
+      toast.error(
+        action === "download"
+          ? t("finance.invoices.pdfFailed")
+          : t("finance.invoices.printFailed"),
+      );
     }
   };
 
-  const handlePrint = async (invoice: Invoice) => {
-    try {
-      const items = await loadEnrichedItems(invoice);
-      await printInvoice({
-        invoice,
-        items,
-        tenantName: activeTenant?.tenant.name,
-        lang,
-        labels: buildPdfLabels(),
-      });
-    } catch (error) {
-      console.error("Print error:", error);
-      toast.error(t("finance.invoices.printFailed"));
-    }
+  const openPrintOptions = async (invoice: Invoice, action: "download" | "print") => {
+    const tenantId = (invoice as any).tenant_id || activeTenant?.tenant?.id;
+    const summary = tenantId
+      ? await fetchInvoicePaymentSummaryForPdf(tenantId, invoice.id)
+      : null;
+    setPrintTarget({ invoice, action, hasPayments: (summary?.payments.length ?? 0) > 0 });
   };
+
+  const handleDownloadPDF = (invoice: Invoice) => openPrintOptions(invoice, "download");
+  const handlePrint = (invoice: Invoice) => openPrintOptions(invoice, "print");
 
   if (loading) {
     return (
@@ -443,6 +482,21 @@ export function InvoicesList({
           {filteredInvoices.map((invoice) => renderCard(invoice))}
         </div>
       )}
+
+      {/* Print / Download Options (Phase N+3 Slice 1) */}
+      <InvoicePrintOptionsDialog
+        open={!!printTarget}
+        onOpenChange={(open) => { if (!open) setPrintTarget(null); }}
+        action={printTarget?.action ?? "download"}
+        hasPayments={printTarget?.hasPayments ?? false}
+        onConfirm={({ includePaymentHistory }) => {
+          if (printTarget) {
+            const { invoice, action } = printTarget;
+            setPrintTarget(null);
+            void doExport(invoice, action, includePaymentHistory);
+          }
+        }}
+      />
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
