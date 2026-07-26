@@ -243,7 +243,7 @@ export function RecordPaymentDialog({
       open={open}
       onOpenChange={onOpenChange}
       isDirty={isDirty}
-      className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden"
+      className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden"
       dir={dir}
     >
         {/* Sticky Header */}
