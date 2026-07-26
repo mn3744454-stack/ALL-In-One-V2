@@ -198,10 +198,15 @@ export function PaymentAllocationEditor({
         <Label className="text-sm font-medium">
           {t("finance.payments.allocation.title")}
         </Label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {isFullPayment && (
             <Button type="button" size="sm" variant="outline" onClick={applyProposal}>
               {t("finance.payments.allocation.useProposal")}
+            </Button>
+          )}
+          {paymentAmount > 0 && composition.buckets.length > 1 && (
+            <Button type="button" size="sm" variant="outline" onClick={distributeEqually}>
+              {t("finance.payments.allocation.distributeEqually")}
             </Button>
           )}
           <Button type="button" size="sm" variant="ghost" onClick={resetAllocations}>
