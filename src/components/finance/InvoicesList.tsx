@@ -483,6 +483,21 @@ export function InvoicesList({
         </div>
       )}
 
+      {/* Print / Download Options (Phase N+3 Slice 1) */}
+      <InvoicePrintOptionsDialog
+        open={!!printTarget}
+        onOpenChange={(open) => { if (!open) setPrintTarget(null); }}
+        action={printTarget?.action ?? "download"}
+        hasPayments={printTarget?.hasPayments ?? false}
+        onConfirm={({ includePaymentHistory }) => {
+          if (printTarget) {
+            const { invoice, action } = printTarget;
+            setPrintTarget(null);
+            void doExport(invoice, action, includePaymentHistory);
+          }
+        }}
+      />
+
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
