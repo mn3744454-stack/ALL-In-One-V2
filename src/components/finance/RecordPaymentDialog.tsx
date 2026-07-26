@@ -323,8 +323,8 @@ export function RecordPaymentDialog({
               </Alert>
             )}
 
-            {/* Phase 4 gate — multi-horse / mixed invoices need the allocation editor */}
-            {!summary.isPaid && requiresPhase4Allocation && (
+            {/* Lab-horse boundary — RPC contract can't allocate to lab horses yet */}
+            {!summary.isPaid && blockedLabHorse && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -334,8 +334,9 @@ export function RecordPaymentDialog({
             )}
 
             {/* Payment Rows */}
-            {!summary.isPaid && !requiresPhase4Allocation && (
+            {!summary.isPaid && !blockedLabHorse && (
               <>
+
                 <div className="grid gap-2">
                   <Label>
                     {t("finance.payments.paymentDate")} <span aria-hidden="true">*</span>
@@ -516,7 +517,7 @@ export function RecordPaymentDialog({
             {!summary?.isPaid && (
               <Button
                 onClick={handleSubmit}
-                disabled={isRecording || !canRecordPayment || requiresPhase4Allocation}
+                disabled={isRecording || !canRecordPayment || blockedLabHorse || (needsEditor && !allocationValid)}
               >
                 {isRecording ? (
                   <>
