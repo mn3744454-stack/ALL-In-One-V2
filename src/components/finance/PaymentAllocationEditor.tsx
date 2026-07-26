@@ -46,7 +46,7 @@ export function PaymentAllocationEditor({
   onChange,
   onValidityChange,
 }: PaymentAllocationEditorProps) {
-  const { t, dir, language } = useI18n();
+  const { t, dir } = useI18n();
   const isRtl = dir === "rtl";
   const fmt = (n: number) => formatCurrency(n, currency);
 
@@ -279,8 +279,6 @@ export function PaymentAllocationEditor({
           {t("finance.payments.allocation.balanced")}
         </Badge>
       )}
-      {/* language dep for re-render */}
-      <span className="hidden">{language}</span>
     </div>
   );
 }
