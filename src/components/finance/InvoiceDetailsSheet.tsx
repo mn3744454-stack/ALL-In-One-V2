@@ -48,6 +48,10 @@ import {
   type RawInvoiceItemForPresentation,
 } from "@/lib/finance/invoicePresentation";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
+import {
+  parseLabSourceMarker,
+  stripLabSourceMarker,
+} from "@/lib/finance/labInvoiceMarker";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
