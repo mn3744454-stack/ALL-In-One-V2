@@ -224,39 +224,52 @@ export function InvoicesList({
     }) as unknown as InvoiceItem[];
   };
 
-  const handleDownloadPDF = async (invoice: Invoice) => {
+  const doExport = async (
+    invoice: Invoice,
+    action: "download" | "print",
+    includePaymentHistory: boolean,
+  ) => {
     try {
       const items = await loadEnrichedItems(invoice);
-      await downloadInvoicePDF({
+      const tenantId = (invoice as any).tenant_id || activeTenant?.tenant?.id;
+      const summary = tenantId
+        ? await fetchInvoicePaymentSummaryForPdf(tenantId, invoice.id)
+        : null;
+      const opts = {
         invoice,
         items,
         tenantName: activeTenant?.tenant.name,
         lang,
         labels: buildPdfLabels(),
-      });
-
-      toast.success(t("finance.invoices.pdfDownloaded"));
+        paymentSummary: summary,
+        includePaymentHistory,
+      };
+      if (action === "download") {
+        await downloadInvoicePDF(opts);
+        toast.success(t("finance.invoices.pdfDownloaded"));
+      } else {
+        await printInvoice(opts);
+      }
     } catch (error) {
-      console.error("PDF generation error:", error);
-      toast.error(t("finance.invoices.pdfFailed"));
+      console.error("PDF/Print error:", error);
+      toast.error(
+        action === "download"
+          ? t("finance.invoices.pdfFailed")
+          : t("finance.invoices.printFailed"),
+      );
     }
   };
 
-  const handlePrint = async (invoice: Invoice) => {
-    try {
-      const items = await loadEnrichedItems(invoice);
-      await printInvoice({
-        invoice,
-        items,
-        tenantName: activeTenant?.tenant.name,
-        lang,
-        labels: buildPdfLabels(),
-      });
-    } catch (error) {
-      console.error("Print error:", error);
-      toast.error(t("finance.invoices.printFailed"));
-    }
+  const openPrintOptions = async (invoice: Invoice, action: "download" | "print") => {
+    const tenantId = (invoice as any).tenant_id || activeTenant?.tenant?.id;
+    const summary = tenantId
+      ? await fetchInvoicePaymentSummaryForPdf(tenantId, invoice.id)
+      : null;
+    setPrintTarget({ invoice, action, hasPayments: (summary?.payments.length ?? 0) > 0 });
   };
+
+  const handleDownloadPDF = (invoice: Invoice) => openPrintOptions(invoice, "download");
+  const handlePrint = (invoice: Invoice) => openPrintOptions(invoice, "print");
 
   if (loading) {
     return (
