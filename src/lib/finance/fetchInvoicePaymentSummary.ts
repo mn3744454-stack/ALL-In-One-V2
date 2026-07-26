@@ -109,17 +109,17 @@ export async function fetchInvoicePaymentSummaryForPdf(
     const { data: allocations } = await supabase
       .from("payment_allocations")
       .select(
-        "id, payment_session_id, invoice_id, client_level_amount, payment_horse_allocations(horse_id, amount)",
+        "id, session_id, invoice_id, client_level_amount, payment_horse_allocations(horse_id, amount)",
       )
       .eq("tenant_id", tenantId)
       .eq("invoice_id", invoiceId)
-      .in("payment_session_id", sessionIds);
-    for (const a of (allocations ?? []) as Array<{
-      payment_session_id: string;
+      .in("session_id", sessionIds);
+    for (const a of (allocations ?? []) as unknown as Array<{
+      session_id: string;
       client_level_amount: number | string | null;
       payment_horse_allocations: Array<{ horse_id: string; amount: number | string }> | null;
     }>) {
-      const key = a.payment_session_id;
+      const key = a.session_id;
       const cl = Number(a.client_level_amount) || 0;
       if (cl > 0) clientByKey.set(key, (clientByKey.get(key) ?? 0) + cl);
       const list = allocByKey.get(key) ?? [];
