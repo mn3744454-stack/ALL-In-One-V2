@@ -143,6 +143,25 @@ export function InvoicesList({
     included: t("finance.invoices.included"),
     packageChip: t("finance.invoices.packageSource"),
     horseGroupLabel: t("finance.invoices.horseGroupLabel"),
+    paymentStatusLabel: t("finance.invoices.paymentStatusLabel"),
+    statusUnpaid: t("finance.invoices.statusUnpaid"),
+    statusPartial: t("finance.invoices.statusPartial"),
+    statusPaid: t("finance.invoices.statusPaid"),
+    paidToDate: t("finance.invoices.paidToDate"),
+    outstanding: t("finance.payments.outstanding"),
+    paymentHistoryHeading: t("finance.payments.paymentHistory"),
+    colMethod: t("finance.invoices.colMethod"),
+    colEffectiveDate: t("finance.invoices.colEffectiveDate"),
+    colRecordedAt: t("finance.invoices.colRecordedAt"),
+    colAmount: t("finance.invoices.colAmount"),
+    methodLabels: {
+      cash: t("finance.paymentMethods.cash"),
+      card: t("finance.paymentMethods.card"),
+      transfer: t("finance.paymentMethods.transfer"),
+      check: t("finance.paymentMethods.check"),
+      credit: t("finance.paymentMethods.credit"),
+      mixed: t("finance.paymentMethods.mixed"),
+    },
   });
 
   /**
