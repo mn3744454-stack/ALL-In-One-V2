@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { useI18n } from "@/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { postLedgerForPayments, type PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 import { invalidateFinanceQueries } from "./invalidateFinanceQueries";
@@ -26,12 +27,40 @@ export interface InvoicePaymentSummary {
   isPartial: boolean;
 }
 
+interface InvoiceHorseComposition {
+  distinctHorses: number;
+  hasClientLevel: boolean;
+}
+
+const ERROR_TOKEN_KEYS: Record<string, string> = {
+  FIN_IDEMPOTENCY_CONFLICT: "finance.payments.errors.idempotencyConflict",
+  FIN_INVOICE_OVER_ALLOCATION: "finance.payments.errors.overAllocation",
+  FIN_INVOICE_NOT_PAYABLE: "finance.payments.errors.notPayable",
+  FIN_INVOICE_CROSS_CLIENT: "finance.payments.errors.crossClient",
+  FIN_INVOICE_CROSS_TENANT: "finance.payments.errors.crossClient",
+  FIN_INVOICE_CURRENCY_MISMATCH: "finance.payments.errors.crossClient",
+  FIN_PAYMENT_ACCOUNT_MISSING: "finance.payments.errors.accountMissing",
+  FIN_HORSE_ALLOCATION_REQUIRED: "finance.payments.errors.allocationRequired",
+  FIN_HORSE_ALLOCATION_MISMATCH: "finance.payments.errors.allocationRequired",
+  FIN_HORSE_NOT_ON_INVOICE: "finance.payments.errors.allocationRequired",
+  FIN_CLIENT_LEVEL_ALLOCATION_INVALID: "finance.payments.errors.allocationRequired",
+  FIN_ALLOCATION_HISTORY_UNRESOLVED: "finance.payments.errors.historyUnresolved",
+  FIN_PERMISSION_DENIED: "finance.payments.errors.permissionDenied",
+  FIN_UNAUTHENTICATED: "finance.payments.errors.permissionDenied",
+  FIN_PAYMENT_METHOD_INVALID: "finance.payments.errors.methodInvalid",
+  FIN_ALLOCATION_DUPLICATE: "finance.payments.errors.duplicateAllocation",
+};
+
 /**
  * Hook to fetch and manage payments for a specific invoice.
  * Computes paid/outstanding from ledger_entries (source of truth).
+ *
+ * Multi-horse and mixed invoices are gated to Phase 4 — the hook rejects them
+ * before contacting the payment RPC to give the user a clean localized notice.
  */
 export function useInvoicePayments(invoiceId?: string | null) {
   const { activeTenant } = useTenant();
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const tenantId = activeTenant?.tenant?.id;
@@ -41,7 +70,6 @@ export function useInvoicePayments(invoiceId?: string | null) {
     queryFn: async (): Promise<InvoicePaymentSummary | null> => {
       if (!tenantId || !invoiceId) return null;
 
-      // Fetch invoice total
       const { data: invoice, error: invError } = await supabase
         .from("invoices")
         .select("id, total_amount, status")
@@ -53,7 +81,6 @@ export function useInvoicePayments(invoiceId?: string | null) {
         return null;
       }
 
-      // Fetch payment ledger entries
       const { data: payments, error: payError } = await supabase
         .from("ledger_entries")
         .select("id, amount, payment_method, payment_session_id, metadata, effective_date, created_at, description")
@@ -71,7 +98,7 @@ export function useInvoicePayments(invoiceId?: string | null) {
 
       const paymentsList: InvoicePayment[] = (payments || []).map((p: any) => ({
         id: p.id,
-        amount: Math.abs(Number(p.amount)), // Convert negative to positive for display
+        amount: Math.abs(Number(p.amount)),
         payment_method: p.payment_method,
         payment_session_id: p.payment_session_id,
         metadata: p.metadata || {},
@@ -97,6 +124,36 @@ export function useInvoicePayments(invoiceId?: string | null) {
     enabled: !!tenantId && !!invoiceId,
   });
 
+  // Horse composition — used by the Phase-4 boundary gate.
+  const { data: composition } = useQuery({
+    queryKey: ["invoice-horse-composition", invoiceId],
+    queryFn: async (): Promise<InvoiceHorseComposition | null> => {
+      if (!invoiceId) return null;
+      const { data: rows, error } = await supabase
+        .from("invoice_items")
+        .select("horse_id")
+        .eq("invoice_id", invoiceId);
+      if (error) {
+        console.error("Error fetching invoice horse composition:", error);
+        return null;
+      }
+      const horseIds = new Set<string>();
+      let hasClientLevel = false;
+      for (const r of rows || []) {
+        const horseId = (r as { horse_id: string | null }).horse_id;
+        if (horseId) horseIds.add(horseId);
+        else hasClientLevel = true;
+      }
+      return { distinctHorses: horseIds.size, hasClientLevel };
+    },
+    enabled: !!invoiceId,
+  });
+
+  const requiresPhase4Allocation = composition
+    ? composition.distinctHorses > 1 ||
+      (composition.distinctHorses >= 1 && composition.hasClientLevel)
+    : false;
+
   const recordPaymentMutation = useMutation({
     mutationFn: async ({
       payments,
@@ -109,36 +166,47 @@ export function useInvoicePayments(invoiceId?: string | null) {
         throw new Error("Missing tenant or invoice");
       }
 
-      const paymentSessionId = crypto.randomUUID();
+      if (requiresPhase4Allocation) {
+        const err = new Error("FIN_HORSE_ALLOCATION_REQUIRED");
+        (err as Error & { code?: string }).code = "FIN_HORSE_ALLOCATION_REQUIRED";
+        throw err;
+      }
+
+      // Fresh idempotency key owned by this mutation attempt.
+      const idempotencyKey = crypto.randomUUID();
       const result = await postLedgerForPayments(
         invoiceId,
         tenantId,
         payments,
-        paymentSessionId,
+        idempotencyKey,
         paymentDate,
       );
 
       if (!result.success) {
-        throw new Error(result.error || "Failed to record payment");
+        const err = new Error(result.error || "Failed to record payment");
+        (err as Error & { code?: string }).code = result.errorCode;
+        throw err;
       }
 
       return result;
     },
+    retry: 0,
     onSuccess: (result) => {
-      toast({ 
-        title: result.outstandingAmount <= 0.01 
-          ? "Invoice fully paid" 
-          : `Payment recorded. Outstanding: ${result.outstandingAmount.toFixed(2)}` 
+      toast({
+        title: result.outstandingAmount <= 0.01
+          ? t("finance.payments.fullyPaid")
+          : `${t("finance.payments.recorded")} — ${t("finance.payments.outstanding")}: ${result.outstandingAmount.toFixed(2)}`,
       });
-
       invalidateFinanceQueries(queryClient, tenantId);
     },
-    onError: (error) => {
-      console.error("Payment error:", error);
-      toast({ 
-        title: error.message || "Failed to record payment", 
-        variant: "destructive" 
+    onError: (error: Error & { code?: string }) => {
+      const code = error.code || error.message.match(/FIN_[A-Z_]+/)?.[0];
+      const key = code ? ERROR_TOKEN_KEYS[code] : undefined;
+      toast({
+        title: key ? t(key) : t("finance.payments.errors.unknown"),
+        variant: "destructive",
       });
+      if (import.meta.env.DEV) console.error("Payment error:", error);
     },
   });
 
@@ -148,5 +216,6 @@ export function useInvoicePayments(invoiceId?: string | null) {
     refetch,
     recordPayment: recordPaymentMutation.mutateAsync,
     isRecording: recordPaymentMutation.isPending,
+    requiresPhase4Allocation,
   };
 }

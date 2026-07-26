@@ -86,7 +86,7 @@ export function RecordPaymentDialog({
   const { hasPermission } = usePermissions();
   const tenantCurrency = useTenantCurrency();
   const effectiveCurrency = currency || tenantCurrency;
-  const { summary, isLoading, recordPayment, isRecording } = useInvoicePayments(invoiceId);
+  const { summary, isLoading, recordPayment, isRecording, requiresPhase4Allocation } = useInvoicePayments(invoiceId);
   const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
 
   const canRecordPayment = hasPermission("finance.payment.create");
@@ -304,8 +304,18 @@ export function RecordPaymentDialog({
               </Alert>
             )}
 
+            {/* Phase 4 gate — multi-horse / mixed invoices need the allocation editor */}
+            {!summary.isPaid && requiresPhase4Allocation && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {t("finance.payments.errors.allocationRequired")}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Payment Rows */}
-            {!summary.isPaid && (
+            {!summary.isPaid && !requiresPhase4Allocation && (
               <>
                 <div className="grid gap-2">
                   <Label>
@@ -487,7 +497,7 @@ export function RecordPaymentDialog({
             {!summary?.isPaid && (
               <Button
                 onClick={handleSubmit}
-                disabled={isRecording || !canRecordPayment}
+                disabled={isRecording || !canRecordPayment || requiresPhase4Allocation}
               >
                 {isRecording ? (
                   <>
