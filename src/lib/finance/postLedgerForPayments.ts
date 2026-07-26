@@ -34,8 +34,16 @@ function isAllowedMethod(method: string): method is PaymentMethod {
  * The server owns tenant payment account resolution, currency, client identity,
  * outstanding recompute, ledger insertion, and invoice status.
  *
+ * Split-tender contract (Phase N+2 Slice 3):
+ *   - each row becomes its own allocation (no same-method merging);
+ *   - duplicate (invoice, method) rows are rejected client-side WITHOUT
+ *     contacting the RPC so the caller sees FIN_ALLOCATION_DUPLICATE without
+ *     spending a server round-trip;
+ *   - the returned outstanding/status come from the LAST allocation for the
+ *     invoice in caller order — the frontmost tender is intermediate, the
+ *     tail-most is authoritative.
+ *
  * NO client-side payment_accounts lookup. NO legacy writer fallback.
- * Split-tender is preserved as one allocation per (invoice, method).
  */
 export async function postLedgerForPayments(
   invoiceId: string,
@@ -52,8 +60,7 @@ export async function postLedgerForPayments(
     return { success: false, error: "Payment amount must be positive", paidAmount: 0, outstandingAmount: 0, invoiceStatus: "" };
   }
 
-  // Merge same-method rows so the server's (invoice|method) dedupe holds.
-  const byMethod = new Map<string, { amount: number; reference?: string }>();
+  // Method allowlist mirror of the backend guard.
   for (const p of payments) {
     if (!isAllowedMethod(p.payment_method)) {
       return {
@@ -65,22 +72,32 @@ export async function postLedgerForPayments(
         invoiceStatus: "",
       };
     }
-    const cur = byMethod.get(p.payment_method);
-    if (cur) {
-      cur.amount += p.amount;
-      if (!cur.reference && p.reference) cur.reference = p.reference;
-    } else {
-      byMethod.set(p.payment_method, { amount: p.amount, reference: p.reference });
-    }
   }
 
-  const allocations: PaymentSessionAllocation[] = Array.from(byMethod.entries()).map(([method, row]) => {
+  // Reject duplicate methods for the same invoice BEFORE the RPC call.
+  const seenMethods = new Set<string>();
+  for (const p of payments) {
+    if (seenMethods.has(p.payment_method)) {
+      return {
+        success: false,
+        error: "Duplicate payment method for the same invoice",
+        errorCode: "FIN_ALLOCATION_DUPLICATE",
+        paidAmount: 0,
+        outstandingAmount: 0,
+        invoiceStatus: "",
+      };
+    }
+    seenMethods.add(p.payment_method);
+  }
+
+  // One allocation per row, order preserved — external references stay attached.
+  const allocations: PaymentSessionAllocation[] = payments.map((p) => {
     const alloc: PaymentSessionAllocation = {
       invoice_id: invoiceId,
-      payment_method: method as PaymentMethod,
-      amount: Math.round(row.amount * 100) / 100,
+      payment_method: p.payment_method as PaymentMethod,
+      amount: Math.round(p.amount * 100) / 100,
     };
-    if (row.reference) alloc.external_reference = row.reference;
+    if (p.reference) alloc.external_reference = p.reference;
     return alloc;
   });
 
@@ -100,10 +117,12 @@ export async function postLedgerForPayments(
     };
   }
 
-  const alloc = result.response.allocations.find((a) => a.invoice_id === invoiceId)
-    ?? result.response.allocations[0];
-  const outstanding = Math.max(0, Number(alloc?.outstanding_after ?? 0));
-  const status = String(alloc?.invoice_status ?? "");
-  const paid = Math.max(0, total);
-  return { success: true, paidAmount: paid, outstandingAmount: outstanding, invoiceStatus: status };
+  // LAST allocation for this invoice is authoritative (final outstanding/status).
+  const invoiceAllocs = result.response.allocations.filter((a) => a.invoice_id === invoiceId);
+  const finalAlloc = invoiceAllocs.length
+    ? invoiceAllocs[invoiceAllocs.length - 1]
+    : result.response.allocations[result.response.allocations.length - 1];
+  const outstanding = Math.max(0, Number(finalAlloc?.outstanding_after ?? 0));
+  const status = String(finalAlloc?.invoice_status ?? "");
+  return { success: true, paidAmount: Math.max(0, total), outstandingAmount: outstanding, invoiceStatus: status };
 }
