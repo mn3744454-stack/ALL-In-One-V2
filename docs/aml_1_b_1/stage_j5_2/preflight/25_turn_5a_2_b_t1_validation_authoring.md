@@ -12,6 +12,11 @@ OVERALL T1 PROGRESS: 32/54.
 SCENARIOS NOT EXECUTED (qualified runner required per File 17).
 Post-edit SQL SHA-256: 5bddcfb05e9806536ae298347693bfd4882c2e8eb5934f6c00af234ed9921f7c.
 Post-edit SQL line count: 4790.
+Turn-5A.2.b closing baseline was subsequently reconciled by Turn 5A.2.b4R
+to SHA `f8c89b704075d766633907a5859588914a6516c6e76649eef14c58a67fb572c1`
+at the same 4790 lines (Section-14 terminator comment refresh only;
+zero executable change). Turn 5A.2.b is CLOSED; Turn 5A.2.c supersedes
+this baseline — see File 26.
 32 explicit create_source_checkout_invoice invocations, 32 SAVEPOINTs
 sp_t1_a_01..31 + sp_t1_a_33, 32 ROLLBACK TO SAVEPOINT, 32 RELEASE
 SAVEPOINT, 32 unique \gset prefixes a01_..a31_ + a33_, 32 authoritative
