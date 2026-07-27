@@ -193,6 +193,27 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
       />
+
+      <ClientPickerDialog
+        open={showClientPicker}
+        onOpenChange={setShowClientPicker}
+        onSelect={(id) => {
+          setShowClientPicker(false);
+          setMultiPayClientId(id);
+        }}
+      />
+
+      {multiPayClientId && (
+        <MultiInvoicePaymentDialog
+          key={multiPayClientId}
+          open={!!multiPayClientId}
+          onOpenChange={(v) => {
+            if (!v) setMultiPayClientId(null);
+          }}
+          clientId={multiPayClientId}
+        />
+      )}
+
     </div>
   );
 }
