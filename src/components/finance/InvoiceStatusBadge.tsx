@@ -21,12 +21,24 @@ const statusConfig: Record<string, { color: string; key: string }> = {
   sent: { color: "bg-blue-100 text-blue-700 border-blue-200", key: "approved" },
 };
 
+const UNKNOWN_CONFIG = {
+  color: "bg-slate-100 text-slate-500 border-slate-200 italic",
+  key: "unknown",
+} as const;
+
 export function InvoiceStatusBadge({ status, className }: InvoiceStatusBadgeProps) {
   const { t } = useI18n();
-  const config = statusConfig[status] || statusConfig.draft;
+  // Slice 3.3: unknown / unmapped statuses fall back to a distinct localized
+  // "Unknown Status" badge instead of silently masquerading as "Draft".
+  const config = statusConfig[status] ?? UNKNOWN_CONFIG;
 
   return (
-    <Badge variant="outline" className={cn(config.color, className)}>
+    <Badge
+      variant="outline"
+      className={cn(config.color, className)}
+      data-status={status}
+      data-status-mapped={config === UNKNOWN_CONFIG ? "unknown" : config.key}
+    >
       {t(`finance.invoices.statuses.${config.key}`)}
     </Badge>
   );
