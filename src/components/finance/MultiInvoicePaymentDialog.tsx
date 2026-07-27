@@ -314,7 +314,8 @@ export function MultiInvoicePaymentDialog({
         allocations,
       });
       if (!result.success) {
-        const key = ERROR_TOKEN_KEYS[result.code] ?? "finance.payments.errors.unknown";
+        const failure = result as { code: string; message: string };
+        const key = ERROR_TOKEN_KEYS[failure.code] ?? "finance.payments.errors.unknown";
         toast({ title: t(key), variant: "destructive" });
         return;
       }
