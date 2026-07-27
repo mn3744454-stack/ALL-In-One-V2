@@ -4152,14 +4152,19 @@ export const en = {
       noEligibleInvoices: "This client has no outstanding invoices in the tenant currency.",
       distributeOldestFirst: "Distribute Oldest First",
       allocatedToInvoices: "Allocated to Invoices",
+      remainingToAllocate: "Remaining to Allocate",
       difference: "Difference",
       record: "Record Payment",
+      recordClientPayment: "Record Client Payment",
       success: "Payment recorded across selected invoices",
       errors: {
         perInvoiceOver: "One or more invoice allocations exceed the outstanding balance:",
         duplicateTender: "Two payment methods share the same reference. Use distinct references or merge them.",
         tooManyRows: "This payment would create too many allocation rows for a single session.",
         needsAllocationEditor: "One of the selected invoices needs the single-invoice allocation editor. Open it from the invoice details.",
+        overAllocationBy: "Allocated amount exceeds total payment by",
+        paymentsExceedOutstandingBy: "Total payment exceeds outstanding on selected invoices by",
+        notSupported: "This invoice's composition is not yet supported by multi-invoice payments. Open it individually.",
       },
     },
     invoiceStats: {
@@ -4167,7 +4172,10 @@ export const en = {
       pendingInvoices: "Pending Invoices",
       paidAmount: "Paid Amount",
       overdueAmount: "Overdue Amount",
+      paidInvoices: "Paid Invoices",
+      overdueInvoices: "Overdue Invoices",
     },
+
     paymentMethods: {
       cash: "Cash",
       card: "Card",
