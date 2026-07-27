@@ -36,10 +36,9 @@ export function MultiInvoiceKpiBar({
 }: MultiInvoiceKpiBarProps) {
   const { t } = useI18n();
 
-  const pageIndicator = t("finance.multiInvoicePayment.pageIndicator", {
-    current: String(selectedCount),
-    total: String(eligibleCount),
-  });
+  const pageIndicator = t("finance.multiInvoicePayment.pageIndicator")
+    .replace("{{current}}", String(selectedCount))
+    .replace("{{total}}", String(eligibleCount));
 
   const cells: Array<{ label: string; value: string; testId: string }> = [
     {
