@@ -4079,8 +4079,9 @@ export const en = {
       payFullOutstanding: "Pay Full Outstanding",
       paymentAmount: "Payment Amount",
       paymentMethodDetails: "Payment Method Details",
-      totalPayment: "Total Payment",
-      outstandingAfter: "Outstanding After",
+      totalPayment: "Total Payments",
+      outstandingAfter: "Remaining After Payment",
+
       willBeFullyPaid: "Will be fully paid",
       alreadyPaid: "This invoice is already fully paid",
       overpaymentError: "Payment amount exceeds outstanding balance",
@@ -4132,12 +4133,15 @@ export const en = {
         remaining: "Remaining",
         allocated: "Paid Amount",
         remainingAfter: "Remaining",
+        pretax: "Services / Pretax",
+        tax: "Tax",
+        totalDue: "Total Due",
         distributeEqually: "Distribute Equally",
-
         resetProposal: "Reset",
         remainderMismatch: "Allocations must equal the payment amount and stay within each remaining balance.",
         balanced: "Allocation matches payment amount",
       },
+
     },
     paymentMethods: {
       cash: "Cash",
