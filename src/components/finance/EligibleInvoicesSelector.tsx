@@ -86,7 +86,7 @@ export function EligibleInvoicesSelector({
                     <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="font-medium text-sm">{inv.invoice_number}</span>
                     <Badge variant="outline" className="text-[10px] uppercase">
-                      {t(`finance.status.${inv.status}` as any, { defaultValue: inv.status })}
+                      {inv.status}
                     </Badge>
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
