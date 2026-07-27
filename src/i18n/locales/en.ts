@@ -3946,6 +3946,16 @@ export const en = {
       reviewedSuccess: "Invoice marked as reviewed",
       approvedSuccess: "Invoice approved and posted to ledger",
       sharedSuccess: "Invoice shared with counterparty",
+      approveErrors: {
+        generic: "Could not approve the invoice.",
+        sourceSnapshotStale:
+          "A saved line no longer matches its service in the catalog. Open the invoice, refresh the affected line, then approve again.",
+        totalsStale:
+          "The invoice totals no longer match its saved lines. Open the invoice, save it to recompute totals, then approve again.",
+        notApprovable: "This invoice can no longer be approved from its current state.",
+        itemsInvalid: "One or more invoice lines are invalid. Fix them and save before approving.",
+        itemsEmpty: "Add at least one line to the invoice before approving.",
+      },
       cannotDeleteApproved: "Cannot delete an approved invoice. Use Cancel instead.",
       horse: "Horse",
       sample: "Sample",
