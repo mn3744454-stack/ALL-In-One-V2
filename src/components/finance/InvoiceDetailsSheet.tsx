@@ -32,6 +32,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import { approveInvoice } from "@/lib/finance/approveInvoice";
+import { approveInvoiceErrorMessage } from "@/lib/finance/approveInvoiceErrorMap";
 import {
   cancelInvoiceRpc,
   deleteDraftInvoiceRpc,
@@ -430,7 +431,7 @@ export function InvoiceDetailsSheet({
       fetchInvoiceDetails();
     } catch (error) {
       console.error("Error approving invoice:", error);
-      toast.error(t("common.error"));
+      toast.error(approveInvoiceErrorMessage(error, t));
     } finally {
       setActionLoading(false);
     }
