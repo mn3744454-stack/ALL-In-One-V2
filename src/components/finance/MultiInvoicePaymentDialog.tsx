@@ -516,24 +516,32 @@ export function MultiInvoicePaymentDialog({
               </Alert>
             ) : (
               <div className="space-y-2">
-                {invoices.map((inv) => (
-                  <EligibleInvoiceAccordionRow
-                    key={inv.id}
-                    invoice={inv}
-                    selected={selectedIds.has(inv.id)}
-                    amount={amounts[inv.id] ?? ""}
-                    currency={currency}
-                    allocationEnabled={tenderTotal > 0}
-                    disabled={isSubmitting}
-                    onToggle={(next) => toggleInvoice(inv.id, next)}
-                    onAmountChange={(next) =>
-                      setAmounts((p) => ({ ...p, [inv.id]: next }))
-                    }
-                    onResolved={handleCompositionResolved}
-                    onOpenDetails={(id) => setDetailsInvoiceId(id)}
-                  />
-
-                ))}
+                {invoices.map((inv) => {
+                  const currentForInv = invoiceAmountsUnits[inv.id] || 0;
+                  const otherAllocations = invoiceAllocationTotal - currentForInv;
+                  const paymentAvailableForInvoice = Math.max(
+                    0,
+                    Math.round((tenderTotal - otherAllocations) * 100) / 100,
+                  );
+                  return (
+                    <EligibleInvoiceAccordionRow
+                      key={inv.id}
+                      invoice={inv}
+                      selected={selectedIds.has(inv.id)}
+                      amount={amounts[inv.id] ?? ""}
+                      currency={currency}
+                      allocationEnabled={tenderTotal > 0}
+                      paymentAvailableForInvoice={paymentAvailableForInvoice}
+                      disabled={isSubmitting}
+                      onToggle={(next) => toggleInvoice(inv.id, next)}
+                      onAmountChange={(next) =>
+                        setAmounts((p) => ({ ...p, [inv.id]: next }))
+                      }
+                      onResolved={handleCompositionResolved}
+                      onOpenDetails={(id) => setDetailsInvoiceId(id)}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
