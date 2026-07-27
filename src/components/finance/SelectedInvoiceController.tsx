@@ -314,21 +314,33 @@ export function EligibleInvoiceAccordionRow({
                 <Label className="text-[10px] text-muted-foreground">
                   {t("finance.multiInvoicePayment.allocatedToInvoiceLabel")}
                 </Label>
-                <Input
-                  inputMode="decimal"
-                  dir="ltr"
-                  className="text-end tabular-nums h-8"
+                <FinancialAmountInput
+                  className="h-8"
                   placeholder="0.00"
                   disabled={!selected || disabled || !allocationEnabled || manualMode}
-                  value={selected ? amount : ""}
-                  onChange={(e) => onAmountChange(e.target.value)}
+                  value={selected ? (Number.isFinite(paymentAmount) && amount !== "" ? paymentAmount : null) : null}
+                  max={invoice.outstanding}
+                  onValueChange={(next) => {
+                    setOverMaxInvoice(false);
+                    onAmountChange(next === null ? "" : next.toFixed(2));
+                  }}
+                  onInvalidDraft={(_raw, reason) => {
+                    if (reason === "over-max") setOverMaxInvoice(true);
+                  }}
                   aria-readonly={manualMode || undefined}
+                  aria-label={t("finance.multiInvoicePayment.allocatedToInvoiceLabel")}
                 />
+                {overMaxInvoice && (
+                  <div className="text-[10px] text-destructive">
+                    {t("finance.multiInvoicePayment.errors.overMaxInvoice")}
+                  </div>
+                )}
                 {manualMode && (
                   <div className="text-[10px] text-muted-foreground">
                     {t("finance.multiInvoicePayment.amountDerivedNotice")}
                   </div>
                 )}
+
               </div>
               <div className="text-xs">
                 <div className="text-muted-foreground">
