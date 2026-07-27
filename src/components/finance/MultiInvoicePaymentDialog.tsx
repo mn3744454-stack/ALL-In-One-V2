@@ -369,7 +369,7 @@ export function MultiInvoicePaymentDialog({
   // Render ------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0">
+      <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-4 md:p-5 pb-3 shrink-0 border-b">
           <div className="flex flex-col lg:flex-row lg:items-start gap-4 min-w-0">
             <div className="min-w-0 flex-1">
