@@ -500,14 +500,8 @@ export function MultiInvoicePaymentDialog({
                 </Button>
               )}
             </div>
-            {/* KPI bar — replaces legacy inline summary strip */}
-            <MultiInvoiceKpiBar
-              eligibleCount={invoices.length}
-              totalOutstanding={totalEligibleOutstanding}
-              selectedCount={selectedInvoices.length}
-              selectedOutstanding={selectedInvoices.reduce((s, i) => s + i.outstanding, 0)}
-              currency={currency}
-            />
+
+
 
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
