@@ -20,6 +20,10 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  evaluateDraft,
+  shouldBlockKey,
+} from "@/lib/finance/financialAmountInputLogic";
 
 export interface FinancialAmountInputProps
   extends Omit<
@@ -38,20 +42,9 @@ export interface FinancialAmountInputProps
   decimals?: number;
 }
 
-const NUMERIC_DRAFT_RE = /^\d*(?:[.,]\d*)?$/;
-
 function formatCommitted(value: number | null, decimals: number): string {
   if (value === null || Number.isNaN(value)) return "";
   return value.toFixed(decimals);
-}
-
-function normalizeDraft(raw: string): string {
-  // Collapse Arabic-Indic digits + Arabic decimal separator to ASCII so
-  // parseFloat works regardless of keyboard locale.
-  return raw
-    .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
-    .replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x06F0))
-    .replace(/[,\u066B]/g, ".");
 }
 
 export const FinancialAmountInput = React.forwardRef<
