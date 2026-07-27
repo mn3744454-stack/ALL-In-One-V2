@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
+import { BilingualClientName } from "./BilingualClientName";
 
 interface ClientPickerDialogProps {
   open: boolean;
@@ -91,7 +92,6 @@ export function ClientPickerDialog({ open, onOpenChange, onSelect }: ClientPicke
             ) : (
               <ul className="divide-y">
                 {filtered.map((c) => {
-                  const name = dir === "rtl" && c.name_ar ? c.name_ar : c.name;
                   const active = selectedId === c.id;
                   return (
                     <li key={c.id}>
@@ -102,9 +102,13 @@ export function ClientPickerDialog({ open, onOpenChange, onSelect }: ClientPicke
                           active ? "bg-accent" : ""
                         }`}
                       >
-                        <div className="text-sm font-medium">{name}</div>
+                        <BilingualClientName
+                          client={c}
+                          stack
+                          primaryClassName="text-sm font-medium"
+                        />
                         {c.phone && (
-                          <div className="text-xs text-muted-foreground" dir="ltr">
+                          <div className="text-xs text-muted-foreground mt-0.5" dir="ltr">
                             {c.phone}
                           </div>
                         )}
@@ -130,9 +134,7 @@ export function ClientPickerDialog({ open, onOpenChange, onSelect }: ClientPicke
             }}
             disabled={!selectedId}
           >
-            <Label className="cursor-pointer">
-              {t("finance.multiInvoicePayment.continue")}
-            </Label>
+            {t("finance.multiInvoicePayment.continue")}
           </Button>
         </DialogFooter>
       </DialogContent>

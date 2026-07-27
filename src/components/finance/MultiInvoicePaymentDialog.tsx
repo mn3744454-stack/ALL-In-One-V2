@@ -26,6 +26,7 @@ import {
   type TenderRow,
 } from "./PaymentTenderEditor";
 import { MultiInvoiceComplexAllocationCard } from "./MultiInvoiceComplexAllocationCard";
+import { BilingualClientName } from "./BilingualClientName";
 import {
   useEligibleClientInvoices,
   type EligibleInvoice,
@@ -365,15 +366,20 @@ export function MultiInvoicePaymentDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-3 shrink-0 border-b">
           <DialogTitle>{t("finance.multiInvoicePayment.title")}</DialogTitle>
-          <DialogDescription>
-            {t("finance.multiInvoicePayment.description")}
+          <DialogDescription className="min-w-0">
+            <span className="block">{t("finance.multiInvoicePayment.description")}</span>
             {client && (
-              <span className="ms-1 font-medium text-foreground">
-                — {isRtl ? client.name_ar ?? client.name : client.name}
+              <span className="mt-1 flex items-baseline gap-1 min-w-0 text-foreground">
+                <span aria-hidden="true">—</span>
+                <BilingualClientName
+                  client={client}
+                  primaryClassName="font-medium"
+                />
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
+
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
           {/* 1) Payment Date */}

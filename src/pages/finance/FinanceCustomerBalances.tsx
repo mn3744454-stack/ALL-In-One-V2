@@ -15,6 +15,7 @@ import { useI18n } from "@/i18n";
 import { useClients, Client } from "@/hooks/useClients";
 import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
 import { MultiInvoicePaymentDialog } from "@/components/finance/MultiInvoicePaymentDialog";
+import { BilingualClientName } from "@/components/finance/BilingualClientName";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { formatCurrency } from "@/lib/formatters";
@@ -70,10 +71,6 @@ export default function FinanceCustomerBalances() {
     return { variant: "outline" as const, icon: CheckCircle2, label: t("finance.customerBalances.settled") };
   };
 
-  const getClientName = (client: Client) => {
-    if (dir === "rtl" && client.name_ar) return client.name_ar;
-    return client.name;
-  };
 
   return (
     <DashboardShell>
@@ -134,7 +131,9 @@ export default function FinanceCustomerBalances() {
                     const StatusIcon = status.icon;
                     return (
                       <TableRow key={client.id}>
-                        <TableCell className="font-medium">{getClientName(client)}</TableCell>
+                        <TableCell className="font-medium min-w-0">
+                          <BilingualClientName client={client} stack />
+                        </TableCell>
                         <TableCell className="hidden sm:table-cell text-muted-foreground" dir="ltr">
                           {client.phone || "—"}
                         </TableCell>
