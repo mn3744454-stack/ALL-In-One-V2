@@ -355,11 +355,29 @@ export function EligibleInvoiceAccordionRow({
                   {fmt(remainingAfter)}
                 </div>
               </div>
-              <AccordionTrigger className="ms-auto py-1 px-2 rounded-md hover:bg-muted/50 text-xs font-normal no-underline hover:no-underline">
-                <span className="tabular-nums">
-                  {t("finance.multiInvoicePayment.itemsCount").replace("{{count}}", String(invoice.itemCount))}
-                </span>
-              </AccordionTrigger>
+              <div className="ms-auto flex items-center gap-1">
+                {onOpenDetails && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onOpenDetails(invoice.id);
+                    }}
+                  >
+                    {t("common.view")}
+                  </Button>
+                )}
+                <AccordionTrigger className="py-1 px-2 rounded-md hover:bg-muted/50 text-xs font-normal no-underline hover:no-underline">
+                  <span className="tabular-nums">
+                    {t("finance.multiInvoicePayment.itemsCount").replace("{{count}}", String(invoice.itemCount))}
+                  </span>
+                </AccordionTrigger>
+              </div>
+
             </div>
           </div>
         </div>
