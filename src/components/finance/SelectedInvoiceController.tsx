@@ -437,19 +437,34 @@ export function EligibleInvoiceAccordionRow({
                           <Label className="text-[10px] text-muted-foreground">
                             {t("finance.payments.allocation.allocated")}
                           </Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            inputMode="decimal"
-                            dir="ltr"
-                            value={bucketValues[bucket.key] ?? ""}
-                            onChange={(e) => updateBucket(bucket.key, e.target.value)}
+                          <FinancialAmountInput
+                            value={(() => {
+                              const s = bucketValues[bucket.key] ?? "";
+                              if (s === "") return null;
+                              const n = parseFloat(s);
+                              return Number.isFinite(n) ? n : null;
+                            })()}
+                            max={bucket.remaining}
+                            onValueChange={(next) => {
+                              setOverMaxBuckets((prev) => ({ ...prev, [bucket.key]: false }));
+                              updateBucket(bucket.key, next === null ? "" : next.toFixed(2));
+                            }}
+                            onInvalidDraft={(_raw, reason) => {
+                              if (reason === "over-max") {
+                                setOverMaxBuckets((prev) => ({ ...prev, [bucket.key]: true }));
+                              }
+                            }}
                             placeholder="0.00"
-                            className="h-8 font-mono tabular-nums text-end"
+                            className="h-8"
                             disabled={disabled}
                             aria-label={`${bucket.label} allocation`}
                           />
+                          {overMaxBuckets[bucket.key] && (
+                            <div className="text-[10px] text-destructive mt-1">
+                              {t("finance.multiInvoicePayment.errors.overMaxBucket")}
+                            </div>
+                          )}
+
                         </div>
                         <div className="flex-1">
                           <Label className="text-[10px] text-muted-foreground">
