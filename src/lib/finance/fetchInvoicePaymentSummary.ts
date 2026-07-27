@@ -107,33 +107,52 @@ export async function fetchInvoicePaymentSummaryForPdf(
   const clientByKey = new Map<string, number>();
   const horseIds = new Set<string>();
   if (sessionIds.length > 0) {
+    // Slice 2.2A: fetch allocations and horse allocations as two flat queries
+    // instead of a PostgREST embedded read. `payment_horse_allocations` uses
+    // a composite FK to `payment_allocations` which PostgREST does not
+    // resolve automatically, so the embedded shape returned an empty
+    // `payment_horse_allocations` array and dropped the horse distribution
+    // from the PDF.
     const { data: allocations } = await supabase
       .from("payment_allocations")
-      .select(
-        "id, session_id, invoice_id, client_level_amount, payment_horse_allocations(horse_id, amount)",
-      )
+      .select("id, session_id, invoice_id, client_level_amount")
       .eq("tenant_id", tenantId)
       .eq("invoice_id", invoiceId)
       .in("session_id", sessionIds);
-    for (const a of (allocations ?? []) as unknown as Array<{
+    const allocRows = (allocations ?? []) as Array<{
+      id: string;
       session_id: string;
       client_level_amount: number | string | null;
-      payment_horse_allocations: Array<{ horse_id: string; amount: number | string }> | null;
-    }>) {
-      const key = a.session_id;
+    }>;
+    const allocIdToSession = new Map<string, string>();
+    for (const a of allocRows) {
+      allocIdToSession.set(a.id, a.session_id);
       const cl = Number(a.client_level_amount) || 0;
-      if (cl > 0) clientByKey.set(key, (clientByKey.get(key) ?? 0) + cl);
-      const list = allocByKey.get(key) ?? [];
-      for (const ha of a.payment_horse_allocations ?? []) {
+      if (cl > 0) clientByKey.set(a.session_id, (clientByKey.get(a.session_id) ?? 0) + cl);
+    }
+    if (allocIdToSession.size > 0) {
+      const { data: horseAllocs } = await supabase
+        .from("payment_horse_allocations")
+        .select("allocation_id, horse_id, amount")
+        .eq("tenant_id", tenantId)
+        .in("allocation_id", Array.from(allocIdToSession.keys()));
+      for (const ha of (horseAllocs ?? []) as Array<{
+        allocation_id: string;
+        horse_id: string;
+        amount: number | string;
+      }>) {
+        const sessionId = allocIdToSession.get(ha.allocation_id);
+        if (!sessionId) continue;
         const amt = Number(ha.amount) || 0;
-        if (amt > 0) {
-          list.push({ horseId: ha.horse_id, amount: amt });
-          horseIds.add(ha.horse_id);
-        }
+        if (amt <= 0) continue;
+        const list = allocByKey.get(sessionId) ?? [];
+        list.push({ horseId: ha.horse_id, amount: amt });
+        allocByKey.set(sessionId, list);
+        horseIds.add(ha.horse_id);
       }
-      allocByKey.set(key, list);
     }
   }
+
   const horseNames = new Map<string, { name: string; name_ar: string | null }>();
   if (horseIds.size > 0) {
     const { data: horses } = await supabase

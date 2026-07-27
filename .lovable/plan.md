@@ -1,230 +1,301 @@
-# Slice 2.1 — Payment Dialog UX Consolidation and PDF Horse-Allocation Disclosure
+# Slice 2.2A — Frozen Invoice Truth, Actionable Errors, PDF Distribution
 
 ## A. Verdict
 
-`SLICE 2 UX AND PDF ALLOCATION CONTRACT ALIGNED — EXECUTION-READY PLAN PROVIDED`
+**SLICE 2.2 FINAL CORRECTION CONTRACT LOCKED — EXECUTION-READY APPROVAL PROVIDED.**
 
-## B. Evidence findings (screenshots 41/45/46/47/48 + INV-0986.pdf)
+Every contract required by Sections 4–14 of the audit brief is mechanically resolved.
 
-- **45**: Current dialog uses `sm:max-w-[550px]` — narrow modal that scrolls a lot.
-- **46**: Items are listed with description + amount only; the Horse owner (Fatin/Maha) is **not** shown in the top summary. Users only learn horse attribution in the allocation cards further down.
-- **47/48**: Payment Method rows appear **before** the Horse allocation cards. The two Horse cards each render below the tender rows, producing a long scroll and visually implying "Cash → Fatin, Card → Maha" (which is not the persisted truth).
-- **INV-0986.pdf**: Payment Summary (Paid SAR 550, Outstanding SAR 100) and per-tender history (Cash 250, Card 300) print correctly. The **Horse distribution** (Fatin/Maha) recorded in `payment_horse_allocations` does not print.
+## B. Screenshot 57 — Mechanical Proof (Live-Catalog Dependence)
 
-## C. Current architecture
+Live reads of `public._finance_invoice_approve_inline` and `public._finance_invoice_compute_totals`:
 
-- **Dialog shell**: `src/components/finance/RecordPaymentDialog.tsx` uses `SafeFormDialog` with `sm:max-w-[550px] max-h-[90vh]`.
-- **Width reference (Create Invoice)**: `src/components/finance/InvoiceFormDialog.tsx` L353 uses `sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0` — this is the approved shell to reuse.
-- **Section order today**: Items summary → Invoice summary → Payment Date → Payment Method rows → PaymentAllocationEditor → totals → sticky footer. Allocation is AFTER methods.
-- **Items summary**: Flat list from `useInvoiceItems`; no horse grouping.
-- **Allocation editor**: `PaymentAllocationEditor.tsx` already groups items by horse bucket internally (via `itemsByBucket`) with labels `المخصص` and `المتبقي: X` — labels do NOT match the locked contract (`المبلغ المدفوع` / `المتبقي`), and `المخصص` is present. Proposal + reset + assignAll helpers already exist.
-- **PDF**: `InvoicePDFGenerator.tsx` L282–315 renders per-tender rows (method, effective date, recorded at, amount). It does NOT group by Payment Session and does NOT render horse distribution.
-- **PDF data source**: `fetchInvoicePaymentSummaryForPdf` reads `ledger_entries` only — no session join, no allocation fetch. `payment_session_id` exists on ledger rows (unselected). `get_payment_session` RPC exists in generated types with no frontend wrapper.
+- `_finance_invoice_approve_inline` builds `v_input_items` and includes `is_taxable` **only** when both `service_id IS NULL AND package_id IS NULL`. Catalog-backed lines send no `is_taxable` and no `tax_rate`.
+- For every item with `service_id IS NOT NULL`, `_finance_invoice_compute_totals` executes `SELECT is_taxable FROM public.tenant_services WHERE id = v_service_id` and assigns the result to `v_service_taxable`. The frontend/frozen `taxable_snapshot` and `tax_rate_snapshot` on the row are **never consulted**.
+- `_finance_invoice_approve_inline` then compares the frozen `v_physical_items` (which carries `taxable_snapshot`, `tax_rate_snapshot`, `line_pretax_amount`, `line_tax_amount`, `line_gross_amount`) against `v_computed->'items'` (rebuilt from the live catalog). Any drift raises `FIN_INVOICE_SOURCE_SNAPSHOT_STALE` (SQLSTATE `23514`).
 
-## D. Stale test finding
+INV-0983 mechanical trace:
 
-- File: `src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts`
-- Failing assertion (L126): `expect(payment).toContain('.rpc("post_invoice_payments"')` against `src/lib/finance/postLedgerForPayments.ts`, which was rewritten in N+2 Slice 3 to delegate to `postPaymentSession` (which calls `post_payment_session`). The legacy `post_invoice_payments` SQL function still exists in the migration (dead code) but is no longer invoked from the frontend.
-- Verdict: **mechanically obsolete** for the frontend writer contract; the migration-level assertions in the same file (checking the SQL definition still contains the tokens) remain valid. The narrowest correction is to replace the frontend regex to assert `.rpc("post_payment_session"` in `src/lib/finance/postPaymentSession.ts` and read that file instead. No SQL removal in this slice.
+| Stage | catalog `is_taxable` | frozen `taxable_snapshot` | computed tax | frozen `line_tax_amount` | outcome |
+|---|---|---|---|---|---|
+| Before catalog change | true | false | 45.00 | 0.00 | mismatch → `FIN_INVOICE_SOURCE_SNAPSHOT_STALE` |
+| After user flipped catalog to non-taxable | false | false | 0.00 | 0.00 | match → approval succeeded |
 
-## E. Read contract for PDF horse allocation
+The invoice row and its item row were **not** modified between the two attempts. Current DB state confirms: `invoice_items` still shows `taxable_snapshot=false`, `tax_rate_snapshot=15.000`, `line_tax_amount=0.00`, `line_gross_amount=300.00`, `total_price=300.00`; `invoices` now shows `status='approved'`, `total_amount=300.00`.
 
-- Every payment ledger row already carries `payment_session_id` (nullable for historical rows before N+2 Slice 1 backfill was completed).
-- Canonical read path: extend `fetchInvoicePaymentSummaryForPdf` to also `select("payment_session_id")`, then batch-load allocation rows via one query:
-  - `payment_allocations` filtered by `invoice_id` + `payment_session_id IN (…)` — gives `client_level_amount` per session.
-  - Nested `payment_horse_allocations(horse_id, amount)` — same join used by `useInvoicePriorAllocations`.
-  - Resolve horse names in one `horses` `.in("id", …)` call.
-- **No new backend RPC needed.** `get_payment_session` exists but returns single-session JSON; a direct batch SELECT is narrower for print-time enrichment.
-- **Historical gap detection**: sessions whose ledger rows have `payment_session_id IS NULL` OR whose allocation query returns no rows → the PDF omits the "Payment Distribution" subsection for that session and prints methods + total only. No fabricated numbers, no warning banner.
+**This conclusively proves live-catalog dependence.**
+
+## C. Frozen Snapshot Authority Contradiction
+
+Locked business principle: frozen `invoice_items` snapshots are the financial truth of an approved-or-approving invoice. The installed backend contradicts this principle for exactly two fields, on exactly one item class:
+
+| Field | Free-text lines (`service_id IS NULL`) | Catalog Service lines (`service_id IS NOT NULL`) | Package lines |
+|---|---|---|---|
+| `quantity` | frozen | frozen | forced to 1 |
+| `unit_price` | frozen | **re-read from `tenant_services.unit_price`** | re-read from `stable_service_plans.base_price` |
+| `taxable_snapshot` | frozen (payload carries `is_taxable`) | **re-read from `tenant_services.is_taxable`** | re-read from `stable_service_plans.is_taxable` |
+| `tax_rate_snapshot` | re-derived from tenant rate | re-derived from tenant rate | re-derived from tenant rate |
+| `line_*_amount` | recomputed and compared | recomputed and compared | recomputed and compared |
+
+Package-line drift is out of scope for this slice (no user report). The proven, in-scope contradiction is **catalog Service taxability**.
+
+## D. Exact Origin of INV-0983 Snapshot
+
+`_invoice_items_fill_snapshots` inspected in full: it only fills `service_name_snapshot`, `service_name_ar_snapshot`, `category_key`, `category_name*_snapshot`, and category rows. It **never touches** `taxable_snapshot`, `tax_rate_snapshot`, `line_pretax_amount`, `line_tax_amount`, `line_gross_amount`. Those snapshots are supplied by the caller (`create_invoice_with_items` / `update_invoice_with_items`), which computes them from the payload the frontend sends.
+
+Therefore INV-0983's `taxable_snapshot = false` was written by the writer at creation time from the payload the frontend built, not by a backend defect. Two proven possibilities converge on the same fix and neither requires data repair:
+
+1. The catalog service `Foaling Assistance` was `is_taxable = false` at the moment INV-0983 was created, so the frontend seeded the item with `taxable_snapshot = false` correctly.
+2. The user explicitly saved the line as non-taxable through the line editor (an override is exposed by `InvoiceLineItemsEditor` today).
+
+Either way, the frozen snapshot is **internally coherent**: `total_price = qty × unit_price = 300.00`, `line_pretax_amount = 300.00`, `line_tax_amount = 0.00`, `line_gross_amount = 300.00`, header `subtotal = 300.00`, `tax_amount = 0.00`, `total_amount = 300.00`. No corruption exists.
+
+## E. Approval Correction (Backend)
+
+Narrowest correct fix in `_finance_invoice_approve_inline` and `_finance_invoice_compute_totals`:
+
+1. **`_finance_invoice_approve_inline` — `v_input_items` build**: emit `is_taxable` **and** `tax_rate` for **every** item, sourced from the frozen row (`ii.taxable_snapshot`, `ii.tax_rate_snapshot`). Drop the current `CASE WHEN ii.service_id IS NULL AND ii.package_id IS NULL` special case. Package-price freezing is unchanged in this slice.
+2. **`_finance_invoice_compute_totals` — per-item resolution**: when the payload item carries an explicit `is_taxable` (boolean) or `tax_rate` (numeric), use those values instead of re-reading `tenant_services.is_taxable` / re-deriving the rate. Continue re-reading `name`, `name_ar`, `category_id`, `is_active`, `currency` from the catalog (metadata, not financial truth). When `is_taxable`/`tax_rate` are absent (new-invoice draft path), preserve today's catalog-derived defaults.
+3. **Retained validation** (unchanged): item-level identity checks (`line_pretax + line_tax = line_gross`, non-negativity, tax-rate 0..100, `service_id ⊕ package_id`, `horse_id ⊕ lab_horse_id`, valid period, `taxable_snapshot NOT NULL`, `tax_rate_snapshot NOT NULL`); frozen-vs-computed comparison for `unit_price`, `total_price`, `line_pretax_amount`, `line_tax_amount`, `line_gross_amount`, `taxable_snapshot`, `tax_rate_snapshot`, package snapshots; header comparison (`subtotal`, `tax_amount`, `total_amount`); `discount_amount ≥ 0`.
+
+Post-fix, the frozen snapshot fully drives approval math, and the header still has to reconcile against the frozen items — genuine internal inconsistencies still fail.
+
+**Atomicity:** unchanged. Everything remains inside the existing `SECURITY DEFINER` function's transaction with the same `pg_advisory_xact_lock`. **Rollback:** single migration; reverse SQL bundled that restores today's two function bodies verbatim.
+
+## F. Data-Repair Decision — **Option A: no invoice data repair**
+
+INV-0983's frozen snapshot is internally coherent; the failure existed only because approval re-read the catalog. Do **not** modify INV-0983 or any other invoice/invoice_item row. Do **not** resynchronize Draft or Reviewed invoices to current catalog values. Do **not** touch Approved invoices. Approved historical invoices (including the just-approved INV-0983) remain untouched.
+
+## G. Future Creation-Time Safety
+
+Backend remains the sole authority for financial snapshot persistence. `create_invoice_with_items` and `update_invoice_with_items` continue to compute `line_pretax_amount`, `line_tax_amount`, `line_gross_amount` from `qty × unit_price`, the resolved (or explicitly overridden) `taxable_snapshot`, and the effective `tax_rate_snapshot`, then persist all three. Frontend continues to preview only. No competing calculation is introduced.
+
+One narrow write-time addition (bundled in the same migration): when a catalog service is chosen and the payload does not carry an explicit taxability override, `create_invoice_with_items` seeds `taxable_snapshot` / `tax_rate_snapshot` from the catalog at that moment, so new invoices created after a catalog change use the new catalog default automatically. This is already the effective behavior; the migration only makes it explicit and documented.
+
+## H. Approval Error Path (Frontend)
+
+Traced:
+
+- `src/components/finance/InvoiceDetailsSheet.tsx` line 423 `handleApprove` → `approveInvoice(invoice.id, tenantId)` → `src/lib/finance/approveInvoice.ts` → `approveInvoiceRpc` (`src/lib/finance/invoiceRpc.ts` line 85) → `supabase.rpc("approve_invoice", …)`.
+- Errors are rethrown by `invoiceRpc.ts` and caught in `handleApprove`, which currently renders `toast.error(t("finance.invoices.approveFailed"))` — a generic message. No `FIN_*` token mapping exists on the approval path (`ERROR_TOKEN_KEYS` in `useInvoicePayments.ts` covers Payments only).
+- `src/pages/DashboardFinance.tsx` line 161 has a second `approveInvoice` caller that also renders a generic toast.
+
+## I. Final Actionable Error Copy
+
+Two new i18n keys, both surfaces mapped:
+
+- `finance.invoices.errors.snapshotStale`
+  - AR: `تعذر اعتماد الفاتورة لأن البيانات المالية المحفوظة لأحد البنود غير متسقة. افتح الفاتورة، راجع البند والضريبة، ثم احفظها من جديد قبل الاعتماد.`
+  - EN: `The invoice cannot be approved because a saved line has inconsistent financial data. Reopen the invoice, review the line and tax settings, then save it again before approval.`
+
+- `finance.invoices.errors.totalsStale`
+  - AR: `تعذر اعتماد الفاتورة لأن إجمالي البنود والضريبة لا يطابق إجمالي الفاتورة. افتح الفاتورة وراجع الإجماليات ثم احفظها من جديد.`
+  - EN: `The invoice cannot be approved because the line and tax totals do not match the invoice total. Reopen the invoice, review the totals, and save it again.`
+
+Behavior:
+
+- Token extraction: `FIN_INVOICE_SOURCE_SNAPSHOT_STALE` and `FIN_INVOICE_TOTALS_STALE` match a shared `/FIN_[A-Z_]+/` regex applied to `error.message` and Postgres `hint`/`details`.
+- No UUIDs, no SQL, no table names, no raw SQLSTATE reach the toast. The mapper deliberately does **not** attempt line-level attribution because the backend does not safely return it.
+- Development-only detail: `if (import.meta.env.DEV) console.error("Invoice approval failed:", error)` — retained in the catch block for engineer diagnosis.
+
+## J. Four PDF Output Paths
+
+Traced end-to-end:
+
+| Action | Caller | Fetches summary | Passes `paymentSummary` | Passes `pdfPaymentSession` labels | `includePaymentHistory` origin |
+|---|---|---|---|---|---|
+| Details → Print | `InvoiceDetailsSheet.tsx` (`handleExport` around L590–615) | yes (`fetchInvoicePaymentSummaryForPdf`) | yes | yes (L561–L575) | print options dialog |
+| Details → Download | same | yes | yes | yes | print options dialog |
+| List → Print | `InvoicesList.tsx` (`doExport` L243) | yes (L252) | yes (L260) | yes (L172–L184) | print options dialog |
+| List → Download | same | yes | yes | yes | print options dialog |
+
+All four paths converge on `InvoicePDFGenerator.createInvoiceHTML` with an identical `GeneratePDFOptions` shape. Enrichment reaches the generator.
+
+## K. INV-0986 Value Trace
+
+Live database — proven persistence:
+
+| Stage | Session 1 methods | Session 1 distribution | Session 2 methods | Session 2 distribution |
+|---|---|---|---|---|
+| `ledger_entries` | Cash 250, Card 300 | — | Cash 100 | — |
+| `payment_allocations` | 2 rows for session `652a63fd…`, `client_level_amount = 0.00` on both | — | 1 row for `29e7a3de…`, `client_level_amount = 0.00` | — |
+| `payment_horse_allocations` (raw) | Maha 68.18 + Fatin 181.82 (cash split) and Maha 81.82 + Fatin 218.18 (card split) — **aggregated per horse: Fatin 400.00, Maha 150.00** | Fatin 100 for session 2 | — | — |
+| **Fetcher output (`fetchInvoicePaymentSummaryForPdf`)** | Cash 250, Card 300 | **`horseAllocations = []`** | Cash 100 | **`horseAllocations = []`** |
+| Caller options | full sessions passed | empty | full sessions passed | empty |
+| Generator | uses `renderSessionGroupedHistory` | `hasDistribution = false` → distribution column omitted | — | — |
+| HTML output | Cash 250, Card 300 shown | **no distribution rendered** | Cash 100 shown | **no distribution rendered** |
+
+(Aggregated horse totals reconcile session totals exactly in integer cents.)
+
+## L. Exact Distribution-Loss Point
+
+**First loss point: PostgREST embedded read in `src/lib/finance/fetchInvoicePaymentSummary.ts` lines 110–117.**
+
+The query embeds `payment_horse_allocations(horse_id, amount)` inside a `payment_allocations` select. The **only** foreign key from `payment_horse_allocations` to `payment_allocations` is a **composite** FK on `(allocation_id, session_id, tenant_id, invoice_id) → (id, session_id, tenant_id, invoice_id)` (`payment_horse_allocations_composite_fk`). PostgREST resource embedding requires a single-column FK relationship it can uniquely resolve; composite FKs are not embeddable in `PostgREST v11/v12` without a hint. The embed silently resolves to `null` on every row, so `a.payment_horse_allocations` in the fetcher is always `null`. The subsequent `for (const ha of a.payment_horse_allocations ?? []) { … }` loop is empty for every session; `allocByKey` never receives a horse. Every session ends up with `horseAllocations = []` and `hasDistribution = false`.
+
+RLS is not the cause: policies on both tables are `is_active_tenant_member AND has_permission('finance.payment.view')`, which the app user satisfies (payments are recorded and read on the same surface).
+
+## M. Reconciliation Result
+
+Applied to live INV-0986 data (integer cents):
+
+- Session 1: tenders = `25000 + 30000 = 55000`; horse allocation = `40000 + 15000 = 55000`; client-level = `0`. Reconciles exactly.
+- Session 2: tenders = `10000`; horse allocation = `10000`; client-level = `0`. Reconciles exactly.
+
+Both sessions pass any reasonable ±1-cent tolerance. Distribution rendering is safe today; only the fetcher-embed defect prevents it.
+
+## N. Horse-Name Fallback
+
+Priority order used by `InvoicePDFGenerator` (already in code, retained):
+
+1. Localized frozen horse name from `horses` (`name_ar` in AR, `name` in EN) resolved by the fetcher.
+2. Localized fallback string when both are absent: `Unknown Horse` / `خيل غير معرّف` (new i18n key `finance.payments.pdfPaymentSession.unknownHorse`).
+3. Never UUID, never partial UUID, never microchip fragment. The previous `horseId.slice(0, 8)` fallback in `fetchInvoicePaymentSummary.ts` (line 170) is replaced with the localized string.
+
+## O. Exact Files Proposed
+
+Backend (one migration):
+- Alter `public._finance_invoice_approve_inline` — emit frozen `is_taxable` and `tax_rate` for every payload item.
+- Alter `public._finance_invoice_compute_totals` — honor payload `is_taxable` / `tax_rate` for catalog-backed items.
+- Ensure `create_invoice_with_items` writes explicit `taxable_snapshot` / `tax_rate_snapshot` from catalog at creation when not overridden (already the effective behavior; keep it explicit).
+- Rollback SQL bundled in the same migration file (header comment; reverse function bodies).
+
+Frontend:
+- `src/lib/finance/fetchInvoicePaymentSummary.ts` — replace the embedded `payment_horse_allocations(…)` select with two ordinary selects: (a) `payment_allocations` filtered by `tenant_id`, `invoice_id`, `session_id IN (…)`; (b) `payment_horse_allocations` filtered by `tenant_id`, `invoice_id`, `session_id IN (…)`. Aggregate horse-level rows per `session_id + horse_id` before returning. Replace the last-4-of-UUID fallback with the localized `unknownHorse` label.
+- `src/components/finance/InvoiceDetailsSheet.tsx` — map `FIN_INVOICE_SOURCE_SNAPSHOT_STALE` and `FIN_INVOICE_TOTALS_STALE` in `handleApprove`; pass the new `unknownHorse` label bundle to the PDF generator.
+- `src/pages/DashboardFinance.tsx` — same approval error mapping.
+- `src/components/finance/InvoicesList.tsx` — pass the new `unknownHorse` label to the PDF generator.
+- `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts` — new keys: `finance.invoices.errors.snapshotStale`, `finance.invoices.errors.totalsStale`, `finance.payments.pdfPaymentSession.unknownHorse`.
+
+## P. Three-Step Execution Plan
+
+### Step A — Frozen Invoice Approval (backend)
+
+- Files: single migration altering `public._finance_invoice_approve_inline` and `public._finance_invoice_compute_totals`; keep `create_invoice_with_items` catalog-seed behavior explicit.
+- Payload: `v_input_items` now always emits `is_taxable = ii.taxable_snapshot` and `tax_rate = ii.tax_rate_snapshot`. Compute reads these when present.
+- Retained validation: header identity, per-line identity, `line_pretax + line_tax = line_gross`, non-negativity, tax-rate range, `service_id ⊕ package_id`, `horse_id ⊕ lab_horse_id`, period validity, package snapshot completeness, frozen-vs-computed diff on `unit_price`/`total_price`/`line_*`/`taxable_snapshot`/`tax_rate_snapshot`/package snapshots.
+- Creation-time consistency: `create_invoice_with_items` continues to persist coherent snapshots; no behavior change beyond documentation and the write-time seed already in effect.
+- Data repair: none.
+- Atomicity: single transaction inside `_finance_invoice_approve_inline` under `pg_advisory_xact_lock`; success posts exactly one ledger `invoice` row; failure leaves no partial writes.
+- Rollback: reverse SQL for both function bodies bundled in the migration header.
+
+### Step B — Approval Error UX (frontend)
+
+- Files: `src/components/finance/InvoiceDetailsSheet.tsx`, `src/pages/DashboardFinance.tsx`, `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts`.
+- Token mapping: `FIN_INVOICE_SOURCE_SNAPSHOT_STALE → finance.invoices.errors.snapshotStale`, `FIN_INVOICE_TOTALS_STALE → finance.invoices.errors.totalsStale`. Fallback to today's `finance.invoices.approveFailed`.
+- Copy: exactly as Section I.
+- Behavior: production toast shows the localized actionable message; `import.meta.env.DEV` logs the raw error object for diagnosis; no SQL, tokens, UUIDs, or table names reach the UI.
+- No financial logic change.
+
+### Step C — PDF Horse Distribution (frontend)
+
+- First loss point: PostgREST composite-FK embed in `src/lib/finance/fetchInvoicePaymentSummary.ts` lines 110–117.
+- Files: `src/lib/finance/fetchInvoicePaymentSummary.ts`, `src/components/finance/InvoicePDFGenerator.tsx` (labels only), `src/components/finance/InvoicesList.tsx` (labels), `src/components/finance/InvoiceDetailsSheet.tsx` (labels).
+- Session shape unchanged: `InvoicePaymentSessionForPdf` continues to expose `tenders[]`, `horseAllocations[]`, `clientLevelAmount`. The fetcher now populates them via two flat queries and aggregation.
+- Shared path: all four output actions already funnel through `fetchInvoicePaymentSummaryForPdf → InvoicePDFGenerator`. The fix corrects the shared enricher, so every output action benefits identically.
+- Reconciliation: integer-cent comparison of session tender total vs (Σ horse + client-level); ±1 cent tolerance; when the check fails or persistence is genuinely empty, `hasDistribution = false` and the block renders Methods-only.
+- Horse-name fallback: localized `unknownHorse` string; never UUIDs.
+- Tests: see Section Q.
+- Rollback: single frontend patch; revertible without a migration.
+
+## Q. Focused Tests
+
+Vitest (new/updated only):
+
+Frozen Invoice approval (extends `src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts` + new focused SQL-shape assertions where possible via existing pg-tap harness):
+
+- A saved non-taxable catalog Service line approves using its frozen snapshot, even when the catalog is currently taxable.
+- A saved taxable line approves using its frozen tax values.
+- Changing catalog taxability after Invoice creation does not alter approval totals.
+- New Invoices created after a catalog change use the new catalog default.
+- Header total mismatch against frozen items still fails with `FIN_INVOICE_TOTALS_STALE`.
+- Per-line frozen inconsistency (`line_pretax + line_tax ≠ line_gross`) still fails with `FIN_INVOICE_ITEMS_INVALID`.
+- Approval creates exactly one `ledger_entries` row of type `invoice`.
+- Failed approval creates zero writes.
+- Approved historical invoices remain untouched.
+- No broad Draft/Reviewed resynchronization runs.
+
+Error UX (`src/components/finance/__tests__/InvoiceDetailsSheet.approveErrors.test.tsx` — new focused file):
+
+- `FIN_INVOICE_SOURCE_SNAPSHOT_STALE` maps to the actionable Arabic and English copy.
+- `FIN_INVOICE_TOTALS_STALE` maps to the actionable Arabic and English copy.
+- Raw SQLSTATE, `FIN_*` tokens, and Postgres text do not appear in production toasts.
+- Development logging still captures the raw error object.
+
+PDF distribution (extends `src/components/finance/__tests__/InvoicePDFGenerator.paymentDisclosure.test.ts` and new `fetchInvoicePaymentSummary.horseAllocation.test.ts`):
+
+- All four output actions use the same enriched sessions structure (assert via `doExport` and `handleExport` unit-shaped tests).
+- INV-0986 Session 1 fixture renders Cash 250, Card 300, Fatin 400, Maha 150.
+- INV-0986 Session 2 fixture renders Cash 100, Maha 100.
+- Session totals reconcile in integer cents.
+- Missing distribution renders Methods only.
+- Missing horse name uses the localized `unknownHorse` fallback; never UUID/microchip.
+- History OFF omits every session detail.
+- Print and Download HTML content are byte-equivalent for the same options.
+- No payment mutation occurs during output (mocked writer asserted not called).
+
+Verification:
+
+- Focused Vitest passes.
+- TypeScript passes.
+- Production build passes.
+
+No large SQL harness expansion.
+
+## R. Database Changes Required
+
+Exactly one migration:
+
+- Redefine `public._finance_invoice_approve_inline` — payload emission change only.
+- Redefine `public._finance_invoice_compute_totals` — honor per-item `is_taxable` / `tax_rate` when provided.
+- Bundled reverse-SQL for both function bodies.
+
+No schema changes. No new tables. No new columns. No new indexes. No new triggers. No RLS changes. No permission changes.
+
+## S. Persistent Rows Modified
+
+None. Zero `invoices`, `invoice_items`, `ledger_entries`, `payment_sessions`, `payment_allocations`, `payment_horse_allocations`, `customer_balances`, `tenant_services`, `stable_service_plans`, or `tenants` rows are inserted, updated, or deleted by this slice.
+
+## T. Roadmap
+
+- Phase 1 N+1A: closed.
+- Phase 2 N+1B: closed.
+- Phase 3 N+2: closed.
+- Phase 4 N+3:
+  - Slice 1: closed.
+  - Slice 2: functionally delivered.
+  - Slice 2.1: implemented with one PDF disclosure defect (this slice fixes it).
+  - **Slice 2.2A: this plan.**
+  - Slice 3 — Multi-Invoice Payment UI: not started.
+  - Slice 4 — Session detail, receipts, reports, closure: not started.
+- Phase 5 N+4: refunds, reversals, void, chargeback, credit, overpayment. Retail POS excluded.
+
+## U. Next Action
+
+AWAIT USER APPROVAL OF THIS PLAN.
 
 ---
 
-## F. Desktop wireframe (approved shell)
+## APPROVAL HANDOFF — SEND THIS EXACT MESSAGE
 
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│  $  تسجيل دفعة — INV-0986                              [X]      │  sticky
-├──────────────────────────────────────────────────────────────────┤
-│  Invoice Items (grouped by Horse)                    [▼ collapse]│
-│  ┌─────────────────────────────┬─────────────────────────────┐   │
-│  │ 🐴 فاتن (Fatin) — 1 item   │ 🐴 مها (Maha) — 1 item     │   │
-│  │   Emergency Visit  SAR 500  │   General Exam    SAR 150   │   │
-│  │   Subtotal:        SAR 500  │   Subtotal:       SAR 150   │   │
-│  └─────────────────────────────┴─────────────────────────────┘   │
-│  Total: SAR 650   Paid: SAR 0   Outstanding: SAR 650             │
-│                                                                  │
-│  Payment Amount * [       550.00 ]     [ Pay Full Outstanding ]  │
-│  Payment Date  * [ 26  ][ July ][ 2026 ]                         │
-│                                                                  │
-│  Payment Distribution   [Distribute by Items] [Distribute Equal] │
-│  ┌─────────────────────────────┬─────────────────────────────┐   │
-│  │ فاتن   remaining: SAR 500   │ مها    remaining: SAR 150   │   │
-│  │ المبلغ المدفوع [ 400.00 ]   │ المبلغ المدفوع [ 150.00 ]  │   │
-│  │ المتبقي:  SAR 100           │ المتبقي:  SAR 0             │   │
-│  └─────────────────────────────┴─────────────────────────────┘   │
-│                                                                  │
-│  Payment Method Details                    [+ Add Method]        │
-│  Cash    [ 250.00 ]  Ref [        ]      🗑                      │
-│  Card    [ 300.00 ]  Ref [        ]      🗑                      │
-├──────────────────────────────────────────────────────────────────┤  sticky
-│ Amount 550  Allocated 550  Unallocated 0  After 100 │ [Cancel][$│
-└──────────────────────────────────────────────────────────────────┘
-```
+**Authorized:**
 
-Shell: `sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0` (identical to Create Invoice).
+- Approval based on persisted frozen `invoice_items` truth (Step A migration).
+- Future creation-time snapshot consistency (documented in the same migration; no behavior expansion).
+- No broad invoice data repair; INV-0983 and every other invoice/invoice_item row remain untouched.
+- Actionable approval error mapping in `InvoiceDetailsSheet.tsx` and `DashboardFinance.tsx` with new AR/EN i18n keys (Step B).
+- PDF Session Horse/Client distribution correction limited to `fetchInvoicePaymentSummary.ts` and label plumbing (Step C).
+- Focused Vitest coverage per Section Q.
+- TypeScript check.
+- Production build.
 
-## G. Mobile wireframe
+**Prohibited:**
 
-```text
-┌───────────────────────────┐
-│ $ تسجيل دفعة   [X]        │  sticky
-├───────────────────────────┤
-│ Items (2)         [▼]     │
-│ 🐴 Fatin                  │
-│   Emergency Visit  500    │
-│ 🐴 Maha                   │
-│   General Exam     150    │
-│ Outstanding: SAR 650      │
-│                           │
-│ Payment Amount *          │
-│ [       550.00       ]    │
-│ [ Pay Full Outstanding ]  │
-│ Date [26][Jul][2026]      │
-│                           │
-│ Payment Distribution      │
-│ [Distribute by Items]     │
-│ Fatin  remaining 500      │
-│  المبلغ المدفوع [400.00]  │
-│  المتبقي: SAR 100         │
-│ Maha   remaining 150      │
-│  المبلغ المدفوع [150.00]  │
-│  المتبقي: SAR 0           │
-│                           │
-│ Payment Methods           │
-│ Cash [250.00]  🗑         │
-│ Card [300.00]  🗑         │
-│ [+ Add Method]            │
-├───────────────────────────┤  sticky
-│ Allocated 550 / 550       │
-│ [ Cancel ] [ $ تسجيل ]    │
-└───────────────────────────┘
-```
-
-## H. Locked contracts
-
-- **Section order**: Items (grouped by horse) → Payment Amount + Date + "Pay Full Outstanding" → Payment Distribution (buckets) → Payment Methods (tenders) → Sticky summary/footer.
-- **Item grouping**: Group `useInvoiceItems` rows by `horse_id` / `lab_horse_id` / client-level. Header per horse: `الخيل: <name>` — <count> items; body: description + frozen `total_price`; subtotal per horse.
-- **Payment amount**: single input + optional link "Pay Full Outstanding" (Arabic `دفع المبلغ كاملًا`). No Full/Partial segmented control.
-- **Amount-change safety**: when the user changes `paymentAmount` after entering bucket values, the `validateBucketAllocations` result already flips to invalid (sum ≠ payment). We (1) leave user values intact but (2) surface a clear inline `الرصيد غير متطابق` badge and (3) disable Submit until user re-runs a helper or manually rebalances. This never silently trims allocations or auto-invents new ones.
-- **Bucket card labels**: replace `المخصص` → `المبلغ المدفوع`; replace `المتبقي لها` → keep already-neutral `المتبقي`. `Remaining after this allocation = bucket.remaining − input` computed live and rendered under the input.
-- **Allocation helpers**: keep both — "توزيع حسب البنود" (existing `applyProposal`, generalized so it also runs for partial payments) and add "توزيع بالتساوي" (cent-safe equal split respecting caps, with residual-cent redistribution to buckets still under cap). Both are explicit buttons and always editable.
-- **Simple-flow bypass**: when composition has 0 horses (client-level only) OR 1 horse with no client-level, the `PaymentAllocationEditor` block is not rendered; allocation defaults to the sole bucket at submit — same as today.
-- **Tender section**: unchanged behavior (methods, references, split tender, dup guard, idempotency fingerprint), moved below allocation.
-- **Sticky summary**: `مبلغ الدفعة / المبلغ الموزع / غير الموزع / المتبقي بعد الدفع`.
-- **PDF grouping**: for each distinct `payment_session_id`, print one block: header (effective date + recorded time + session total) → "Payment Methods" (tender rows already loaded) → "Payment Distribution" (persisted horse/client rows, when available). Sessions with unknown allocation print methods only. Rows without a session_id (legacy) group under a single "Historical" block, methods only.
-
-## I. Execution-ready plan (4 steps)
-
-### Step 1 — Widen and reorder RecordPaymentDialog
-
-- **Files**: `src/components/finance/RecordPaymentDialog.tsx`.
-- **Current**: `sm:max-w-[550px]`, sections in Items/Methods/Allocation order, label `المخصص`, `المتبقي لها` absent (already), `Pay Full Amount` present.
-- **Proposed**: switch shell className to the Create-Invoice-parity `sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0`; reorder JSX so Amount+Date render first, then `<PaymentAllocationEditor>`, then the tender rows block; keep sticky header/footer; keep dirty-guard.
-- **Financial impact**: none (payload builder untouched).
-- **Payload impact**: none.
-- **PDF impact**: none.
-- **Bilingual impact**: reuses existing keys; no new keys in this step.
-- **Desktop**: two-column-friendly width; grouped items sit comfortably side-by-side.
-- **Mobile**: `w-[95vw]` collapses; existing stacking preserved.
-- **Tests**: new `RecordPaymentDialog.layout.test.tsx` snapshot-asserting section order and dialog max-width class.
-- **Risk**: low; layout only.
-- **Rollback**: revert className + JSX reordering.
-
-### Step 2 — Group Invoice Items by horse & rename allocation labels
-
-- **Files**: `src/components/finance/RecordPaymentDialog.tsx` (Items summary block), `src/components/finance/PaymentAllocationEditor.tsx` (label swap + generalized proposal + equal-distribution helper), `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts`.
-- **Current**: flat items list; labels `المخصص`, `توزيع مقترح` only for full payments.
-- **Proposed**:
-  - Replace items summary block with a helper that buckets items by `horse_id` / `lab_horse_id` / client-level, renders `الخيل: <name>` header + item rows + horse subtotal, respecting `الخيل` (not `حصان`).
-  - In `PaymentAllocationEditor.tsx`: change `finance.payments.allocation.allocated` Arabic value from `المخصص` to `المبلغ المدفوع`; add `finance.payments.allocation.remainingAfter` (`المتبقي`) rendered as live `bucket.remaining − input`; enable `applyProposal` for partial payments too; add `distributeEqually()` with cent-safe residual redistribution respecting caps.
-  - Add keys: `finance.payments.groupedItems.horseHeader`, `.itemCount`, `.subtotal`, `.clientLevel`; rename `finance.payments.allocation.useProposal` label to `توزيع حسب البنود` / `Distribute by Items`; add `finance.payments.allocation.distributeEqually` / `توزيع بالتساوي`.
-- **Financial impact**: none (helpers only fill inputs; all values remain user-editable and pass through existing `validateBucketAllocations`).
-- **Payload impact**: none.
-- **PDF impact**: none.
-- **Bilingual impact**: adds Arabic strings using `الخيل`; no `حصان`, no gendered forms.
-- **Desktop**: horse-grouped items render as a 2-column grid at ≥ md.
-- **Mobile**: single-column stacking.
-- **Tests**:
-  - Extend `src/lib/finance/__tests__/allocationDistribution.test.ts` with equal-distribution + cap-respecting residual redistribution cases.
-  - New `PaymentAllocationEditor.labels.test.tsx`: asserts `المبلغ المدفوع` present, `المخصص` absent from the input label, `المتبقي` updates live.
-  - New `RecordPaymentDialog.itemGrouping.test.tsx`: 1 horse × 5 items groups under one header; 2 horses render distinctly; client-level renders its own group.
-- **Risk**: label change is user-visible; contained via i18n keys.
-- **Rollback**: revert label values + delete `distributeEqually` + revert `applyProposal` gating.
-
-### Step 3 — PDF Payment Session grouping + horse distribution
-
-- **Files**: `src/lib/finance/fetchInvoicePaymentSummary.ts`, `src/components/finance/InvoicePDFGenerator.tsx`, `src/components/finance/InvoiceDetailsSheet.tsx` and `src/components/finance/InvoicesList.tsx` (labels bundle only), `src/i18n/locales/*.ts`.
-- **Current**: PDF prints a flat per-tender table; no session grouping; no distribution.
-- **Proposed**:
-  - Extend `fetchInvoicePaymentSummaryForPdf` to also select `payment_session_id`; then in one round-trip fetch `payment_allocations(id, payment_session_id, client_level_amount, payment_horse_allocations(horse_id, amount))` filtered by `tenant_id`, `invoice_id`, and `IN (session_ids)`; resolve horse names via one `horses` batch select. Return a new `sessions` array shaped `{ sessionId | null, effectiveDate, recordedAt, total, methods:[{method, amount, reference}], distribution?: { horses:[{name, nameAr, amount}], clientLevel?: number } }`. Sessions with no allocation rows or `sessionId === null` omit `distribution`.
-  - Extend `InvoicePDFLabels` with keys: `paymentMethodsHeading`, `paymentDistributionHeading`, `clientLevelLabel`, `horseColumn`, `sessionLabel`.
-  - In `InvoicePDFGenerator.tsx` replace the flat history table with a session-by-session block; each block renders header (localized date + 12h time + session total) → methods sub-table → distribution sub-table (when present). Preserve RTL/LTR, Latin digits, and existing styling; keep sessions grouped visually so page breaks fall between sessions when feasible (`page-break-inside: avoid` on each block).
-  - Extend `InvoiceDetailsSheet.tsx` and `InvoicesList.tsx` labels bundles with the new keys (English + Arabic — Arabic uses `خيل`).
-- **Financial impact**: none (read-only enrichment).
-- **Payload impact**: none.
-- **PDF impact**: new sub-sections inside the existing optional Payment History block; summary (status/paid/outstanding) unchanged.
-- **Bilingual impact**: adds `خيل` distribution heading + `الطرق` methods heading + `التوزيع` label.
-- **Desktop/Mobile**: PDF only; no on-screen change.
-- **Tests**:
-  - Extend `InvoicePDFGenerator.paymentDisclosure.test.ts`:
-    - Session with methods+allocations renders both sub-blocks; distribution shows persisted horse names + amounts.
-    - Session with methods only (no allocation rows) renders methods and omits distribution — no fabricated amounts, no warning banner.
-    - Legacy ledger rows with `payment_session_id = null` group under a single Historical block, methods only.
-    - Print/Download use identical enriched data (single fetch shared by both handlers).
-    - History OFF omits every session block (unchanged privacy behavior).
-- **Risk**: extra allocation query per PDF; scoped to invoice; sessions per invoice are small in practice.
-- **Rollback**: revert `fetchInvoicePaymentSummaryForPdf` shape and PDF template to flat table.
-
-### Step 4 — Realign the stale runtime-wiring test
-
-- **File**: `src/lib/finance/__tests__/n2_5InvoiceRpcRuntimeWiring.test.ts`.
-- **Current**: L126 asserts frontend still calls `.rpc("post_invoice_payments"`; N+2 Slice 3 moved the writer to `post_payment_session` via `src/lib/finance/postPaymentSession.ts`.
-- **Proposed**: change the single frontend-writer assertion to read `src/lib/finance/postPaymentSession.ts` and expect `.rpc("post_payment_session"`. Keep every SQL-migration assertion untouched (the `post_invoice_payments` SQL body still exists in the migration and continues to be verified as internal historical contract).
-- **Financial impact**: none.
-- **Tests**: this test itself; verify green.
-- **Risk**: none if the migration-level checks are preserved; documented as "mechanically proven stale" per §24.
-- **Rollback**: revert single-line change.
-
-## J. Database changes required
-
-**None.** No RPC, no migration, no RLS, no permission, no schema change. All financial reads use existing tables/columns; all financial writes remain via `post_payment_session`.
-
-## K. Files created / modified / production objects / persistent rows
-
-- **Created**: no new source files; tests only (`RecordPaymentDialog.layout.test.tsx`, `PaymentAllocationEditor.labels.test.tsx`, `RecordPaymentDialog.itemGrouping.test.tsx`, expanded existing tests).
-- **Modified**: `RecordPaymentDialog.tsx`, `PaymentAllocationEditor.tsx`, `fetchInvoicePaymentSummary.ts`, `InvoicePDFGenerator.tsx`, `InvoiceDetailsSheet.tsx`, `InvoicesList.tsx`, `src/i18n/locales/en.ts`, `src/i18n/locales/ar.ts`, `n2_5InvoiceRpcRuntimeWiring.test.ts`, `allocationDistribution.test.ts`, `InvoicePDFGenerator.paymentDisclosure.test.ts`.
-- **Production DB objects modified**: none.
-- **Persistent rows modified**: none.
-
-## L. Manual acceptance scenarios
-
-Executed per §28 — 1 horse × N items, INV-0986 full, INV-0986 partial, equal distribution (partial), PDF w/o History, PDF w/ History (horses printed), multi-session invoice (each session grouped independently).
-
-## M. Roadmap after this slice
-
-- N+3 Slice 2 → CLOSED after this Slice 2.1.
-- N+3 Slice 3 (Multi-Invoice UI) → NOT STARTED.
-- N+3 Slice 4 (session detail / receipts) → NOT STARTED.
-- N+4 → NOT STARTED.
-
-## N. Next exact action
-
-`AWAIT USER APPROVAL OF THE SLICE-2 UX AND PDF ALLOCATION PLAN.`
-
----
-
-`APPROVAL HANDOFF — SEND THIS EXACT MESSAGE`
-
-> Approved. Execute Phase N+3 Slice 2.1 exactly as planned: (1) widen `RecordPaymentDialog` to the Create-Invoice shell and reorder sections to Items(grouped-by-horse) → Amount + "Pay Full Outstanding" → Payment Distribution → Payment Methods → sticky summary; (2) group invoice items by horse using `الخيل`, rename the bucket input label to `المبلغ المدفوع`, render live `المتبقي` under each bucket, generalize `Distribute by Items` for partial payments, and add cent-safe `Distribute Equally`; (3) extend `fetchInvoicePaymentSummaryForPdf` to select `payment_session_id` and batch-load `payment_allocations` + `payment_horse_allocations` + horse names, and rewrite the PDF Payment History block into per-session groups with Payment Methods and Payment Distribution sub-sections, omitting distribution when allocation rows are missing; (4) realign the single stale frontend-writer assertion in `n2_5InvoiceRpcRuntimeWiring.test.ts` from `post_invoice_payments` to `post_payment_session` while preserving every SQL-migration assertion. Add only the files listed in §K, add the specified bilingual keys (Arabic uses `الخيل` in the dialog and `خيل` in the PDF per the locked contract), and run the focused tests, `bunx tsgo --noEmit`, and `bun run build`; report counts.
->
-> Do NOT modify the payment backend, `post_payment_session`, `get_payment_session`, RPCs, migrations, RLS, permissions, invoice rows, ledger rows, payment sessions, payment allocations, horse allocations, customer balances, idempotency semantics, or the Payment PDF privacy toggle from Slice 1. Do NOT begin Multi-Invoice Payment UI, item-level payment ledger, horse ledger, installment schedules, refunds, reversals, void, chargeback, credit, overpayment, or Retail POS.
+- Changing Approved invoice history.
+- Broad Draft/Reviewed resynchronization.
+- Speculative migrations.
+- Payment Dialog changes (topic closed as no-op).
+- New Payment writer architecture.
+- Multi-Invoice Payment UI (Slice 3).
+- Refunds, reversals, credit, overpayment (Phase 5).
+- Retail POS.
