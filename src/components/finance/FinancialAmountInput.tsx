@@ -97,13 +97,10 @@ export const FinancialAmountInput = React.forwardRef<
   }
 
   function handleWheel(e: React.WheelEvent<HTMLInputElement>) {
-    // Native <input type=number> would mutate the value on wheel. We render
-    // as text, so nothing happens — but if the element is focused browsers
-    // may still let the value creep; blur it to be safe. We do NOT stop
-    // propagation so the parent ScrollArea keeps scrolling.
-    if (document.activeElement === e.currentTarget) {
-      (e.currentTarget as HTMLInputElement).blur();
-    }
+    // Slice 3.3.2 — never blur, never preventDefault/stopPropagation on wheel.
+    // The input renders as text so wheel cannot mutate its value; letting the
+    // event propagate keeps the parent workspace scrolling naturally while
+    // the input retains focus.
     onWheel?.(e);
   }
 
