@@ -43,7 +43,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice, type InvoicePDFLabels } from "./InvoicePDFGenerator";
 import { InvoicePrintOptionsDialog, type InvoicePrintAction } from "./InvoicePrintOptionsDialog";
-import type { InvoicePaymentSummaryForPdf } from "@/lib/finance/fetchInvoicePaymentSummary";
+import { fetchInvoicePaymentSummaryForPdf } from "@/lib/finance/fetchInvoicePaymentSummary";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import {
@@ -570,33 +570,17 @@ export function InvoiceDetailsSheet({
     },
   });
 
-  const buildPdfPaymentSummary = (): InvoicePaymentSummaryForPdf | null => {
-    if (!paymentSummary) return null;
-    const status: "unpaid" | "partial" | "paid" = paymentSummary.isPaid
-      ? "paid"
-      : paymentSummary.isPartial
-        ? "partial"
-        : "unpaid";
-    return {
-      status,
-      paidAmount: paymentSummary.paidAmount,
-      outstandingAmount: paymentSummary.outstandingAmount,
-      totalAmount: paymentSummary.totalAmount,
-      payments: paymentSummary.payments.map((p) => ({
-        id: p.id,
-        amount: p.amount,
-        payment_method: p.payment_method,
-        effective_date: p.effective_date,
-        created_at: p.created_at,
-        reference: p.description ?? null,
-      })),
-    };
-  };
-
   const handleExport = async (action: "download" | "print", includePaymentHistory: boolean) => {
     if (!invoice) return;
-    const summary = buildPdfPaymentSummary();
     try {
+      // Slice 2.2C: route the Details-drawer export through the enriched
+      // fetcher so `sessions` / `horseAllocations` / `clientLevelAmount` are
+      // populated. Building the summary from `useInvoicePayments` alone
+      // omitted these fields and forced the flat legacy renderer.
+      const tenantId = (invoice as any).tenant_id || activeTenant?.tenant?.id;
+      const summary = tenantId
+        ? await fetchInvoicePaymentSummaryForPdf(tenantId, invoice.id)
+        : null;
       const opts = {
         invoice,
         items,
