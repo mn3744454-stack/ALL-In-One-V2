@@ -79,42 +79,20 @@ export const FinancialAmountInput = React.forwardRef<
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
-    const normalized = normalizeDraft(raw);
-    if (normalized !== "" && !NUMERIC_DRAFT_RE.test(normalized)) {
-      // Reject invalid characters entirely — do not update draft or commit.
-      onInvalidDraft?.(raw, "malformed");
+    const outcome = evaluateDraft(raw, { max, decimals });
+    if (outcome.kind === "invalid") {
+      onInvalidDraft?.(raw, outcome.reason);
+      // For over-max we still surface the draft locally so the user sees
+      // what they typed; for malformed we drop the character entirely.
+      if (outcome.reason === "over-max") setDraft(outcome.normalized);
       return;
     }
-    setDraft(normalized);
-
-    if (normalized === "" || normalized === ".") {
-      onValueChange(null);
-      return;
-    }
-    const parsed = parseFloat(normalized);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      onInvalidDraft?.(raw, "malformed");
-      return;
-    }
-    if (typeof max === "number" && parsed > max + 1e-9) {
-      // Draft exceeds cap — keep locally, do NOT commit upward.
-      onInvalidDraft?.(raw, "over-max");
-      return;
-    }
-    // Round to `decimals` cents so we never leak sub-cent noise into totals.
-    const factor = Math.pow(10, decimals);
-    const rounded = Math.round(parsed * factor) / factor;
-    onValueChange(rounded);
+    setDraft(outcome.normalized);
+    onValueChange(outcome.value);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    // Block characters that would produce non-decimal money values.
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-    }
-    if (e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
-      e.preventDefault();
-    }
+    if (shouldBlockKey(e.key)) e.preventDefault();
     onKeyDown?.(e);
   }
 
