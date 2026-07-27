@@ -53,7 +53,39 @@ export interface InvoiceCompositionSummary {
   taxTotal: number;
   priorTotal: number;
   remainingTotal: number;
+  /** Slice 3.2 — frozen parent items for read-only display in accordion body. */
+  items: FrozenInvoiceItem[];
 }
+
+/** Slice 3.2 — frozen invoice_items row projection for display only. */
+export interface FrozenInvoiceItem {
+  id: string;
+  position: number;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  line_pretax_amount: number;
+  line_tax_amount: number;
+  line_gross_amount: number;
+  horse_id: string | null;
+  lab_horse_id: string | null;
+  service_id: string | null;
+  service_name_snapshot: string | null;
+  service_name_ar_snapshot: string | null;
+  package_id: string | null;
+  package_name_snapshot: string | null;
+  package_name_ar_snapshot: string | null;
+  package_services_snapshot: Array<{
+    name?: string | null;
+    name_ar?: string | null;
+    quantity?: number | null;
+  }> | null;
+  horse_name: string | null;
+  horse_name_ar: string | null;
+  lab_horse_name: string | null;
+  lab_horse_name_ar: string | null;
+}
+
 
 
 export function useInvoicePriorAllocations(invoiceId?: string | null) {
