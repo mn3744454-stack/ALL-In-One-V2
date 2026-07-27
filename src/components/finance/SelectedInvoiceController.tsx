@@ -21,7 +21,7 @@ import {
   type InvoiceBucket,
   type InvoiceCompositionSummary,
 } from "@/hooks/finance/useInvoicePriorAllocations";
-import { InvoiceItemsAccordionBody } from "./InvoiceItemsAccordionBody";
+
 import {
   CLIENT_LEVEL_BUCKET_KEY,
   validateBucketAllocations,
