@@ -18,6 +18,9 @@ const CODE_TO_KEY: Record<string, string> = {
   FIN_INVOICE_NOT_APPROVABLE: "finance.invoices.approveErrors.notApprovable",
   FIN_INVOICE_ITEMS_INVALID: "finance.invoices.approveErrors.itemsInvalid",
   FIN_ITEMS_EMPTY: "finance.invoices.approveErrors.itemsEmpty",
+  // Slice 2.2B — payload-shape drift between frontend and installed whitelist.
+  // Kept opaque to end users; instructs a refresh + support escalation.
+  FIN_PAYLOAD_UNKNOWN_KEY: "finance.invoices.approveErrors.payloadUnknownKey",
 };
 
 export function approveInvoiceErrorMessage(error: unknown, t: TFn): string {
