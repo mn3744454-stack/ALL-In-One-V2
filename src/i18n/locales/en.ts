@@ -4134,7 +4134,6 @@ export const en = {
         remainingAfter: "Remaining",
         distributeEqually: "Distribute Equally",
 
-        distributeEqually: "Distribute Equally",
         resetProposal: "Reset",
         remainderMismatch: "Allocations must equal the payment amount and stay within each remaining balance.",
         balanced: "Allocation matches payment amount",
