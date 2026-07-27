@@ -152,13 +152,18 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
       </div>
 
       {canCreate && (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={() => setShowClientPicker(true)}>
+            <DollarSign className="w-4 h-4 me-2" />
+            {t("finance.multiInvoicePayment.recordClientPayment")}
+          </Button>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 me-2" />
             {t("finance.invoices.create")}
           </Button>
         </div>
       )}
+
 
       <InvoicesList
         invoices={invoices}
