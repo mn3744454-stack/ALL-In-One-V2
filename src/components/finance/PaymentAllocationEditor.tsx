@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { AlertCircle, User, Users, Package } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
@@ -33,9 +32,12 @@ interface PaymentAllocationEditorProps {
 }
 
 /**
- * Slice-2 allocation editor. Emits per-bucket string amounts upward; the
- * dialog is responsible for turning them into a BucketAllocation[] for the
- * writer at submit time.
+ * Slice 2.2E allocation editor. Only two actions: Distribute Equally + Reset.
+ * Manual auto-completion: when the user edits a bucket and exactly one other
+ * bucket remains "unresolved" (never explicitly touched by the user since the
+ * last reset), the untouched bucket receives the valid remainder. An auto-
+ * generated value is NOT treated as a user-touched value, so in the two-bucket
+ * case the "other" bucket is always the complement of the last edit.
  */
 export function PaymentAllocationEditor({
   composition,
@@ -50,17 +52,16 @@ export function PaymentAllocationEditor({
   const isRtl = dir === "rtl";
   const fmt = (n: number) => formatCurrency(n, currency);
 
-  const bucketByKey = useMemo(() => {
-    const map = new Map<string, InvoiceBucket>();
-    for (const b of composition.buckets) map.set(b.key, b);
-    return map;
-  }, [composition.buckets]);
-
   const remainingByBucketKey = useMemo(() => {
     const r: Record<string, number> = {};
     for (const b of composition.buckets) r[b.key] = b.remaining;
     return r;
   }, [composition.buckets]);
+
+  // Track which bucket keys the USER has explicitly edited since last reset.
+  // Values written by auto-completion do NOT mark a key as touched, so the
+  // two-bucket "always complement" behavior holds across successive edits.
+  const touchedRef = useRef<Set<string>>(new Set());
 
   const numericBuckets: BucketAllocation[] = useMemo(
     () =>
@@ -92,24 +93,38 @@ export function PaymentAllocationEditor({
     onValidityChange?.(validation.ok === true);
   }, [validation, onValidityChange]);
 
-  const isFullPayment = Math.abs(paymentAmount - composition.remainingTotal) < 0.01;
-
   function updateBucket(key: string, next: string) {
-    onChange({ ...value, [key]: next });
-  }
+    // Mark THIS key as user-touched.
+    touchedRef.current.add(key);
 
-  function applyProposal() {
-    // Fill each bucket with its remaining attributable, capped so the total
-    // equals paymentAmount (identity when paymentAmount === remainingTotal).
-    const next: Record<string, string> = {};
-    let left = paymentAmount;
-    for (const b of composition.buckets) {
-      const share = Math.min(b.remaining, left);
-      const rounded = Math.round(share * 100) / 100;
-      next[b.key] = rounded > 0 ? rounded.toFixed(2) : "";
-      left = Math.round((left - rounded) * 100) / 100;
+    const draft: Record<string, string> = { ...value, [key]: next };
+
+    // Locate a single "unresolved" other bucket. An unresolved bucket is one
+    // that the user has NOT explicitly edited since the last reset.
+    const otherKeys = composition.buckets
+      .map((b) => b.key)
+      .filter((k) => k !== key && !touchedRef.current.has(k));
+
+    if (otherKeys.length === 1) {
+      const target = otherKeys[0];
+      const cap = remainingByBucketKey[target] ?? 0;
+      // Sum of every bucket EXCEPT the auto-target, using integer cents.
+      const totalCents = Math.round(paymentAmount * 100);
+      let sumOtherCents = 0;
+      for (const b of composition.buckets) {
+        if (b.key === target) continue;
+        sumOtherCents += Math.round(parseAmount(draft[b.key]) * 100);
+      }
+      const complementCents = totalCents - sumOtherCents;
+      const capCents = Math.round(cap * 100);
+      if (Number.isFinite(complementCents) && complementCents >= 0 && complementCents <= capCents) {
+        draft[target] = complementCents > 0 ? (complementCents / 100).toFixed(2) : "";
+      }
+      // If invalid (negative or over cap), leave `target` at whatever it was.
+      // The validator will surface FIN_HORSE_ALLOCATION_MISMATCH.
     }
-    onChange(next);
+
+    onChange(draft);
   }
 
   function distributeEqually() {
@@ -120,6 +135,7 @@ export function PaymentAllocationEditor({
     const eligible = composition.buckets.filter((b) => b.remaining > 0.005);
     if (eligible.length === 0 || paymentAmount <= 0) {
       onChange(next);
+      touchedRef.current = new Set(composition.buckets.map((b) => b.key));
       return;
     }
     const capsCents = new Map<string, number>(
@@ -127,10 +143,8 @@ export function PaymentAllocationEditor({
     );
     const assignedCents = new Map<string, number>(eligible.map((b) => [b.key, 0]));
     let remainingCents = Math.round(paymentAmount * 100);
-    let active = new Set(eligible.map((b) => b.key));
+    const active = new Set(eligible.map((b) => b.key));
 
-    // Iterative equal-share pass; each round distributes floor(remaining/N)
-    // to active buckets and retires any that hit their cap.
     while (remainingCents > 0 && active.size > 0) {
       const share = Math.floor(remainingCents / active.size);
       if (share === 0) break;
@@ -144,7 +158,6 @@ export function PaymentAllocationEditor({
         if (cur + give >= cap) active.delete(key);
       }
     }
-    // Distribute any 1-cent residual to active buckets in order.
     for (const key of Array.from(active)) {
       if (remainingCents <= 0) break;
       const cap = capsCents.get(key)!;
@@ -157,24 +170,19 @@ export function PaymentAllocationEditor({
     for (const [key, cents] of assignedCents) {
       next[key] = cents > 0 ? (cents / 100).toFixed(2) : "";
     }
+    // Equal distribution assigns every eligible bucket a deterministic value,
+    // so mark every bucket touched — no auto-completion should override.
+    touchedRef.current = new Set(composition.buckets.map((b) => b.key));
     onChange(next);
   }
 
   function resetAllocations() {
     const next: Record<string, string> = {};
     for (const b of composition.buckets) next[b.key] = "";
+    touchedRef.current = new Set();
     onChange(next);
   }
 
-  function assignRemainderTo(key: string) {
-    const current = parseAmount(value[key]);
-    const cap = remainingByBucketKey[key] ?? 0;
-    const desired = Math.round((current + unallocated) * 100) / 100;
-    const capped = Math.max(0, Math.min(cap, desired));
-    updateBucket(key, capped > 0 ? capped.toFixed(2) : "");
-  }
-
-  // Item-to-horse display list.
   const itemsByBucket = useMemo(() => {
     const map = new Map<string, Array<{ description: string; total_price: number }>>();
     for (const it of invoiceItems) {
@@ -194,16 +202,11 @@ export function PaymentAllocationEditor({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Label className="text-sm font-medium">
           {t("finance.payments.allocation.title")}
         </Label>
         <div className="flex gap-2 flex-wrap">
-          {isFullPayment && (
-            <Button type="button" size="sm" variant="outline" onClick={applyProposal}>
-              {t("finance.payments.allocation.useProposal")}
-            </Button>
-          )}
           {paymentAmount > 0 && composition.buckets.length > 1 && (
             <Button type="button" size="sm" variant="outline" onClick={distributeEqually}>
               {t("finance.payments.allocation.distributeEqually")}
@@ -292,47 +295,11 @@ export function PaymentAllocationEditor({
                     )}
                   </div>
                 </div>
-                {unallocated > 0.005 && bucket.remaining > 0.005 && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => assignRemainderTo(bucket.key)}
-                    className="h-9"
-                  >
-                    {t("finance.payments.allocation.assignAll")}
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
         );
       })}
-
-      <Separator />
-      <div className="space-y-1 text-sm">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">
-            {t("finance.payments.allocation.allocated")}
-          </span>
-          <span className="font-mono tabular-nums" dir="ltr">{fmt(allocatedTotal)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">
-            {t("finance.payments.totalPayment")}
-          </span>
-          <span className="font-mono tabular-nums" dir="ltr">{fmt(paymentAmount)}</span>
-        </div>
-        <div className="flex justify-between font-medium">
-          <span>{t("finance.payments.allocation.unallocated")}</span>
-          <span
-            className={`font-mono tabular-nums ${Math.abs(unallocated) < 0.01 ? "text-success" : "text-warning"}`}
-            dir="ltr"
-          >
-            {fmt(unallocated)}
-          </span>
-        </div>
-      </div>
 
       {validation.ok === false && paymentAmount > 0 && (
         <Alert variant="destructive" className="py-2">
@@ -355,7 +322,6 @@ export function PaymentAllocationEditor({
 }
 
 function sanitize(v: string): string {
-  // Keep digits and at most one decimal separator; clamp to 2 decimals.
   const cleaned = v.replace(/[^0-9.]/g, "");
   const parts = cleaned.split(".");
   if (parts.length <= 1) return cleaned;
