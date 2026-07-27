@@ -4097,8 +4097,9 @@ export const ar = {
       payFullOutstanding: "دفع المبلغ كاملاً",
       paymentAmount: "مبلغ الدفعة",
       paymentMethodDetails: "تفاصيل طريقة الدفع",
-      totalPayment: "إجمالي الدفعة",
+      totalPayment: "إجمالي المدفوعات",
       outstandingAfter: "المتبقي بعد الدفع",
+
       willBeFullyPaid: "سيتم السداد كاملاً",
       alreadyPaid: "هذه الفاتورة مدفوعة بالكامل",
       overpaymentError: "مبلغ الدفع يتجاوز الرصيد المتبقي",
@@ -4144,18 +4145,21 @@ export const ar = {
         duplicateAllocation: "تم إدخال نفس الفاتورة وطريقة الدفع مرتين.",
       },
       allocation: {
-        title: "توزيع الدفعة",
+        title: "توزيع المدفوعات",
         horseLabel: "الخيل",
         clientLevel: "بنود على مستوى العميل",
         remaining: "المتبقي",
         allocated: "المبلغ المدفوع",
         remainingAfter: "المتبقي",
+        pretax: "الخدمات / قبل الضريبة",
+        tax: "الضريبة",
+        totalDue: "الإجمالي المستحق",
         distributeEqually: "توزيع بالتساوي",
-
         resetProposal: "إعادة تعيين",
         remainderMismatch: "يجب أن يساوي مجموع التخصيصات مبلغ الدفعة وألا يتجاوز الرصيد المتبقي لأي خيل.",
         balanced: "التوزيع مطابق لمبلغ الدفعة",
       },
+
     },
     paymentMethods: {
       cash: "نقدي",
