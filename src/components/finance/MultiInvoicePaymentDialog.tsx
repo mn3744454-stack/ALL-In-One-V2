@@ -370,21 +370,80 @@ export function MultiInvoicePaymentDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-3 shrink-0 border-b">
-          <DialogTitle>{t("finance.multiInvoicePayment.title")}</DialogTitle>
-          <DialogDescription className="min-w-0">
-            <span className="block">{t("finance.multiInvoicePayment.description")}</span>
-            {client && (
-              <span className="mt-1 flex items-baseline gap-1 min-w-0 text-foreground">
-                <span aria-hidden="true">—</span>
-                <BilingualClientName
-                  client={client}
-                  primaryClassName="font-medium"
-                />
-              </span>
-            )}
-          </DialogDescription>
+        <DialogHeader className="p-4 md:p-5 pb-3 shrink-0 border-b">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-4 min-w-0">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-base md:text-lg">
+                {t("finance.multiInvoicePayment.title")}
+              </DialogTitle>
+              <DialogDescription className="min-w-0 mt-1">
+                <span className="sr-only">
+                  {t("finance.multiInvoicePayment.description")}
+                </span>
+                {client && (
+                  <span className="flex items-baseline gap-1 min-w-0 text-foreground text-xs md:text-sm">
+                    <BilingualClientName
+                      client={client}
+                      primaryClassName="font-medium"
+                    />
+                  </span>
+                )}
+              </DialogDescription>
+            </div>
+
+            {/* Slice 3.3.1 — four KPIs inside the sticky header */}
+            <div
+              data-testid="multi-invoice-header-kpis"
+              className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 lg:ms-auto shrink-0 pe-8 lg:pe-10"
+            >
+              {[
+                {
+                  testId: "kpi-eligible-invoices",
+                  label: t("finance.multiInvoicePayment.summary.eligibleCount"),
+                  value: String(invoices.length),
+                },
+                {
+                  testId: "kpi-total-outstanding",
+                  label: t("finance.multiInvoicePayment.summary.totalOutstanding"),
+                  value: fmt(totalEligibleOutstanding),
+                  ltr: true,
+                },
+                {
+                  testId: "kpi-selected-invoices",
+                  label: t("finance.multiInvoicePayment.summary.selectedCount"),
+                  value: t("finance.multiInvoicePayment.pageIndicator")
+                    .replace("{{current}}", String(selectedInvoices.length))
+                    .replace("{{total}}", String(invoices.length)),
+                },
+                {
+                  testId: "kpi-selected-outstanding",
+                  label: t("finance.multiInvoicePayment.summary.selectedOutstanding"),
+                  value: fmt(
+                    selectedInvoices.reduce((s, i) => s + i.outstanding, 0),
+                  ),
+                  ltr: true,
+                },
+              ].map((cell) => (
+                <div
+                  key={cell.testId}
+                  data-testid={cell.testId}
+                  className="rounded-md border bg-muted/30 px-2.5 py-1.5 flex flex-col items-start min-w-[7rem]"
+                >
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
+                    {cell.label}
+                  </span>
+                  <span
+                    dir={cell.ltr ? "ltr" : undefined}
+                    className="text-sm font-semibold tabular-nums mt-0.5"
+                  >
+                    {cell.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </DialogHeader>
+
 
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
