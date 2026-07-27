@@ -4143,6 +4143,31 @@ export const en = {
       },
 
     },
+    multiInvoicePayment: {
+      title: "Record Client Payment",
+      description: "Record one atomic payment across multiple outstanding invoices for this client.",
+      openAction: "Record Client Payment",
+      eligibleInvoices: "Outstanding Invoices",
+      selectedInvoices: "selected",
+      noEligibleInvoices: "This client has no outstanding invoices in the tenant currency.",
+      distributeOldestFirst: "Distribute Oldest First",
+      allocatedToInvoices: "Allocated to Invoices",
+      difference: "Difference",
+      record: "Record Payment",
+      success: "Payment recorded across selected invoices",
+      errors: {
+        perInvoiceOver: "One or more invoice allocations exceed the outstanding balance:",
+        duplicateTender: "Two payment methods share the same reference. Use distinct references or merge them.",
+        tooManyRows: "This payment would create too many allocation rows for a single session.",
+        needsAllocationEditor: "One of the selected invoices needs the single-invoice allocation editor. Open it from the invoice details.",
+      },
+    },
+    invoiceStats: {
+      totalInvoices: "Total Invoices",
+      pendingInvoices: "Pending Invoices",
+      paidAmount: "Paid Amount",
+      overdueAmount: "Overdue Amount",
+    },
     paymentMethods: {
       cash: "Cash",
       card: "Card",
