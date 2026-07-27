@@ -588,14 +588,33 @@ export function RecordPaymentDialog({
           )}
         </div>
 
-        {/* Sticky Footer */}
-        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row sm:items-center">
+        {/* Sticky Footer — compact: totals + actions only */}
+        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-3 border-t gap-3 flex-col sm:flex-row sm:items-center">
           {!summary?.isPaid && (
-            <MissingRequirementsBar
-              issues={attemptedSubmit ? missingIssues : []}
-              attempted={attemptedSubmit}
-              className="flex-1 w-full sm:w-auto"
-            />
+            <div className="flex flex-col gap-0.5 text-sm flex-1 w-full sm:w-auto">
+              <div className="flex justify-between sm:justify-start sm:gap-3">
+                <span className="text-muted-foreground">
+                  {t("finance.payments.totalPayment")}
+                </span>
+                <span
+                  className="font-mono tabular-nums font-semibold"
+                  dir="ltr"
+                >
+                  {formatAmount(totalPayment)}
+                </span>
+              </div>
+              <div className="flex justify-between sm:justify-start sm:gap-3">
+                <span className="text-muted-foreground">
+                  {t("finance.payments.outstandingAfter")}
+                </span>
+                <span
+                  className={`font-mono tabular-nums font-semibold ${outstandingAfter <= 0.01 && totalPayment > 0 ? "text-success" : "text-warning"}`}
+                  dir="ltr"
+                >
+                  {formatAmount(outstandingAfter)}
+                </span>
+              </div>
+            </div>
           )}
           <div className="flex gap-2 sm:ms-auto">
             <DialogClose asChild>
@@ -623,6 +642,7 @@ export function RecordPaymentDialog({
             )}
           </div>
         </DialogFooter>
+
     </SafeFormDialog>
   );
 }
