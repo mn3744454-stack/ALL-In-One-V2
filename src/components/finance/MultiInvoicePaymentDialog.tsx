@@ -552,10 +552,18 @@ export function MultiInvoicePaymentDialog({
         {/* Sticky footer — compact single row */}
         <div className="border-t bg-background px-6 py-3 shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-4 text-sm flex-wrap">
               <div>
                 <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.multiInvoicePayment.allocatedToInvoices")}
+                  {t("finance.multiInvoicePayment.totalPayments")}
+                </div>
+                <div dir="ltr" className="font-semibold tabular-nums">
+                  {fmt(tenderTotal)}
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase text-muted-foreground">
+                  {t("finance.multiInvoicePayment.allocatedToInvoicesShort")}
                 </div>
                 <div dir="ltr" className="font-semibold tabular-nums">
                   {fmt(invoiceAllocationTotal)}
@@ -563,7 +571,7 @@ export function MultiInvoicePaymentDialog({
               </div>
               <div>
                 <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.multiInvoicePayment.remainingToAllocate")}
+                  {t("finance.multiInvoicePayment.remainingToAllocateShort")}
                 </div>
                 <div
                   dir="ltr"
@@ -575,6 +583,7 @@ export function MultiInvoicePaymentDialog({
                 </div>
               </div>
             </div>
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
