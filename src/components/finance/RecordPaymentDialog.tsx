@@ -85,23 +85,14 @@ export function RecordPaymentDialog({
   const [bucketValues, setBucketValues] = useState<Record<string, string>>({});
   const [allocationValid, setAllocationValid] = useState(false);
 
-  // Initialize with one empty row
-  const [rows, setRows] = useState<PaymentRow[]>([
-    { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" },
-  ]);
+  // Tender rows shared with the multi-invoice dialog via PaymentTenderEditor.
+  const [rows, setRows] = useState<TenderRow[]>(makeInitialTenderRows);
   const [paymentDate, setPaymentDate] = useState(getRiyadhDateString);
 
-  // Reset rows when dialog opens/closes or invoice changes. A fresh open
-  // clears any pending idempotency key so the next submit is a new session.
   useEffect(() => {
     if (open && summary) {
       setPaymentDate(getRiyadhDateString());
-      setRows([{
-        id: crypto.randomUUID(),
-        method: "cash",
-        amount: summary.outstandingAmount > 0 ? "" : "",
-        reference: ""
-      }]);
+      setRows(makeInitialTenderRows());
       setBucketValues({});
     }
     if (!open) {
@@ -109,7 +100,6 @@ export function RecordPaymentDialog({
       setBucketValues({});
     }
   }, [open, invoiceId, summary, resetIdempotency]);
-
 
   // Computed values
   const totalPayment = useMemo(() => {
@@ -154,26 +144,12 @@ export function RecordPaymentDialog({
     return issues;
   }, [paymentDate, totalPayment, hasInvalidAmount, hasMissingMethod, t]);
 
-  // Handlers
-  const addRow = () => {
-    setRows([...rows, { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" }]);
-  };
-
-  const removeRow = (id: string) => {
-    if (rows.length > 1) {
-      setRows(rows.filter((r) => r.id !== id));
-    }
-  };
-
-  const updateRow = (id: string, field: keyof PaymentRow, value: string) => {
-    setRows(rows.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
-  };
-
   const fillFullAmount = () => {
     if (summary && rows.length === 1) {
       setRows([{ ...rows[0], amount: summary.outstandingAmount.toFixed(2) }]);
     }
   };
+
 
   const handleSubmit = async () => {
     if (!canRecordPayment) return;
