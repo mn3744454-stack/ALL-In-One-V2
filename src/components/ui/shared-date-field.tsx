@@ -130,7 +130,7 @@ export function SharedDateField({
         dir="ltr"
         className={cn(
           "grid gap-1.5 items-end",
-          "grid-cols-[minmax(56px,68px)_minmax(112px,1fr)_minmax(76px,88px)]",
+          "grid-cols-[minmax(56px,68px)_minmax(112px,1fr)_minmax(76px,88px)] md:grid-cols-[minmax(56px,68px)_minmax(112px,10rem)_minmax(76px,88px)] md:justify-start",
         )}
       >
         {/* Day */}
