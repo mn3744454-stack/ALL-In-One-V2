@@ -142,7 +142,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.overdue)}</p>
+                <p className="text-2xl font-bold text-navy">{stats.overdueCount}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.overdueAmount")}</p>
               </div>
             </div>
