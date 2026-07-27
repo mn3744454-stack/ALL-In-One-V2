@@ -27,7 +27,15 @@ export interface InvoiceBucket {
   labHorseId?: string;
   label: string;
   labelAr?: string | null;
+  /**
+   * Frozen gross amount = pretax + line tax, taken from
+   * `invoice_items.line_gross_amount`. Backend validation
+   * (`post_payment_session`) enforces per-bucket caps against this same
+   * frozen sum, so it is the sole authority for allocation capacity.
+   */
   gross: number;
+  pretax: number;
+  tax: number;
   prior: number;
   remaining: number;
 }
@@ -41,9 +49,12 @@ export interface InvoiceCompositionSummary {
   distinctHorses: number;
   distinctLabHorses: number;
   grossTotal: number;
+  pretaxTotal: number;
+  taxTotal: number;
   priorTotal: number;
   remainingTotal: number;
 }
+
 
 export function useInvoicePriorAllocations(invoiceId?: string | null) {
   const { activeTenant } = useTenant();
@@ -57,7 +68,9 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
 
       const { data: items, error: itemsErr } = await supabase
         .from("invoice_items")
-        .select("id, description, total_price, horse_id, lab_horse_id")
+        .select(
+          "id, description, total_price, line_pretax_amount, line_tax_amount, line_gross_amount, horse_id, lab_horse_id",
+        )
         .eq("invoice_id", invoiceId);
       if (itemsErr) {
         console.error("useInvoicePriorAllocations items", itemsErr);
@@ -68,39 +81,61 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         id: string;
         description: string;
         total_price: number;
+        line_pretax_amount: number | string | null;
+        line_tax_amount: number | string | null;
+        line_gross_amount: number | string | null;
         horse_id: string | null;
         lab_horse_id: string | null;
       };
       const rows = (items ?? []) as Row[];
 
-      // Aggregate gross per bucket key.
+      // Aggregate GROSS per bucket key (frozen line_gross_amount is the
+      // canonical financial authority). Pretax and tax are aggregated in
+      // parallel purely for display inside the allocation editor.
       const grossByKey = new Map<string, number>();
+      const pretaxByKey = new Map<string, number>();
+      const taxByKey = new Map<string, number>();
       const horseIds = new Set<string>();
       const labHorseIds = new Set<string>();
       let hasClientLevel = false;
       let hasLabHorseOnly = false;
 
       for (const r of rows) {
-        const total = Number(r.total_price) || 0;
-        if (total <= 0) continue;
+        // Prefer frozen line_gross_amount. Fall back to total_price only for
+        // pre-J1 legacy rows (identity check enforces gross = pretax + tax
+        // on all rows written after the tax freeze).
+        const gross =
+          r.line_gross_amount != null
+            ? Number(r.line_gross_amount)
+            : Number(r.total_price) || 0;
+        const pretax =
+          r.line_pretax_amount != null
+            ? Number(r.line_pretax_amount)
+            : Number(r.total_price) || 0;
+        const tax = r.line_tax_amount != null ? Number(r.line_tax_amount) : 0;
+        if (gross <= 0) continue;
+        const addTo = (map: Map<string, number>, key: string, v: number) =>
+          map.set(key, (map.get(key) ?? 0) + v);
         if (r.horse_id) {
           horseIds.add(r.horse_id);
-          grossByKey.set(r.horse_id, (grossByKey.get(r.horse_id) ?? 0) + total);
+          addTo(grossByKey, r.horse_id, gross);
+          addTo(pretaxByKey, r.horse_id, pretax);
+          addTo(taxByKey, r.horse_id, tax);
         } else if (r.lab_horse_id) {
           labHorseIds.add(r.lab_horse_id);
           hasLabHorseOnly = true;
-          // lab-horse-only rows go into a separate lab bucket key so the caller
-          // can decide whether to allow them; we still track them here.
           const key = `lab:${r.lab_horse_id}`;
-          grossByKey.set(key, (grossByKey.get(key) ?? 0) + total);
+          addTo(grossByKey, key, gross);
+          addTo(pretaxByKey, key, pretax);
+          addTo(taxByKey, key, tax);
         } else {
           hasClientLevel = true;
-          grossByKey.set(
-            CLIENT_LEVEL_BUCKET_KEY,
-            (grossByKey.get(CLIENT_LEVEL_BUCKET_KEY) ?? 0) + total,
-          );
+          addTo(grossByKey, CLIENT_LEVEL_BUCKET_KEY, gross);
+          addTo(pretaxByKey, CLIENT_LEVEL_BUCKET_KEY, pretax);
+          addTo(taxByKey, CLIENT_LEVEL_BUCKET_KEY, tax);
         }
       }
+
 
       // Prior allocations from payment tables.
       const priorByKey = new Map<string, number>();
