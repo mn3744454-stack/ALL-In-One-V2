@@ -3955,6 +3955,8 @@ export const en = {
         notApprovable: "This invoice can no longer be approved from its current state.",
         itemsInvalid: "One or more invoice lines are invalid. Fix them and save before approving.",
         itemsEmpty: "Add at least one line to the invoice before approving.",
+        payloadUnknownKey:
+          "The invoice could not be approved because the approval data is incompatible with the current system version. Refresh the page and try again. If the issue continues, contact support.",
       },
       cannotDeleteApproved: "Cannot delete an approved invoice. Use Cancel instead.",
       horse: "Horse",
