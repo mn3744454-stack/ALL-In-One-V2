@@ -73,7 +73,7 @@ describe("paginateIntoPages", () => {
       "payment-session",
     ]);
     const heading = pages[1][0].querySelector("[data-continuation-label]");
-    expect(heading?.textContent).toBe("Session 2");
+    expect(heading?.textContent).toBe("Session 2 — Continued");
     expect(
       pages[1][0].querySelectorAll('[data-block="session-row"]').length,
     ).toBe(1);
