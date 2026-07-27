@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, FileText } from "lucide-react";
 import { useI18n } from "@/i18n";
@@ -16,13 +17,31 @@ interface EligibleInvoicesSelectorProps {
   onAmountChange: (invoiceId: string, next: string) => void;
   currency: string;
   disabled?: boolean;
+  /** When false, per-invoice allocation inputs are locked (Total Payments = 0). */
+  allocationEnabled?: boolean;
+}
+
+/** Localised badge for a payable invoice status. Falls back to the raw value
+ *  when the tenant lang lacks a translation for a new status enum. */
+function StatusBadge({ status }: { status: string }) {
+  const { t } = useI18n();
+  const key = `finance.status.${status}`;
+  const label = t(key);
+  return (
+    <Badge variant="outline" className="text-[10px] uppercase">
+      {label === key ? status : label}
+    </Badge>
+  );
 }
 
 /**
  * Slice 3 — invoice selector for the multi-invoice payment dialog.
+ *
  * Rows are pre-sorted "oldest first" by the parent hook (due_date, issue_date,
  * invoice_number). Amounts are strings so the input stays controlled and empty
- * values remain distinguishable from zero.
+ * values remain distinguishable from zero. When `allocationEnabled` is false
+ * (Total Payments = 0), the per-invoice amount inputs are locked — the user
+ * must enter tender totals before distributing them across invoices.
  */
 export function EligibleInvoicesSelector({
   invoices,
@@ -32,15 +51,22 @@ export function EligibleInvoicesSelector({
   onAmountChange,
   currency,
   disabled,
+  allocationEnabled = true,
 }: EligibleInvoicesSelectorProps) {
-  const { t, dir } = useI18n();
-  const isRtl = dir === "rtl";
+  const { t } = useI18n();
   const fmt = (n: number) => formatCurrency(n, currency);
-  const selectedOutstandingTotal = useMemo(() => {
-    return invoices
-      .filter((i) => selectedIds.has(i.id))
-      .reduce((s, i) => s + i.outstanding, 0);
-  }, [invoices, selectedIds]);
+
+  const totalOutstanding = useMemo(
+    () => invoices.reduce((s, i) => s + i.outstanding, 0),
+    [invoices],
+  );
+  const selectedOutstandingTotal = useMemo(
+    () =>
+      invoices
+        .filter((i) => selectedIds.has(i.id))
+        .reduce((s, i) => s + i.outstanding, 0),
+    [invoices, selectedIds],
+  );
 
   if (invoices.length === 0) {
     return (
@@ -55,18 +81,48 @@ export function EligibleInvoicesSelector({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>
-          {selectedIds.size} / {invoices.length}{" "}
-          {t("finance.multiInvoicePayment.selectedInvoices")}
-        </span>
-        <span dir="ltr" className="tabular-nums font-medium text-foreground">
-          {fmt(selectedOutstandingTotal)}
-        </span>
+      {/* Summary header */}
+      <div className="rounded-md border bg-muted/30 p-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground">
+            {t("finance.multiInvoicePayment.summary.eligibleCount")}
+          </div>
+          <div className="font-semibold tabular-nums">{invoices.length}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground">
+            {t("finance.multiInvoicePayment.summary.totalOutstanding")}
+          </div>
+          <div className="font-semibold tabular-nums" dir="ltr">
+            {fmt(totalOutstanding)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground">
+            {t("finance.multiInvoicePayment.summary.selectedCount")}
+          </div>
+          <div className="font-semibold tabular-nums">
+            {selectedIds.size} / {invoices.length}
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground">
+            {t("finance.multiInvoicePayment.summary.selectedOutstanding")}
+          </div>
+          <div className="font-semibold tabular-nums" dir="ltr">
+            {fmt(selectedOutstandingTotal)}
+          </div>
+        </div>
       </div>
+
       <div className="rounded-md border divide-y">
         {invoices.map((inv) => {
           const checked = selectedIds.has(inv.id);
+          const allocated = checked ? parseFloat(amounts[inv.id] ?? "") || 0 : 0;
+          const remainingAfter = Math.max(
+            0,
+            Math.round((inv.outstanding - allocated) * 100) / 100,
+          );
           return (
             <div
               key={inv.id}
@@ -85,11 +141,9 @@ export function EligibleInvoicesSelector({
                   <div className="flex items-center gap-2 flex-wrap">
                     <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="font-medium text-sm">{inv.invoice_number}</span>
-                    <Badge variant="outline" className="text-[10px] uppercase">
-                      {inv.status}
-                    </Badge>
+                    <StatusBadge status={inv.status} />
                   </div>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                     <span>
                       {t("finance.invoices.issueDate")}: {inv.issue_date}
                     </span>
@@ -110,16 +164,27 @@ export function EligibleInvoicesSelector({
                     {fmt(inv.outstanding)}
                   </div>
                 </div>
-                <div className="w-32">
+                <div className="w-32 space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">
+                    {t("finance.multiInvoicePayment.allocatedToInvoice")}
+                  </Label>
                   <Input
                     inputMode="decimal"
                     dir="ltr"
-                    className="text-end tabular-nums"
+                    className="text-end tabular-nums h-8"
                     placeholder="0.00"
-                    disabled={!checked || disabled}
+                    disabled={!checked || disabled || !allocationEnabled}
                     value={checked ? amounts[inv.id] ?? "" : ""}
                     onChange={(e) => onAmountChange(inv.id, e.target.value)}
                   />
+                  {checked && (
+                    <div className="text-[10px] text-end text-muted-foreground">
+                      {t("finance.payments.remainingAfter")}:{" "}
+                      <span dir="ltr" className="tabular-nums">
+                        {fmt(remainingAfter)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

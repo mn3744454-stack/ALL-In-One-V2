@@ -6,7 +6,10 @@
  * successful post_payment_session and returns the recorded response.
  *
  * The fingerprint is stable under key-order changes but sensitive to any
- * amount, invoice, tender, or bucket change.
+ * amount, invoice, tender, or per-row reference change. The session-level
+ * "general reference" was removed in Slice 3.1 — per-tender references
+ * remain authoritative via payment_allocations.external_reference and are
+ * already sorted into the canonical string below.
  */
 import type { PaymentSessionAllocation } from "./postPaymentSession";
 
@@ -22,18 +25,12 @@ function sortObjectKeys<T>(value: T): T {
   return value;
 }
 
-/**
- * Build a canonical string for a multi-invoice session payload. The output is
- * intended to be hashed / hex-digested by the caller before use as an
- * idempotency key, but is stable on its own for tests.
- */
 export function buildMultiInvoiceFingerprint(input: {
   tenantId: string;
   clientId: string;
   currency: string;
   paymentDate: string;
   allocations: PaymentSessionAllocation[];
-  externalReference?: string;
 }): string {
   const normalizedAllocations = [...input.allocations]
     .map((a) => sortObjectKeys(a))
@@ -43,24 +40,16 @@ export function buildMultiInvoiceFingerprint(input: {
       return kA.localeCompare(kB);
     });
   const canonical = {
-    v: 1,
+    v: 2,
     tenant_id: input.tenantId,
     client_id: input.clientId,
     currency: input.currency,
     payment_date: input.paymentDate,
-    external_reference: input.externalReference ?? null,
     allocations: normalizedAllocations,
   };
   return JSON.stringify(sortObjectKeys(canonical));
 }
 
-/**
- * Short deterministic hex digest of the canonical fingerprint. Uses the
- * FNV-1a 32-bit algorithm so the wrapper stays dependency-free and runs both
- * in the browser and in tests without touching `crypto.subtle`. The result is
- * combined with a caller-supplied prefix (e.g. `mip:<clientId>`) into the
- * final idempotency key sent to the RPC.
- */
 export function fnv1a(str: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
@@ -76,7 +65,6 @@ export function buildMultiInvoiceIdempotencyKey(input: {
   currency: string;
   paymentDate: string;
   allocations: PaymentSessionAllocation[];
-  externalReference?: string;
 }): string {
   const canonical = buildMultiInvoiceFingerprint(input);
   return `mip:${input.clientId}:${input.paymentDate}:${fnv1a(canonical)}`;
