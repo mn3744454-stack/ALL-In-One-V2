@@ -14,7 +14,7 @@ import {
 import { useI18n } from "@/i18n";
 import { useClients, Client } from "@/hooks/useClients";
 import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
-import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
+import { MultiInvoicePaymentDialog } from "@/components/finance/MultiInvoicePaymentDialog";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { formatCurrency } from "@/lib/formatters";
