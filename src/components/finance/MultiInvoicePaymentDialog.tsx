@@ -369,7 +369,7 @@ export function MultiInvoicePaymentDialog({
   // Render ------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0">
+      <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-4 md:p-5 pb-3 shrink-0 border-b">
           <div className="flex flex-col lg:flex-row lg:items-start gap-4 min-w-0">
             <div className="min-w-0 flex-1">
@@ -394,7 +394,7 @@ export function MultiInvoicePaymentDialog({
             {/* Slice 3.3.1 — four KPIs inside the sticky header */}
             <div
               data-testid="multi-invoice-header-kpis"
-              className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 lg:ms-auto shrink-0 pe-8 lg:pe-10"
+              className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 lg:ms-auto lg:me-2 shrink-0 pe-10 lg:pe-12"
             >
               {[
                 {
@@ -427,14 +427,14 @@ export function MultiInvoicePaymentDialog({
                 <div
                   key={cell.testId}
                   data-testid={cell.testId}
-                  className="rounded-md border bg-muted/30 px-2.5 py-1.5 flex flex-col items-start min-w-[7rem]"
+                  className="rounded-md border bg-muted/30 px-3 py-2 flex flex-col items-center text-center min-w-[9rem] md:min-w-[10rem]"
                 >
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground text-center leading-tight">
                     {cell.label}
                   </span>
                   <span
                     dir={cell.ltr ? "ltr" : undefined}
-                    className="text-sm font-semibold tabular-nums mt-0.5"
+                    className="text-base md:text-lg font-bold tabular-nums text-foreground mt-1 text-center"
                   >
                     {cell.value}
                   </span>
@@ -516,24 +516,32 @@ export function MultiInvoicePaymentDialog({
               </Alert>
             ) : (
               <div className="space-y-2">
-                {invoices.map((inv) => (
-                  <EligibleInvoiceAccordionRow
-                    key={inv.id}
-                    invoice={inv}
-                    selected={selectedIds.has(inv.id)}
-                    amount={amounts[inv.id] ?? ""}
-                    currency={currency}
-                    allocationEnabled={tenderTotal > 0}
-                    disabled={isSubmitting}
-                    onToggle={(next) => toggleInvoice(inv.id, next)}
-                    onAmountChange={(next) =>
-                      setAmounts((p) => ({ ...p, [inv.id]: next }))
-                    }
-                    onResolved={handleCompositionResolved}
-                    onOpenDetails={(id) => setDetailsInvoiceId(id)}
-                  />
-
-                ))}
+                {invoices.map((inv) => {
+                  const currentForInv = invoiceAmountsUnits[inv.id] || 0;
+                  const otherAllocations = invoiceAllocationTotal - currentForInv;
+                  const paymentAvailableForInvoice = Math.max(
+                    0,
+                    Math.round((tenderTotal - otherAllocations) * 100) / 100,
+                  );
+                  return (
+                    <EligibleInvoiceAccordionRow
+                      key={inv.id}
+                      invoice={inv}
+                      selected={selectedIds.has(inv.id)}
+                      amount={amounts[inv.id] ?? ""}
+                      currency={currency}
+                      allocationEnabled={tenderTotal > 0}
+                      paymentAvailableForInvoice={paymentAvailableForInvoice}
+                      disabled={isSubmitting}
+                      onToggle={(next) => toggleInvoice(inv.id, next)}
+                      onAmountChange={(next) =>
+                        setAmounts((p) => ({ ...p, [inv.id]: next }))
+                      }
+                      onResolved={handleCompositionResolved}
+                      onOpenDetails={(id) => setDetailsInvoiceId(id)}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

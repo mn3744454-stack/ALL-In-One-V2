@@ -4198,10 +4198,11 @@ export const ar = {
       totalPayments: "إجمالي المدفوعات",
       allocatedToInvoicesShort: "الموزع على الفواتير",
       remainingToAllocateShort: "المتبقي للتوزيع على الفواتير",
+      payInFull: "سداد بالكامل",
       summary: {
         eligibleCount: "الفواتير المستحقة",
         totalOutstanding: "إجمالي المبلغ المستحق",
-        selectedCount: "المحدد",
+        selectedCount: "الفواتير المحددة",
         selectedOutstanding: "إجمالي مستحق الفواتير المحددة",
 
       },

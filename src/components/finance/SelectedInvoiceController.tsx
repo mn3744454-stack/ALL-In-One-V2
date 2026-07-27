@@ -39,6 +39,12 @@ interface EligibleInvoiceAccordionRowProps {
   amount: string;
   currency: string;
   allocationEnabled: boolean;
+  /**
+   * Slice 3.3.2 — Payment remaining that can still be applied to THIS invoice
+   * after accounting for allocations already committed to other selected
+   * invoices. Powers the compact "Pay in Full / سداد بالكامل" action.
+   */
+  paymentAvailableForInvoice?: number;
   disabled?: boolean;
   onToggle: (next: boolean) => void;
   onAmountChange: (next: string) => void;
@@ -84,6 +90,7 @@ export function EligibleInvoiceAccordionRow({
   amount,
   currency,
   allocationEnabled,
+  paymentAvailableForInvoice = 0,
   disabled,
   onToggle,
   onAmountChange,
@@ -356,6 +363,32 @@ export function EligibleInvoiceAccordionRow({
                 </div>
               </div>
               <div className="ms-auto flex items-center gap-1">
+                {selected && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    data-testid={`pay-in-full-${invoice.id}`}
+                    disabled={
+                      disabled ||
+                      !allocationEnabled ||
+                      manualMode ||
+                      paymentAvailableForInvoice <= 0
+                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const cap = Math.max(
+                        0,
+                        Math.min(invoice.outstanding, paymentAvailableForInvoice),
+                      );
+                      onAmountChange(cap > 0 ? cap.toFixed(2) : "");
+                    }}
+                  >
+                    {t("finance.multiInvoicePayment.payInFull")}
+                  </Button>
+                )}
                 {onOpenDetails && (
                   <Button
                     type="button"
