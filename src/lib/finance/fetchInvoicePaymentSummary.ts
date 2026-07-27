@@ -113,12 +113,22 @@ export async function fetchInvoicePaymentSummaryForPdf(
     // resolve automatically, so the embedded shape returned an empty
     // `payment_horse_allocations` array and dropped the horse distribution
     // from the PDF.
-    const { data: allocations } = await supabase
+    const { data: allocations, error: allocErr } = await supabase
       .from("payment_allocations")
       .select("id, session_id, invoice_id, client_level_amount")
       .eq("tenant_id", tenantId)
       .eq("invoice_id", invoiceId)
       .in("session_id", sessionIds);
+    if (allocErr) {
+      // Slice 2.2B: a failed allocation read is a runtime/permission defect,
+      // not a "no distribution" signal. Throw so the caller's Print/Download
+      // handler can block generation and surface a localized fetch error —
+      // never silently produce an incomplete Payment History.
+      if (import.meta.env.DEV) {
+        console.error("[fetchInvoicePaymentSummaryForPdf] payment_allocations read failed", allocErr);
+      }
+      throw new Error("FIN_PDF_PAYMENT_ALLOCATIONS_READ_FAILED");
+    }
     const allocRows = (allocations ?? []) as Array<{
       id: string;
       session_id: string;
@@ -131,11 +141,20 @@ export async function fetchInvoicePaymentSummaryForPdf(
       if (cl > 0) clientByKey.set(a.session_id, (clientByKey.get(a.session_id) ?? 0) + cl);
     }
     if (allocIdToSession.size > 0) {
-      const { data: horseAllocs } = await supabase
+      const { data: horseAllocs, error: horseAllocErr } = await supabase
         .from("payment_horse_allocations")
         .select("allocation_id, horse_id, amount")
         .eq("tenant_id", tenantId)
         .in("allocation_id", Array.from(allocIdToSession.keys()));
+      if (horseAllocErr) {
+        if (import.meta.env.DEV) {
+          console.error(
+            "[fetchInvoicePaymentSummaryForPdf] payment_horse_allocations read failed",
+            horseAllocErr,
+          );
+        }
+        throw new Error("FIN_PDF_PAYMENT_HORSE_ALLOCATIONS_READ_FAILED");
+      }
       for (const ha of (horseAllocs ?? []) as Array<{
         allocation_id: string;
         horse_id: string;
