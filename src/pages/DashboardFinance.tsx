@@ -115,7 +115,8 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <DollarSign className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">{stats.pending}</p>
+                <p className="text-2xl font-bold text-navy">{stats.pendingCount}</p>
+
                 <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.pendingInvoices")}</p>
               </div>
             </div>
