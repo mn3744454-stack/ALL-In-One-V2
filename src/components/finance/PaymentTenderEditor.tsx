@@ -147,19 +147,21 @@ export function PaymentTenderEditor({
                     <Label className="text-xs text-muted-foreground">
                       {t("finance.payments.amount")}
                     </Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputMode="decimal"
-                      dir="ltr"
-                      className="h-9 font-mono tabular-nums text-end"
+                    <FinancialAmountInput
+                      className="h-9"
                       placeholder="0.00"
-                      value={row.amount}
-                      onChange={(e) => patchRow(row.id, { amount: e.target.value })}
+                      value={(() => {
+                        const n = parseFloat(row.amount);
+                        return Number.isFinite(n) && row.amount !== "" ? n : null;
+                      })()}
+                      onValueChange={(next) =>
+                        patchRow(row.id, { amount: next === null ? "" : next.toFixed(2) })
+                      }
                       disabled={disabled}
+                      aria-label={t("finance.payments.amount")}
                     />
                   </div>
+
 
                   <div className="col-span-6 sm:col-span-4">
                     <Label className="text-xs text-muted-foreground">
