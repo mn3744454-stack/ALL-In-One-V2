@@ -4195,7 +4195,10 @@ export const en = {
         overAllocationBy: "Allocated amount exceeds total payment by",
         paymentsExceedOutstandingBy: "Total payment exceeds outstanding on selected invoices by",
         notSupported: "This invoice's composition is not yet supported by multi-invoice payments. Open it individually.",
+        overMaxInvoice: "Amount exceeds this invoice's outstanding balance",
+        overMaxBucket: "Amount exceeds this bucket's remaining balance",
       },
+
     },
 
     invoiceStats: {

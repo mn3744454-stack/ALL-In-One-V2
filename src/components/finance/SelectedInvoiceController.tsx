@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, AlertCircle, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, AlertCircle, RotateCcw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { FinancialAmountInput } from "./FinancialAmountInput";
+
 import {
   Accordion,
   AccordionItem,
@@ -48,7 +49,10 @@ interface EligibleInvoiceAccordionRowProps {
     breakdown?: InvoiceBucketBreakdown;
     valid: boolean;
   }) => void;
+  /** Slice 3.3 · Checkpoint C — open the canonical Invoice Details Sheet from this row. */
+  onOpenDetails?: (invoiceId: string) => void;
 }
+
 
 function StatusBadge({ status }: { status: string }) {
   const { t } = useI18n();
@@ -84,7 +88,9 @@ export function EligibleInvoiceAccordionRow({
   onToggle,
   onAmountChange,
   onResolved,
+  onOpenDetails,
 }: EligibleInvoiceAccordionRowProps) {
+
   const { t, dir } = useI18n();
   const isRtl = dir === "rtl";
   const fmt = (n: number) => formatCurrency(n, currency);
@@ -107,7 +113,10 @@ export function EligibleInvoiceAccordionRow({
 
   const [manualMode, setManualMode] = useState(false);
   const [bucketValues, setBucketValues] = useState<Record<string, string>>({});
+  const [overMaxInvoice, setOverMaxInvoice] = useState(false);
+  const [overMaxBuckets, setOverMaxBuckets] = useState<Record<string, boolean>>({});
   const paymentAmount = parseFloat(amount || "0") || 0;
+
 
   const remainingByBucketKey = useMemo(() => {
     const r: Record<string, number> = {};
@@ -310,21 +319,33 @@ export function EligibleInvoiceAccordionRow({
                 <Label className="text-[10px] text-muted-foreground">
                   {t("finance.multiInvoicePayment.allocatedToInvoiceLabel")}
                 </Label>
-                <Input
-                  inputMode="decimal"
-                  dir="ltr"
-                  className="text-end tabular-nums h-8"
+                <FinancialAmountInput
+                  className="h-8"
                   placeholder="0.00"
                   disabled={!selected || disabled || !allocationEnabled || manualMode}
-                  value={selected ? amount : ""}
-                  onChange={(e) => onAmountChange(e.target.value)}
+                  value={selected ? (Number.isFinite(paymentAmount) && amount !== "" ? paymentAmount : null) : null}
+                  max={invoice.outstanding}
+                  onValueChange={(next) => {
+                    setOverMaxInvoice(false);
+                    onAmountChange(next === null ? "" : next.toFixed(2));
+                  }}
+                  onInvalidDraft={(_raw, reason) => {
+                    if (reason === "over-max") setOverMaxInvoice(true);
+                  }}
                   aria-readonly={manualMode || undefined}
+                  aria-label={t("finance.multiInvoicePayment.allocatedToInvoiceLabel")}
                 />
+                {overMaxInvoice && (
+                  <div className="text-[10px] text-destructive">
+                    {t("finance.multiInvoicePayment.errors.overMaxInvoice")}
+                  </div>
+                )}
                 {manualMode && (
                   <div className="text-[10px] text-muted-foreground">
                     {t("finance.multiInvoicePayment.amountDerivedNotice")}
                   </div>
                 )}
+
               </div>
               <div className="text-xs">
                 <div className="text-muted-foreground">
@@ -334,11 +355,29 @@ export function EligibleInvoiceAccordionRow({
                   {fmt(remainingAfter)}
                 </div>
               </div>
-              <AccordionTrigger className="ms-auto py-1 px-2 rounded-md hover:bg-muted/50 text-xs font-normal no-underline hover:no-underline">
-                <span className="tabular-nums">
-                  {t("finance.multiInvoicePayment.itemsCount").replace("{{count}}", String(invoice.itemCount))}
-                </span>
-              </AccordionTrigger>
+              <div className="ms-auto flex items-center gap-1">
+                {onOpenDetails && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onOpenDetails(invoice.id);
+                    }}
+                  >
+                    {t("common.view")}
+                  </Button>
+                )}
+                <AccordionTrigger className="py-1 px-2 rounded-md hover:bg-muted/50 text-xs font-normal no-underline hover:no-underline">
+                  <span className="tabular-nums">
+                    {t("finance.multiInvoicePayment.itemsCount").replace("{{count}}", String(invoice.itemCount))}
+                  </span>
+                </AccordionTrigger>
+              </div>
+
             </div>
           </div>
         </div>
@@ -421,19 +460,34 @@ export function EligibleInvoiceAccordionRow({
                           <Label className="text-[10px] text-muted-foreground">
                             {t("finance.payments.allocation.allocated")}
                           </Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            inputMode="decimal"
-                            dir="ltr"
-                            value={bucketValues[bucket.key] ?? ""}
-                            onChange={(e) => updateBucket(bucket.key, e.target.value)}
+                          <FinancialAmountInput
+                            value={(() => {
+                              const s = bucketValues[bucket.key] ?? "";
+                              if (s === "") return null;
+                              const n = parseFloat(s);
+                              return Number.isFinite(n) ? n : null;
+                            })()}
+                            max={bucket.remaining}
+                            onValueChange={(next) => {
+                              setOverMaxBuckets((prev) => ({ ...prev, [bucket.key]: false }));
+                              updateBucket(bucket.key, next === null ? "" : next.toFixed(2));
+                            }}
+                            onInvalidDraft={(_raw, reason) => {
+                              if (reason === "over-max") {
+                                setOverMaxBuckets((prev) => ({ ...prev, [bucket.key]: true }));
+                              }
+                            }}
                             placeholder="0.00"
-                            className="h-8 font-mono tabular-nums text-end"
+                            className="h-8"
                             disabled={disabled}
                             aria-label={`${bucket.label} allocation`}
                           />
+                          {overMaxBuckets[bucket.key] && (
+                            <div className="text-[10px] text-destructive mt-1">
+                              {t("finance.multiInvoicePayment.errors.overMaxBucket")}
+                            </div>
+                          )}
+
                         </div>
                         <div className="flex-1">
                           <Label className="text-[10px] text-muted-foreground">

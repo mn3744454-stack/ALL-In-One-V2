@@ -20,12 +20,16 @@ import { useClients } from "@/hooks/useClients";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { formatCurrency } from "@/lib/formatters";
 import { EligibleInvoiceAccordionRow } from "./SelectedInvoiceController";
+import { InvoiceDetailsSheet } from "./InvoiceDetailsSheet";
+
 import {
   PaymentTenderEditor,
   makeInitialTenderRows,
   type TenderRow,
 } from "./PaymentTenderEditor";
 import { BilingualClientName } from "./BilingualClientName";
+import { MultiInvoiceKpiBar } from "./MultiInvoiceKpiBar";
+
 
 import {
   useEligibleClientInvoices,
@@ -126,6 +130,8 @@ export function MultiInvoicePaymentDialog({
   const [compositions, setCompositions] = useState<
     Record<string, ResolvedComposition>
   >({});
+  const [detailsInvoiceId, setDetailsInvoiceId] = useState<string | null>(null);
+
   const idempotencyRef = useRef<{ key: string; fingerprint: string } | null>(null);
 
   // Reset state whenever the dialog opens. (Client change is handled by the
@@ -363,7 +369,7 @@ export function MultiInvoicePaymentDialog({
   // Render ------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-3 shrink-0 border-b">
           <DialogTitle>{t("finance.multiInvoicePayment.title")}</DialogTitle>
           <DialogDescription className="min-w-0">
@@ -435,39 +441,15 @@ export function MultiInvoicePaymentDialog({
                 </Button>
               )}
             </div>
-            {/* Summary strip */}
-            <div className="rounded-md border bg-muted/30 p-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs min-w-0">
-              <div className="min-w-0">
-                <div className="text-[10px] uppercase text-muted-foreground truncate">
-                  {t("finance.multiInvoicePayment.summary.eligibleCount")}
-                </div>
-                <div className="font-semibold tabular-nums">{invoices.length}</div>
-              </div>
-              <div className="min-w-0">
-                <div className="text-[10px] uppercase text-muted-foreground truncate">
-                  {t("finance.multiInvoicePayment.summary.totalOutstanding")}
-                </div>
-                <div className="font-semibold tabular-nums truncate" dir="ltr">
-                  {fmt(totalEligibleOutstanding)}
-                </div>
-              </div>
-              <div className="min-w-0">
-                <div className="text-[10px] uppercase text-muted-foreground truncate">
-                  {t("finance.multiInvoicePayment.summary.selectedCount")}
-                </div>
-                <div className="font-semibold tabular-nums">
-                  {selectedInvoices.length} / {invoices.length}
-                </div>
-              </div>
-              <div className="min-w-0">
-                <div className="text-[10px] uppercase text-muted-foreground truncate">
-                  {t("finance.multiInvoicePayment.summary.selectedOutstanding")}
-                </div>
-                <div className="font-semibold tabular-nums truncate" dir="ltr">
-                  {fmt(selectedInvoices.reduce((s, i) => s + i.outstanding, 0))}
-                </div>
-              </div>
-            </div>
+            {/* KPI bar — replaces legacy inline summary strip */}
+            <MultiInvoiceKpiBar
+              eligibleCount={invoices.length}
+              totalOutstanding={totalEligibleOutstanding}
+              selectedCount={selectedInvoices.length}
+              selectedOutstanding={selectedInvoices.reduce((s, i) => s + i.outstanding, 0)}
+              currency={currency}
+            />
+
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -495,7 +477,9 @@ export function MultiInvoicePaymentDialog({
                       setAmounts((p) => ({ ...p, [inv.id]: next }))
                     }
                     onResolved={handleCompositionResolved}
+                    onOpenDetails={(id) => setDetailsInvoiceId(id)}
                   />
+
                 ))}
               </div>
             )}
@@ -600,6 +584,16 @@ export function MultiInvoicePaymentDialog({
           </div>
         </div>
       </DialogContent>
+      {/* Slice 3.3 · Checkpoint C — canonical Invoice Details Sheet reused
+          from the near-page workspace via Radix Portal (sheet-over-dialog). */}
+      <InvoiceDetailsSheet
+        open={!!detailsInvoiceId}
+        onOpenChange={(v) => {
+          if (!v) setDetailsInvoiceId(null);
+        }}
+        invoiceId={detailsInvoiceId}
+      />
     </Dialog>
+
   );
 }
