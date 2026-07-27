@@ -1,16 +1,13 @@
+// @vitest-environment happy-dom
 /// <reference types="node" />
 /**
  * Phase N+3 Slice 2.2D — Shared Invoice Pagination Engine tests.
  *
  * The engine measures block heights via a caller-supplied `measure` function
- * so jsdom (which does not compute real layout) is fully deterministic.
+ * so happy-dom (which does not compute real layout) is fully deterministic.
  */
 import { describe, expect, it } from "vitest";
-import { JSDOM } from "jsdom";
 import { paginateIntoPages, applyPageNumberFooters } from "../invoicePaginator";
-
-const dom = new JSDOM("<!doctype html><html><body></body></html>");
-const document = dom.window.document;
 
 const makeBody = (html: string): HTMLElement => {
   const container = document.createElement("div");
