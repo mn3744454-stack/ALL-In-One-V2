@@ -14,7 +14,7 @@ import {
 import { useI18n } from "@/i18n";
 import { useClients, Client } from "@/hooks/useClients";
 import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
-import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
+import { MultiInvoicePaymentDialog } from "@/components/finance/MultiInvoicePaymentDialog";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { formatCurrency } from "@/lib/formatters";
@@ -178,12 +178,12 @@ export default function FinanceCustomerBalances() {
         )}
       </div>
 
-      {/* Record Payment Dialog */}
+      {/* Record Payment Dialog — multi-invoice for this client */}
       {paymentClientId && (
-        <RecordPaymentDialog
+        <MultiInvoicePaymentDialog
           open={!!paymentClientId}
           onOpenChange={(open) => !open && setPaymentClientId(null)}
-          invoiceId={null}
+          clientId={paymentClientId}
           onSuccess={() => setPaymentClientId(null)}
         />
       )}
