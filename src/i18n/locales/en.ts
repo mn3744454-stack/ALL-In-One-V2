@@ -4132,9 +4132,8 @@ export const en = {
         remaining: "Remaining",
         allocated: "Paid Amount",
         remainingAfter: "Remaining",
-        unallocated: "Unallocated",
-        assignAll: "Assign remaining",
-        useProposal: "Distribute by Items",
+        distributeEqually: "Distribute Equally",
+
         distributeEqually: "Distribute Equally",
         resetProposal: "Reset",
         remainderMismatch: "Allocations must equal the payment amount and stay within each remaining balance.",
