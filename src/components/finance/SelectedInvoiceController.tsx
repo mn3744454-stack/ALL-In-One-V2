@@ -390,9 +390,7 @@ export function EligibleInvoiceAccordionRow({
             </div>
           )}
 
-          {composition && composition.items.length > 0 && (
-            <InvoiceItemsAccordionBody items={composition.items} currency={currency} />
-          )}
+
 
           {selected && blockedLabHorse && (
             <Alert variant="destructive">
