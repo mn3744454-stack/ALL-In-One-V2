@@ -3893,6 +3893,10 @@ export const en = {
       pdfInvoiceTitle: "Invoice",
       pdfBillTo: "Bill To",
       pdfThankYou: "Thank you for your business!",
+      pdf: {
+        continuationSuffix: " — Continued",
+        pageOf: "Page {current} of {total}",
+      },
       dateToday: "Today",
       dateClear: "Clear",
       taxBadgeTaxable: "VAT",
