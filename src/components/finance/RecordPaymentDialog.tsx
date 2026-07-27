@@ -258,7 +258,8 @@ export function RecordPaymentDialog({
         </DialogHeader>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-6 py-4 pb-24">
+
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -412,70 +413,40 @@ export function RecordPaymentDialog({
             {!summary.isPaid && !blockedLabHorse && (
               <>
 
-                <div className="grid gap-2">
-                  <Label>
+                {/* Payment Date */}
+                <div className="grid gap-2 md:flex md:items-end md:gap-4">
+                  <Label className="md:min-w-[8rem]">
                     {t("finance.payments.paymentDate")} <span aria-hidden="true">*</span>
                   </Label>
                   <SharedDateField
                     value={paymentDate}
                     onChange={setPaymentDate}
                     ariaLabel={t("finance.payments.paymentDate")}
+                    className="flex-1"
                   />
                 </div>
-                {/* Amount + Allocation Editor (comes BEFORE payment methods
-                    so the user first decides "how much and to whom", then
-                    picks tenders that add up to that amount). */}
-                <div className="grid gap-2">
-                  <Label>{t("finance.payments.paymentAmount")}</Label>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {t("finance.payments.totalPayment")}
-                    </span>
-                    <span
-                      className="font-mono tabular-nums font-semibold text-lg"
-                      dir="ltr"
-                    >
-                      {formatAmount(totalPayment)}
-                    </span>
-                  </div>
-                  {rows.length === 1 && summary.outstandingAmount > 0 && (
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      onClick={fillFullAmount}
-                      className="h-auto p-0 text-xs self-start"
-                    >
-                      {t("finance.payments.payFullOutstanding")}
-                    </Button>
-                  )}
-                </div>
 
-                {/* Multi-horse / mixed allocation editor */}
-                {needsEditor && composition && (
-                  <PaymentAllocationEditor
-                    composition={composition}
-                    paymentAmount={totalPayment}
-                    currency={effectiveCurrency}
-                    invoiceItems={invoiceItems as Array<{
-                      id: string;
-                      description: string;
-                      total_price: number;
-                      horse_id?: string | null;
-                      lab_horse_id?: string | null;
-                    }>}
-                    value={bucketValues}
-                    onChange={setBucketValues}
-                    onValidityChange={setAllocationValid}
-                  />
-                )}
-
-                <Separator />
-
+                {/* Payment Method Details — precedes Payment Distribution so
+                    the user first picks tenders (Cash/Card/Transfer/Check +
+                    Split Tender + reference), then optionally distributes the
+                    resulting total across horses. */}
                 <div className="space-y-3">
-                  <Label>{t("finance.payments.paymentMethodDetails")}</Label>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <Label>{t("finance.payments.paymentMethodDetails")}</Label>
+                    {rows.length === 1 && summary.outstandingAmount > 0 && (
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={fillFullAmount}
+                        className="h-auto p-0 text-xs"
+                      >
+                        {t("finance.payments.payFullOutstanding")}
+                      </Button>
+                    )}
+                  </div>
 
-                  {rows.map((row, index) => (
+                  {rows.map((row) => (
                     <Card key={row.id}>
                       <CardContent className="p-3">
                         <div className="grid grid-cols-12 gap-2 items-start">
@@ -567,6 +538,29 @@ export function RecordPaymentDialog({
                   </Button>
                 </div>
 
+                {/* Payment Distribution — only when the invoice actually spans
+                    multiple horses or mixes horse + client-level items. */}
+                {needsEditor && composition && (
+                  <>
+                    <Separator />
+                    <PaymentAllocationEditor
+                      composition={composition}
+                      paymentAmount={totalPayment}
+                      currency={effectiveCurrency}
+                      invoiceItems={invoiceItems as Array<{
+                        id: string;
+                        description: string;
+                        total_price: number;
+                        horse_id?: string | null;
+                        lab_horse_id?: string | null;
+                      }>}
+                      value={bucketValues}
+                      onChange={setBucketValues}
+                      onValidityChange={setAllocationValid}
+                    />
+                  </>
+                )}
+
                 {/* Validation Errors */}
                 {isOverpayment && (
                   <Alert variant="destructive">
@@ -577,33 +571,15 @@ export function RecordPaymentDialog({
                   </Alert>
                 )}
 
-
-                {/* Payment Summary */}
-                <Separator />
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>{t("finance.payments.totalPayment")}</span>
-                    <span className="font-mono tabular-nums font-medium" dir="ltr">
-                      {formatAmount(totalPayment)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>{t("finance.payments.outstandingAfter")}</span>
-                    <span 
-                      className={`font-mono tabular-nums ${outstandingAfter <= 0.01 ? 'text-success' : 'text-warning'}`} 
-                      dir="ltr"
-                    >
-                      {formatAmount(outstandingAfter)}
-                    </span>
-                  </div>
-                  {outstandingAfter <= 0.01 && totalPayment > 0 && (
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                      {t("finance.payments.willBeFullyPaid")}
-                    </Badge>
-                  )}
-                </div>
+                {/* Missing requirements — surfaces above the sticky footer so
+                    the footer stays a compact totals + actions strip. */}
+                <MissingRequirementsBar
+                  issues={attemptedSubmit ? missingIssues : []}
+                  attempted={attemptedSubmit}
+                />
               </>
             )}
+
           </div>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
@@ -612,14 +588,33 @@ export function RecordPaymentDialog({
           )}
         </div>
 
-        {/* Sticky Footer */}
-        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row sm:items-center">
+        {/* Sticky Footer — compact: totals + actions only */}
+        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-3 border-t gap-3 flex-col sm:flex-row sm:items-center">
           {!summary?.isPaid && (
-            <MissingRequirementsBar
-              issues={attemptedSubmit ? missingIssues : []}
-              attempted={attemptedSubmit}
-              className="flex-1 w-full sm:w-auto"
-            />
+            <div className="flex flex-col gap-0.5 text-sm flex-1 w-full sm:w-auto">
+              <div className="flex justify-between sm:justify-start sm:gap-3">
+                <span className="text-muted-foreground">
+                  {t("finance.payments.totalPayment")}
+                </span>
+                <span
+                  className="font-mono tabular-nums font-semibold"
+                  dir="ltr"
+                >
+                  {formatAmount(totalPayment)}
+                </span>
+              </div>
+              <div className="flex justify-between sm:justify-start sm:gap-3">
+                <span className="text-muted-foreground">
+                  {t("finance.payments.outstandingAfter")}
+                </span>
+                <span
+                  className={`font-mono tabular-nums font-semibold ${outstandingAfter <= 0.01 && totalPayment > 0 ? "text-success" : "text-warning"}`}
+                  dir="ltr"
+                >
+                  {formatAmount(outstandingAfter)}
+                </span>
+              </div>
+            </div>
           )}
           <div className="flex gap-2 sm:ms-auto">
             <DialogClose asChild>
@@ -647,6 +642,7 @@ export function RecordPaymentDialog({
             )}
           </div>
         </DialogFooter>
+
     </SafeFormDialog>
   );
 }
