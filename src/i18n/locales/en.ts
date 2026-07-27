@@ -4181,10 +4181,11 @@ export const en = {
       totalPayments: "Total Payments",
       allocatedToInvoicesShort: "Allocated to Invoices",
       remainingToAllocateShort: "Remaining to Allocate to Invoices",
+      payInFull: "Pay in Full",
       summary: {
         eligibleCount: "Eligible Invoices",
         totalOutstanding: "Total Outstanding",
-        selectedCount: "Selected",
+        selectedCount: "Selected Invoices",
         selectedOutstanding: "Selected Outstanding",
       },
       errors: {
