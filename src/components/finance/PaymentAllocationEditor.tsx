@@ -359,12 +359,6 @@ export function PaymentAllocationEditor({
   );
 }
 
-function sanitize(v: string): string {
-  const cleaned = v.replace(/[^0-9.]/g, "");
-  const parts = cleaned.split(".");
-  if (parts.length <= 1) return cleaned;
-  return `${parts[0]}.${parts.slice(1).join("").slice(0, 2)}`;
-}
 
 function parseAmount(v: string | undefined): number {
   if (!v) return 0;
