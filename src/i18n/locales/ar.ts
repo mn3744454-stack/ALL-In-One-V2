@@ -3911,6 +3911,10 @@ export const ar = {
       pdfInvoiceTitle: "فاتورة",
       pdfBillTo: "فاتورة إلى",
       pdfThankYou: "شكرًا لتعاملكم معنا!",
+      pdf: {
+        continuationSuffix: " — تابع",
+        pageOf: "الصفحة {current} من {total}",
+      },
       dateToday: "اليوم",
       dateClear: "مسح",
       taxBadgeTaxable: "ض.ق.م",
