@@ -70,6 +70,9 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   );
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showClientPicker, setShowClientPicker] = useState(false);
+  const [multiPayClientId, setMultiPayClientId] = useState<string | null>(null);
+
 
   const canCreate = hasPermission("finance.invoice.create");
 
