@@ -1,0 +1,527 @@
+# Documentation 9
+
+## Dayli Horse Platform — Post-Documentation 8 Continuation Report
+
+---
+
+## 1. Document Identity
+
+### 1.1
+**Title:** Documentation 9 — Identity, Signup, Profile Architecture & Cross-Module Commercial/Traceability Maturation
+
+### 1.2
+This is **Documentation 9**.
+
+### 1.3
+**Documentation 8** is the baseline reference. Documentation 8 covered the Housing & Facilities Phase 1 completion, ending with the 4-tab Housing IA, 8-type facility taxonomy, type-driven creation/editing/display, and dual-persistence strategy (typed columns for open areas, JSONB for activity metadata).
+
+### 1.4
+This document covers all meaningful work completed after Documentation 8 through March 28, 2026. The scope encompasses: (a) Movement module lifecycle maturation with scheduling, dispatch, connected movements, and external locations; (b) Boarding admissions domain establishment; (c) Breeding domain expansion with foalings, contracts, source-mode enrichment, and commercial parity; (d) Financial traceability infrastructure; (e) Supplier payables foundation; (f) Invoice status constraint expansion; (g) the complete Identity / Signup / Onboarding / Personal Profile / Organization Profile / Public Profile workstream.
+
+---
+
+## 2. Executive Delta Summary
+
+### 2.1
+The platform underwent five major structural progressions after Documentation 8:
+1. Movement module gained scheduling, dispatch lifecycle, connected-movement protocol, and external-location support.
+2. Boarding admissions became a first-class domain with dedicated tables, RLS, permission definitions, status history, and care notes.
+3. Breeding domain expanded with foalings entity, breeding contracts, source-mode tracking (internal/connected/external), and semen-batch quality fields.
+4. Financial infrastructure matured with supplier payables, invoice status expansion, and a reusable `FinancialStatusSection` traceability component deployed across Vet and Breeding detail sheets.
+5. The Identity/Profile layer was built from scratch: signup fixes, personal profile editing page, personal-vs-organization routing separation, public profile full localization, and bilingual organization identity groundwork.
+
+### 2.2
+Most important completed workstreams: (a) Identity/profile architecture — from non-existent personal profile to a fully separated personal/organization identity model; (b) Financial traceability — reusable component showing invoice, stable cost, and payable status inline on any source entity; (c) Boarding admissions as an operational domain.
+
+### 2.3
+Biggest structural shift: The platform went from having one blurred "profile" concept (organization public profile only) to a strict dual-identity model where personal profile (`/dashboard/my-profile`, `profiles` table) and organization profile (`/dashboard/public-profile`, `tenants` table) are architecturally separated with mode-aware routing guards and distinct CTAs.
+
+### 2.4
+Intentionally deferred: phone-only authentication, multi-value contact support, full public-profile layout redesign beyond the sticky-save and column-redistribution improvements already applied, personal display-name vs legal-name separation.
+
+---
+
+## 3. Baseline Continuation Reference
+
+### 3.1
+Documentation 8 concluded with Housing & Facilities Phase 1 complete. The platform had: 4-tab Housing IA, Branches as first-class surfaces, 8-type facility taxonomy, type-driven creation flows, room-based two-sided previews, open-area environmental attributes, activity-spec JSONB metadata, and full bilingual coverage for Housing surfaces. Two migrations had added `area_size`/`shade`/`has_water` and `metadata` columns to `facility_areas`.
+
+### 3.2
+The first major workstream after Documentation 8 was the Movement module lifecycle maturation, followed closely by Boarding admissions domain creation, then Breeding domain expansion, then Financial traceability infrastructure, and finally the Identity/Profile workstream.
+
+### 3.3
+Chronological progression:
+1. **Movement lifecycle** — scheduling, dispatch, external locations, connected-movement protocol (migrations: `20260311190427` through `20260311231640`).
+2. **Boarding admissions** — `boarding_admissions`, `boarding_status_history`, `horse_care_notes` tables with full RLS and permission definitions (migration: `20260310103104` and `20260310110443`).
+3. **Breeding expansion** — foalings entity, breeding contracts, source-mode enrichment (migrations: `20260320190502`, `20260321005846`, `20260321020135`, `20260321052413`).
+4. **Financial infrastructure** — supplier payables table, invoice status constraint expansion, service plan linkage (migrations: `20260313134800`, `20260314085407`, `20260311184821`).
+5. **Housing refinements** — capacity column, housing-sync triggers, capacity-enforcement triggers (migrations: `20260326194709`, `20260326214302`, `20260326221435`, `20260327110647`).
+6. **Identity/Profile workstream** — language switcher, phone persistence, personal profile page, routing separation, public profile localization, bilingual org fields, personal-mode UX corrections (migrations: `20260328044327`, `20260328051924`, `20260328055536`).
+
+### 3.4
+The chronology is evidenced by migration timestamps and codebase file modification history.
+
+---
+
+## 4. Workstream Map for This Delta Period
+
+### 4.1
+Major workstreams:
+- W1: Movement Lifecycle Maturation
+- W2: Boarding Admissions Domain
+- W3: Breeding Domain Expansion
+- W4: Financial Traceability Infrastructure
+- W5: Housing Refinements (post-Phase 1)
+- W6: Identity / Signup / Profile Architecture
+
+### 4.2
+
+#### 4.2.1–4.2.4 W1: Movement Lifecycle
+- **Initial:** Movements were immediate-only, internal-only.
+- **Audit outcome:** Required scheduling, dispatch lifecycle, external locations, connected tenant movements.
+- **Execution:** Added `movement_status`, `scheduled_at`, `dispatched_at`, `completed_at` to `horse_movements`. Created `external_locations` table. Extended `record_horse_movement_with_housing` RPC with scheduling support. Created `dispatch_horse_movement` RPC. Extended `record_connected_movement` with scheduling. Added notification triggers for boarding, movement, and incoming events.
+- **Final state:** Movements support scheduled→dispatched→completed lifecycle. External locations are first-class. Connected movements create incoming records at dispatch time, not scheduling time.
+
+#### 4.2.1–4.2.4 W2: Boarding Admissions
+- **Initial:** No boarding admissions entity existed.
+- **Execution:** Created `boarding_admissions`, `boarding_status_history`, `horse_care_notes` tables with full permission-based RLS policies.
+- **Final state:** Complete operational domain with admission, checkout, status tracking, and care notes.
+
+#### 4.2.1–4.2.4 W3: Breeding Expansion
+- **Initial:** Breeding had attempts, pregnancy checks, embryo transfers but no foalings, contracts, or provider-source tracking.
+- **Execution:** Created `foalings` table (with registry/lifecycle tracking), `breeding_contracts` table (with pricing, client, service linkage). Added `source_mode`/`provider_tenant_id`/`external_provider_name`/`performed_by` to breeding_attempts and embryo_transfers. Extended semen_batches with source tracking and quality fields. Added `stallion_id` to pregnancies. Updated breeding_role constraint.
+- **Final state:** Breeding domain has full lifecycle coverage from attempt through pregnancy to foaling, with contract management and provider-source tracking.
+
+#### 4.2.1–4.2.4 W4: Financial Traceability
+- **Initial:** No supplier payables. No reusable traceability component. Invoice status values were limited.
+- **Execution:** Created `supplier_payables` table. Expanded invoice status constraint to include `reviewed`, `approved`, `shared`, `issued`, `sent`. Created `FinancialStatusSection` component showing invoice/cost/payable status inline. Created `InternalCostsTab` and `SupplierPayablesTab` in finance module. Created `useSupplierPayableForSource` hook. Deployed `FinancialStatusSection` to Vet `TreatmentDetailSheet`, Breeding `BreedingDetailSheets`, and `FoalingDetailSheet`.
+- **Final state:** Any source entity (treatment, breeding attempt, foaling) can display its financial traceability inline with clickable invoice drill-through.
+
+#### 4.2.1–4.2.4 W5: Housing Refinements
+- **Initial:** Post-Phase 1 gaps: no capacity column on facility_areas, no housing-sync triggers, no server-side capacity enforcement.
+- **Execution:** Added `capacity` column. Created `sync_horse_housing_unit_id` trigger for denormalized field consistency. Created `enforce_unit_capacity` trigger for server-side validation (single-occupancy and max-capacity checks). Added `storage` and `isolation_room` to `internal_unit_type` enum.
+- **Final state:** Housing integrity is enforced at the database level, not only in application code.
+
+#### 4.2.1–4.2.4 W6: Identity/Profile Architecture
+- **Initial:** No personal profile editing surface. Phone captured at signup but discarded. Public profile page had zero i18n. Organization creation wizard was monolingual. CTAs blurred personal/org identity.
+- **Audit outcome:** Formal 22-section identity audit identified all gaps.
+- **Execution:** Four execution passes (S1–S4) plus two follow-up correction passes.
+- **Final state:** Complete dual-identity model with personal profile page, mode-aware routing, fully localized public profile, bilingual org identity fields, sticky save bars, and personal-mode UX corrections.
+
+---
+
+## 5. Vet / Health Workstream Delta
+
+### 5.1
+The primary Vet/Health change in this delta was the deployment of `FinancialStatusSection` to `TreatmentDetailSheet.tsx`. This added inline financial traceability to every vet treatment detail view — showing invoice status (clickable), stable cost status, and supplier payable status.
+
+### 5.2
+#### 5.2.1–5.2.10
+No major standalone Vet/Health i18n, treatment workflow, horse filter, vaccination, or mock-removal work was completed in this specific delta. The Vet module's primary evolution was receiving the reusable financial traceability component (`FinancialStatusSection`) for operator navigation from treatment records to linked invoices, costs, and payables. The `InternalCostsTab` component in the finance module provides drill-through back to `TreatmentDetailSheet` for vet-originated cost entries.
+
+### 5.3
+The vet traceability integration was a single implementation pass deployed alongside the broader financial traceability workstream. No corrective passes were needed for this integration.
+
+---
+
+## 6. Stable Commercial Model Delta
+
+### 6.1–6.2
+#### 6.2.1
+`stable_service_plans` received a `service_id` foreign key column (migration `20260311184821`), linking plans to the shared `tenant_services` catalog.
+
+#### 6.2.2–6.2.3
+Included-service behavior and zero-charge draft semantics were part of the commercial model evolution preceding this delta period. Their continued operational presence is confirmed by the `FinancialStatusSection` displaying zero-charge badges.
+
+#### 6.2.4
+Supplier payables (`supplier_payables` table) were established as a first-class entity with full RLS. This provides the data model for tracking provider costs across Housing, Vet, and Breeding.
+
+#### 6.2.5–6.2.6
+`InternalCostsTab` and `SupplierPayablesTab` were created in the finance module, providing operator visibility into stable costs and markup decision support.
+
+#### 6.2.7
+Internal cost visibility was achieved through the `InternalCostsTab` with source-entity drill-through navigation.
+
+### 6.3
+The stable commercial model became more coherent by: (a) linking service plans to tenant services, (b) adding supplier payables as a parallel cost-tracking entity, and (c) providing operator-facing tabs for cost and payable management.
+
+### 6.4
+The major turning point was the creation of the supplier payables table and the deployment of the `FinancialStatusSection` component, which unified the financial status display pattern across all modules.
+
+---
+
+## 7. Breeding Commercial Parity Delta
+
+### 7.1
+Breeding achieved parity with the shared commercial model through several structural additions.
+
+### 7.2
+#### 7.2.1–7.2.2
+`CreateInvoiceFromBreedingEvent` component handles invoice creation from breeding attempts and foalings. `FinancialStatusSection` is deployed in both `BreedingDetailSheets` and `FoalingDetailSheet`, providing the same inclusion-check and auto-zero behavior available in Housing and Vet.
+
+#### 7.2.3–7.2.4
+Zero-charge draft handling is supported through the invoice creation flow. `FinancialStatusSection` renders a "Zero Charge" badge when `invoiceLink.amount === 0`.
+
+#### 7.2.5–7.2.6
+Markup helper support and stable cost recording are available through the shared `FinancialStatusSection` and `InternalCostsTab`.
+
+#### 7.2.7
+Supplier payable support is provided by `useSupplierPayableForSource` hook, queried by both breeding and vet detail sheets.
+
+### 7.3
+**Before:** Breeding had no invoice integration, no cost tracking, and no payable visibility. **After:** Breeding attempts and foalings can generate invoices, record stable costs, track supplier payables, and display all three statuses inline in their detail sheets — exactly matching the pattern used by Housing admissions and Vet treatments.
+
+---
+
+## 8. Financial Traceability and Operator Navigation Delta
+
+### 8.1
+A complete financial traceability layer was built after the commercial logic matured across modules.
+
+### 8.2
+#### 8.2.1
+`FinancialStatusSection` (132 lines) — reusable component accepting `sourceType` and `sourceId`. Queries billing links, financial entries, and supplier payables for the source. Renders compact inline status with icons and amounts.
+
+#### 8.2.2
+Clickable invoice status — the invoice row in `FinancialStatusSection` is a `<button>` that opens `InvoiceDetailsSheet` via `setViewInvoiceId`. This provides direct drill-through from any source entity to its linked invoice.
+
+#### 8.2.3
+Stable-cost positive status — rendered with amber `Landmark` icon, showing "Stable Cost Recorded" with the formatted amount.
+
+#### 8.2.4
+Payable status visibility — rendered with blue `Truck` icon, showing "Payable Created" with amount and status badge.
+
+#### 8.2.5
+`InternalCostsTab` (362 lines) — finance module tab displaying all internal cost entries, filterable by entity type. Includes source drill-through to `TreatmentDetailSheet` for vet-originated costs.
+
+#### 8.2.6
+`SupplierPayablesTab` — finance module tab displaying all supplier payables with status management.
+
+#### 8.2.7
+Horse-name visibility is maintained through entity-level queries in the detail sheets that render `FinancialStatusSection`.
+
+#### 8.2.8
+Invoice items carry source entity references through `billing_links` enabling reverse navigation from invoices back to their originating entities.
+
+#### 8.2.9
+Remaining deferred: deep cross-module navigation from `SupplierPayablesTab` back to breeding source entities (only vet drill-through is currently wired in `InternalCostsTab`).
+
+### 8.3
+This workstream became necessary because the commercial model stabilization across Housing, Vet, and Breeding created three parallel billing/cost/payable flows that operators needed to navigate coherently. Without `FinancialStatusSection`, operators had to manually check invoices, cost entries, and payables in separate tabs.
+
+---
+
+## 9. Identity / Signup / Personal Profile / Organization Profile Delta
+
+### 9.1
+This was the most substantial architectural workstream in this delta period, progressing through a formal audit, four execution stages, and two follow-up correction passes.
+
+### 9.2
+
+#### 9.2.1 Signup Language Switcher
+`LanguageSelector` component was added to the `Auth.tsx` header area (Row 1 of mobile header). Users can now switch language before starting signup/signin.
+
+#### 9.2.2 Signup Phone Persistence Fixes
+Two-stage fix:
+1. `AuthContext.signUp()` was updated to pass `phone` in `data` metadata: `data: { full_name: fullName, phone: phone || undefined }`.
+2. The `handle_new_user` database trigger was replaced (migration `20260328051924`) to extract phone from metadata: `NEW.raw_user_meta_data ->> 'phone'` and insert into `profiles.phone`.
+
+This ensures end-to-end persistence: signup → auth metadata → trigger → `profiles.phone`.
+
+#### 9.2.3 Personal Profile Page Creation
+`DashboardMyProfile.tsx` was created as a dedicated personal profile editing page at route `/dashboard/my-profile`. It uses:
+- `useAuth()` for profile data
+- `useUpdateProfile()` hook for persistence
+- Fields: `full_name` (English), `full_name_ar` (Arabic), `phone`, `bio`, `location`, `website`
+- `BilingualName` component for header display
+- Sticky save bar when form is dirty
+- `BackButton` for desktop navigation back to dashboard
+- Full i18n coverage via `myProfile.*` keys
+
+#### 9.2.4 Personal vs Organization Routing Correction
+- `/dashboard/my-profile` wrapped in `<WorkspaceRouteGuard requiredMode="personal">` in `App.tsx` — inaccessible in organization mode.
+- `/dashboard/public-profile` wrapped in `<WorkspaceRouteGuard requiredMode="organization">` — inaccessible in personal mode.
+- `myProfile` added to `NAV_MODULES` in `navConfig.ts` with `visibleIn: "personal"`.
+
+#### 9.2.5 Personal Mode UX Corrections
+Dashboard.tsx was updated across three execution passes:
+- Organization-specific elements (horse lists, upcoming events, add-horse dialog, tenant/role switchers) are hidden when `workspaceMode === "personal"`.
+- Personal quick actions grid shows: My Profile, Community, My Bookings, My Payments, Favorites (coming soon).
+- Gold color scheme and `UserCircle` icons distinguish personal actions from organization actions.
+
+#### 9.2.6 CTA Wording/Destination Corrections
+- Personal mode: Gold-styled "Complete Your Personal Profile" (أكمل ملفك الشخصي) CTA → `/dashboard/my-profile`. Condition: `workspaceMode === "personal" && !profile.bio && !profile.location`.
+- Organization mode: Orange-styled "Complete Your Public Profile" (أكمل ملفك العام) CTA → `/dashboard/public-profile`. Condition: `workspaceMode === "organization" && activeRole === 'owner' && !activeTenant.tenant.slug`.
+
+#### 9.2.7 Public Profile Full Localization
+`PublicProfileSettings.tsx` was fully localized. All ~40 hardcoded English strings were replaced with `t()` calls. New i18n namespace `publicProfile.*` created with 35+ keys in both `en.ts` and `ar.ts`, covering: title, subtitle, visibility, makePublic, makePublicDesc, listInDirectory, listedDesc, unlistedDesc, publicUrl, urlSlug, slugPlaceholder, preview, available, taken, publicInfo, displayName, displayNamePlaceholder, displayNameDesc, description, descriptionPlaceholder, region, selectRegion, locationDetails, locationPlaceholder, contactInfo, phoneNumber, emailAddress, website, tagsCategories, addTag, suggestedTags, saveChanges, saving, yourPublicPage, profileCompleteness, and 8 checklist item keys.
+
+#### 9.2.8 Public Profile Sticky Save
+Sticky save bar added to `PublicProfileSettings.tsx` — appears at bottom of viewport when `isDirty` is true, with backdrop blur and save button.
+
+#### 9.2.9 Public Profile Layout Redistribution
+The form layout was restructured:
+- Visibility and URL Slug cards are placed side-by-side in a `lg:grid-cols-2` row.
+- Contact Info and Tags cards are paired in another `lg:grid-cols-2` row.
+- The overall structure uses `lg:grid-cols-3` with form (2/3) and sidebar (1/3).
+- Bottom save button retained as fallback alongside sticky bar.
+
+#### 9.2.10 Bilingual Organization Identity Groundwork
+Migration `20260328044327`: Added `name_ar` (text) and `description_ar` (text) columns to `tenants` table.
+`CreateStableProfile.tsx` updated with `name_ar` and `description_ar` fields in `formData`, providing bilingual name and description input in the organization creation wizard.
+
+#### 9.2.11 Final Closure/Follow-Up Passes
+Three follow-up passes were executed:
+1. **Phone persistence closure:** Updated `handle_new_user` trigger to extract phone from metadata. Updated `useUpdateProfile` to include phone field.
+2. **My Profile visibility:** Added `myProfile` to `NAV_MODULES`. Verified dashboard quick actions include My Profile card.
+3. **Personal-mode UX corrections:** Gated organization-specific dashboard content behind `workspaceMode` checks. Added bilingual name fields (`full_name_ar`) with migration `20260328055536`. Added `BackButton` and `WorkspaceRouteGuard` to my-profile route.
+
+### 9.3
+**Before this period:** No personal profile editing surface existed. Phone was silently discarded at signup. Public profile page had zero i18n (all hardcoded English). Organization creation was monolingual. CTAs in personal mode routed to organization profile. Personal mode showed organization-specific content (horses, events).
+
+**After this period:** All of the above are resolved. Dual-identity model is operational with mode-aware routing, dedicated surfaces, and full localization.
+
+---
+
+## 10. Regression and Corrective-Pass History
+
+### 10.1–10.2
+
+#### 10.2.1–10.2.5 Regression 1: Phone Data Loss
+- **What broke:** Phone entered at signup was silently discarded.
+- **Cause:** `Auth.tsx` captured phone in `formData.phone` but `signUp()` in `AuthContext.tsx` did not accept or pass a phone parameter.
+- **Diagnosis:** Audit identified that `signUp()` only accepted `email`, `password`, `fullName`.
+- **Fix (Stage 1):** Added `phone` parameter to `signUp()` and passed it in `options.data` metadata.
+- **Fix (Stage 2):** Updated `handle_new_user` trigger to extract `NEW.raw_user_meta_data ->> 'phone'` and insert into `profiles.phone`.
+- **Fully closed:** Yes. End-to-end: signup form → auth metadata → trigger → `profiles.phone`.
+
+#### 10.2.1–10.2.5 Regression 2: My Profile Invisible in Personal Mode
+- **What broke:** After creating `DashboardMyProfile.tsx` and adding it to routes, the page existed but was not discoverable in the actual personal-mode UX.
+- **Cause:** Initial implementation relied only on sidebar navigation entry, which was insufficient for mobile and for users unfamiliar with navigation structure.
+- **Diagnosis:** Follow-up pass identified that "route existence ≠ UX discoverability."
+- **Fix:** Added `myProfile` to `NAV_MODULES` with `visibleIn: "personal"` (making it appear in sidebar and `MobileHomeGrid`). Added My Profile as first card in personal-mode quick actions grid on Dashboard.
+- **Fully closed:** Yes.
+
+#### 10.2.1–10.2.5 Regression 3: Organization Content Leaking into Personal Mode
+- **What broke:** Horse lists, upcoming events, add-horse dialog, and tenant/role switchers appeared in personal mode dashboard.
+- **Cause:** Dashboard.tsx had no `workspaceMode` gating on these organization-specific elements.
+- **Diagnosis:** Follow-up execution pass identified the semantic contamination.
+- **Fix:** Wrapped organization-specific sections in `workspaceMode === "organization"` conditionals.
+- **Fully closed:** Yes.
+
+#### 10.2.1–10.2.5 Regression 4: Personal-Mode CTA Routing to Org Profile
+- **What broke:** "Complete Your Public Profile" CTA appeared in personal mode, routing to organization profile.
+- **Cause:** CTA condition did not check `workspaceMode`.
+- **Fix:** Added `workspaceMode === "organization"` guard to org CTA. Created separate personal CTA with `workspaceMode === "personal"` condition routing to `/dashboard/my-profile`.
+- **Fully closed:** Yes.
+
+#### 10.2.1–10.2.5 Regression 5: No Desktop Back Button on My Profile
+- **What broke:** `MobilePageHeader` is `lg:hidden`, so desktop users had no way to navigate back from My Profile.
+- **Cause:** Page relied solely on mobile header for back navigation.
+- **Fix:** Added `<BackButton>` visible on `lg:` screens.
+- **Fully closed:** Yes.
+
+---
+
+## 11. UX Contract and Arabic-First Compliance Delta
+
+### 11.1–11.2
+
+#### 11.2.1 True Contract Fixes
+- `PublicProfileSettings.tsx`: 40+ hardcoded English strings replaced with `t()` calls. Full Arabic i18n namespace created. This was a blocker-level Arabic-first violation and is now fully resolved.
+- Personal profile page: Created with full i18n from inception (`myProfile.*` keys in both locales).
+- Personal-mode CTAs: Arabic wording (أكمل ملفك الشخصي) created for personal profile completion CTA.
+
+#### 11.2.2 Structural UX Improvements
+- Public profile layout redistribution: Visibility + URL slug side-by-side, Contact + Tags side-by-side.
+- Sticky save bars on both public profile and personal profile pages.
+- Personal-mode dashboard content isolation from organization content.
+- Mode-aware routing guards preventing cross-mode profile access.
+
+#### 11.2.3 Polish Improvements
+- `BackButton` added to personal profile desktop view.
+- Personal quick actions grid with gold color scheme and UserCircle icons.
+- BilingualName component used in personal profile header.
+
+#### 11.2.4 Still-Deferred UX Improvements
+- Suggested tags on public profile remain English words ("boarding", "training", etc.) — bilingual tag suggestions not yet implemented.
+- Full public-profile layout redesign beyond column redistribution.
+- Personal display-name vs legal-name separation.
+
+### 11.3
+The single biggest compliance improvement was the complete i18n coverage of `PublicProfileSettings.tsx`. Before this delta, the entire organization public profile page rendered in English under Arabic mode — every label, toggle description, placeholder, button, and status indicator. This is now fully localized with 35+ Arabic translation keys.
+
+---
+
+## 12. Data Model / Schema / Trigger / Hook Delta
+
+### 12.1–12.3
+
+#### 12.2.1 Migrations (data-model affecting)
+
+| Migration | Change |
+|-----------|--------|
+| `20260310103104` | `boarding_admissions`, `boarding_status_history`, `horse_care_notes` tables with full RLS |
+| `20260310110443` | Boarding permission definitions |
+| `20260311184821` | `stable_service_plans.service_id` FK |
+| `20260311190427` | `external_locations` table; `horse_movements` external location FKs; updated `record_horse_movement_with_housing` RPC |
+| `20260311193225` | Connected movement permissions wired to roles |
+| `20260311230849` | `facility_areas.facility_type`; movement lifecycle columns (`movement_status`, `scheduled_at`, `dispatched_at`, `completed_at`); `tenant_services.service_kind`; `dispatch_horse_movement` RPC; updated `record_horse_movement_with_housing` and `record_connected_movement` with scheduling support |
+| `20260311231640` | Notification triggers for boarding, movement, incoming movement events |
+| `20260313134800` | `supplier_payables` table with full RLS |
+| `20260314085407` | Invoice status constraint expanded to include `reviewed`, `approved`, `shared`, `issued`, `sent` |
+| `20260314085652` | `pg_cron` and `pg_net` extensions |
+| `20260320190502` | Breeding schema enrichment: source_mode, provider_tenant_id, external_provider_name, performed_by on breeding_attempts and embryo_transfers; semen_batches source tracking and quality fields; pregnancies.stallion_id |
+| `20260321005846` | `foalings` table with registry/lifecycle tracking |
+| `20260321020135` | breeding_role constraint update |
+| `20260321052413` | `breeding_contracts` table; contract_id FKs on breeding_attempts, pregnancy_checks, foalings, embryo_transfers |
+| `20260324004251` | `branches.name_ar` column |
+| `20260326194709` | `facility_areas.capacity`; `internal_unit_type` enum expansion |
+| `20260326214302` | `facility_areas` environmental columns (area_size, shade, has_water) |
+| `20260326221435` | `facility_areas.metadata` JSONB column |
+| `20260327110647` | `sync_horse_housing_unit_id` trigger; `enforce_unit_capacity` trigger |
+| `20260328044327` | `tenants.name_ar`, `tenants.description_ar` |
+| `20260328051924` | Updated `handle_new_user` trigger to extract phone from metadata |
+| `20260328055536` | `profiles.full_name_ar` column |
+
+#### 12.2.2 New Columns
+- `profiles.full_name_ar` (text)
+- `profiles.phone` (now populated from signup)
+- `tenants.name_ar` (text)
+- `tenants.description_ar` (text)
+- `branches.name_ar` (text)
+- `facility_areas.facility_type`, `capacity`, `area_size`, `shade`, `has_water`, `metadata`
+- `horse_movements.movement_status`, `scheduled_at`, `dispatched_at`, `completed_at`, `destination_type`, `from_external_location_id`, `to_external_location_id`
+- `breeding_attempts.source_mode`, `provider_tenant_id`, `external_provider_name`, `performed_by`, `contract_id`
+- `embryo_transfers.source_mode`, `provider_tenant_id`, `external_provider_name`, `performed_by`, `contract_id`
+- `semen_batches.source_mode`, `source_tenant_id`, `source_external_name`, `motility_percent`, `concentration_million_per_ml`
+- `pregnancies.stallion_id`
+- `pregnancy_checks.performed_by`, `contract_id`
+- `foalings.contract_id`
+- `stable_service_plans.service_id`
+- `tenant_services.service_kind`
+
+#### 12.2.3 Trigger Changes
+- `handle_new_user`: Updated to extract `phone` from `raw_user_meta_data`.
+- `sync_horse_housing_unit_id`: New trigger syncing denormalized `horses.housing_unit_id` from `housing_unit_occupants`.
+- `enforce_unit_capacity`: New trigger enforcing single-occupancy and max-capacity rules on unit assignment.
+- `notify_on_boarding_admission_change`: New trigger for boarding status notifications.
+- `notify_on_horse_movement`: New trigger for movement scheduling/dispatch notifications.
+- `notify_on_incoming_movement`: New trigger for incoming movement notifications.
+
+#### 12.2.4 Hook Updates
+- `useUpdateProfile`: Added `full_name_ar` and `phone` to mutation payload.
+- `AuthContext.signUp()`: Added `phone` parameter passed in `options.data`.
+
+#### 12.2.5 New Reusable Components
+- `FinancialStatusSection` — reusable financial traceability display.
+- `InternalCostsTab` — finance module cost overview with source drill-through.
+- `SupplierPayablesTab` — finance module payable management.
+- `CreateInvoiceFromBreedingEvent` — breeding invoice creation.
+- `DashboardMyProfile` — personal profile editing page.
+- `BackButton` — direction-aware back navigation component.
+
+#### 12.2.6 Reusable Financial Utilities
+- `useSupplierPayableForSource` — queries payable status for any source entity.
+- `useBillingLinks` — queries invoice links for any source entity.
+- `useFinancialEntries` — queries financial entries for any source entity.
+
+---
+
+## 13. Final Current-State Summary
+
+### 13.1
+The platform at the end of Documentation 9 has: a mature movement lifecycle with scheduling and dispatch; a complete boarding admissions domain; a breeding domain covering the full lifecycle from attempt through foaling with contract management; a financial traceability layer deployed across Vet and Breeding; a complete dual-identity model with separate personal and organization profile surfaces; and a fully localized public organization profile.
+
+### 13.2
+**Materially stronger than Documentation 8:**
+- Movement: lifecycle states, external locations, connected movement protocol, notification triggers
+- Boarding: complete operational domain
+- Breeding: foalings, contracts, source-mode tracking, financial parity
+- Finance: supplier payables, traceability component, operator cost/payable tabs
+- Housing: server-side capacity enforcement, sync triggers
+- Identity: personal profile exists, personal/org separation enforced, public profile fully localized
+
+### 13.3
+**Fully operational:**
+- Personal profile editing at `/dashboard/my-profile`
+- Mode-aware routing guards
+- Public profile full Arabic localization
+- Signup phone → `profiles.phone` end-to-end
+- `FinancialStatusSection` deployed on vet treatments, breeding attempts, and foalings
+- Boarding admissions with RLS and permission-based access
+
+### 13.4
+**Partially complete:**
+- Bilingual organization identity: `name_ar` and `description_ar` columns exist and creation wizard supports them, but not all display surfaces (e.g., tenant name in sidebar, headers, directory listings) have been updated to use `BilingualName` for tenant names
+- `InternalCostsTab` drill-through: only wired for vet treatments, not breeding source entities
+- `social_links` field on profiles: schema supports it but no UI editing surface exists yet
+
+### 13.5
+**Intentionally deferred:**
+- Phone-only authentication
+- Multi-value contact support
+- Personal display-name vs legal-name separation
+- Full public-profile layout redesign beyond current redistribution
+- Bilingual suggested tags
+- `social_links` editing UI
+
+---
+
+## 14. Deferred / Remaining Items
+
+### 14.1–14.3
+
+#### 14.2.1 Deferred but on Roadmap
+1. Tenant name bilingual display propagation (sidebar, directory, headers) using existing `name_ar` column
+2. `InternalCostsTab` drill-through for breeding source entities
+3. `social_links` editing UI on personal profile
+4. Bilingual suggested tags on public profile
+
+#### 14.2.2 Lower-Priority Future Improvements
+5. Phone-only authentication
+6. Multi-value contact support for organizations
+7. Personal display-name vs legal-name separation
+8. Full public-profile page layout redesign
+
+#### 14.2.3 Intentionally Not in Scope for This Delta
+9. Housing Phase 2 (entrance-aware numbering, zone management, scheduling integration)
+10. Vet module deep-workflow completion (vaccination scheduling, etc.)
+11. Any non-identity settings subsystem redesign
+
+---
+
+## 15. Verification and Trustworthiness Notes
+
+### 15.1
+This documentation is directly evidenced by inspection of current codebase files, migration SQL, component source, hook implementations, route configurations, i18n locale files, and navigation configuration.
+
+### 15.2
+**High confidence:** All schema changes (migrations exist and are readable). All identity/profile changes (components exist with full source inspection). All financial traceability components (source code verified). Route guards and navigation config (verified in `App.tsx` and `navConfig.ts`).
+
+### 15.3
+**Medium confidence:** The exact chronological ordering of some middle-period workstreams (movement, boarding, breeding) is inferred from migration timestamps rather than explicit execution logs. The precise regression/correction chronology for non-identity workstreams is inferred rather than directly observed.
+
+### 15.4
+No completion is exaggerated. Where functionality is partial (e.g., tenant bilingual name propagation), it is documented as partial.
+
+---
+
+## 16. Recommended Next Starting Point
+
+### 16.1
+The next document should be numbered **Documentation 10**.
+
+### 16.2
+The most logical next slice is either: (a) propagating bilingual tenant identity (`name_ar`) across all display surfaces (sidebar, directory, headers, invoices) using the existing `BilingualName` component, or (b) continuing the Vet/Health module maturation (vaccination scheduling, treatment workflow completion), or (c) starting a comprehensive Community / Marketplace / Directory workstream audit.
+
+### 16.3
+The identity/profile layer is now architecturally stable and should not be reopened unless new requirements emerge.
+
+---
+
+## 17. Output Rules Compliance
+
+### 17.1–17.7
+This document uses formal documentation language, strict hierarchical numbering throughout, comprehensive technical detail without code output, and serves as a formal continuation artifact suitable for archival continuity after Documentation 8.
+
