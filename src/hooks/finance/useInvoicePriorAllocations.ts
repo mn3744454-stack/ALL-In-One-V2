@@ -204,6 +204,8 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
       });
       for (const hid of horseKeys) {
         const gross = grossByKey.get(hid) ?? 0;
+        const pretax = pretaxByKey.get(hid) ?? 0;
+        const tax = taxByKey.get(hid) ?? 0;
         const prior = priorByKey.get(hid) ?? 0;
         const info = horseNameMap.get(hid);
         buckets.push({
@@ -213,6 +215,8 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
           label: info?.name ?? hid.slice(0, 8),
           labelAr: info?.name_ar ?? null,
           gross,
+          pretax,
+          tax,
           prior,
           remaining: Math.max(0, gross - prior),
         });
@@ -220,12 +224,16 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
       // Client-level bucket.
       if (hasClientLevel) {
         const gross = grossByKey.get(CLIENT_LEVEL_BUCKET_KEY) ?? 0;
+        const pretax = pretaxByKey.get(CLIENT_LEVEL_BUCKET_KEY) ?? 0;
+        const tax = taxByKey.get(CLIENT_LEVEL_BUCKET_KEY) ?? 0;
         const prior = priorByKey.get(CLIENT_LEVEL_BUCKET_KEY) ?? 0;
         buckets.push({
           key: CLIENT_LEVEL_BUCKET_KEY,
           kind: "client",
           label: "Client-Level",
           gross,
+          pretax,
+          tax,
           prior,
           remaining: Math.max(0, gross - prior),
         });
@@ -236,6 +244,8 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         labHorseIds.size > 1 || (labHorseIds.size >= 1 && (horseIds.size > 0 || hasClientLevel));
 
       const grossTotal = Array.from(grossByKey.values()).reduce((s, v) => s + v, 0);
+      const pretaxTotal = Array.from(pretaxByKey.values()).reduce((s, v) => s + v, 0);
+      const taxTotal = Array.from(taxByKey.values()).reduce((s, v) => s + v, 0);
       const priorTotal = Array.from(priorByKey.values()).reduce((s, v) => s + v, 0);
       const remainingTotal = buckets.reduce((s, b) => s + b.remaining, 0);
 
@@ -248,9 +258,12 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         distinctHorses: horseIds.size,
         distinctLabHorses: labHorseIds.size,
         grossTotal,
+        pretaxTotal,
+        taxTotal,
         priorTotal,
         remainingTotal,
       };
+
     },
   });
 }
