@@ -71,10 +71,6 @@ export default function FinanceCustomerBalances() {
     return { variant: "outline" as const, icon: CheckCircle2, label: t("finance.customerBalances.settled") };
   };
 
-  const getClientName = (client: Client) => {
-    if (dir === "rtl" && client.name_ar) return client.name_ar;
-    return client.name;
-  };
 
   return (
     <DashboardShell>
