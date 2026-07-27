@@ -39,6 +39,8 @@ const arLabels: InvoicePDFLabels = {
   colRecordedAt: "وقت التسجيل",
   colAmount: "المبلغ",
   methodLabels: { cash: "نقدي", card: "بطاقة", transfer: "تحويل بنكي", check: "شيك" },
+  continuationSuffix: " — تابع",
+  pageOf: "الصفحة {current} من {total}",
 };
 
 const enLabels: InvoicePDFLabels = {
