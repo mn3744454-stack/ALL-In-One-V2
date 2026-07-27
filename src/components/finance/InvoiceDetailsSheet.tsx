@@ -568,6 +568,8 @@ export function InvoiceDetailsSheet({
       historicalLabel: t("finance.payments.pdfPaymentSession.historicalLabel"),
       sessionTotal: t("finance.payments.pdfPaymentSession.sessionTotal"),
     },
+    continuationSuffix: t("finance.invoices.pdf.continuationSuffix"),
+    pageOf: t("finance.invoices.pdf.pageOf"),
   });
 
   const handleExport = async (action: "download" | "print", includePaymentHistory: boolean) => {
