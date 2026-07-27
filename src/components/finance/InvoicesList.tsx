@@ -178,6 +178,8 @@ export function InvoicesList({
       historicalLabel: t("finance.payments.pdfPaymentSession.historicalLabel"),
       sessionTotal: t("finance.payments.pdfPaymentSession.sessionTotal"),
     },
+    continuationSuffix: t("finance.invoices.pdf.continuationSuffix"),
+    pageOf: t("finance.invoices.pdf.pageOf"),
   });
 
   /**
