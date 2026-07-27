@@ -20,6 +20,8 @@ import { useClients } from "@/hooks/useClients";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { formatCurrency } from "@/lib/formatters";
 import { EligibleInvoiceAccordionRow } from "./SelectedInvoiceController";
+import { InvoiceDetailsSheet } from "./InvoiceDetailsSheet";
+
 import {
   PaymentTenderEditor,
   makeInitialTenderRows,
@@ -128,6 +130,8 @@ export function MultiInvoicePaymentDialog({
   const [compositions, setCompositions] = useState<
     Record<string, ResolvedComposition>
   >({});
+  const [detailsInvoiceId, setDetailsInvoiceId] = useState<string | null>(null);
+
   const idempotencyRef = useRef<{ key: string; fingerprint: string } | null>(null);
 
   // Reset state whenever the dialog opens. (Client change is handled by the
@@ -473,7 +477,9 @@ export function MultiInvoicePaymentDialog({
                       setAmounts((p) => ({ ...p, [inv.id]: next }))
                     }
                     onResolved={handleCompositionResolved}
+                    onOpenDetails={(id) => setDetailsInvoiceId(id)}
                   />
+
                 ))}
               </div>
             )}
