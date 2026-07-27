@@ -4150,9 +4150,8 @@ export const ar = {
         remaining: "المتبقي",
         allocated: "المبلغ المدفوع",
         remainingAfter: "المتبقي",
-        unallocated: "غير الموزع",
-        assignAll: "إسناد المتبقي",
-        useProposal: "توزيع حسب البنود",
+        distributeEqually: "توزيع بالتساوي",
+
         distributeEqually: "توزيع بالتساوي",
         resetProposal: "إعادة تعيين",
         remainderMismatch: "يجب أن يساوي مجموع التخصيصات مبلغ الدفعة وألا يتجاوز الرصيد المتبقي لأي خيل.",
