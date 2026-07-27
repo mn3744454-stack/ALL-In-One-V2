@@ -10,19 +10,10 @@ import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SharedDateField } from "@/components/ui/shared-date-field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Collapsible,
@@ -30,20 +21,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useI18n } from "@/i18n";
-import { useInvoicePayments, type InvoicePaymentSummary } from "@/hooks/finance/useInvoicePayments";
+import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import { useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
-import { 
-  Plus, 
-  Trash2, 
-  Loader2, 
-  DollarSign, 
-  CreditCard,
-  Banknote,
-  Building,
-  Receipt,
+import {
+  Loader2,
+  DollarSign,
   AlertCircle,
   CheckCircle,
   ChevronDown,
@@ -54,14 +39,12 @@ import type { PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 import { getRiyadhDateString } from "@/lib/finance/invoiceRpc";
 import { useInvoicePriorAllocations } from "@/hooks/finance/useInvoicePriorAllocations";
 import { PaymentAllocationEditor } from "./PaymentAllocationEditor";
+import {
+  PaymentTenderEditor,
+  makeInitialTenderRows,
+  type TenderRow,
+} from "./PaymentTenderEditor";
 import type { BucketAllocation } from "@/lib/finance/allocationDistribution";
-
-interface PaymentRow {
-  id: string;
-  method: string;
-  amount: string;
-  reference: string;
-}
 
 interface RecordPaymentDialogProps {
   open: boolean;
@@ -71,12 +54,7 @@ interface RecordPaymentDialogProps {
   onSuccess?: () => void;
 }
 
-const PAYMENT_METHODS = [
-  { value: "cash", icon: Banknote, labelKey: "finance.paymentMethods.cash" },
-  { value: "card", icon: CreditCard, labelKey: "finance.paymentMethods.card" },
-  { value: "transfer", icon: Building, labelKey: "finance.paymentMethods.transfer" },
-  { value: "check", icon: Receipt, labelKey: "finance.paymentMethods.check" },
-];
+
 
 export function RecordPaymentDialog({
   open,
@@ -107,23 +85,14 @@ export function RecordPaymentDialog({
   const [bucketValues, setBucketValues] = useState<Record<string, string>>({});
   const [allocationValid, setAllocationValid] = useState(false);
 
-  // Initialize with one empty row
-  const [rows, setRows] = useState<PaymentRow[]>([
-    { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" },
-  ]);
+  // Tender rows shared with the multi-invoice dialog via PaymentTenderEditor.
+  const [rows, setRows] = useState<TenderRow[]>(makeInitialTenderRows);
   const [paymentDate, setPaymentDate] = useState(getRiyadhDateString);
 
-  // Reset rows when dialog opens/closes or invoice changes. A fresh open
-  // clears any pending idempotency key so the next submit is a new session.
   useEffect(() => {
     if (open && summary) {
       setPaymentDate(getRiyadhDateString());
-      setRows([{
-        id: crypto.randomUUID(),
-        method: "cash",
-        amount: summary.outstandingAmount > 0 ? "" : "",
-        reference: ""
-      }]);
+      setRows(makeInitialTenderRows());
       setBucketValues({});
     }
     if (!open) {
@@ -131,7 +100,6 @@ export function RecordPaymentDialog({
       setBucketValues({});
     }
   }, [open, invoiceId, summary, resetIdempotency]);
-
 
   // Computed values
   const totalPayment = useMemo(() => {
@@ -176,26 +144,12 @@ export function RecordPaymentDialog({
     return issues;
   }, [paymentDate, totalPayment, hasInvalidAmount, hasMissingMethod, t]);
 
-  // Handlers
-  const addRow = () => {
-    setRows([...rows, { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" }]);
-  };
-
-  const removeRow = (id: string) => {
-    if (rows.length > 1) {
-      setRows(rows.filter((r) => r.id !== id));
-    }
-  };
-
-  const updateRow = (id: string, field: keyof PaymentRow, value: string) => {
-    setRows(rows.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
-  };
-
   const fillFullAmount = () => {
     if (summary && rows.length === 1) {
       setRows([{ ...rows[0], amount: summary.outstandingAmount.toFixed(2) }]);
     }
   };
+
 
   const handleSubmit = async () => {
     if (!canRecordPayment) return;
@@ -445,98 +399,13 @@ export function RecordPaymentDialog({
                       </Button>
                     )}
                   </div>
-
-                  {rows.map((row) => (
-                    <Card key={row.id}>
-                      <CardContent className="p-3">
-                        <div className="grid grid-cols-12 gap-2 items-start">
-                          {/* Method */}
-                          <div className="col-span-4">
-                            <Label className="text-xs text-muted-foreground">
-                              {t("finance.payments.method")}
-                            </Label>
-                            <Select
-                              value={row.method}
-                              onValueChange={(v) => updateRow(row.id, "method", v)}
-                            >
-                              <SelectTrigger className="h-9">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {PAYMENT_METHODS.map((m) => (
-                                  <SelectItem key={m.value} value={m.value}>
-                                    <span className="flex items-center gap-2">
-                                      <m.icon className="h-3.5 w-3.5" />
-                                      {t(m.labelKey)}
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Amount */}
-                          <div className="col-span-3">
-                            <Label className="text-xs text-muted-foreground">
-                              {t("finance.payments.amount")}
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={row.amount}
-                              onChange={(e) => updateRow(row.id, "amount", e.target.value)}
-                              className="h-9 font-mono tabular-nums text-end"
-                              dir="ltr"
-                              placeholder="0.00"
-                            />
-                          </div>
-
-                          {/* Reference */}
-                          <div className="col-span-4">
-                            <Label className="text-xs text-muted-foreground">
-                              {t("finance.payments.reference")}
-                            </Label>
-                            <Input
-                              value={row.reference}
-                              onChange={(e) => updateRow(row.id, "reference", e.target.value)}
-                              className="h-9"
-                              placeholder={t("finance.payments.referencePlaceholder")}
-                            />
-                          </div>
-
-                          {/* Remove */}
-                          <div className="col-span-1 flex justify-end pt-5">
-                            {rows.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeRow(row.id)}
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-
-                  {/* Add Row Button */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addRow}
-                    disabled={rows.length >= 10}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 me-2" />
-                    {t("finance.payments.addPaymentMethod")}
-                  </Button>
+                  <PaymentTenderEditor
+                    rows={rows}
+                    onChange={setRows}
+                    disabled={isRecording}
+                  />
                 </div>
+
 
                 {/* Payment Distribution — only when the invoice actually spans
                     multiple horses or mixes horse + client-level items. */}

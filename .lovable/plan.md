@@ -1,1875 +1,208 @@
-# Phase N+3 · Slice 3 — Multi-Invoice Client Payment (Audit + Plan)
-
 ## A. Verdict
 
-**MULTI-INVOICE CLIENT PAYMENT CONTRACT ALIGNED — EXECUTION-READY PLAN PROVIDED.**
+**SLICE 3.1 FINAL ALIGNMENT COMPLETE — EXECUTION-READY PLAN PROVIDED**
 
-The installed `public.post_payment_session(p_tenant_id, p_idempotency_key, p_payload)` RPC already accepts multiple `allocations[]` rows tied to distinct `invoice_id`s under one atomic session (single client, single currency, per-invoice horse/client-level splits, split-tender via multiple rows, over-allocation guards, deterministic dedup, idempotency, advisory locks). **No backend change is required.**
+Frontend-only. `payment_allocations.external_reference` (text, nullable) already persists per-tender references; `payment_sessions.reference_note` (text, nullable) is the session-level slot. No backend, RPC, RLS, grant, migration or persistent-row change is required.
 
-## B. Attachment Findings
+## B. Invoice-Page Secondary Entry — Current State
 
-- **Screenshot 65** — `Finance → Customer Balances` shows a Client row with `تسجيل دفعة` action. Currently wired to open the single-invoice dialog with no invoice. This is the primary entry point to fix.
-- **Screenshot 66** — `Record Payment` from Customer Balances opens `RecordPaymentDialog` and displays only `خطأ`. Root cause is code (not runtime): `FinanceCustomerBalances.tsx:186` passes `invoiceId={null}`; `RecordPaymentDialog.tsx:92-94,584-587` returns `{t("common.error")}` when `summary` is falsy (which it always is for `invoiceId=null`).
-- **Screenshot 67** — Invoices KPI cards use `finance.invoices.total | .pending | .paid | .overdue`. Same keys are reused for row/detail labels (e.g. `InvoicesList.tsx:142,157`, `InvoiceDetailsSheet.tsx:532,1039`, `InvoiceLineItemsEditor.tsx:260`), so labels must be corrected via **new dedicated KPI keys**, not by mutating the existing shared keys.
+- `src/pages/DashboardFinance.tsx` has only `{t("finance.invoices.create")}` (L148–155). No "Record Client Payment" button, no `MultiInvoicePaymentDialog` import, no client-selection flow.
+- Verdict: **not yet implemented** — Slice-3 contract not satisfied.
 
-## C. Customer Balances Runtime Error
+Locked required implementation:
 
+- Add a secondary action button labelled `تسجيل دفعة للعميل` / `Record Client Payment` in the same header row as `Create Invoice` (adjacent, secondary variant, wraps on mobile).
+- On click open a new lightweight `ClientPickerDialog` (single Client combobox from `useClients`, tenant-scoped). On confirm, store `selectedClientId` and open the shared `MultiInvoicePaymentDialog` with that id.
+- Client change semantics: closing/changing the client resets `selectedIds`, `amounts`, tender rows (single clean row with first unused method), `bucketValuesByInvoice`, `bucketValidByInvoice`, `paymentDate` (to today), and `idempotencyRef` — because the dialog is unmounted/remounted per client (`key={selectedClientId}`), all `useState` and `useEffect` state resets automatically. No manual clear logic required beyond the existing on-open reset (L131–141 of `MultiInvoicePaymentDialog.tsx`).
+- Same shared dialog. No second payment workflow. No duplicated markup.
 
-| Stage            | File                                                    | Result                                |
-| ---------------- | ------------------------------------------------------- | ------------------------------------- |
-| Row action click | `src/pages/finance/FinanceCustomerBalances.tsx:63,165`  | Sets `paymentClientId`                |
-| Dialog mount     | `FinanceCustomerBalances.tsx:182-189`                   | Passes `invoiceId={null}`             |
-| Hook call        | `RecordPaymentDialog.tsx:92` `useInvoicePayments(null)` | Query disabled, `summary` = undefined |
-| Render branch    | `RecordPaymentDialog.tsx:584-588`                       | Renders `t("common.error")` = `خطأ`   |
-| Writer reached?  | No                                                      | Single-invoice writer never invoked   |
+## C. Reference Persistence Trace
 
 
-Not a regression — the route was never functional for the Client-level intent. The correct fix is a **new shared Multi-Invoice dialog** for Client-level payments; the single-invoice dialog remains reserved for invoice-scoped entry (Invoice Details).
+| Layer                        | Reference field                                                                                                                                                                                                                                    | Session-level or Tender-level?                                              | Persisted?                                                                                                                               |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| UI Tender row                | `TenderRow.reference` in `MultiInvoicePaymentDialog.tsx` (also same in `RecordPaymentDialog.tsx`)                                                                                                                                                  | Tender-level                                                                | Only through the allocation payload — not stored as a form field                                                                         |
+| Generated allocation row     | `PaymentSessionAllocation.external_reference` (`postPaymentSession.ts` L16), assigned per row in `buildAllocationsPayload` L267–269 from `tender.reference.trim()`                                                                                 | Tender-level (copied to every derived (invoice,method) row for that tender) | Yes, one per allocation                                                                                                                  |
+| Wrapper payload              | `PaymentSessionPayload.reference_note` (session-level, currently unused by dialogs) and `PaymentSessionPayload.external_reference` (top-level, currently populated from the general Reference input at `MultiInvoicePaymentDialog.tsx` L306, L313) | Session-level                                                               | Depends on RPC — `payment_sessions` table has only `reference_note`; top-level `external_reference` is redundant with per-row references |
+| Installed RPC                | `post_payment_session` — accepts `p_payload` JSON with `payment_date`, allocations list, and (per prior audits) writes each allocation's `external_reference` into `payment_allocations.external_reference`                                        | Both layers                                                                 | Yes (allocation row); session-level uses `reference_note`                                                                                |
+| Database row                 | `payment_allocations.external_reference` text nullable (verified via information_schema); `payment_sessions.reference_note` text nullable                                                                                                          | Both                                                                        | Yes                                                                                                                                      |
+| Payment-session reader / PDF | `fetchInvoicePaymentSummary` and PDF reader already surface `external_reference` per allocation (Slice 2 accepted)                                                                                                                                 | Tender-level                                                                | Yes                                                                                                                                      |
 
-## D. Installed Backend Contract (verified)
 
-`supabase/migrations/20260726120544_*.sql` — `post_payment_session` already enforces: single tenant/client/currency across all `allocations[]`; per-invoice advisory lock; `pg_advisory_xact_lock` on client ledger; only `approved|partial` invoices; frozen `line_gross_amount` caps per horse and client-level; prior-allocation subtraction; per-invoice status recomputed (`paid|partial`); atomic multi-row `payment_allocations` + `payment_horse_allocations`; single `payment_sessions` row; idempotency via `_finance_idempotency_begin/_complete`; dedup on `(invoice_id|method)`; method whitelist `cash|card|transfer|check`; max 50 allocation rows.
+## D. Exact Reference Contract — **Contract A**
 
-**Wrapper** `src/lib/finance/postPaymentSession.ts` already speaks the multi-invoice shape (`allocations: PaymentSessionAllocation[]`).
+Tender-level references are fully supported and already persisted via `payment_allocations.external_reference`. Therefore in `MultiInvoicePaymentDialog.tsx`:
 
-## E. Exact RPC Payload (worked example)
+- Delete the general Reference `Input` (L395–406), its `externalReference` state (L126), its `setExternalReference(...)` reset (L138), and its use in the RPC call (L306, L313).
+- Keep the fingerprint using per-row `external_reference` values already sorted in `multiInvoicePaymentFingerprint.ts` L38–44. Remove the top-level `external_reference` entry (L51) since it is no longer supplied — idempotency remains sensitive to every tender's reference through the per-row values.
+- `RecordPaymentDialog.tsx` general reference is out of scope (Single-Invoice accepted); no change there.
+- No data loss: each tender's reference propagates to every derived allocation row via `buildAllocationsPayload` (L268), which is what the RPC persists.
 
-Client A, split tender Cash + Card, one multi-horse invoice + one simple invoice:
+## E. Tender Duplicate / Add Behavior (locked)
 
-```json
-{
-  "payment_date": "2026-07-27",
-  "external_reference": "REC-2026-07-27-001",
-  "allocations": [
-    { "invoice_id": "INV-A-uuid", "payment_method": "cash",     "amount": 500.00,
-      "client_level_amount": 0,
-      "horse_allocations": [
-        { "horse_id": "H1-uuid", "amount": 300.00 },
-        { "horse_id": "H2-uuid", "amount": 200.00 }
-      ] },
-    { "invoice_id": "INV-B-uuid", "payment_method": "card",     "amount": 200.00,
-      "client_level_amount": 200.00 }
-  ]
-}
-```
+Behavior encoded in the extracted `PaymentTenderEditor` and used by both dialogs:
 
-## F. Server Validation
+1. New row selects the first method in `["cash","card","transfer","check"]` not currently used by any row.
+2. When all four are used, `Add Payment Method` is **disabled** — no fallback row, no duplicate `cash`.
+3. Removing a row frees its method.
+4. Method `<Select>` items for a given row disable/omit methods already in use by any other row (the row's own current method remains selectable).
+5. At least one row always present (last remove is disabled).
+6. `Add Payment Method` button is rendered directly beneath the last tender card.
+7. Same controlled logic in Single- and Multi-Invoice flows; extraction preserves the accepted Single-Invoice behaviour exactly (methods list, amount input, per-tender reference input, remove control).
 
-All Slice-3 invariants already enforced server-side (see D). No additions required.
+Duplicate detection (`duplicateTenderMethod`) becomes bare-method equality across rows and no longer treats references as a distinguishing key.
 
-## G. Eligible Invoice Contract
+## F. KPI Metric and Label Truth — **Outcome B → resolvable in-scope**
 
-Load invoices where `tenant_id = active` AND `client_id = selected` AND `status IN ('approved','partial')` AND `currency = session currency` AND `outstanding > 0.01`. Compute outstanding from batch `ledger_entries` sum via existing `useInvoicePaymentsBatch`. Sort: due_date ASC → issue_date ASC → invoice_number ASC. Exclude `draft`, `reviewed`, `paid`, `cancelled`, `overdue-with-zero-outstanding`.
+Current metrics in `DashboardFinance.tsx` L74–85 and L94–145:
 
-## H. Primary Entry Point
+- Card 1 = `invoices.length` (count) → label `totalInvoices`
+- Card 2 = count of `approved|shared` (count) → label `pendingInvoices`
+- Card 3 = `sum(total_amount) where status='paid'` (money, uses `formatAmount`) → currently labelled `paidAmount`
+- Card 4 = `sum(total_amount) where status='overdue'` (money, uses `formatAmount`) → currently labelled `overdueAmount`
 
-`Finance → Customer Balances` row `Record Payment` opens the new shared dialog with `clientId` preselected and immutable.
+Cards 3 and 4 display money, not counts. The user's locked requirement is `Paid Invoices` / `Overdue Invoices` (both interpreted as counts by wording). To satisfy the locked labels without misleading users, switch cards 3 and 4 to counts:
 
-## I. Secondary Entry Point
+- Card 3 = count of `status='paid'`, formatted as an integer, label `paidInvoices`.
+- Card 4 = count of `status='overdue'`, formatted as an integer, label `overdueInvoices`.
+- Update `finance.invoiceStats.paidAmount` → `paidInvoices` (`Paid Invoices` / `الفواتير المدفوعة`), and `overdueAmount` → `overdueInvoices` (`Overdue Invoices` / `الفواتير المتأخرة`). `totalInvoices` and `pendingInvoices` already correct.
 
-`Finance → Invoices` toolbar action `Record Client Payment` / `تسجيل دفعة للعميل` next to `Create Invoice`. Opens the shared dialog with a Client selector step first.
+This aligns metric shape with label wording; no shared status keys are mutated.
 
-## J. Shared Dialog Architecture (locked)
+## G. Complex-Invoice React Architecture (Rules-of-Hooks safe)
 
-```text
-MultiInvoicePaymentDialog (new, shared)
-├── ClientSummaryHeader             (preselected OR selector)
-├── SharedTenderEditor              (extracted from RecordPaymentDialog rows)
-├── EligibleInvoicesSelector        (new — checkbox list + per-row amount)
-│    └── AllocateOldestFirst button
-├── PerInvoiceAllocation            (reuses PaymentAllocationEditor per selected complex invoice)
-└── CompactStickyFooter             (Total Payments · Unallocated to Invoices · Cancel · Record Payment)
-```
+Add `src/components/finance/MultiInvoiceComplexAllocationCard.tsx`:
 
-Single writer path → `postPaymentSession()` → RPC. Existing `RecordPaymentDialog` (single-invoice) remains unchanged for `InvoiceDetailsSheet` entry.
+- Props: `invoice: EligibleInvoice`, `paymentAmount: number`, `currency`, `value: Record<string,string>`, `onChange(next)`, `onValidityChange(valid)`, `onCompositionResolved({isComplex: boolean, canPayHere: boolean})`.
+- Calls `useInvoicePriorAllocations(invoice.id)` inside the child (single Hook, unconditional in the child scope).
+- While loading → shows a small skeleton row; on error or unsupported (lab-horse-only) → surfaces localized `notSupported` state and reports `canPayHere=false` upward so the parent can block submission and hint the user to unselect.
+- If composition indicates simple (single canonical horse or client-level only) → renders nothing (reports `isComplex=false`, `canPayHere=true`); the parent's default payload path handles it.
+- If composition indicates multi-horse or horse+client-level → renders `<PaymentAllocationEditor …/>` with `paymentAmount` fed from `invoiceAmountsUnits[invoice.id]`; bubbles up bucket values + validity.
 
-## K–O. Contracts
+Parent `MultiInvoicePaymentDialog.tsx`:
 
-- **Payment Methods**: reuse existing tender rows (Cash/Card/Transfer/Check + amount + reference + Split); Total Payments = Σ tender amounts. Order: Date → Tender → Invoice Distribution.
-- **Invoice Allocation**: manual per invoice; explicit `Allocate Oldest First` button proposes and stops (editable, no auto-submit); two-invoice complement rule and >2 last-unresolved auto-complete reuse `touchedRef` logic already in `PaymentAllocationEditor`.
-- **Oldest-First**: deterministic due_date → issue_date → invoice_number; integer cents; never exceeds outstanding.
-- **Per-Invoice Horse/Client**: `useInvoicePriorAllocations` + `PaymentAllocationEditor` reused unchanged inside a collapsible per-invoice card; only shown for `needsEditor` invoices; frozen-gross caps.
-- **Split-Tender × Multi-Invoice**: build one `allocations[]` entry per `(invoice_id, payment_method)` pair using a cent-safe distribution helper (extend `allocationDistribution.ts`) that preserves each tender total, each invoice total, and each horse/client-level subtotal simultaneously; residual absorbed on last row; duplicate `(invoice|method)` pairs forbidden by dedup.
+- Iterates only over `selectedInvoices` and renders one `MultiInvoiceComplexAllocationCard` per entry. No `useInvoicePriorAllocations` call at the parent, no conditional/loop hooks — the Hook lives in the child, which is a normal component instance.
+- Maintains `bucketValuesByInvoice[id]` and `bucketValidByInvoice[id]` keyed by invoice id; entries are pruned in `toggleInvoice(id, false)`.
+- Unselected invoices unmount their child, so no query runs for them.
+- `canSubmit` gains `every(selected).canPayHere && every complex bucket valid`.
+- On submit, `bucketBreakdownByInvoice[id]` is built from card outputs and passed to `buildAllocationsPayload` (existing signature supports it).
 
-## P. Idempotency
+## H. Exact Files Added or Modified
 
-Extend `fingerprintPayload` to hash: tenant, client, currency, date, sorted invoice IDs, per-invoice amount, per-invoice sorted horse allocations, per-invoice client-level, ordered tender rows (method+amount+reference). Same fingerprint reuses the key (server replay path returns stored response); any edit rotates the key; successful post + dialog close reset the draft key.
+Added:
 
-## Q. Concurrency
+- `src/components/finance/PaymentTenderEditor.tsx`
+- `src/components/finance/MultiInvoiceComplexAllocationCard.tsx`
+- `src/components/finance/ClientPickerDialog.tsx`
+- `src/components/finance/__tests__/MultiInvoicePaymentDialog.test.tsx`
+- `src/components/finance/__tests__/PaymentTenderEditor.test.tsx`
+- `src/components/finance/__tests__/DashboardFinanceRecordClientPayment.test.tsx`
 
-Server already `FOR UPDATE`-locks each invoice and takes a client-ledger advisory lock. On `FIN_INVOICE_OVER_ALLOCATION` / `FIN_INVOICE_NOT_PAYABLE`: whole session fails atomically; UI shows localized error, invalidates `invoice-payments-batch` + eligible-invoices query, preserves user inputs where still valid.
+Modified:
 
-## R. Error Contract
+- `src/components/finance/MultiInvoicePaymentDialog.tsx` (section reorder, remove general reference, use `PaymentTenderEditor`, use `MultiInvoiceComplexAllocationCard`, footer wording, gating, oldest-first fix)
+- `src/components/finance/RecordPaymentDialog.tsx` (swap inline tender markup for `PaymentTenderEditor`; no behaviour change)
+- `src/components/finance/EligibleInvoicesSelector.tsx` (summary header, localized statuses, labelled input, `remainingAfterPayment`, `allocationEnabled` prop)
+- `src/pages/DashboardFinance.tsx` (Record Client Payment button + ClientPicker wiring, KPI cards 3/4 switch to counts)
+- `src/pages/finance/FinanceCustomerBalances.tsx` (no logic change — already uses shared dialog; verify prop shape)
+- `src/i18n/locales/en.ts` and `src/i18n/locales/ar.ts` (new multiInvoicePayment keys, rename `paidAmount→paidInvoices`, `overdueAmount→overdueInvoices`, add `recordClientPayment`, `selectClient`, `remainingToAllocate`, `overAllocationBy`, `paymentsExceedOutstandingBy`, `notSupported`, etc.)
+- `src/lib/finance/multiInvoicePaymentFingerprint.ts` (drop top-level `external_reference`)
+- `src/lib/finance/__tests__/multiInvoicePaymentFingerprint.test.ts` (update expectations)
 
-Reuse `ERROR_TOKEN_KEYS` map from `useInvoicePayments`. Add new tokens for: no-eligible-invoices, invoice-allocation-mismatch, unallocated-remaining, client-required. Never surface raw SQLSTATE, UUIDs, table names, or `FIN_*` codes.
+## I. Updated Three-Step Execution Plan
 
-## S. Invoice KPI Labels
+**Step A — Payment-first layout, shared tender UX, secondary entry, KPI truth**
 
-Add **new** i18n keys (do NOT mutate `finance.invoices.total|pending|paid|overdue` because they are shared with row/detail labels):
+- Reorder `MultiInvoicePaymentDialog` scroll body to: Client summary → Payment Date row → `PaymentTenderEditor` (Payment Methods) → Total Payments → `EligibleInvoicesSelector` (with summary header + localized statuses + labelled input + gating on tenderTotal>0) → per-selected-invoice `MultiInvoiceComplexAllocationCard` → sticky footer.
+- Extract `PaymentTenderEditor` from `RecordPaymentDialog`; enforce the E-locked add/duplicate rules; render `Add Payment Method` beneath the last row and disable when all four methods used.
+- Remove the general Reference input, state, RPC arg, and top-level fingerprint contribution.
+- Add `ClientPickerDialog` + `Record Client Payment` button on `DashboardFinance`; mount `MultiInvoicePaymentDialog` keyed by `selectedClientId` so state fully resets on client change.
+- Switch KPI cards 3 & 4 to invoice counts and rename i18n keys/values to `paidInvoices` / `overdueInvoices` per §F.
+- Rollback: revert listed files.
 
-- `finance.invoices.stats.totalInvoices` → `Total Invoices` / `إجمالي الفواتير`
-- `finance.invoices.stats.pendingInvoices` → `Pending Invoices` / `الفواتير المعلقة`
-- `finance.invoices.stats.paidInvoices` → `Paid Invoices` / `الفواتير المدفوعة`
-- `finance.invoices.stats.overdueInvoices` → `Overdue Invoices` / `الفواتير المتأخرة`
+**Step B — Reconciliation, oldest-first, and inline complex-invoice completion**
 
-Update only `src/pages/DashboardFinance.tsx:102,115,128,141`. Counts, colors, icons, queries unchanged.
+- Replace footer `Difference` with state-aware `Remaining to Allocate to Invoices` (non-negative), destructive inline `overAllocationBy` alert, and `paymentsExceedOutstandingBy` alert that disables submit. Never render a negative amount.
+- Remove the on-mount auto-proposal (`useEffect` at L145–164); oldest-first only fires from the explicit button. Disable per-row amount inputs and the oldest-first button whenever `tenderTotal <= 0`.
+- Implement `MultiInvoiceComplexAllocationCard` per §G; wire its outputs into `bucketBreakdownByInvoice` for `buildAllocationsPayload`; enforce `canPayHere` and bucket validity in `canSubmit`. Simple / client-level-only invoices render no editor and pass no breakdown (server-side canonical resolution unchanged).
+- Rollback: revert listed files.
 
-## T. Cross-Account Coverage
+**Step C — Focused verification**
 
-Shared writer already used by Stable and Laboratory (via `InvoiceDetailsSheet`). New dialog is account-agnostic — any tenant with `finance.payment.create` permission consumes it. Account-specific composition (lab-horse-only unsupported cases) already flagged by `useInvoicePriorAllocations.hasUnsupportedLabHorse` and will block those invoices in the selector.
+- Add the six new test files in §H; extend `multiInvoiceDistribution` + fingerprint tests for `bucketBreakdownByInvoice` and dropped top-level reference.
+- Commands: `bunx vitest run src/components/finance/__tests__ src/lib/finance/__tests__`, then `bunx tsgo --noEmit`, then `bun run build`. Report pass/fail/skip/warn counts. No live DB claims.
+- Manual acceptance: Scenarios 1–9 from the prior audit plus §9 items 1–3 (Record Client Payment).
+- Rollback: delete new test files.
 
-## U. Performance
+## J. Updated Focused Tests
 
-- Open dialog: 1 batch invoices query + 1 batch `useInvoicePaymentsBatch` = **2 queries**.
-- Select 3 simple invoices: 0 extra queries (composition lazy-loaded only for `needsEditor`).
-- Select 1 multi-horse invoice: +1 `useInvoicePriorAllocations` query.
-- Submit: 1 RPC call.
-React Query keys scoped by `[tenantId, clientId]`; invalidate `invoice-payments-batch`, `customer_balances`, `invoices` on success.
+Cover items 1–20 from §9 in the request. Notable additions:
 
-## V. Files Proposed
+- `DashboardFinanceRecordClientPayment.test.tsx`: button renders, opens `ClientPickerDialog`, requires a client, then opens `MultiInvoicePaymentDialog`; changing client remounts the dialog with fresh state (assert cleared invoice selection, amounts, tender rows, no stale idempotency).
+- `PaymentTenderEditor.test.tsx`: add-row picks first unused method; button disables at 4 rows; removing a row frees its method; select excludes methods used elsewhere; single row cannot be removed.
+- `MultiInvoicePaymentDialog.test.tsx`: per-row `external_reference` reaches `postPaymentSession` payload per tender; tender B's reference never leaks into rows derived from tender A; multi-horse mock renders `MultiInvoiceComplexAllocationCard`; unselected invoices never trigger a composition query (spy on `useInvoicePriorAllocations`); one atomic RPC call submits every selected invoice.
+- KPI test: `DashboardFinance` renders integer counts for cards 3 & 4 with the exact Arabic and English strings.
 
+## K. Database Change Required
 
-| File                                                         | Role                                               |
-| ------------------------------------------------------------ | -------------------------------------------------- |
-| `src/components/finance/MultiInvoicePaymentDialog.tsx` (new) | Shared dialog                                      |
-| `src/components/finance/EligibleInvoicesSelector.tsx` (new)  | Invoice list + amount + oldest-first               |
-| `src/hooks/finance/useEligibleClientInvoices.ts` (new)       | Batch eligible invoices + outstanding              |
-| `src/lib/finance/multiInvoiceDistribution.ts` (new)          | Tender × invoice cent-safe matrix                  |
-| `src/pages/finance/FinanceCustomerBalances.tsx`              | Swap dialog; pass `clientId`                       |
-| `src/pages/DashboardFinance.tsx`                             | Add `Record Client Payment` action; 4 new KPI keys |
-| `src/i18n/locales/en.ts` / `ar.ts`                           | Add KPI + Slice-3 strings                          |
-| `src/lib/finance/postPaymentSession.ts`                      | (unchanged)                                        |
-| `src/components/finance/RecordPaymentDialog.tsx`             | (unchanged — remains single-invoice)               |
+None. `payment_allocations.external_reference` and `payment_sessions.reference_note` already exist and are used.
 
+## L. Roadmap
 
-## W. Three-Step Execution Plan
+- Phase 1/2/3 closed. Phase 4 Slice 1/2 closed. Slice 3 remains PARTIALLY IMPLEMENTED until this plan lands. Slice 4 not started. Phase 5 not started.
 
-### Step A — Shared dialog, entry points, reads
+## M. Next Exact Action
 
-Create `MultiInvoicePaymentDialog`, `EligibleInvoicesSelector`, `useEligibleClientInvoices`. Fix `FinanceCustomerBalances.tsx` to open the new dialog with preselected `clientId`. Add `Record Client Payment` button in `DashboardFinance.tsx` Invoices tab toolbar. Add 4 new KPI translation keys and swap references in `DashboardFinance.tsx`. Rollback = revert 6 files.
-
-### Step B — Allocation, distribution, writer integration
-
-Implement `multiInvoiceDistribution.ts` producing one `allocations[]` row per `(invoice, method)`; reuse `PaymentAllocationEditor` per selected complex invoice inside collapsible cards; extend `fingerprintPayload` for multi-invoice; wire submit → `postPaymentSession`; localize new error tokens; invalidate `[invoice-payments-batch]`, `[customer_balances]`, `[invoices]`, `[eligible-client-invoices]` on success. No backend migration. Rollback = revert Step B files.
-
-### Step C — Focused verification
-
-Add Vitest suites: `multiInvoiceDistribution.test.ts` (cent-safe matrix, oldest-first, complement rules), `MultiInvoicePaymentDialog.test.tsx` (entry-point preselection, eligible filter, empty state, submit disabled states, KPI label snapshot). Run `bunx tsgo --noEmit` and `bun run build`. Rollback = revert test files.
-
-## X. Focused Tests (summary)
-
-Entry-point preselection · empty eligible state · cross-client isolation · draft/cancelled/paid excluded · currency filter · tender before allocation · Total Payments = tender sum · full+partial two-invoice · oldest-first proposal is editable · two-invoice complement · >2 last-unresolved auto-complete · simple invoice needs no editor · multi-horse editor reuse · lab-unsupported blocked · split tender across 2 invoices reconciles · single Payment Session · correct ledger rows · invoice statuses update · Customer Balance updates once · idempotent retry replays · edit rotates key · KPI Arabic/English labels · KPI counts unchanged · mobile + desktop layout.
-
-## Y. Manual Acceptance
-
-Scenarios 1–9 exactly as specified in the task (Customer Balances entry, two-invoice full+partial, oldest-first, multi-horse, split tender, concurrent change, Invoice-page entry, KPI labels, cross-account).
-
-## Z. Database Changes
-
-**NONE.** Installed `post_payment_session` already supports the full Slice-3 contract.
-
-## AA. Persistent Rows Modified
-
-None during the audit. Runtime writes only occur when a user posts a payment via the new dialog (single atomic Session per submit).
-
-## AB. Roadmap
-
-Slice 3 unblocks Slice 4 (Payment Session details, receipts, reports) and Phase N+4 (refunds, credit, overpayment).
-
-## AC. Next Exact Action
-
-**AWAIT USER APPROVAL OF THE MULTI-INVOICE CLIENT PAYMENT PLAN.**
+AWAIT USER APPROVAL OF THE SLICE 3.1 FINAL ALIGNMENT PLAN.
 
 ---
 
-## APPROVAL HANDOFF 
+## APPROVAL HANDOFF
 
-## # APPROVED — EXECUTE PHASE N+3 SLICE 3  
-# MULTI-INVOICE CLIENT PAYMENT  
-#  
-# ONE CLIENT · MULTIPLE OUTSTANDING INVOICES  
-# ONE ATOMIC PAYMENT SESSION  
-# SHARED TENDER EDITOR  
-# CENT-SAFE TENDER × INVOICE × SCOPE MATRIX  
-  
-## 1. MODE  
-  
-EXECUTION.  
-  
-Implement Phase N+3 Slice 3 only.  
-  
-No additional investigative round is required.  
-  
-No backend, RPC, schema, migration, RLS, grant, permission, or persistent-row  
-repair is authorized because the installed `public.post_payment_session` RPC  
-already supports the locked Multi-Invoice Payment contract.  
-  
-Stop after the implementation report and manual acceptance script.  
-  
----  
-  
-## 2. ROADMAP  
-  
-### Phase 1 — N+1A  
-CLOSED AND MANUALLY ACCEPTED.  
-  
-### Phase 2 — N+1B  
-CLOSED AND MANUALLY ACCEPTED.  
-  
-### Phase 3 — N+2  
-CLOSED AND MANUALLY ACCEPTED.  
-  
-### Phase 4 — N+3  
-CURRENT.  
-  
-- Slice 1: CLOSED.  
-- Slice 2: CLOSED.  
-- Slice 2.2F: CLOSED AND MANUALLY ACCEPTED.  
-- Slice 3: CURRENT EXECUTION.  
-- Slice 4: NOT STARTED.  
-  
-### Phase 5 — N+4  
-NOT STARTED.  
-  
-Retail POS remains excluded.  
-  
----  
-  
-## 3. PROVEN CURRENT DEFECT  
-  
-The current Customer Balances route opens the Single-Invoice  
-`RecordPaymentDialog` with:  
-  
-`invoiceId={null}`  
-  
-This causes:  
-  
-- `useInvoicePayments(null)` to remain disabled;  
-- `summary` to remain undefined;  
-- the dialog to render `common.error`;  
-- no Payment writer to be reached.  
-  
-Do not hide the error or force a fake Invoice ID.  
-  
-Replace this Client-level route with the new shared Multi-Invoice Payment flow.  
-  
-The existing Single-Invoice dialog remains the Invoice Details payment flow.  
-  
----  
-  
-## 4. PRIMARY AND SECONDARY ENTRY POINTS  
-  
-### Primary  
-  
-`Finance → Customer Balances → Client row → Record Payment`  
-  
-Required:  
-  
-- open the shared `MultiInvoicePaymentDialog`;  
-- pass the selected `clientId`;  
-- Client remains fixed inside the dialog;  
-- load only that Client’s eligible outstanding Invoices.  
-  
-### Secondary  
-  
-`Finance → Invoices → Record Client Payment`  
-  
-Place one action beside the existing Create Invoice action without crowding the  
-toolbar.  
-  
-Required:  
-  
-- open the same shared dialog;  
-- show Client selection first;  
-- selecting a Client loads only that Client’s eligible outstanding Invoices;  
-- changing Client clears selected Invoices and all Invoice/scope allocations;  
-- Tender rows reset to one empty default row to prevent accidental reuse across  
-  Clients.  
-  
-Do not create separate Payment implementations for the two entry points.  
-  
----  
-  
-## 5. SHARED DIALOG FLOW  
-  
-Implement one shared flow:  
-  
-```text  
-Client Summary  
-→ Payment Date  
-→ Payment Method Details  
-→ Total Payments  
-→ Eligible Invoice Selection  
-→ Distribution Across Invoices  
-→ Horse/Client-Level Distribution Inside Complex Invoices  
-→ Compact Sticky Footer  
-→ Atomic Submission
-
-> Preserve the accepted payment UX:
+> APPROVED — EXECUTE PHASE N+3 SLICE 3.1 FINAL — MULTI-INVOICE PAYMENT COMPLETION.
 >
-> -   
-> Payment Methods appear before Invoice distribution;  
+> Authorised, frontend-only:
 >
-> -   
-> Total Payments equals the sum of Tender rows;  
+> - Reorder MultiInvoicePaymentDialog to: Client Summary → Payment Date → Payment Methods → Total Payments → Eligible Invoice Summary → Invoice Selection & Allocation → inline complex-invoice Horse/Client-Level allocation → compact sticky footer.
 >
-> -   
-> no independently editable duplicate Payment-total field;  
+> - Extract PaymentTenderEditor from RecordPaymentDialog and reuse it in MultiInvoicePaymentDialog with identical accepted Single-Invoice behaviour. Add Payment Method renders directly below the last tender row. A new tender row selects the first currently unused method from cash/card/transfer/check; when all four are used, Add Payment Method is disabled — no cash fallback, no duplicate row. Removing a row frees its method. The method selector excludes methods already used by another row. At least one row is always present.
 >
-> -   
-> Arabic uses Latin digits and shared Finance terminology;  
+> - Remove the duplicated general Reference field (input, state, RPC arg, and top-level fingerprint contribution). Per-tender references remain authoritative and are persisted per allocation row via payment_allocations.external_reference, which the installed post_payment_session already writes. Idempotency stays sensitive to every tender's reference through the per-row values.
 >
-> -   
-> mobile-first responsive layout;  
+> - Add a secondary Invoice-page entry point on DashboardFinance: a "تسجيل دفعة للعميل / Record Client Payment" button next to Create Invoice. Clicking it opens a ClientPickerDialog that requires client selection, then opens the shared MultiInvoicePaymentDialog for that client. Mount the dialog with key={selectedClientId} so switching client fully resets selected invoices, amounts, tender rows, complex-invoice allocations, validation, and idempotency state.
 >
-> -   
-> sticky header/footer;  
+> - Add an eligible-invoice summary header (Eligible count, Total Outstanding, Selected X of Y, Selected Outstanding) using the session currency. Localise status badges through the existing finance.invoices.statuses.* dictionary. Label the per-invoice allocation input and show "Remaining after payment" per row.
 >
-> -   
-> dirty-form protection.  
+> - Gate per-invoice allocation inputs and Allocate Oldest First until Total Payments is positive. Remove the initial auto-proposal for preselected invoices; oldest-first only fires from the explicit button.
 >
+> - Replace the Difference footer with state-aware "Remaining to Allocate to Invoices" (never negative). Positive over-allocation surfaces a localized inline validation and disables submission. Total Payments greater than total eligible outstanding also blocks submission with its own localized message.
 >
-> ---
+> - Keep exactly one Allocate Oldest First action (due date → issue date → invoice number → invoice id tie-breaker); no equal-distribution across invoices; no auto-submit.
 >
-> ## 6. SHARED TENDER EDITOR — NO DUPLICATED PAYMENT-METHOD CODE
+> - For every selected invoice, mount a MultiInvoiceComplexAllocationCard that calls useInvoicePriorAllocations(invoiceId) inside itself (Rules-of-Hooks safe; no conditional/loop hooks in the parent). The card renders PaymentAllocationEditor inline only for multi-horse or horse+client-level invoices, bubbles bucket values and validity to the parent, and blocks payment on unsupported lab-horse-only compositions. Simple one-horse and client-level-only invoices render no editor. Unselected invoices never load composition.
 >
-> Create:
+> - Submit all selected invoices in one atomic postPaymentSession call. Include Horse and Client-Level amounts for every complex invoice via buildAllocationsPayload's bucketBreakdownByInvoice.
 >
-> `src/components/finance/PaymentTenderEditor.tsx`
+> - Switch DashboardFinance KPI cards 3 and 4 from monetary totals to invoice counts so the "Paid Invoices" / "Overdue Invoices" labels are truthful; rename translation keys paidAmount→paidInvoices and overdueAmount→overdueInvoices and set the exact Arabic (إجمالي الفواتير / الفواتير المعلقة / الفواتير المدفوعة / الفواتير المتأخرة) and English values. Do not mutate the older shared status keys.
 >
-> It must be a controlled shared component containing the existing accepted  
+> - Add the focused Vitest coverage described in §J. Run bunx vitest run, bunx tsgo --noEmit, and bun run build; report pass/fail/skip/warn counts.
 >
-> Tender behavior:
+> Prohibited:
 >
-> -   
-> Cash;  
+> - Silently dropping any payment reference.
 >
-> -   
-> Card;  
+> - Duplicate tender methods.
 >
-> -   
-> Bank Transfer;  
+> - Conditional or looped Hook calls.
 >
-> -   
-> Check;  
+> - Deferring the Invoice-page secondary entry.
 >
-> -   
-> amount;  
+> - Deferring supported complex-invoice allocation to Slice 4.
 >
-> -   
-> external reference;  
+> - Backend migrations, RPC, RLS, or grant changes (reference persistence already exists; no mechanical contradiction).
 >
-> -   
-> Add Payment Method;  
+> - Overpayment, client credit, refunds, reversals, receipts, reports, PDF changes, Retail POS.
 >
-> -   
-> remove row;  
+> - Redirecting supported multi-horse invoices to the Single-Invoice dialog.
 >
-> -   
-> duplicate-method validation;  
->
-> -   
-> split tender;  
->
-> -   
-> Pay Full Outstanding when enabled by the caller;  
->
-> -   
-> Total Payments derived from rows.  
->
->
-> Refactor `RecordPaymentDialog.tsx` minimally to consume the same controlled  
->
-> `PaymentTenderEditor`.
->
-> This narrow refactor is authorized only to prevent duplication.
->
-> The Single-Invoice dialog must retain identical:
->
-> -   
-> section order;  
->
-> -   
-> labels;  
->
-> -   
-> behavior;  
->
-> -   
-> validation;  
->
-> -   
-> payload;  
->
-> -   
-> idempotency;  
->
-> -   
-> mobile/desktop UX.  
->
->
-> Add regression coverage proving the Single-Invoice behavior did not change.
->
-> Do not duplicate the Tender editor inside `MultiInvoicePaymentDialog`.
->
-> ---
->
-> ## 7. ELIGIBLE INVOICE READ
->
-> Create:
->
-> `src/hooks/finance/useEligibleClientInvoices.ts`
->
-> Load Invoices in one Tenant-and-Client-scoped batch where:
->
-> - `tenant_id` equals the active Tenant;  
->
-> - `client_id` equals the selected Client;  
->
-> -   
-> status is financially payable under the installed contract:  
->
-> `approved` or `partial`;  
->
-> -   
-> outstanding is greater than `0.01`;  
->
-> -   
-> Invoice is not paid or cancelled;  
->
-> -   
-> currency matches the selected Session currency.  
->
->
-> Sort deterministically:
->
-> 1.   
-> due date ascending;  
->
-> 2.   
-> issue date ascending;  
->
-> 3.   
-> Invoice number ascending;  
->
-> 4.   
-> Invoice ID as final stable tie-breaker.  
->
->
-> Display:
->
-> -   
-> Invoice number;  
->
-> -   
-> issue date;  
->
-> -   
-> due date;  
->
-> -   
-> status;  
->
-> -   
-> total;  
->
-> -   
-> Paid to Date;  
->
-> -   
-> outstanding;  
->
-> -   
-> concise Horse/Client-Level summary;  
->
-> -   
-> proposed amount allocated to the Invoice.  
->
->
-> Do not initially load complete composition for every historical Invoice.
->
-> Load detailed composition lazily only for selected complex Invoices.
->
-> Use React Query keys scoped by:
->
-> -   
-> Tenant ID;  
->
-> -   
-> Client ID;  
->
-> -   
-> currency.  
->
->
-> ---
->
-> ## 8. INVOICE ALLOCATION
->
-> Create:
->
-> `src/components/finance/EligibleInvoicesSelector.tsx`
->
-> Support:
->
-> -   
-> select/unselect Invoice;  
->
-> -   
-> manual amount per selected Invoice;  
->
-> -   
-> remaining after proposed Payment;  
->
-> -   
-> search by Invoice number;  
->
-> -   
-> Select All eligible;  
->
-> -   
-> Clear selection;  
->
-> -   
-> explicit `Allocate Oldest First`;  
->
-> -   
-> deterministic complement behavior.  
->
->
-> ### Oldest-first
->
-> Example:
->
-> ```
->
-> ```
->
-> ```
-> INV-A outstanding: SAR 500
-> INV-B outstanding: SAR 300
-> INV-C outstanding: SAR 200
-> Total Payments: SAR 700
-> ```
->
-> Result:
->
-> ```
->
-> ```
->
-> ```
-> INV-A: SAR 500
-> INV-B: SAR 200
-> INV-C: SAR 0
-> ```
->
-> Requirements:
->
-> -   
-> explicit button only;  
->
-> -   
-> integer cents;  
->
-> -   
-> values remain editable;  
->
-> -   
-> no automatic submission;  
->
-> -   
-> never exceed Invoice outstanding.  
->
->
-> ### Manual completion
->
-> With exactly two selected Invoices:
->
-> -   
-> the last manually edited Invoice is authoritative;  
->
-> -   
-> the other becomes the valid complement.  
->
->
-> With more than two selected Invoices:
->
-> -   
-> auto-complete only when exactly one final Invoice remains unresolved;  
->
-> -   
-> never redistribute one manual edit unpredictably across several Invoices.  
->
->
-> Invalid negative or over-outstanding complements must not be written.
->
-> Submission remains disabled until Invoice allocation equals Total Payments.
->
-> ---
->
-> ## 9. PER-INVOICE HORSE AND CLIENT-LEVEL ALLOCATION
->
-> For each selected Invoice:
->
-> ### Simple
->
-> -   
-> one canonical Horse only; or  
->
-> -   
-> Client-Level-only.  
->
->
-> Do not show an unnecessary complex editor.
->
-> ### Complex
->
-> -   
-> multiple Horses;  
->
-> -   
-> Horse + Client-Level;  
->
-> -   
-> another currently supported mixed canonical scope.  
->
->
-> Reuse the existing:
->
-> - `PaymentAllocationEditor`;  
->
-> - `useInvoicePriorAllocations`;  
->
-> -   
-> frozen gross caps;  
->
-> -   
-> Pretax/Tax/Total-Due display;  
->
-> -   
-> Equal Distribution;  
->
-> -   
-> manual complement;  
->
-> -   
-> Reset;  
->
-> -   
-> prior-allocation subtraction.  
->
->
-> Render the editor inside a collapsible selected-Invoice card.
->
-> The editor’s `paymentAmount` must equal the amount allocated to that Invoice.
->
-> The parent dialog cannot submit until every selected complex Invoice is  
->
-> internally reconciled.
->
-> Preserve:
->
-> -   
-> Client-Level tax attribution;  
->
-> -   
-> Package financial-parent truth;  
->
-> -   
-> historical unresolved block;  
->
-> -   
-> unsupported Laboratory composition block;  
->
-> -   
-> no `lab_horse_id → horse_id` mapping.  
->
->
-> ---
->
-> ## 10. LOCKED TENDER × INVOICE MATRIX
->
-> Create:
->
-> `src/lib/finance/multiInvoiceDistribution.ts`
->
-> The RPC requires one allocation row per nonzero:
->
-> `(invoice_id, payment_method)`
->
-> The implementation must use a deterministic, cent-safe two-stage matrix.
->
-> ### Stage 1 — Tender × Invoice
->
-> Inputs:
->
-> -   
-> Tender totals;  
->
-> -   
-> Invoice allocation totals.  
->
->
-> Output:
->
-> -   
-> a matrix whose Tender-row sums exactly equal original Tender amounts;  
->
-> -   
-> Invoice-column sums exactly equal Invoice allocation amounts.  
->
->
-> Use integer cents and a deterministic largest-remainder method.
->
-> Stable tie-breakers:
->
-> 1.   
-> Invoice order from the canonical Invoice sort;  
->
-> 2.   
-> Tender row order from the UI;  
->
-> 3.   
-> Invoice ID when otherwise tied.  
->
->
-> No fractional cent may be lost.
->
-> ### Stage 2 — Scope allocation inside each Invoice/Tender cell
->
-> For every Invoice:
->
-> -   
-> take its final Horse/Client-Level bucket totals;  
->
-> -   
-> distribute those totals across that Invoice’s Tender cells;  
->
-> -   
-> preserve every Horse/Client-Level total exactly;  
->
-> -   
-> preserve every Invoice/Tender cell total exactly;  
->
-> -   
-> use integer cents and deterministic residual handling.  
->
->
-> Required identities:
->
-> ```
->
-> ```
->
-> ```
-> Σ Invoice cells for each Tender = Tender amount
-> Σ Tender cells for each Invoice = Invoice allocation
-> Σ Scope amounts inside an Invoice = Invoice allocation
-> Σ Scope amounts across Tender cells = each final Scope allocation
-> ```
->
-> Do not associate one Payment Method with one Horse.
->
-> Payment Methods and Horse/Client-Level allocation remain separate dimensions.
->
-> ---
->
-> ## 11. EXTERNAL REFERENCES
->
-> Every Tender row owns its own external reference.
->
-> When one Tender is split across multiple Invoice rows:
->
-> -   
-> copy that Tender’s reference to every RPC allocation row derived from that  
->
-> Tender;  
->
-> -   
-> do not copy a reference from another Tender;  
->
-> -   
-> do not merge references;  
->
-> -   
-> do not place a Session-level reference in place of the Tender reference.  
->
->
-> Example:
->
-> ```
->
-> ```
->
-> ```
-> Card reference: POS-7788
-> ```
->
-> Every generated Card allocation row receives:
->
-> `external_reference = POS-7788`
->
-> Cash rows do not receive the Card reference.
->
-> ---
->
-> ## 12. RPC 50-ROW LIMIT
->
-> The installed RPC accepts a maximum of 50 allocation rows.
->
-> Before submission calculate:
->
-> ```
->
-> ```
->
-> ```
-> generatedAllocationRowCount
-> =
-> number of nonzero (selected Invoice × nonzero Tender) cells
-> ```
->
-> Required:
->
-> -   
-> block submission when generated rows exceed 50;  
->
-> -   
-> show a localized actionable message;  
->
-> -   
-> never wait for a generic server rejection;  
->
-> -   
-> show the current row count and supported maximum without technical IDs.  
->
->
-> Suggested copy:
->
-> ### Arabic
->
-> `تعذر تسجيل الدفعة لأن عدد توزيعات الفواتير وطرق الدفع يتجاوز الحد المدعوم في العملية الواحدة. قلل عدد الفواتير أو طرق الدفع ثم حاول مرة أخرى.`
->
-> ### English
->
-> `The payment cannot be recorded because the number of invoice and payment-method allocations exceeds the supported limit for one session. Reduce the selected invoices or payment methods and try again.`
->
-> Do not increase the RPC limit in this Slice.
->
-> ---
->
-> ## 13. ONE SESSION, CLIENT, AND CURRENCY
->
-> One submission must contain:
->
-> -   
-> one Tenant;  
->
-> -   
-> one Client;  
->
-> -   
-> one currency;  
->
-> -   
-> one Payment date;  
->
-> -   
-> one Idempotency key;  
->
-> -   
-> one Payment Session ID;  
->
-> -   
-> one or more selected Invoices;  
->
-> -   
-> one or more Tender rows;  
->
-> -   
-> generated allocation matrix rows.  
->
->
-> Reject or block:
->
-> -   
-> multiple Clients;  
->
-> -   
-> currency mismatch;  
->
-> -   
-> no Client;  
->
-> -   
-> no selected Invoice;  
->
-> -   
-> zero Total Payments;  
->
-> -   
-> zero positive Invoice allocation;  
->
-> -   
-> Invoice allocation mismatch;  
->
-> -   
-> complex Invoice scope mismatch;  
->
-> -   
-> unsupported Laboratory composition;  
->
-> -   
-> more than 50 generated allocation rows.  
->
->
-> No overpayment or Client credit is allowed.
->
-> ---
->
-> ## 14. IDEMPOTENCY — SEPARATE MULTI-INVOICE FINGERPRINT
->
-> Create:
->
-> `src/lib/finance/multiInvoicePaymentFingerprint.ts`
->
-> Do not alter the accepted Single-Invoice fingerprint semantics.
->
-> The canonical Multi-Invoice fingerprint must include:
->
-> -   
-> Tenant ID;  
->
-> -   
-> Client ID;  
->
-> -   
-> currency;  
->
-> -   
-> Payment date;  
->
-> -   
-> selected Invoices stable-sorted by ID;  
->
-> -   
-> amount per Invoice;  
->
-> -   
-> each Invoice’s Horse allocations sorted by Horse ID;  
->
-> -   
-> each Invoice’s Client-Level amount;  
->
-> -   
-> Tender rows in visible order;  
->
-> -   
-> Method;  
->
-> -   
-> Tender amount;  
->
-> -   
-> Tender reference;  
->
-> -   
-> generated normalized matrix.  
->
->
-> Requirements:
->
-> -   
-> unchanged retry reuses the same key;  
->
-> -   
-> any material edit rotates the key;  
->
-> -   
-> successful post resets the draft key;  
->
-> -   
-> closing the dialog resets the key;  
->
-> -   
-> concurrent identical submits coalesce or safely replay;  
->
-> -   
-> JavaScript insertion order cannot affect the fingerprint.  
->
->
-> ---
->
-> ## 15. SUBMISSION
->
-> Submit one call through the existing:
->
-> `postPaymentSession`
->
-> Do not create a second writer.
->
-> The payload contains all generated matrix allocation rows.
->
-> The server remains authoritative for:
->
-> -   
-> Tenant;  
->
-> -   
-> Client;  
->
-> -   
-> currency;  
->
-> -   
-> Invoice eligibility;  
->
-> -   
-> current outstanding;  
->
-> -   
-> Horse/Client-Level caps;  
->
-> -   
-> prior allocations;  
->
-> -   
-> locks;  
->
-> -   
-> Ledger;  
->
-> -   
-> Customer Balance;  
->
-> -   
-> Invoice statuses;  
->
-> -   
-> atomicity;  
->
-> -   
-> idempotency.  
->
->
-> On success invalidate:
->
-> -   
-> eligible Client Invoices;  
->
-> -   
-> Invoice payment summaries;  
->
-> -   
-> Customer Balances;  
->
-> -   
-> Invoices;  
->
-> -   
-> Client statement/account queries;  
->
-> -   
-> Payment Sessions where present.  
->
->
-> On concurrency failure:
->
-> -   
-> show an actionable localized message;  
->
-> -   
-> invalidate/refetch current outstanding values;  
->
-> -   
-> preserve still-valid Tender rows and allocations where practical;  
->
-> -   
-> do not silently reduce or reassign money;  
->
-> -   
-> do not partially submit.  
->
->
-> ---
->
-> ## 16. ERROR MAPPING
->
-> Use one shared Multi-Invoice Payment error mapper.
->
-> Map at minimum:
->
-> -   
-> Client required;  
->
-> -   
-> no eligible Invoices;  
->
-> -   
-> no Invoice selected;  
->
-> -   
-> Total Payments required;  
->
-> -   
-> Invoice allocation mismatch;  
->
-> -   
-> allocation exceeds outstanding;  
->
-> -   
-> unallocated amount;  
->
-> -   
-> Tender mismatch;  
->
-> -   
-> currency mismatch;  
->
-> -   
-> Invoice belongs to another Client;  
->
-> -   
-> Invoice no longer payable;  
->
-> -   
-> Horse allocation required;  
->
-> -   
-> Horse allocation mismatch;  
->
-> -   
-> Client-Level allocation mismatch;  
->
-> -   
-> unsupported Laboratory composition;  
->
-> -   
-> generated allocation rows exceed 50;  
->
-> -   
-> concurrent outstanding change;  
->
-> -   
-> permission denied;  
->
-> -   
-> Idempotency conflict;  
->
-> -   
-> generic server validation failure.  
->
->
-> Do not show:
->
-> -   
-> SQL;  
->
-> -   
-> SQLSTATE;  
->
-> -   
-> UUIDs;  
->
-> -   
-> table names;  
->
-> -   
-> raw PostgREST errors;  
->
-> -   
-> raw RPC payload;  
->
-> - `FIN_*` tokens.  
->
->
-> ---
->
-> ## 17. STICKY FOOTER
->
-> Show only:
->
-> - `Total Payments / إجمالي المدفوعات`;  
->
-> - `Unallocated to Invoices / غير الموزع على الفواتير`;  
->
-> -   
-> Cancel;  
->
-> -   
-> Record Payment.  
->
->
-> Keep:
->
-> -   
-> prominent tabular numeric values;  
->
-> -   
-> one horizontal row on desktop/tablet where space permits;  
->
-> -   
-> safe controlled wrap on mobile;  
->
-> -   
-> no horizontal scrolling;  
->
-> -   
-> no overlap.  
->
->
-> Do not add:
->
-> -   
-> per-Invoice balances;  
->
-> -   
-> Horse totals;  
->
-> -   
-> Client-Level totals;  
->
-> -   
-> Tender details;  
->
-> -   
-> validation lists.  
->
->
-> Detailed validation remains near the relevant section.
->
-> ---
->
-> ## 18. INVOICE KPI LABELS
->
-> Add new dedicated translation keys:
->
-> - `finance.invoices.stats.totalInvoices`  
->
-> - `finance.invoices.stats.pendingInvoices`  
->
-> - `finance.invoices.stats.paidInvoices`  
->
-> - `finance.invoices.stats.overdueInvoices`  
->
->
-> ### Arabic
->
-> - `إجمالي الفواتير`  
->
-> - `الفواتير المعلقة`  
->
-> - `الفواتير المدفوعة`  
->
-> - `الفواتير المتأخرة`  
->
->
-> ### English
->
-> - `Total Invoices`  
->
-> - `Pending Invoices`  
->
-> - `Paid Invoices`  
->
-> - `Overdue Invoices`  
->
->
-> Apply these keys only to Invoice KPI cards.
->
-> Do not modify the existing shared keys:
->
-> - `[finance.invoices.total](http://finance.invoices.total)`  
->
-> - `finance.invoices.pending`  
->
-> - `finance.invoices.paid`  
->
-> - `finance.invoices.overdue`  
->
->
-> Preserve:
->
-> -   
-> counts;  
->
-> -   
-> queries;  
->
-> -   
-> colors;  
->
-> -   
-> icons;  
->
-> -   
-> card design.  
->
->
-> ---
->
-> ## 19. FILE SCOPE
->
-> Create:
->
-> - `src/components/finance/PaymentTenderEditor.tsx`  
->
-> - `src/components/finance/MultiInvoicePaymentDialog.tsx`  
->
-> - `src/components/finance/EligibleInvoicesSelector.tsx`  
->
-> - `src/hooks/finance/useEligibleClientInvoices.ts`  
->
-> - `src/lib/finance/multiInvoiceDistribution.ts`  
->
-> - `src/lib/finance/multiInvoicePaymentFingerprint.ts`  
->
-> -   
-> focused test files  
->
->
-> Modify only as required:
->
-> - `src/components/finance/RecordPaymentDialog.tsx`  
->
->   -   
->   controlled Tender-editor extraction only;  
->
->   -   
->   no Single-Invoice UX or financial behavior change.  
->
-> - `src/pages/finance/FinanceCustomerBalances.tsx`  
->
-> - `src/pages/DashboardFinance.tsx`  
->
-> - `src/i18n/locales/en.ts`  
->
-> - `src/i18n/locales/ar.ts`  
->
-> -   
-> shared Payment error mapping where required  
->
->
-> Do not modify:
->
-> - `post_payment_session`;  
->
-> - `postPaymentSession`;  
->
-> -   
-> Payment database objects;  
->
-> -   
-> PDF generator;  
->
-> -   
-> Invoice pagination;  
->
-> -   
-> Payment rows;  
->
-> -   
-> Ledger rows;  
->
-> -   
-> Customer Balance rows.  
->
->
-> ---
->
-> ## 20. REQUIRED TESTS
->
-> ### Customer Balances and entry points
->
-> 1.   
-> Customer Balances Record Payment no longer opens the generic Error state.  
->
-> 2.   
-> Correct Client is preselected and immutable.  
->
-> 3.   
-> Invoice-page entry requires Client selection.  
->
-> 4.   
-> Changing Client clears Invoice and scope allocations.  
->
-> 5.   
-> Both entry points open the same shared dialog.  
->
->
-> ### Shared Tender editor
->
-> 6.   
-> Single-Invoice flow uses the shared Tender editor with no behavior change.  
->
-> 7.   
-> Multi-Invoice flow uses the same Tender editor.  
->
-> 8.   
-> Total Payments equals Tender sum.  
->
-> 9.   
-> Split Tender works.  
->
-> 10.   
-> Tender references remain attached correctly.  
->
->
-> ### Eligibility
->
-> 11.   
-> Cross-Client Invoices never appear.  
->
-> 12.   
-> Draft, Reviewed, Paid, and Cancelled Invoices are excluded.  
->
-> 13.   
-> Approved and Partial outstanding Invoices appear.  
->
-> 14.   
-> Currency-incompatible Invoices are excluded.  
->
-> 15.   
-> Empty eligible state is localized.  
->
->
-> ### Invoice allocation
->
-> 16.   
-> Two-Invoice full + partial works.  
->
-> 17.   
-> No Invoice exceeds outstanding.  
->
-> 18.   
-> Unallocated amount blocks submission.  
->
-> 19.   
-> Oldest-first is explicit and editable.  
->
-> 20.   
-> Two-Invoice complement is deterministic.  
->
-> 21.   
-> More than two Invoices auto-complete only one final unresolved Invoice.  
->
->
-> ### Horse and Client-Level
->
-> 22.   
-> Simple one-Horse Invoice needs no complex editor.  
->
-> 23.   
-> Client-Level-only Invoice needs no complex editor.  
->
-> 24.   
-> Multi-Horse Invoice reuses `PaymentAllocationEditor`.  
->
-> 25.   
-> Horse + Client-Level Invoice works.  
->
-> 26.   
-> Gross caps include frozen tax.  
->
-> 27.   
-> Unsupported Laboratory composition remains blocked.  
->
-> 28.   
-> Every complex Invoice reconciles before submission.  
->
->
-> ### Matrix
->
-> 29.   
-> Tender-row totals remain exact.  
->
-> 30.   
-> Invoice-column totals remain exact.  
->
-> 31.   
-> Horse/Client-Level totals remain exact.  
->
-> 32.   
-> External reference is copied only to rows derived from its Tender.  
->
-> 33.   
-> Residual cents are deterministic.  
->
-> 34.   
-> No forbidden duplicate `(invoice_id, payment_method)` row is generated.  
->
-> 35.   
-> No fractional cent is lost.  
->
-> 36.   
-> Generated row count excludes zero cells.  
->
-> 37.   
-> Row count of 50 is allowed.  
->
-> 38.   
-> Row count above 50 blocks submission.  
->
->
-> ### Idempotency and submission
->
-> 39.   
-> Unchanged retry reuses key.  
->
-> 40.   
-> Invoice edit rotates key.  
->
-> 41.   
-> Horse allocation edit rotates key.  
->
-> 42.   
-> Tender edit/reference edit rotates key.  
->
-> 43.   
-> One `postPaymentSession` call occurs.  
->
-> 44.   
-> No legacy writer is called.  
->
-> 45.   
-> Successful submission resets state and invalidates required caches.  
->
-> 46.   
-> Concurrent outstanding change fails atomically.  
->
-> 47.   
-> Failed submission leaves zero frontend success state.  
->
->
-> ### KPI and shared UX
->
-> 48.   
-> Four Arabic KPI labels are exact.  
->
-> 49.   
-> Four English KPI labels are exact.  
->
-> 50.   
-> KPI counts and queries are unchanged.  
->
-> 51.   
-> Arabic uses `خيل`.  
->
-> 52.   
-> Mobile layout remains usable.  
->
-> 53.   
-> Desktop layout remains usable.  
->
-> 54.   
-> Shared dialog remains account-agnostic.  
->
->
-> ### Verification
->
-> 55.   
-> Focused Vitest passes.  
->
-> 56.   
-> Relevant Single-Invoice Payment regression tests pass.  
->
-> 57.   
-> Relevant Multi-Invoice matrix tests pass.  
->
-> 58. `bunx tsgo --noEmit` passes.  
->
-> 59. `bun run build` passes.  
->
->
-> Report exact:
->
-> -   
-> passed;  
->
-> -   
-> failed;  
->
-> -   
-> skipped;  
->
-> -   
-> warnings.  
->
->
-> Do not claim database runtime tests unless actual runner logs exist.
->
-> ---
->
-> ## 21. MANUAL ACCEPTANCE
->
-> ### Scenario 1 — Customer Balances
->
-> From a Client row, press Record Payment.
->
-> Expected:
->
-> -   
-> no generic Error;  
->
-> -   
-> correct Client fixed;  
->
-> -   
-> eligible outstanding Invoices shown.  
->
->
-> ### Scenario 2 — Full + Partial
->
-> Outstanding:
->
-> -   
-> Invoice A: SAR 500;  
->
-> -   
-> Invoice B: SAR 300.  
->
->
-> Tender rows:
->
-> -   
-> Cash: SAR 300;  
->
-> -   
-> Card: SAR 400.  
->
->
-> Expected:
->
-> -   
-> Total Payments: SAR 700;  
->
-> -   
-> A: SAR 500;  
->
-> -   
-> B: SAR 200;  
->
-> -   
-> one Session;  
->
-> -   
-> A Paid;  
->
-> -   
-> B Partial.  
->
->
-> ### Scenario 3 — Oldest First
->
-> Select three Invoices and press Allocate Oldest First.
->
-> Expected:
->
-> -   
-> deterministic proposal;  
->
-> -   
-> editable values;  
->
-> -   
-> no automatic submission.  
->
->
-> ### Scenario 4 — Complex Invoice
->
-> Select one Multi-Horse Invoice.
->
-> Expected:
->
-> -   
-> existing gross/tax-inclusive allocation editor appears;  
->
-> -   
-> Scope totals equal the Invoice allocation.  
->
->
-> ### Scenario 5 — Split Tender Matrix
->
-> Use Cash and Card across two Invoices.
->
-> Expected:
->
-> -   
-> every Tender total reconciles;  
->
-> -   
-> every Invoice total reconciles;  
->
-> -   
-> Horse/Client-Level totals reconcile;  
->
-> -   
-> references remain attached to their Methods.  
->
->
-> ### Scenario 6 — 50-Row Guard
->
-> Select a combination whose nonzero Invoice × Tender matrix exceeds 50 rows.
->
-> Expected:
->
-> -   
-> submission blocked;  
->
-> -   
-> actionable message;  
->
-> -   
-> no RPC call.  
->
->
-> ### Scenario 7 — Invoice Page Entry
->
-> Open Record Client Payment from the Invoice toolbar.
->
-> Expected:
->
-> -   
-> Client selector;  
->
-> -   
-> same shared flow after selection.  
->
->
-> ### Scenario 8 — KPI Labels
->
-> Verify all four Arabic and English locked labels.
->
-> Counts and card design remain unchanged.
->
-> ### Scenario 9 — Cross-Account
->
-> Test Stable, Laboratory where supported, and one additional configured  
->
-> Invoice-capable account.
->
-> Expected:
->
-> -   
-> one shared dialog;  
->
-> -   
-> one writer;  
->
-> -   
-> account-specific metadata preserved.  
->
->
-> ---
->
-> ## 22. REQUIRED IMPLEMENTATION REPORT
->
-> Report:
->
-> ### A. Verdict
->
-> ### B. Customer Balances Correction
->
-> ### C. Shared Dialog
->
-> ### D. Shared Tender Editor
->
-> ### E. Eligible Invoice Query
->
-> ### F. Invoice Allocation
->
-> ### G. Horse/Client-Level Reuse
->
-> ### H. Tender × Invoice × Scope Matrix
->
-> ### I. External Reference Preservation
->
-> ### J. 50-Row Guard
->
-> ### K. Idempotency
->
-> ### L. Concurrency and Errors
->
-> ### M. KPI Labels
->
-> ### N. Files Created
->
-> ### O. Files Modified
->
-> ### P. Production Objects Modified
->
-> ### Q. Persistent Rows Modified
->
-> ### R. Tests and Counts
->
-> ### S. TypeScript Result
->
-> ### T. Build Result
->
-> ### U. Manual Acceptance Script
->
-> ### V. Rollback
->
-> ### W. Roadmap
->
-> ### X. Next Action
->
-> Required verdict:
->
-> `PHASE N+3 SLICE 3 MULTI-INVOICE PAYMENT IMPLEMENTED — AWAIT MANUAL ACCEPTANCE`
->
-> ---
->
-> ## 23. STOP GATE
->
-> Stop after the implementation report and manual acceptance script.
->
-> Do not begin Slice 4.
->
-> Do not implement:
->
-> -   
-> Payment Session details;  
->
-> -   
-> receipts;  
->
-> -   
-> reports;  
->
-> -   
-> overpayment;  
->
-> -   
-> Client credit;  
->
-> -   
-> refunds;  
->
-> -   
-> reversals;  
->
-> -   
-> void;  
->
-> -   
-> chargeback;  
->
-> -   
-> multiple Clients per Session;  
->
-> -   
-> Multi-Currency Sessions;  
->
-> -   
-> Item-level Payment allocation;  
->
-> -   
-> Horse Ledger;  
->
-> -   
-> PDF changes;  
->
-> -   
-> Retail POS.
+> - Modifying persistent invoices, payments, allocations, ledger entries, or customer balances during implementation.

@@ -55,6 +55,9 @@ import {
 } from "lucide-react";
 import { SupplierPayablesTab } from "@/components/finance/SupplierPayablesTab";
 import { InternalCostsTab } from "@/components/finance/InternalCostsTab";
+import { ClientPickerDialog } from "@/components/finance/ClientPickerDialog";
+import { MultiInvoicePaymentDialog } from "@/components/finance/MultiInvoicePaymentDialog";
+
 
 interface InvoicesTabProps {
   selectedInvoiceId: string | null;
@@ -70,19 +73,26 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   );
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showClientPicker, setShowClientPicker] = useState(false);
+  const [multiPayClientId, setMultiPayClientId] = useState<string | null>(null);
+
 
   const canCreate = hasPermission("finance.invoice.create");
 
   const stats = useMemo(() => {
-    const paid = invoices
-      .filter((i) => i.status === "paid")
-      .reduce((sum, i) => sum + i.total_amount, 0);
-    const pending = invoices.filter((i) => i.status === "approved" || i.status === "shared").length;
-    const overdue = invoices
-      .filter((i) => i.status === "overdue")
-      .reduce((sum, i) => sum + i.total_amount, 0);
-    return { total: invoices.length, paid, pending, overdue };
+    const paidCount = invoices.filter((i) => i.status === "paid").length;
+    const pendingCount = invoices.filter(
+      (i) => i.status === "approved" || i.status === "shared",
+    ).length;
+    const overdueCount = invoices.filter((i) => i.status === "overdue").length;
+    return {
+      total: invoices.length,
+      paidCount,
+      pendingCount,
+      overdueCount,
+    };
   }, [invoices]);
+
 
   const tenantCurrency = useTenantCurrency();
   const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
@@ -111,7 +121,8 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <DollarSign className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">{stats.pending}</p>
+                <p className="text-2xl font-bold text-navy">{stats.pendingCount}</p>
+
                 <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.pendingInvoices")}</p>
               </div>
             </div>
@@ -124,8 +135,8 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.paid)}</p>
-                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.paidAmount")}</p>
+                <p className="text-2xl font-bold text-navy">{stats.paidCount}</p>
+                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.paidInvoices")}</p>
               </div>
             </div>
           </CardContent>
@@ -137,8 +148,9 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.overdue)}</p>
-                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.overdueAmount")}</p>
+                <p className="text-2xl font-bold text-navy">{stats.overdueCount}</p>
+                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.overdueInvoices")}</p>
+
               </div>
             </div>
           </CardContent>
@@ -146,13 +158,18 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
       </div>
 
       {canCreate && (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={() => setShowClientPicker(true)}>
+            <DollarSign className="w-4 h-4 me-2" />
+            {t("finance.multiInvoicePayment.recordClientPayment")}
+          </Button>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 me-2" />
             {t("finance.invoices.create")}
           </Button>
         </div>
       )}
+
 
       <InvoicesList
         invoices={invoices}
@@ -179,6 +196,27 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
       />
+
+      <ClientPickerDialog
+        open={showClientPicker}
+        onOpenChange={setShowClientPicker}
+        onSelect={(id) => {
+          setShowClientPicker(false);
+          setMultiPayClientId(id);
+        }}
+      />
+
+      {multiPayClientId && (
+        <MultiInvoicePaymentDialog
+          key={multiPayClientId}
+          open={!!multiPayClientId}
+          onOpenChange={(v) => {
+            if (!v) setMultiPayClientId(null);
+          }}
+          clientId={multiPayClientId}
+        />
+      )}
+
     </div>
   );
 }

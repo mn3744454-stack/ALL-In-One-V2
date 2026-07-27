@@ -4170,14 +4170,19 @@ export const ar = {
       noEligibleInvoices: "لا توجد فواتير مستحقة لهذا العميل بعملة المنشأة.",
       distributeOldestFirst: "توزيع من الأقدم",
       allocatedToInvoices: "المُوزَّع على الفواتير",
+      remainingToAllocate: "المتبقي للتوزيع",
       difference: "الفرق",
       record: "تسجيل الدفعة",
+      recordClientPayment: "تسجيل دفعة عميل",
       success: "تم تسجيل الدفعة على الفواتير المختارة",
       errors: {
         perInvoiceOver: "أحد المبالغ يتجاوز رصيد الفاتورة المستحق:",
         duplicateTender: "طريقتا دفع تحملان نفس المرجع. استخدم مراجع مختلفة أو ادمجهما.",
         tooManyRows: "ستنشئ هذه الدفعة عدداً كبيراً جداً من صفوف التخصيص في جلسة واحدة.",
         needsAllocationEditor: "إحدى الفواتير المختارة تتطلب محرّر التخصيص للفاتورة المنفردة. افتحها من تفاصيل الفاتورة.",
+        overAllocationBy: "المبلغ الموزَّع يتجاوز إجمالي الدفع بمقدار",
+        paymentsExceedOutstandingBy: "إجمالي الدفع يتجاوز الرصيد المستحق للفواتير المختارة بمقدار",
+        notSupported: "تركيبة هذه الفاتورة غير مدعومة بعد في الدفع متعدد الفواتير. افتحها بشكل منفرد.",
       },
     },
     invoiceStats: {
@@ -4185,7 +4190,10 @@ export const ar = {
       pendingInvoices: "فواتير قيد الانتظار",
       paidAmount: "إجمالي المدفوع",
       overdueAmount: "إجمالي المتأخر",
+      paidInvoices: "الفواتير المدفوعة",
+      overdueInvoices: "الفواتير المتأخرة",
     },
+
     paymentMethods: {
       cash: "نقدي",
       card: "بطاقة",
