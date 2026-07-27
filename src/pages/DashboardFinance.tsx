@@ -55,6 +55,9 @@ import {
 } from "lucide-react";
 import { SupplierPayablesTab } from "@/components/finance/SupplierPayablesTab";
 import { InternalCostsTab } from "@/components/finance/InternalCostsTab";
+import { ClientPickerDialog } from "@/components/finance/ClientPickerDialog";
+import { MultiInvoicePaymentDialog } from "@/components/finance/MultiInvoicePaymentDialog";
+
 
 interface InvoicesTabProps {
   selectedInvoiceId: string | null;
