@@ -39,6 +39,12 @@ interface EligibleInvoiceAccordionRowProps {
   amount: string;
   currency: string;
   allocationEnabled: boolean;
+  /**
+   * Slice 3.3.2 — Payment remaining that can still be applied to THIS invoice
+   * after accounting for allocations already committed to other selected
+   * invoices. Powers the compact "Pay in Full / سداد بالكامل" action.
+   */
+  paymentAvailableForInvoice?: number;
   disabled?: boolean;
   onToggle: (next: boolean) => void;
   onAmountChange: (next: string) => void;
