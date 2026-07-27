@@ -90,6 +90,7 @@ export function EligibleInvoiceAccordionRow({
   amount,
   currency,
   allocationEnabled,
+  paymentAvailableForInvoice = 0,
   disabled,
   onToggle,
   onAmountChange,
