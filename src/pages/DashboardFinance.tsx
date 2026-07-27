@@ -129,7 +129,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.paid)}</p>
+                <p className="text-2xl font-bold text-navy">{stats.paidCount}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.paidAmount")}</p>
               </div>
             </div>
