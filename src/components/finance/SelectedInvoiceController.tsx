@@ -336,7 +336,7 @@ export function EligibleInvoiceAccordionRow({
               </div>
               <AccordionTrigger className="ms-auto py-1 px-2 rounded-md hover:bg-muted/50 text-xs font-normal no-underline hover:no-underline">
                 <span className="tabular-nums">
-                  {t("finance.multiInvoicePayment.itemsCount", { count: invoice.itemCount })}
+                  {t("finance.multiInvoicePayment.itemsCount").replace("{{count}}", String(invoice.itemCount))}
                 </span>
               </AccordionTrigger>
             </div>
