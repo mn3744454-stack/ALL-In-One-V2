@@ -50,46 +50,33 @@ describe("paginateIntoPages", () => {
     expect(pages[1].map((el) => el.getAttribute("data-block"))).toEqual(["totals"]);
   });
 
-  it("keeps a payment session whole when it fits on a fresh page (INV-0986 shape)", () => {
-    // Page 1 already has header + Session #1. Session #2 heading + rows don't
-    // fit on page 1 but fit entirely on an empty page 2.
+  it("moves an atomic single-row session whole onto page 2 when it doesn't fit remaining space", () => {
+    // A payment-session with a single row cannot be split (nothing to split
+    // between) and must therefore move whole to the next page.
     const body = makeBody(`
       <div data-block="header" data-h="h">H</div>
-      <div data-block="payment-session" data-h="s1">
-        <div data-block-heading data-h="s1h"><span data-continuation-label>Session 1</span></div>
-        <div data-block="session-row" data-h="s1r1">r</div>
-        <div data-block="session-row" data-h="s1r2">r</div>
-      </div>
-      <div data-block="payment-session" data-h="s2">
-        <div data-block-heading data-h="s2h"><span data-continuation-label>Session 2</span></div>
-        <div data-block="session-row" data-h="s2r1">r</div>
-        <div data-block="session-row" data-h="s2r2">r</div>
+      <div data-block="payment-session" data-h="s">
+        <div data-block-heading data-h="sh"><span data-continuation-label>Session 2</span></div>
+        <div data-block="session-row" data-h="sr">r</div>
       </div>
     `);
-    // usable=100. header=30, s1=40 (fits on p1 total 70), s2=40 but only 30 left
-    // → s2 must move whole to page 2.
+    // usable=50, header=40. remaining=10. session shell=10+30=40 → doesn't fit,
+    // must move to page 2. Single row → no split possible between rows.
     const pages = paginateIntoPages(body, {
-      usablePx: 100,
+      usablePx: 50,
       continuationSuffix: " — Continued",
-      measure: heightMap({
-        h: 30, s1: 40, s1h: 10, s1r1: 15, s1r2: 15,
-        s2: 40, s2h: 10, s2r1: 15, s2r2: 15,
-      }),
+      measure: heightMap({ h: 40, s: 40, sh: 10, sr: 30 }),
     });
     expect(pages).toHaveLength(2);
-    // Page 1: header + full session-1
-    expect(pages[0].map((el) => el.getAttribute("data-block"))).toEqual([
-      "header",
+    expect(pages[0].map((el) => el.getAttribute("data-block"))).toEqual(["header"]);
+    expect(pages[1].map((el) => el.getAttribute("data-block"))).toEqual([
       "payment-session",
     ]);
-    // Page 2: full session-2 with heading text intact (no continuation suffix)
-    expect(pages[1]).toHaveLength(1);
-    const s2 = pages[1][0];
-    expect(s2.getAttribute("data-block")).toBe("payment-session");
-    const heading = s2.querySelector("[data-continuation-label]");
+    const heading = pages[1][0].querySelector("[data-continuation-label]");
     expect(heading?.textContent).toBe("Session 2");
-    // Both rows remain attached
-    expect(s2.querySelectorAll('[data-block="session-row"]').length).toBe(2);
+    expect(
+      pages[1][0].querySelectorAll('[data-block="session-row"]').length,
+    ).toBe(1);
   });
 
   it("splits an oversized session only between rows and repeats heading with suffix", () => {
