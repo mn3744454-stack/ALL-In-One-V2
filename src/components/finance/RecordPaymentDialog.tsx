@@ -591,24 +591,24 @@ export function RecordPaymentDialog({
         {/* Sticky Footer — compact: totals + actions only */}
         <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-3 border-t gap-3 flex-col sm:flex-row sm:items-center">
           {!summary?.isPaid && (
-            <div className="flex flex-col gap-0.5 text-sm flex-1 w-full sm:w-auto">
-              <div className="flex justify-between sm:justify-start sm:gap-3">
-                <span className="text-muted-foreground">
-                  {t("finance.payments.totalPayment")}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm flex-1 w-full sm:w-auto">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground font-semibold">
+                  {t("finance.payments.totalPayment")}:
                 </span>
                 <span
-                  className="font-mono tabular-nums font-semibold"
+                  className="font-mono tabular-nums font-semibold text-base"
                   dir="ltr"
                 >
                   {formatAmount(totalPayment)}
                 </span>
               </div>
-              <div className="flex justify-between sm:justify-start sm:gap-3">
-                <span className="text-muted-foreground">
-                  {t("finance.payments.outstandingAfter")}
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground font-semibold">
+                  {t("finance.payments.outstandingAfter")}:
                 </span>
                 <span
-                  className={`font-mono tabular-nums font-semibold ${outstandingAfter <= 0.01 && totalPayment > 0 ? "text-success" : "text-warning"}`}
+                  className={`font-mono tabular-nums font-semibold text-base ${outstandingAfter <= 0.01 && totalPayment > 0 ? "text-success" : "text-warning"}`}
                   dir="ltr"
                 >
                   {formatAmount(outstandingAfter)}
@@ -616,6 +616,7 @@ export function RecordPaymentDialog({
               </div>
             </div>
           )}
+
           <div className="flex gap-2 sm:ms-auto">
             <DialogClose asChild>
               <Button variant="outline" disabled={isRecording}>
