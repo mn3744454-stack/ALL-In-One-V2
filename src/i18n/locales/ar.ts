@@ -4161,6 +4161,31 @@ export const ar = {
       },
 
     },
+    multiInvoicePayment: {
+      title: "تسجيل دفعة عميل",
+      description: "سجّل دفعة واحدة موزعة على عدة فواتير مستحقة لهذا العميل.",
+      openAction: "تسجيل دفعة عميل",
+      eligibleInvoices: "الفواتير المستحقة",
+      selectedInvoices: "محددة",
+      noEligibleInvoices: "لا توجد فواتير مستحقة لهذا العميل بعملة المنشأة.",
+      distributeOldestFirst: "توزيع من الأقدم",
+      allocatedToInvoices: "المُوزَّع على الفواتير",
+      difference: "الفرق",
+      record: "تسجيل الدفعة",
+      success: "تم تسجيل الدفعة على الفواتير المختارة",
+      errors: {
+        perInvoiceOver: "أحد المبالغ يتجاوز رصيد الفاتورة المستحق:",
+        duplicateTender: "طريقتا دفع تحملان نفس المرجع. استخدم مراجع مختلفة أو ادمجهما.",
+        tooManyRows: "ستنشئ هذه الدفعة عدداً كبيراً جداً من صفوف التخصيص في جلسة واحدة.",
+        needsAllocationEditor: "إحدى الفواتير المختارة تتطلب محرّر التخصيص للفاتورة المنفردة. افتحها من تفاصيل الفاتورة.",
+      },
+    },
+    invoiceStats: {
+      totalInvoices: "إجمالي الفواتير",
+      pendingInvoices: "فواتير قيد الانتظار",
+      paidAmount: "إجمالي المدفوع",
+      overdueAmount: "إجمالي المتأخر",
+    },
     paymentMethods: {
       cash: "نقدي",
       card: "بطاقة",
