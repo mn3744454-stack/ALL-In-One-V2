@@ -394,7 +394,7 @@ export function MultiInvoicePaymentDialog({
             {/* Slice 3.3.1 — four KPIs inside the sticky header */}
             <div
               data-testid="multi-invoice-header-kpis"
-              className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 lg:ms-auto shrink-0 pe-8 lg:pe-10"
+              className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 lg:ms-auto lg:me-2 shrink-0 pe-10 lg:pe-12"
             >
               {[
                 {
@@ -427,14 +427,14 @@ export function MultiInvoicePaymentDialog({
                 <div
                   key={cell.testId}
                   data-testid={cell.testId}
-                  className="rounded-md border bg-muted/30 px-2.5 py-1.5 flex flex-col items-start min-w-[7rem]"
+                  className="rounded-md border bg-muted/30 px-3 py-2 flex flex-col items-center text-center min-w-[9rem] md:min-w-[10rem]"
                 >
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground text-center leading-tight">
                     {cell.label}
                   </span>
                   <span
                     dir={cell.ltr ? "ltr" : undefined}
-                    className="text-sm font-semibold tabular-nums mt-0.5"
+                    className="text-base md:text-lg font-bold tabular-nums text-foreground mt-1 text-center"
                   >
                     {cell.value}
                   </span>
