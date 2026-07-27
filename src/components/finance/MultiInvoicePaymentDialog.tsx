@@ -490,9 +490,10 @@ export function MultiInvoicePaymentDialog({
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {t("finance.multiInvoicePayment.errors.perInvoiceOver", {
-                  invoices: perInvoiceOverAllocation.map((i) => i.invoice_number).join(", "),
-                })}
+                {t("finance.multiInvoicePayment.errors.perInvoiceOver")}
+                <span className="ms-1 font-medium">
+                  {perInvoiceOverAllocation.map((i) => i.invoice_number).join(", ")}
+                </span>
               </AlertDescription>
             </Alert>
           )}
@@ -508,9 +509,10 @@ export function MultiInvoicePaymentDialog({
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {t("finance.multiInvoicePayment.errors.tooManyRows", {
-                  cap: String(MAX_RPC_ALLOCATION_ROWS),
-                })}
+                {t("finance.multiInvoicePayment.errors.tooManyRows")}
+                <span className="ms-1 tabular-nums" dir="ltr">
+                  ({generatedRowCount} / {MAX_RPC_ALLOCATION_ROWS})
+                </span>
               </AlertDescription>
             </Alert>
           )}
