@@ -73,7 +73,7 @@ export function ClientPickerDialog({ open, onOpenChange, onSelect }: ClientPicke
             />
             <Input
               autoFocus
-              placeholder={t("clients.search")}
+              placeholder={t("finance.multiInvoicePayment.searchPlaceholder")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className={dir === "rtl" ? "pr-10" : "pl-10"}
