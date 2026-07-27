@@ -26,6 +26,8 @@ import {
   type TenderRow,
 } from "./PaymentTenderEditor";
 import { BilingualClientName } from "./BilingualClientName";
+import { MultiInvoiceKpiBar } from "./MultiInvoiceKpiBar";
+
 
 import {
   useEligibleClientInvoices,
