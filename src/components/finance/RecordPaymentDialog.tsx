@@ -10,19 +10,10 @@ import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SharedDateField } from "@/components/ui/shared-date-field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Collapsible,
@@ -30,20 +21,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useI18n } from "@/i18n";
-import { useInvoicePayments, type InvoicePaymentSummary } from "@/hooks/finance/useInvoicePayments";
+import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import { useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
-import { 
-  Plus, 
-  Trash2, 
-  Loader2, 
-  DollarSign, 
-  CreditCard,
-  Banknote,
-  Building,
-  Receipt,
+import {
+  Loader2,
+  DollarSign,
   AlertCircle,
   CheckCircle,
   ChevronDown,
@@ -54,14 +39,12 @@ import type { PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 import { getRiyadhDateString } from "@/lib/finance/invoiceRpc";
 import { useInvoicePriorAllocations } from "@/hooks/finance/useInvoicePriorAllocations";
 import { PaymentAllocationEditor } from "./PaymentAllocationEditor";
+import {
+  PaymentTenderEditor,
+  makeInitialTenderRows,
+  type TenderRow,
+} from "./PaymentTenderEditor";
 import type { BucketAllocation } from "@/lib/finance/allocationDistribution";
-
-interface PaymentRow {
-  id: string;
-  method: string;
-  amount: string;
-  reference: string;
-}
 
 interface RecordPaymentDialogProps {
   open: boolean;
@@ -71,12 +54,7 @@ interface RecordPaymentDialogProps {
   onSuccess?: () => void;
 }
 
-const PAYMENT_METHODS = [
-  { value: "cash", icon: Banknote, labelKey: "finance.paymentMethods.cash" },
-  { value: "card", icon: CreditCard, labelKey: "finance.paymentMethods.card" },
-  { value: "transfer", icon: Building, labelKey: "finance.paymentMethods.transfer" },
-  { value: "check", icon: Receipt, labelKey: "finance.paymentMethods.check" },
-];
+
 
 export function RecordPaymentDialog({
   open,
