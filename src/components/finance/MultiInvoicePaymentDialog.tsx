@@ -584,6 +584,16 @@ export function MultiInvoicePaymentDialog({
           </div>
         </div>
       </DialogContent>
+      {/* Slice 3.3 · Checkpoint C — canonical Invoice Details Sheet reused
+          from the near-page workspace via Radix Portal (sheet-over-dialog). */}
+      <InvoiceDetailsSheet
+        open={!!detailsInvoiceId}
+        onOpenChange={(v) => {
+          if (!v) setDetailsInvoiceId(null);
+        }}
+        invoiceId={detailsInvoiceId}
+      />
     </Dialog>
+
   );
 }
