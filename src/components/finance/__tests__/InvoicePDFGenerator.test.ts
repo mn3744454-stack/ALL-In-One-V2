@@ -74,6 +74,8 @@ const enLabels: InvoicePDFLabels = {
   colRecordedAt: "Recorded At",
   colAmount: "Amount",
   methodLabels: { cash: "Cash", card: "Card", transfer: "Bank Transfer", check: "Check" },
+  continuationSuffix: " — Continued",
+  pageOf: "Page {current} of {total}",
 };
 
 const baseInvoice = {
