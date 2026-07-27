@@ -21,7 +21,7 @@ import {
   type InvoiceBucket,
   type InvoiceCompositionSummary,
 } from "@/hooks/finance/useInvoicePriorAllocations";
-import { InvoiceItemsAccordionBody } from "./InvoiceItemsAccordionBody";
+
 import {
   CLIENT_LEVEL_BUCKET_KEY,
   validateBucketAllocations,
@@ -390,9 +390,7 @@ export function EligibleInvoiceAccordionRow({
             </div>
           )}
 
-          {composition && composition.items.length > 0 && (
-            <InvoiceItemsAccordionBody items={composition.items} currency={currency} />
-          )}
+
 
           {selected && blockedLabHorse && (
             <Alert variant="destructive">

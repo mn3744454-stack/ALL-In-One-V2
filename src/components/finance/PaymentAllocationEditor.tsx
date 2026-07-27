@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { FinancialAmountInput } from "./FinancialAmountInput";
+
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -297,18 +298,21 @@ export function PaymentAllocationEditor({
                   <Label className="text-xs text-muted-foreground">
                     {t("finance.payments.allocation.allocated")}
                   </Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={value[bucket.key] ?? ""}
-                    onChange={(e) => updateBucket(bucket.key, sanitize(e.target.value))}
+                  <FinancialAmountInput
+                    value={(() => {
+                      const raw = value[bucket.key];
+                      const n = parseFloat(raw ?? "");
+                      return Number.isFinite(n) && raw !== "" && raw !== undefined ? n : null;
+                    })()}
+                    onValueChange={(next) =>
+                      updateBucket(bucket.key, next === null ? "" : next.toFixed(2))
+                    }
+                    max={bucket.remaining}
                     placeholder="0.00"
-                    className="h-9 font-mono tabular-nums text-end"
-                    dir="ltr"
+                    className="h-9"
                     aria-label={`${bucket.label} allocation`}
                   />
+
                 </div>
                 <div className="flex-1">
                   <Label className="text-xs text-muted-foreground">
@@ -355,12 +359,6 @@ export function PaymentAllocationEditor({
   );
 }
 
-function sanitize(v: string): string {
-  const cleaned = v.replace(/[^0-9.]/g, "");
-  const parts = cleaned.split(".");
-  if (parts.length <= 1) return cleaned;
-  return `${parts[0]}.${parts.slice(1).join("").slice(0, 2)}`;
-}
 
 function parseAmount(v: string | undefined): number {
   if (!v) return 0;

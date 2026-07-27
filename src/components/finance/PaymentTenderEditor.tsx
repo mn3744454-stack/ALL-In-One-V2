@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,9 +13,11 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2, Banknote, CreditCard, Building, Receipt } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { FinancialAmountInput } from "./FinancialAmountInput";
 import type { PaymentMethod } from "@/lib/finance/postPaymentSession";
 
 export const PAYMENT_METHODS: PaymentMethod[] = ["cash", "card", "transfer", "check"];
+
 
 export interface TenderRow {
   id: string;
@@ -145,19 +148,21 @@ export function PaymentTenderEditor({
                     <Label className="text-xs text-muted-foreground">
                       {t("finance.payments.amount")}
                     </Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputMode="decimal"
-                      dir="ltr"
-                      className="h-9 font-mono tabular-nums text-end"
+                    <FinancialAmountInput
+                      className="h-9"
                       placeholder="0.00"
-                      value={row.amount}
-                      onChange={(e) => patchRow(row.id, { amount: e.target.value })}
+                      value={(() => {
+                        const n = parseFloat(row.amount);
+                        return Number.isFinite(n) && row.amount !== "" ? n : null;
+                      })()}
+                      onValueChange={(next) =>
+                        patchRow(row.id, { amount: next === null ? "" : next.toFixed(2) })
+                      }
                       disabled={disabled}
+                      aria-label={t("finance.payments.amount")}
                     />
                   </div>
+
 
                   <div className="col-span-6 sm:col-span-4">
                     <Label className="text-xs text-muted-foreground">
