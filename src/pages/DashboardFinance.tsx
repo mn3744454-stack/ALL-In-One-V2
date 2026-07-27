@@ -74,15 +74,19 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   const canCreate = hasPermission("finance.invoice.create");
 
   const stats = useMemo(() => {
-    const paid = invoices
-      .filter((i) => i.status === "paid")
-      .reduce((sum, i) => sum + i.total_amount, 0);
-    const pending = invoices.filter((i) => i.status === "approved" || i.status === "shared").length;
-    const overdue = invoices
-      .filter((i) => i.status === "overdue")
-      .reduce((sum, i) => sum + i.total_amount, 0);
-    return { total: invoices.length, paid, pending, overdue };
+    const paidCount = invoices.filter((i) => i.status === "paid").length;
+    const pendingCount = invoices.filter(
+      (i) => i.status === "approved" || i.status === "shared",
+    ).length;
+    const overdueCount = invoices.filter((i) => i.status === "overdue").length;
+    return {
+      total: invoices.length,
+      paidCount,
+      pendingCount,
+      overdueCount,
+    };
   }, [invoices]);
+
 
   const tenantCurrency = useTenantCurrency();
   const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
