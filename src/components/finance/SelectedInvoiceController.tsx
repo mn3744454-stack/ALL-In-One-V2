@@ -49,7 +49,10 @@ interface EligibleInvoiceAccordionRowProps {
     breakdown?: InvoiceBucketBreakdown;
     valid: boolean;
   }) => void;
+  /** Slice 3.3 · Checkpoint C — open the canonical Invoice Details Sheet from this row. */
+  onOpenDetails?: (invoiceId: string) => void;
 }
+
 
 function StatusBadge({ status }: { status: string }) {
   const { t } = useI18n();
