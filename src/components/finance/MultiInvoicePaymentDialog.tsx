@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,20 +7,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { SharedDateField } from "@/components/ui/shared-date-field";
-import { Loader2, Plus, Trash2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,6 +20,12 @@ import { useClients } from "@/hooks/useClients";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { formatCurrency } from "@/lib/formatters";
 import { EligibleInvoicesSelector } from "./EligibleInvoicesSelector";
+import {
+  PaymentTenderEditor,
+  makeInitialTenderRows,
+  type TenderRow,
+} from "./PaymentTenderEditor";
+import { MultiInvoiceComplexAllocationCard } from "./MultiInvoiceComplexAllocationCard";
 import {
   useEligibleClientInvoices,
   type EligibleInvoice,
@@ -40,13 +37,12 @@ import {
   proposeOldestFirst,
   toCents,
   type TenderRowInput,
+  type InvoiceBucketBreakdown,
 } from "@/lib/finance/multiInvoiceDistribution";
 import { buildMultiInvoiceIdempotencyKey } from "@/lib/finance/multiInvoicePaymentFingerprint";
-import { postPaymentSession, type PaymentMethod } from "@/lib/finance/postPaymentSession";
+import { postPaymentSession } from "@/lib/finance/postPaymentSession";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { getRiyadhDateString } from "@/lib/finance/invoiceRpc";
-
-const PAYMENT_METHODS: PaymentMethod[] = ["cash", "card", "transfer", "check"];
 
 const ERROR_TOKEN_KEYS: Record<string, string> = {
   FIN_IDEMPOTENCY_CONFLICT: "finance.payments.errors.idempotencyConflict",
@@ -56,23 +52,16 @@ const ERROR_TOKEN_KEYS: Record<string, string> = {
   FIN_INVOICE_CROSS_TENANT: "finance.payments.errors.crossClient",
   FIN_INVOICE_CURRENCY_MISMATCH: "finance.payments.errors.crossClient",
   FIN_PAYMENT_ACCOUNT_MISSING: "finance.payments.errors.accountMissing",
-  FIN_HORSE_ALLOCATION_REQUIRED: "finance.multiInvoicePayment.errors.needsAllocationEditor",
-  FIN_HORSE_ALLOCATION_MISMATCH: "finance.multiInvoicePayment.errors.needsAllocationEditor",
-  FIN_HORSE_NOT_ON_INVOICE: "finance.multiInvoicePayment.errors.needsAllocationEditor",
-  FIN_CLIENT_LEVEL_ALLOCATION_INVALID: "finance.multiInvoicePayment.errors.needsAllocationEditor",
+  FIN_HORSE_ALLOCATION_REQUIRED: "finance.multiInvoicePayment.errors.notSupported",
+  FIN_HORSE_ALLOCATION_MISMATCH: "finance.multiInvoicePayment.errors.notSupported",
+  FIN_HORSE_NOT_ON_INVOICE: "finance.multiInvoicePayment.errors.notSupported",
+  FIN_CLIENT_LEVEL_ALLOCATION_INVALID: "finance.multiInvoicePayment.errors.notSupported",
   FIN_ALLOCATION_HISTORY_UNRESOLVED: "finance.payments.errors.historyUnresolved",
   FIN_PERMISSION_DENIED: "finance.payments.errors.permissionDenied",
   FIN_UNAUTHENTICATED: "finance.payments.errors.permissionDenied",
   FIN_PAYMENT_METHOD_INVALID: "finance.payments.errors.methodInvalid",
   FIN_ALLOCATION_DUPLICATE: "finance.payments.errors.duplicateAllocation",
 };
-
-interface TenderRow {
-  id: string;
-  method: PaymentMethod;
-  amount: string;
-  reference: string;
-}
 
 interface MultiInvoicePaymentDialogProps {
   open: boolean;
@@ -83,17 +72,28 @@ interface MultiInvoicePaymentDialogProps {
   onSuccess?: () => void;
 }
 
+interface ResolvedComposition {
+  isComplex: boolean;
+  canPayHere: boolean;
+  breakdown?: InvoiceBucketBreakdown;
+  valid: boolean;
+}
+
 /**
- * Phase N+3 · Slice 3 — Multi-Invoice Client Payment dialog.
+ * Phase N+3 · Slice 3.1 — Multi-Invoice Client Payment.
  *
  * ONE client · MULTIPLE outstanding invoices · ONE atomic payment session.
  *
- * The dialog is intentionally scoped to invoices whose composition is SIMPLE
- * (single-horse or client-level only). Complex invoices (multiple horses, or
- * a mix of horse-scoped and client-level lines) still route through
- * `RecordPaymentDialog` where `PaymentAllocationEditor` provides per-bucket
- * caps. Selecting a complex invoice here disables the submit with a clear
- * localized notice — no silent partial support.
+ * Reordered flow (Payment-first):
+ *   Client summary → Payment Date → Payment Methods (tenders) →
+ *   Total Payments → Eligible Invoice summary → Invoice selection & allocation
+ *   → per-invoice complex allocation card → compact sticky footer.
+ *
+ * Complex invoices (multiple horses, or horse + client-level) render the
+ * shared `PaymentAllocationEditor` inline through
+ * `MultiInvoiceComplexAllocationCard`. Unsupported lab-horse-only invoices
+ * block submission with a localized notice — the user unselects the invoice
+ * to proceed.
  */
 export function MultiInvoicePaymentDialog({
   open,
@@ -119,49 +119,28 @@ export function MultiInvoicePaymentDialog({
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [amounts, setAmounts] = useState<Record<string, string>>({});
-  const [tenderRows, setTenderRows] = useState<TenderRow[]>([
-    { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" },
-  ]);
+  const [tenderRows, setTenderRows] = useState<TenderRow[]>(makeInitialTenderRows);
   const [paymentDate, setPaymentDate] = useState<string>(getRiyadhDateString());
-  const [externalReference, setExternalReference] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [compositions, setCompositions] = useState<
+    Record<string, ResolvedComposition>
+  >({});
   const idempotencyRef = useRef<{ key: string; fingerprint: string } | null>(null);
 
-  // Reset state whenever the dialog opens.
+  // Reset state whenever the dialog opens. (Client change is handled by the
+  // caller remounting the dialog via key={clientId} — every state above is
+  // reinitialised at mount.)
   useEffect(() => {
     if (!open) return;
     const preSet = new Set(preselectedInvoiceIds ?? []);
     setSelectedIds(preSet);
     setAmounts({});
-    setTenderRows([{ id: crypto.randomUUID(), method: "cash", amount: "", reference: "" }]);
+    setTenderRows(makeInitialTenderRows());
     setPaymentDate(getRiyadhDateString());
-    setExternalReference("");
+    setCompositions({});
     idempotencyRef.current = null;
     setIsSubmitting(false);
   }, [open, preselectedInvoiceIds]);
-
-  // When invoices land, if the caller preselected ids, propose oldest-first
-  // amounts filling each selected invoice's outstanding.
-  useEffect(() => {
-    if (!open || invoices.length === 0) return;
-    if (Object.keys(amounts).length > 0) return;
-    if (selectedIds.size === 0) return;
-    const selectedInvoices = invoices.filter((i) => selectedIds.has(i.id));
-    const total = selectedInvoices.reduce((s, i) => s + i.outstanding, 0);
-    const proposal = proposeOldestFirst(
-      selectedInvoices.map((i) => ({
-        invoiceId: i.id,
-        outstanding: i.outstanding,
-        dueDate: i.due_date,
-        issueDate: i.issue_date,
-        invoiceNumber: i.invoice_number,
-      })),
-      total,
-    );
-    const asStrings: Record<string, string> = {};
-    for (const [k, v] of Object.entries(proposal)) asStrings[k] = v > 0 ? v.toFixed(2) : "";
-    setAmounts(asStrings);
-  }, [open, invoices, selectedIds, amounts]);
 
   const currency = tenantCurrency;
   const fmt = (n: number) => formatCurrency(n, currency);
@@ -201,10 +180,26 @@ export function MultiInvoicePaymentDialog({
     () => tenderRowsNormalised.reduce((s, r) => s + r.amount, 0),
     [tenderRowsNormalised],
   );
+  const totalEligibleOutstanding = useMemo(
+    () => invoices.reduce((s, i) => s + i.outstanding, 0),
+    [invoices],
+  );
 
   // Validation --------------------------------------------------------------
   const perInvoiceOverAllocation = selectedInvoices.filter(
     (i) => toCents(invoiceAmountsUnits[i.id] || 0) > toCents(i.outstanding),
+  );
+  const remainingToAllocateUnits = Math.max(
+    0,
+    Math.round((tenderTotal - invoiceAllocationTotal) * 100) / 100,
+  );
+  const overAllocationUnits = Math.max(
+    0,
+    Math.round((invoiceAllocationTotal - tenderTotal) * 100) / 100,
+  );
+  const paymentsExceedOutstandingUnits = Math.max(
+    0,
+    Math.round((tenderTotal - totalEligibleOutstanding) * 100) / 100,
   );
   const amountsBalanced =
     toCents(tenderTotal) === toCents(invoiceAllocationTotal) && tenderTotal > 0;
@@ -214,20 +209,23 @@ export function MultiInvoicePaymentDialog({
   });
   const overRowCap = generatedRowCount > MAX_RPC_ALLOCATION_ROWS;
   const tooManySelected = selectedInvoices.length > MAX_RPC_ALLOCATION_ROWS;
+  const paymentsExceedOutstanding = paymentsExceedOutstandingUnits > 0;
 
-  const duplicateTenderMethod = (() => {
-    // Distinct rows may share a method as long as reference differs; the RPC
-    // rejects fully-duplicated (invoice, method, reference) tuples. Warn when
-    // the same method has identical references across rows.
-    const seen = new Set<string>();
-    for (const r of tenderRowsNormalised) {
-      if (r.amount <= 0) continue;
-      const key = `${r.method}|${(r.reference ?? "").trim()}`;
-      if (seen.has(key)) return true;
-      seen.add(key);
+  const complexInvoiceGuards = useMemo(() => {
+    let allCanPay = true;
+    let allValid = true;
+    for (const inv of selectedInvoices) {
+      const c = compositions[inv.id];
+      if (!c) {
+        // Composition not resolved yet — block submit until it is.
+        allValid = false;
+        continue;
+      }
+      if (!c.canPayHere) allCanPay = false;
+      if (c.isComplex && !c.valid) allValid = false;
     }
-    return false;
-  })();
+    return { allCanPay, allValid };
+  }, [selectedInvoices, compositions]);
 
   const canSubmit =
     !!tenantId &&
@@ -239,7 +237,9 @@ export function MultiInvoicePaymentDialog({
     perInvoiceOverAllocation.length === 0 &&
     !overRowCap &&
     !tooManySelected &&
-    !duplicateTenderMethod &&
+    !paymentsExceedOutstanding &&
+    complexInvoiceGuards.allCanPay &&
+    complexInvoiceGuards.allValid &&
     !isSubmitting;
 
   // Actions -----------------------------------------------------------------
@@ -255,10 +255,15 @@ export function MultiInvoicePaymentDialog({
         const { [id]: _dropped, ...rest } = prev;
         return rest;
       });
+      setCompositions((prev) => {
+        const { [id]: _dropped, ...rest } = prev;
+        return rest;
+      });
     }
   }
 
   function distributeOldestFirst() {
+    if (tenderTotal <= 0) return;
     const proposal = proposeOldestFirst(
       selectedInvoices.map((i) => ({
         invoiceId: i.id,
@@ -267,35 +272,64 @@ export function MultiInvoicePaymentDialog({
         issueDate: i.issue_date,
         invoiceNumber: i.invoice_number,
       })),
-      tenderTotal > 0 ? tenderTotal : selectedInvoices.reduce((s, i) => s + i.outstanding, 0),
+      tenderTotal,
     );
     const asStrings: Record<string, string> = {};
     for (const [k, v] of Object.entries(proposal)) asStrings[k] = v > 0 ? v.toFixed(2) : "";
     setAmounts(asStrings);
   }
 
-  function addTenderRow() {
-    setTenderRows((rows) => [
-      ...rows,
-      { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" },
-    ]);
-  }
-  function removeTenderRow(id: string) {
-    setTenderRows((rows) => (rows.length <= 1 ? rows : rows.filter((r) => r.id !== id)));
-  }
-  function patchTenderRow(id: string, patch: Partial<TenderRow>) {
-    setTenderRows((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-  }
+  const handleCompositionResolved = useCallback(
+    (info: {
+      invoiceId: string;
+      isComplex: boolean;
+      canPayHere: boolean;
+      breakdown?: InvoiceBucketBreakdown;
+      valid: boolean;
+    }) => {
+      setCompositions((prev) => {
+        const existing = prev[info.invoiceId];
+        if (
+          existing &&
+          existing.isComplex === info.isComplex &&
+          existing.canPayHere === info.canPayHere &&
+          existing.valid === info.valid &&
+          JSON.stringify(existing.breakdown ?? null) ===
+            JSON.stringify(info.breakdown ?? null)
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [info.invoiceId]: {
+            isComplex: info.isComplex,
+            canPayHere: info.canPayHere,
+            breakdown: info.breakdown,
+            valid: info.valid,
+          },
+        };
+      });
+    },
+    [],
+  );
 
   async function handleSubmit() {
     if (!canSubmit || !tenantId || !clientId) return;
     setIsSubmitting(true);
     try {
       const invoiceOrder = selectedInvoices.map((i) => i.id);
+      const bucketBreakdownByInvoice: Record<string, InvoiceBucketBreakdown | undefined> = {};
+      for (const inv of selectedInvoices) {
+        const c = compositions[inv.id];
+        if (c?.isComplex && c.breakdown) {
+          bucketBreakdownByInvoice[inv.id] = c.breakdown;
+        }
+      }
       const allocations = buildAllocationsPayload({
         invoiceOrder,
         invoiceAmountsUnits,
         tenderRows: tenderRowsNormalised,
+        bucketBreakdownByInvoice,
       });
       const idempotencyKey = buildMultiInvoiceIdempotencyKey({
         tenantId,
@@ -303,14 +337,11 @@ export function MultiInvoicePaymentDialog({
         currency,
         paymentDate,
         allocations,
-        externalReference: externalReference.trim() || undefined,
       });
-      // Cache the last submitted fingerprint so an unchanged retry replays.
       idempotencyRef.current = { key: idempotencyKey, fingerprint: idempotencyKey };
 
       const result = await postPaymentSession(tenantId, idempotencyKey, {
         payment_date: paymentDate,
-        external_reference: externalReference.trim() || undefined,
         allocations,
       });
       if (!result.success) {
@@ -345,7 +376,42 @@ export function MultiInvoicePaymentDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
-          {/* Eligible invoices */}
+          {/* 1) Payment Date */}
+          <div className="grid gap-2 md:flex md:items-end md:gap-4">
+            <Label className="md:min-w-[8rem] text-xs">
+              {t("finance.payments.paymentDate")} <span aria-hidden="true">*</span>
+            </Label>
+            <SharedDateField
+              value={paymentDate}
+              onChange={(v) => setPaymentDate(v ?? getRiyadhDateString())}
+              disabled={isSubmitting}
+              className="flex-1"
+              ariaLabel={t("finance.payments.paymentDate")}
+            />
+          </div>
+
+          <Separator />
+
+          {/* 2) Payment Methods (tenders) — precedes Invoice selection */}
+          <PaymentTenderEditor
+            rows={tenderRows}
+            onChange={setTenderRows}
+            disabled={isSubmitting}
+          />
+
+          {/* Total Payments summary */}
+          <div className="rounded-md border bg-muted/30 p-3 flex items-center justify-between">
+            <span className="text-sm font-semibold">
+              {t("finance.payments.totalPayment")}
+            </span>
+            <span dir="ltr" className="text-base font-bold tabular-nums">
+              {fmt(tenderTotal)}
+            </span>
+          </div>
+
+          <Separator />
+
+          {/* 3) Eligible Invoices */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-semibold">
@@ -357,7 +423,7 @@ export function MultiInvoicePaymentDialog({
                   variant="ghost"
                   size="sm"
                   onClick={distributeOldestFirst}
-                  disabled={tenderTotal <= 0}
+                  disabled={tenderTotal <= 0 || isSubmitting}
                 >
                   {t("finance.multiInvoicePayment.distributeOldestFirst")}
                 </Button>
@@ -376,114 +442,26 @@ export function MultiInvoicePaymentDialog({
                 onAmountChange={(id, next) => setAmounts((p) => ({ ...p, [id]: next }))}
                 currency={currency}
                 disabled={isSubmitting}
+                allocationEnabled={tenderTotal > 0}
               />
             )}
           </div>
 
-          <Separator />
-
-          {/* Payment date + reference */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs">{t("finance.payments.paymentDate")}</Label>
-              <SharedDateField
-                value={paymentDate}
-                onChange={(v) => setPaymentDate(v ?? getRiyadhDateString())}
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">
-                {t("finance.payments.reference")}{" "}
-                <span className="text-muted-foreground">({t("common.optional")})</span>
-              </Label>
-              <Input
-                value={externalReference}
-                onChange={(e) => setExternalReference(e.target.value)}
-                placeholder={t("finance.payments.referencePlaceholder")}
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          {/* Tender rows */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold">
-                {t("finance.payments.paymentDetails")}
-              </Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={addTenderRow}
-                disabled={isSubmitting}
-              >
-                <Plus className="h-3.5 w-3.5 me-1" />
-                {t("finance.payments.addPaymentMethod")}
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {tenderRows.map((row) => (
-                <Card key={row.id}>
-                  <CardContent className="p-3 grid grid-cols-12 gap-2 items-end">
-                    <div className="col-span-12 sm:col-span-4 space-y-1">
-                      <Label className="text-xs">{t("finance.payments.method")}</Label>
-                      <Select
-                        value={row.method}
-                        onValueChange={(v) => patchTenderRow(row.id, { method: v as PaymentMethod })}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PAYMENT_METHODS.map((m) => (
-                            <SelectItem key={m} value={m}>
-                              {t(`finance.paymentMethods.${m}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-6 sm:col-span-3 space-y-1">
-                      <Label className="text-xs">{t("finance.payments.amount")}</Label>
-                      <Input
-                        inputMode="decimal"
-                        dir="ltr"
-                        className="text-end tabular-nums"
-                        placeholder="0.00"
-                        value={row.amount}
-                        onChange={(e) => patchTenderRow(row.id, { amount: e.target.value })}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div className="col-span-6 sm:col-span-4 space-y-1">
-                      <Label className="text-xs">{t("finance.payments.reference")}</Label>
-                      <Input
-                        placeholder={t("finance.payments.referencePlaceholder")}
-                        value={row.reference}
-                        onChange={(e) => patchTenderRow(row.id, { reference: e.target.value })}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div className="col-span-12 sm:col-span-1 flex sm:justify-end">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeTenderRow(row.id)}
-                        disabled={isSubmitting || tenderRows.length <= 1}
-                        aria-label={t("common.remove")}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* 4) Per-selected-invoice complex allocation cards */}
+          {selectedInvoices.length > 0 && (
+            <div className="space-y-3">
+              {selectedInvoices.map((inv) => (
+                <MultiInvoiceComplexAllocationCard
+                  key={inv.id}
+                  invoice={inv}
+                  paymentAmount={invoiceAmountsUnits[inv.id] || 0}
+                  currency={currency}
+                  disabled={isSubmitting}
+                  onResolved={handleCompositionResolved}
+                />
               ))}
             </div>
-          </div>
+          )}
 
           {/* Warnings */}
           {perInvoiceOverAllocation.length > 0 && (
@@ -497,11 +475,25 @@ export function MultiInvoicePaymentDialog({
               </AlertDescription>
             </Alert>
           )}
-          {duplicateTenderMethod && (
+          {overAllocationUnits > 0 && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {t("finance.multiInvoicePayment.errors.duplicateTender")}
+                {t("finance.multiInvoicePayment.errors.overAllocationBy")}:{" "}
+                <span dir="ltr" className="font-mono tabular-nums">
+                  {fmt(overAllocationUnits)}
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
+          {paymentsExceedOutstanding && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {t("finance.multiInvoicePayment.errors.paymentsExceedOutstandingBy")}:{" "}
+                <span dir="ltr" className="font-mono tabular-nums">
+                  {fmt(paymentsExceedOutstandingUnits)}
+                </span>
               </AlertDescription>
             </Alert>
           )}
@@ -518,18 +510,10 @@ export function MultiInvoicePaymentDialog({
           )}
         </div>
 
-        {/* Sticky footer */}
+        {/* Sticky footer — compact single row */}
         <div className="border-t bg-background px-6 py-3 shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-4 text-sm">
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.payments.totalPayment")}
-                </div>
-                <div dir="ltr" className="font-semibold tabular-nums">
-                  {fmt(tenderTotal)}
-                </div>
-              </div>
               <div>
                 <div className="text-[10px] uppercase text-muted-foreground">
                   {t("finance.multiInvoicePayment.allocatedToInvoices")}
@@ -540,15 +524,15 @@ export function MultiInvoicePaymentDialog({
               </div>
               <div>
                 <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.multiInvoicePayment.difference")}
+                  {t("finance.multiInvoicePayment.remainingToAllocate")}
                 </div>
                 <div
                   dir="ltr"
                   className={`font-semibold tabular-nums ${
-                    amountsBalanced ? "text-emerald-600" : "text-destructive"
+                    amountsBalanced ? "text-emerald-600" : "text-muted-foreground"
                   }`}
                 >
-                  {fmt(tenderTotal - invoiceAllocationTotal)}
+                  {fmt(remainingToAllocateUnits)}
                 </div>
               </div>
             </div>
