@@ -399,98 +399,13 @@ export function RecordPaymentDialog({
                       </Button>
                     )}
                   </div>
-
-                  {rows.map((row) => (
-                    <Card key={row.id}>
-                      <CardContent className="p-3">
-                        <div className="grid grid-cols-12 gap-2 items-start">
-                          {/* Method */}
-                          <div className="col-span-4">
-                            <Label className="text-xs text-muted-foreground">
-                              {t("finance.payments.method")}
-                            </Label>
-                            <Select
-                              value={row.method}
-                              onValueChange={(v) => updateRow(row.id, "method", v)}
-                            >
-                              <SelectTrigger className="h-9">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {PAYMENT_METHODS.map((m) => (
-                                  <SelectItem key={m.value} value={m.value}>
-                                    <span className="flex items-center gap-2">
-                                      <m.icon className="h-3.5 w-3.5" />
-                                      {t(m.labelKey)}
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Amount */}
-                          <div className="col-span-3">
-                            <Label className="text-xs text-muted-foreground">
-                              {t("finance.payments.amount")}
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={row.amount}
-                              onChange={(e) => updateRow(row.id, "amount", e.target.value)}
-                              className="h-9 font-mono tabular-nums text-end"
-                              dir="ltr"
-                              placeholder="0.00"
-                            />
-                          </div>
-
-                          {/* Reference */}
-                          <div className="col-span-4">
-                            <Label className="text-xs text-muted-foreground">
-                              {t("finance.payments.reference")}
-                            </Label>
-                            <Input
-                              value={row.reference}
-                              onChange={(e) => updateRow(row.id, "reference", e.target.value)}
-                              className="h-9"
-                              placeholder={t("finance.payments.referencePlaceholder")}
-                            />
-                          </div>
-
-                          {/* Remove */}
-                          <div className="col-span-1 flex justify-end pt-5">
-                            {rows.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeRow(row.id)}
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-
-                  {/* Add Row Button */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addRow}
-                    disabled={rows.length >= 10}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 me-2" />
-                    {t("finance.payments.addPaymentMethod")}
-                  </Button>
+                  <PaymentTenderEditor
+                    rows={rows}
+                    onChange={setRows}
+                    disabled={isRecording}
+                  />
                 </div>
+
 
                 {/* Payment Distribution — only when the invoice actually spans
                     multiple horses or mixes horse + client-level items. */}
