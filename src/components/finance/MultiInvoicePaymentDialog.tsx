@@ -586,42 +586,64 @@ export function MultiInvoicePaymentDialog({
           )}
         </div>
 
-        {/* Sticky footer — compact single row */}
-        <div className="border-t bg-background px-6 py-3 shrink-0">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-4 text-sm flex-wrap">
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">
+        {/* Sticky footer — three metric cells + separate actions group */}
+        <div className="border-t bg-background px-4 md:px-6 py-3 shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+            <div
+              data-testid="multi-invoice-footer-metrics"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 flex-1 min-w-0"
+            >
+              <div
+                data-testid="footer-metric-total-payments"
+                className="rounded-md border bg-muted/20 px-3 py-2 flex flex-col items-center min-w-0"
+              >
+                <span className="text-xs text-muted-foreground text-center">
                   {t("finance.multiInvoicePayment.totalPayments")}
-                </div>
-                <div dir="ltr" className="font-semibold tabular-nums">
-                  {fmt(tenderTotal)}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.multiInvoicePayment.allocatedToInvoicesShort")}
-                </div>
-                <div dir="ltr" className="font-semibold tabular-nums">
-                  {fmt(invoiceAllocationTotal)}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.multiInvoicePayment.remainingToAllocateShort")}
-                </div>
-                <div
+                </span>
+                <span
                   dir="ltr"
-                  className={`font-semibold tabular-nums ${
-                    amountsBalanced ? "text-emerald-600" : "text-muted-foreground"
+                  className="text-lg md:text-xl font-bold tabular-nums text-success mt-0.5"
+                >
+                  {fmt(tenderTotal)}
+                </span>
+              </div>
+              <div
+                data-testid="footer-metric-allocated"
+                className="rounded-md border bg-muted/20 px-3 py-2 flex flex-col items-center min-w-0"
+              >
+                <span className="text-xs text-muted-foreground text-center">
+                  {t("finance.multiInvoicePayment.allocatedToInvoicesShort")}
+                </span>
+                <span
+                  dir="ltr"
+                  className="text-lg md:text-xl font-bold tabular-nums text-primary mt-0.5"
+                >
+                  {fmt(invoiceAllocationTotal)}
+                </span>
+              </div>
+              <div
+                data-testid="footer-metric-remaining"
+                className="rounded-md border bg-muted/20 px-3 py-2 flex flex-col items-center min-w-0"
+              >
+                <span className="text-xs text-muted-foreground text-center">
+                  {t("finance.multiInvoicePayment.remainingToAllocateShort")}
+                </span>
+                <span
+                  dir="ltr"
+                  className={`text-lg md:text-xl font-bold tabular-nums mt-0.5 ${
+                    overAllocationUnits > 0
+                      ? "text-destructive"
+                      : amountsBalanced
+                        ? "text-success"
+                        : "text-warning"
                   }`}
                 >
                   {fmt(remainingToAllocateUnits)}
-                </div>
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 md:shrink-0 md:ms-auto justify-end">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
@@ -637,6 +659,7 @@ export function MultiInvoicePaymentDialog({
           </div>
         </div>
       </DialogContent>
+
       {/* Slice 3.3 · Checkpoint C — canonical Invoice Details Sheet reused
           from the near-page workspace via Radix Portal (sheet-over-dialog). */}
       <InvoiceDetailsSheet
