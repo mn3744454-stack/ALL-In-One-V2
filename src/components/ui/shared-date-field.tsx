@@ -135,7 +135,7 @@ export function SharedDateField({
       >
         {/* Day */}
         <div className="flex flex-col min-w-0">
-          <span className="text-[10px] font-medium text-muted-foreground mb-1 leading-none">
+          <span className="text-xs font-semibold text-muted-foreground mb-1 leading-none text-center block w-full">
             {lblDay}
           </span>
           <Select
@@ -161,7 +161,7 @@ export function SharedDateField({
 
         {/* Month */}
         <div className="flex flex-col min-w-0">
-          <span className="text-[10px] font-medium text-muted-foreground mb-1 leading-none">
+          <span className="text-xs font-semibold text-muted-foreground mb-1 leading-none text-center block w-full">
             {lblMonth}
           </span>
           <Select
@@ -191,7 +191,7 @@ export function SharedDateField({
 
         {/* Year */}
         <div className="flex flex-col min-w-0">
-          <span className="text-[10px] font-medium text-muted-foreground mb-1 leading-none">
+          <span className="text-xs font-semibold text-muted-foreground mb-1 leading-none text-center block w-full">
             {lblYear}
           </span>
           <Select
