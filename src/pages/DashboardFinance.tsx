@@ -34,6 +34,7 @@ import { printLedgerEntries, exportLedgerCSV } from "@/components/clients/Statem
 import { LedgerRowPreview } from "@/components/finance/LedgerRowPreview";
 import { postLedgerForExpense } from "@/lib/finance/postLedgerForExpense";
 import { approveInvoice } from "@/lib/finance/approveInvoice";
+import { approveInvoiceErrorMessage } from "@/lib/finance/approveInvoiceErrorMap";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import {
   Menu,
@@ -158,8 +159,14 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         onDelete={deleteInvoice}
         onUpdateStatus={async (id, status) => {
           if (status === "approved" && activeTenant?.tenant?.id) {
-            await approveInvoice(id, activeTenant.tenant.id);
-            invalidateFinanceQueries(queryClient, activeTenant.tenant.id);
+            try {
+              await approveInvoice(id, activeTenant.tenant.id);
+              invalidateFinanceQueries(queryClient, activeTenant.tenant.id);
+            } catch (error) {
+              console.error("Error approving invoice:", error);
+              toast.error(approveInvoiceErrorMessage(error, t));
+              throw error;
+            }
           }
           // Other status changes (paid, shared, etc.) must go through the detail sheet
         }}
