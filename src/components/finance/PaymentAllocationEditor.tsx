@@ -222,6 +222,7 @@ export function PaymentAllocationEditor({
         const items = itemsByBucket.get(bucket.key) ?? [];
         const isHorse = bucket.kind === "horse";
         const displayName = isRtl && bucket.labelAr ? bucket.labelAr : bucket.label;
+        const showTaxBreakdown = bucket.tax > 0.005;
         return (
           <Card key={bucket.key} className="bg-muted/30">
             <CardContent className="p-3 space-y-2">
@@ -258,6 +259,38 @@ export function PaymentAllocationEditor({
                   ))}
                 </div>
               )}
+
+              {/* Frozen line breakdown — shows Pretax + Tax rows only when
+                  the invoice's frozen bucket tax > 0. Total Due always shows
+                  so the user sees where each bucket's capacity comes from. */}
+              <div className="ps-6 space-y-0.5 text-xs">
+                {showTaxBreakdown && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("finance.payments.allocation.pretax")}
+                      </span>
+                      <span className="font-mono tabular-nums" dir="ltr">
+                        {fmt(bucket.pretax)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("finance.payments.allocation.tax")}
+                      </span>
+                      <span className="font-mono tabular-nums" dir="ltr">
+                        {fmt(bucket.tax)}
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between font-semibold">
+                  <span>{t("finance.payments.allocation.totalDue")}</span>
+                  <span className="font-mono tabular-nums" dir="ltr">
+                    {fmt(bucket.gross)}
+                  </span>
+                </div>
+              </div>
 
               <div className="flex items-end gap-2">
                 <div className="flex-1">
@@ -300,6 +333,7 @@ export function PaymentAllocationEditor({
           </Card>
         );
       })}
+
 
       {validation.ok === false && paymentAmount > 0 && (
         <Alert variant="destructive" className="py-2">
