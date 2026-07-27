@@ -19,14 +19,14 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useClients } from "@/hooks/useClients";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { formatCurrency } from "@/lib/formatters";
-import { EligibleInvoicesSelector } from "./EligibleInvoicesSelector";
+import { EligibleInvoiceAccordionRow } from "./SelectedInvoiceController";
 import {
   PaymentTenderEditor,
   makeInitialTenderRows,
   type TenderRow,
 } from "./PaymentTenderEditor";
-import { MultiInvoiceComplexAllocationCard } from "./MultiInvoiceComplexAllocationCard";
 import { BilingualClientName } from "./BilingualClientName";
+
 import {
   useEligibleClientInvoices,
   type EligibleInvoice,
@@ -417,9 +417,9 @@ export function MultiInvoicePaymentDialog({
 
           <Separator />
 
-          {/* 3) Eligible Invoices */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
+          {/* 3) Eligible Invoices — Accordion (Slice 3.2) */}
+          <div className="space-y-2 min-w-0">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <Label className="text-sm font-semibold">
                 {t("finance.multiInvoicePayment.eligibleInvoices")}
               </Label>
@@ -435,39 +435,72 @@ export function MultiInvoicePaymentDialog({
                 </Button>
               )}
             </div>
+            {/* Summary strip */}
+            <div className="rounded-md border bg-muted/30 p-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs min-w-0">
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase text-muted-foreground truncate">
+                  {t("finance.multiInvoicePayment.summary.eligibleCount")}
+                </div>
+                <div className="font-semibold tabular-nums">{invoices.length}</div>
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase text-muted-foreground truncate">
+                  {t("finance.multiInvoicePayment.summary.totalOutstanding")}
+                </div>
+                <div className="font-semibold tabular-nums truncate" dir="ltr">
+                  {fmt(totalEligibleOutstanding)}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase text-muted-foreground truncate">
+                  {t("finance.multiInvoicePayment.summary.selectedCount")}
+                </div>
+                <div className="font-semibold tabular-nums">
+                  {selectedInvoices.length} / {invoices.length}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase text-muted-foreground truncate">
+                  {t("finance.multiInvoicePayment.summary.selectedOutstanding")}
+                </div>
+                <div className="font-semibold tabular-nums truncate" dir="ltr">
+                  {fmt(selectedInvoices.reduce((s, i) => s + i.outstanding, 0))}
+                </div>
+              </div>
+            </div>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
+            ) : invoices.length === 0 ? (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {t("finance.multiInvoicePayment.noEligibleInvoices")}
+                </AlertDescription>
+              </Alert>
             ) : (
-              <EligibleInvoicesSelector
-                invoices={invoices}
-                selectedIds={selectedIds}
-                amounts={amounts}
-                onToggle={toggleInvoice}
-                onAmountChange={(id, next) => setAmounts((p) => ({ ...p, [id]: next }))}
-                currency={currency}
-                disabled={isSubmitting}
-                allocationEnabled={tenderTotal > 0}
-              />
+              <div className="space-y-2">
+                {invoices.map((inv) => (
+                  <EligibleInvoiceAccordionRow
+                    key={inv.id}
+                    invoice={inv}
+                    selected={selectedIds.has(inv.id)}
+                    amount={amounts[inv.id] ?? ""}
+                    currency={currency}
+                    allocationEnabled={tenderTotal > 0}
+                    disabled={isSubmitting}
+                    onToggle={(next) => toggleInvoice(inv.id, next)}
+                    onAmountChange={(next) =>
+                      setAmounts((p) => ({ ...p, [inv.id]: next }))
+                    }
+                    onResolved={handleCompositionResolved}
+                  />
+                ))}
+              </div>
             )}
           </div>
 
-          {/* 4) Per-selected-invoice complex allocation cards */}
-          {selectedInvoices.length > 0 && (
-            <div className="space-y-3">
-              {selectedInvoices.map((inv) => (
-                <MultiInvoiceComplexAllocationCard
-                  key={inv.id}
-                  invoice={inv}
-                  paymentAmount={invoiceAmountsUnits[inv.id] || 0}
-                  currency={currency}
-                  disabled={isSubmitting}
-                  onResolved={handleCompositionResolved}
-                />
-              ))}
-            </div>
-          )}
 
           {/* Warnings */}
           {perInvoiceOverAllocation.length > 0 && (
@@ -519,10 +552,18 @@ export function MultiInvoicePaymentDialog({
         {/* Sticky footer — compact single row */}
         <div className="border-t bg-background px-6 py-3 shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-4 text-sm flex-wrap">
               <div>
                 <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.multiInvoicePayment.allocatedToInvoices")}
+                  {t("finance.multiInvoicePayment.totalPayments")}
+                </div>
+                <div dir="ltr" className="font-semibold tabular-nums">
+                  {fmt(tenderTotal)}
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase text-muted-foreground">
+                  {t("finance.multiInvoicePayment.allocatedToInvoicesShort")}
                 </div>
                 <div dir="ltr" className="font-semibold tabular-nums">
                   {fmt(invoiceAllocationTotal)}
@@ -530,7 +571,7 @@ export function MultiInvoicePaymentDialog({
               </div>
               <div>
                 <div className="text-[10px] uppercase text-muted-foreground">
-                  {t("finance.multiInvoicePayment.remainingToAllocate")}
+                  {t("finance.multiInvoicePayment.remainingToAllocateShort")}
                 </div>
                 <div
                   dir="ltr"
@@ -542,6 +583,7 @@ export function MultiInvoicePaymentDialog({
                 </div>
               </div>
             </div>
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"

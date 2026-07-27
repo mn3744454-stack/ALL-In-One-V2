@@ -53,23 +53,66 @@ export interface InvoiceCompositionSummary {
   taxTotal: number;
   priorTotal: number;
   remainingTotal: number;
+  /** Slice 3.2 — frozen parent items for read-only display in accordion body. */
+  items: FrozenInvoiceItem[];
+}
+
+/** Slice 3.2 — frozen invoice_items row projection for display only. */
+export interface FrozenInvoiceItem {
+  id: string;
+  position: number;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  line_pretax_amount: number;
+  line_tax_amount: number;
+  line_gross_amount: number;
+  horse_id: string | null;
+  lab_horse_id: string | null;
+  service_id: string | null;
+  service_name_snapshot: string | null;
+  service_name_ar_snapshot: string | null;
+  package_id: string | null;
+  package_name_snapshot: string | null;
+  package_name_ar_snapshot: string | null;
+  package_services_snapshot: Array<{
+    name?: string | null;
+    name_ar?: string | null;
+    quantity?: number | null;
+  }> | null;
+  horse_name: string | null;
+  horse_name_ar: string | null;
+  lab_horse_name: string | null;
+  lab_horse_name_ar: string | null;
 }
 
 
-export function useInvoicePriorAllocations(invoiceId?: string | null) {
+
+export interface UseInvoicePriorAllocationsOptions {
+  /** When false, the composition query stays disabled (Slice 3.2 — do not
+   * fetch composition for eligible invoices that are neither selected nor
+   * expanded). Defaults to true for backward compatibility. */
+  enabled?: boolean;
+}
+
+export function useInvoicePriorAllocations(
+  invoiceId?: string | null,
+  options?: UseInvoicePriorAllocationsOptions,
+) {
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
+  const enabled = options?.enabled ?? true;
 
   return useQuery({
     queryKey: ["invoice-composition-with-prior", tenantId, invoiceId],
-    enabled: !!tenantId && !!invoiceId,
+    enabled: !!tenantId && !!invoiceId && enabled,
     queryFn: async (): Promise<InvoiceCompositionSummary | null> => {
       if (!tenantId || !invoiceId) return null;
 
       const { data: items, error: itemsErr } = await supabase
         .from("invoice_items")
         .select(
-          "id, description, total_price, line_pretax_amount, line_tax_amount, line_gross_amount, horse_id, lab_horse_id",
+          "id, position, created_at, description, quantity, unit_price, total_price, line_pretax_amount, line_tax_amount, line_gross_amount, horse_id, lab_horse_id, service_id, service_name_snapshot, service_name_ar_snapshot, package_id, package_name_snapshot, package_name_ar_snapshot, package_services_snapshot",
         )
         .eq("invoice_id", invoiceId);
       if (itemsErr) {
@@ -79,19 +122,27 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
 
       type Row = {
         id: string;
+        position: number | null;
+        created_at: string | null;
         description: string;
+        quantity: number | string | null;
+        unit_price: number | string | null;
         total_price: number;
         line_pretax_amount: number | string | null;
         line_tax_amount: number | string | null;
         line_gross_amount: number | string | null;
         horse_id: string | null;
         lab_horse_id: string | null;
+        service_id: string | null;
+        service_name_snapshot: string | null;
+        service_name_ar_snapshot: string | null;
+        package_id: string | null;
+        package_name_snapshot: string | null;
+        package_name_ar_snapshot: string | null;
+        package_services_snapshot: any;
       };
       const rows = (items ?? []) as Row[];
 
-      // Aggregate GROSS per bucket key (frozen line_gross_amount is the
-      // canonical financial authority). Pretax and tax are aggregated in
-      // parallel purely for display inside the allocation editor.
       const grossByKey = new Map<string, number>();
       const pretaxByKey = new Map<string, number>();
       const taxByKey = new Map<string, number>();
@@ -101,9 +152,6 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
       let hasLabHorseOnly = false;
 
       for (const r of rows) {
-        // Prefer frozen line_gross_amount. Fall back to total_price only for
-        // pre-J1 legacy rows (identity check enforces gross = pretax + tax
-        // on all rows written after the tax freeze).
         const gross =
           r.line_gross_amount != null
             ? Number(r.line_gross_amount)
@@ -136,8 +184,6 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         }
       }
 
-
-      // Prior allocations from payment tables.
       const priorByKey = new Map<string, number>();
       const { data: prior, error: priorErr } = await supabase
         .from("payment_allocations")
@@ -166,7 +212,6 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         }
       }
 
-      // Resolve horse names.
       const horseNameMap = new Map<string, { name: string; name_ar: string | null }>();
       if (horseIds.size > 0) {
         const { data: horses } = await supabase
@@ -194,9 +239,7 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         }
       }
 
-      // Build buckets.
       const buckets: InvoiceBucket[] = [];
-      // Horse buckets first, deterministic by name.
       const horseKeys = Array.from(horseIds).sort((a, b) => {
         const na = horseNameMap.get(a)?.name ?? a;
         const nb = horseNameMap.get(b)?.name ?? b;
@@ -221,7 +264,6 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
           remaining: Math.max(0, gross - prior),
         });
       }
-      // Client-level bucket.
       if (hasClientLevel) {
         const gross = grossByKey.get(CLIENT_LEVEL_BUCKET_KEY) ?? 0;
         const pretax = pretaxByKey.get(CLIENT_LEVEL_BUCKET_KEY) ?? 0;
@@ -239,7 +281,6 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         });
       }
 
-      // Lab-horse-only: unsupported by RPC when combined with horse-scoped or multi-lab.
       const hasUnsupportedLabHorse =
         labHorseIds.size > 1 || (labHorseIds.size >= 1 && (horseIds.size > 0 || hasClientLevel));
 
@@ -248,6 +289,54 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
       const taxTotal = Array.from(taxByKey.values()).reduce((s, v) => s + v, 0);
       const priorTotal = Array.from(priorByKey.values()).reduce((s, v) => s + v, 0);
       const remainingTotal = buckets.reduce((s, b) => s + b.remaining, 0);
+
+      // Slice 3.2 — frozen items for display; sorted by position then created_at.
+      const sortedRows = [...rows].sort((a, b) => {
+        const pa = a.position ?? 0;
+        const pb = b.position ?? 0;
+        if (pa !== pb) return pa - pb;
+        const ca = a.created_at ?? "";
+        const cb = b.created_at ?? "";
+        return ca.localeCompare(cb);
+      });
+      const displayItems: FrozenInvoiceItem[] = sortedRows.map((r) => {
+        const horseInfo = r.horse_id ? horseNameMap.get(r.horse_id) : null;
+        const labInfo = r.lab_horse_id ? labHorseNameMap.get(r.lab_horse_id) : null;
+        const rawSnap = r.package_services_snapshot;
+        let snap: FrozenInvoiceItem["package_services_snapshot"] = null;
+        if (Array.isArray(rawSnap)) {
+          snap = rawSnap.map((s: any) => ({
+            name: s?.name ?? s?.service_name ?? null,
+            name_ar: s?.name_ar ?? s?.service_name_ar ?? null,
+            quantity: s?.quantity != null ? Number(s.quantity) : null,
+          }));
+        }
+        return {
+          id: r.id,
+          position: r.position ?? 0,
+          description: r.description ?? "",
+          quantity: Number(r.quantity) || 0,
+          unit_price: Number(r.unit_price) || 0,
+          line_pretax_amount:
+            r.line_pretax_amount != null ? Number(r.line_pretax_amount) : Number(r.total_price) || 0,
+          line_tax_amount: r.line_tax_amount != null ? Number(r.line_tax_amount) : 0,
+          line_gross_amount:
+            r.line_gross_amount != null ? Number(r.line_gross_amount) : Number(r.total_price) || 0,
+          horse_id: r.horse_id,
+          lab_horse_id: r.lab_horse_id,
+          service_id: r.service_id,
+          service_name_snapshot: r.service_name_snapshot,
+          service_name_ar_snapshot: r.service_name_ar_snapshot,
+          package_id: r.package_id,
+          package_name_snapshot: r.package_name_snapshot,
+          package_name_ar_snapshot: r.package_name_ar_snapshot,
+          package_services_snapshot: snap,
+          horse_name: horseInfo?.name ?? null,
+          horse_name_ar: horseInfo?.name_ar ?? null,
+          lab_horse_name: labInfo?.name ?? null,
+          lab_horse_name_ar: labInfo?.name_ar ?? null,
+        };
+      });
 
       return {
         buckets,
@@ -262,8 +351,9 @@ export function useInvoicePriorAllocations(invoiceId?: string | null) {
         taxTotal,
         priorTotal,
         remainingTotal,
+        items: displayItems,
       };
-
     },
   });
 }
+
