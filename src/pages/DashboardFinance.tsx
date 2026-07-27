@@ -130,7 +130,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold text-navy">{stats.paidCount}</p>
-                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.paidAmount")}</p>
+                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.paidInvoices")}</p>
               </div>
             </div>
           </CardContent>
@@ -143,7 +143,8 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold text-navy">{stats.overdueCount}</p>
-                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.overdueAmount")}</p>
+                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.overdueInvoices")}</p>
+
               </div>
             </div>
           </CardContent>
