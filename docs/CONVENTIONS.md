@@ -1,0 +1,103 @@
+<!--
+id: DHB-CONV
+title: Documentation Conventions
+version: 1.0.0
+status: current
+audience: internal
+date: 2026-07-27
+last-verified: 2026-07-27
+supersedes: []
+superseded-by: null
+source: authored during DG.2 (aligned with DG.1A §I, §J, §L)
+source-sha256: n/a
+-->
+
+# Documentation Conventions
+
+These conventions govern every documentation file inside this repository. They are additive to the current-truth rule: **source code, migrations, and live database state override any conflicting documentation claim.**
+
+## 1. Filenames
+
+- Lowercase ASCII, hyphen-separated (`kebab-case`).
+- No spaces, no underscores in new files, no non-ASCII characters.
+- No filename-based versioning: **do not** use `-final`, `-final-final`, `-latest`, `-copy`, `-v2`, `-new`, `-old` in filenames. Versioning lives in the file's metadata header.
+- Documentation-series files use the pattern `NN-slug.md` (two-digit number for stable sort).
+
+## 2. Metadata header (required on every documentation `.md`)
+
+Placed at the very top of the file as an HTML comment so it does not render:
+
+```html
+<!--
+id: DHB-DOC01
+title: Documentation 01 — Forensic Platform Architecture Audit
+version: 1.0.0
+status: historical
+audience: internal
+date: unknown
+last-verified: 2026-07-27
+supersedes: []
+superseded-by: null
+source: owner-supplied historical source
+source-sha256: d82868b1dea26c846354ede421fc72a3a0d0e0d221d67d555358a58a3fcea92f
+-->
+```
+
+### Field rules
+
+- `id` — unique document ID. Namespaces in use: `DHB-DOC<NN>` (historical Doc series), `DHB-R<NN>-…` (handoff round artifacts), `DHB-AUDIT-<CODE>` (governance audits), `DHB-CONV`, `DHB-INDEX`, `DHB-HIST-…`, `DHB-HANDOFF-…`. IDs must be globally unique within `docs/`.
+- `title` — human-readable title. Do not rename the file to change the title; update the header.
+- `version` — semantic version (`MAJOR.MINOR.PATCH`).
+- `status` — one of: `current`, `draft`, `pending`, `historical`, `historical-audit`, `historical-source-artifact`, `evidence-immutable`, `superseded`, `deprecated`.
+- `audience` — `internal` \| `external` \| `internal+external` \| `owner-only` (owner-only content must not live in this repository).
+- `date` — original authoring date (`YYYY-MM-DD`) or `unknown`.
+- `last-verified` — most recent date on which the document was reviewed against current implementation truth.
+- `supersedes` — list of document IDs this file supersedes (may be empty).
+- `superseded-by` — document ID that supersedes this file, or `null`.
+- `source` — description of the source (owner-supplied file, audit round, generated during DG.N, …).
+- `source-sha256` — SHA-256 of the source when the document is a preserved copy; `n/a` for freshly authored files.
+
+## 3. Historical banner (required on every historical / evidence file)
+
+Placed immediately after the metadata header:
+
+> This document is preserved as historical evidence. Current source code, migrations, database state, and later approved handoff documentation supersede specific claims where they conflict.
+
+## 4. Immutability of raw evidence
+
+- Files under `docs/historical/documentation-01-13/raw/` and every `round-XX-inputs.md` / `round-XX-raw-audit-output.md` are **immutable**. They must never be silently rewritten. Errors, corrections, or later understanding belong in a newer canonical current-truth document (not in the evidence).
+- Canonical historical Markdown copies may add only a metadata header, a historical banner, a link to the raw source, and (for plain-text sources) preserve the body inside a text fence. The body content must not be edited.
+
+## 5. Current truth vs historical evidence
+
+- Current-truth documents describe how the platform **is** today.
+- Historical documents describe how the platform **was** at their authoring date.
+- When they conflict, **current source code, migrations, and live database state win**. Historical claims that no longer hold must be marked `superseded` (with `superseded-by` populated) rather than deleted or silently corrected in place.
+
+## 6. Owner-governance is outside the repository
+
+Owner-governance documentation — access lists, vendor evaluations, account-recovery details, secret-management processes, offboarding notes, pricing, legal, contracts, and any Word documents intended only for the owner — is **not stored** in this repository. Git provides no reliable per-folder read separation among repository collaborators. `docs/governance/` may only contain governance rules explicitly authorized for all approved collaborators. `docs/owner/` must not exist.
+
+## 7. No secret values in documentation
+
+- Never commit real values for API keys, service-role keys, database passwords, provider credentials, session tokens, JWTs, PEM blocks, or private URLs with embedded tokens.
+- Publishable / anon values that Supabase itself exposes to the browser are permitted where they are already public (they are non-secret by design).
+- Operational documentation may reference environment variable **names**, never their values.
+
+## 8. Index registration
+
+Every documentation file (except transient placeholders) must be registered in `docs/README.md` with its ID, path, category, audience, status, version, and coverage. Adding a documentation file without indexing it is not permitted.
+
+## 9. Change-review
+
+- Documentation changes must go through the same branch/review workflow as source changes.
+- Increment the `version` field on every non-trivial change. Update `last-verified` on every reverification, even when content is unchanged.
+- Structural moves, renames, and deletions require explicit owner acceptance recorded in the relevant handoff round's acceptance file.
+
+## 10. Prohibited
+
+- Silently rewriting raw evidence.
+- Committing owner-governance material to this repository.
+- Committing secret values.
+- Filename-based version suffixes (`-final`, `-latest`, `-copy`, `-v2`).
+- Bypassing the metadata header on documentation files.
