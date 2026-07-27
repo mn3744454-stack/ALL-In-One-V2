@@ -125,7 +125,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.paid)}</p>
-                <p className="text-xs text-muted-foreground">{t("finance.invoices.paid")}</p>
+                <p className="text-xs text-muted-foreground">{t("finance.invoiceStats.paidAmount")}</p>
               </div>
             </div>
           </CardContent>
