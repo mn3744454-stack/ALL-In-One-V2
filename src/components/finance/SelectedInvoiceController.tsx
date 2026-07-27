@@ -88,7 +88,9 @@ export function EligibleInvoiceAccordionRow({
   onToggle,
   onAmountChange,
   onResolved,
+  onOpenDetails,
 }: EligibleInvoiceAccordionRowProps) {
+
   const { t, dir } = useI18n();
   const isRtl = dir === "rtl";
   const fmt = (n: number) => formatCurrency(n, currency);
