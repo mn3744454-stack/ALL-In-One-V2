@@ -178,12 +178,12 @@ export default function FinanceCustomerBalances() {
         )}
       </div>
 
-      {/* Record Payment Dialog */}
+      {/* Record Payment Dialog — multi-invoice for this client */}
       {paymentClientId && (
-        <RecordPaymentDialog
+        <MultiInvoicePaymentDialog
           open={!!paymentClientId}
           onOpenChange={(open) => !open && setPaymentClientId(null)}
-          invoiceId={null}
+          clientId={paymentClientId}
           onSuccess={() => setPaymentClientId(null)}
         />
       )}
