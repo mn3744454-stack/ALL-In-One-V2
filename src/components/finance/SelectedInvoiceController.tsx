@@ -108,7 +108,10 @@ export function EligibleInvoiceAccordionRow({
 
   const [manualMode, setManualMode] = useState(false);
   const [bucketValues, setBucketValues] = useState<Record<string, string>>({});
+  const [overMaxInvoice, setOverMaxInvoice] = useState(false);
+  const [overMaxBuckets, setOverMaxBuckets] = useState<Record<string, boolean>>({});
   const paymentAmount = parseFloat(amount || "0") || 0;
+
 
   const remainingByBucketKey = useMemo(() => {
     const r: Record<string, number> = {};
