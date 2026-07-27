@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2, Banknote, CreditCard, Building, Receipt } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { FinancialAmountInput } from "./FinancialAmountInput";
 import type { PaymentMethod } from "@/lib/finance/postPaymentSession";
 
 export const PAYMENT_METHODS: PaymentMethod[] = ["cash", "card", "transfer", "check"];
+
 
 export interface TenderRow {
   id: string;
