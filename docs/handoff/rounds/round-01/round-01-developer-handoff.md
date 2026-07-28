@@ -208,7 +208,57 @@ Directly verified via live DB metadata during Round 1:
 
 Repository-root `.schema.txt` snapshots (`invoices`, `invoice_items`, `billing_links`, `customer_balances`, `expenses`) are legacy artifacts — treat as historical references, not current truth.
 
+### 10.1 Core relationship map (Round 1 verified subset)
+
+Textual relationship map — every arrow below is grounded in current source, generated types, or Round 1 raw evidence. Not exhaustive; exact per-column FKs must be regenerated from live metadata before structural change.
+
+```text
+auth.users ──1:1──> profiles (profiles.id = auth.users.id)
+auth.users ──1:N──> tenant_members ──N:1──> tenants
+tenants ──1:N──> tenant_roles / tenant_role_permissions / tenant_role_bundles / tenant_role_preset_bindings
+tenants ──1:N──> permission_bundles ──1:N──> bundle_permissions
+tenant_members ──1:N──> member_permissions / member_permission_bundles / delegation_scopes
+tenants ──1:N──> branches / horses / clients / invoices / tenant_capabilities
+horses ──1:N──> horse_ownership / horse_shares / horse_share_packs
+horses ──1:N──> horse_movements / boarding_admissions / housing_unit_occupants
+horses ──1:N──> vet_visits / vet_treatments / horse_vaccinations
+horses ──1:N──> lab_requests (direct)  and  ──microchip──> lab_horses ──1:N──> lab_requests
+clients ──1:N──> invoices ──1:N──> invoice_items
+invoices ──1:N──> ledger_entries; clients ──1:1──> customer_balances
+payment_sessions ──1:N──> payment_allocations ──1:N──> payment_horse_allocations
+payment_allocations ──N:1──> invoices
+connections (tenant_a ↔ tenant_b) ──1:N──> consent_grants / connection_horse_access
+```
+
+### 10.2 Snapshot vs live-reference patterns
+
+- `invoice_items` persists **frozen snapshots** (name, unit price, tax, service source, category, horse, boarding period) at approval time via `_invoice_items_fill_snapshots`; downstream renaming of source rows does not mutate the invoice line.
+- `ledger_entries` records posted amounts against the invoice at approval time; later invoice edits require cancel + re-approve to update the ledger.
+- `payment_allocations` and `payment_horse_allocations` capture per-session allocation decisions; totals should be recomputed from allocations, never mutated in place.
+
+### 10.3 Polymorphic and entity-reference patterns
+
+The following polymorphic references exist and **may not be FK-enforced**; referential integrity is enforced by application/RPC code, not by the database, so orphan rows must be handled defensively:
+
+| Table | Reference columns | Purpose |
+|---|---|---|
+| `notifications` | `entity_type` (text) + `entity_id` (uuid) | Route notification to the originating record |
+| `billing_links` | `source_type` (text) + `source_id` (uuid) | Map an operational event to an invoice (`deposit`/`final`/`refund`/`credit_note`) |
+| `ledger_entries` | reference columns for source-invoice / source-payment | Ledger provenance |
+| `contract_document_events` | entity + event_type | Contract document audit |
+
+### 10.4 Legacy / potentially-unused objects requiring verification before retirement
+
+- Root `.schema.txt` snapshots noted above.
+- `database_export_20_07_26` Storage bucket (R-13).
+- `admin` value in `tenant_role` enum (kept for backward compatibility, not used in UI — H-03).
+- Legacy `/dashboard/boarding-contracts` page (redirects; H-04).
+- Standalone Movement route (consolidated under Housing; H-05).
+
+Do not delete these without a dedicated verification round.
+
 ---
+
 
 ## 11. Authentication, Profiles, Tenants, and Memberships
 
