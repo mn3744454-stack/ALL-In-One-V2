@@ -1,14 +1,14 @@
 <!--
 id: DHB-INDEX
 title: Dayli Horse — Documentation Index
-version: 1.4.0
+version: 1.5.0
 status: current
 audience: internal+external
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.2; updated during DG.3A to record content-correction of DHB-R01-DEV and DHB-R01-INT to v1.1.0; updated during DG.3B to record evidence-completeness closure of DHB-R01-DEV and DHB-R01-INT to v1.2.0; updated during DG.3D to record Round 1 acceptance/closure at DHB-R01-DEV v1.3.0, DHB-R01-INT v1.3.0, and registration of DHB-R01-ACC v1.0.0; v1.4.0 — records the additive Account Types and Identity Model alignment (DEV v1.4.0, INT v1.4.0, ACC v1.1.0, Round 1 README v1.5.0) and registers the new current-truth architecture reference DHB-ARCH-ACCOUNT-TYPES-IDENTITY v1.0.0
+source: authored during DG.2; updated during DG.3A to record content-correction of DHB-R01-DEV and DHB-R01-INT to v1.1.0; updated during DG.3B to record evidence-completeness closure of DHB-R01-DEV and DHB-R01-INT to v1.2.0; updated during DG.3D to record Round 1 acceptance/closure at DHB-R01-DEV v1.3.0, DHB-R01-INT v1.3.0, and registration of DHB-R01-ACC v1.0.0; v1.4.0 — records the additive Account Types and Identity Model alignment (DEV v1.4.0, INT v1.4.0, ACC v1.1.0, Round 1 README v1.5.0) and registers the new current-truth architecture reference DHB-ARCH-ACCOUNT-TYPES-IDENTITY v1.0.0; v1.5.0 — registers the canonical Round 2 current-truth architecture reference DHB-ARCH-ACCOUNT-MODULE-REALITY v1.0.0 (Account Types, Complete Module Inventory, Current Implementation Reality & Planned-Type Readiness) at docs/architecture/account-types-and-module-reality.md
 source-sha256: n/a
 -->
 
