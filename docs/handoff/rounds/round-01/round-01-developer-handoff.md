@@ -337,14 +337,70 @@ Do **not** hardcode role names in new code — check permission keys. User roles
 
 - **Coverage (directly verified):** 158/158 public tables have RLS enabled; 507 policies across those tables; 0 tables have RLS disabled; 7 tables are zero-policy fail-closed (list above §10).
 - **Search-path safety:** the DB metadata scan returned **zero** `SECURITY DEFINER` functions in the `public` schema without a pinned `search_path`. No search-path-based privilege escalation surface was found this round. ✅
-- **Dual-scope tenant model:** tables use `tenant_id IS NULL` for personal workspace and `tenant_id IS NOT NULL` for organization workspace. Paid accounts behave as organizations. RLS must respect both scopes.
+- **Workspace-scope pattern (verified only where inspected):** some tables support a personal scope with `tenant_id IS NULL` and an organization scope with `tenant_id IS NOT NULL`. The exact table-by-table scope must be verified against each table's policy bodies; do not generalize this pattern to every table, and do not generalize it to every paid account. Broad account-type / subscription statements are out of Round 1 scope.
 - **Cross-tenant partner access:** governed by `connections`, `consent_grants`, `connection_horse_access`, `horse_shares`, `horse_share_packs`, `media_share_links`, and RPCs `accept_connection`, `create_connection_request`, `finalize_invitation_acceptance`. Do not bypass the RPC/RLS layer.
-- **Fail-closed tables:** `hr_employees` intentionally omits a DELETE policy (accepted per security memory). Absence of a policy is not automatically a bug — check first.
+- **Observed policy absence — `hr_employees` DELETE:** the current policy bodies show no client-visible DELETE policy on `hr_employees`. Whether that absence is intentional fail-closed behaviour or an unrecognized gap must be verified from the current policy bodies **and** the actual write paths (RPC vs UI). **Do not add a DELETE policy without that investigation.** Absence of a policy is not automatically a bug; it is also not automatically safe.
 - **Every new `public` table** must ship, in one migration: `CREATE TABLE` → `GRANT`s appropriate to policy roles → `ENABLE ROW LEVEL SECURITY` → explicit `CREATE POLICY` statements. Missing GRANTs cause runtime permission errors even with RLS.
 - **Never modify** the `auth`, `storage`, `realtime`, `supabase_functions`, `vault` schemas — including triggers on those schemas.
 - **Full policy-body enumeration is deferred to Round 2.** Spot checks show alignment with `has_permission()` on finance/horses; some legacy reads still use `is_tenant_member` (see H-07 §19).
 
+### 13.1 Isolation-helper inventory (`SECURITY DEFINER`, pinned `search_path` unless noted)
+
+| Function | Signature (shape) | Security mode / search path | Purpose |
+|---|---|---|---|
+| `has_permission` | `(_user_id uuid, _tenant_id uuid, _permission_key text) → boolean` | DEFINER, pinned | Authoritative permission check (RLS + UI parity) |
+| `check_tenant_permission` | `(_user_id uuid, _tenant_id uuid, _permission_key text) → boolean` | DEFINER, pinned | Alternate wrapper used by legacy policies |
+| `has_tenant_role` | `(_user_id uuid, _tenant_id uuid, _role text) → boolean` | DEFINER, pinned | Legacy role check (do not reintroduce hardcoded roles) |
+| `is_tenant_member` | `(_user_id uuid, _tenant_id uuid) → boolean` | DEFINER, pinned | Broad membership predicate — often too broad for writes |
+| `is_active_tenant_member` | `(_user_id uuid, _tenant_id uuid) → boolean` | DEFINER, pinned | Active membership predicate; preferred for write policies |
+| `can_delegate_permission` | `(_user_id uuid, _tenant_id uuid, _permission_key text) → boolean` | DEFINER, pinned | Delegation gate |
+| `can_invite_in_tenant` | `(_user_id uuid, _tenant_id uuid) → boolean` | DEFINER, pinned | Invite authority |
+| `can_access_shared_resource` | `(_user_id uuid, _resource_type text, _resource_id uuid) → boolean` | DEFINER, pinned | Shared-resource gate |
+| `_active_tenant_context` | `() → uuid` | DEFINER, pinned | Resolve currently-active tenant for the request |
+| `_resolve_horse_*` family (where verified) | horse authority helpers | DEFINER, pinned | Horse-scoped authority resolution |
+
+### 13.2 Representative RLS matrix (spot-verified, not exhaustive)
+
+| Domain | Read basis | Write basis | Cross-tenant exception | Confidence |
+|---|---|---|---|---|
+| Horses / horse_ownership | `is_tenant_member` or shared-access predicate | `has_permission('horse.*')` on inspected policies | `horse_shares`, `connection_horse_access` | HIGH (spot) |
+| Invoices / invoice_items | tenant membership + `has_permission('finance.invoice.view')` on inspected policies | `has_permission('finance.invoice.edit')`; approval only via RPC | none | HIGH (spot) |
+| Ledger entries | tenant membership | writes via `_finance_ledger_insert` DEFINER only | none | HIGH (spot) |
+| Payment sessions / allocations | tenant membership | writes via `post_payment_session` DEFINER only | none | MEDIUM |
+| POS sales | zero client policies | writes via `create_pos_sale` DEFINER only | none | HIGH |
+| Tenants / tenant_members | membership scoped | tenant-scoped writes — body not fully inspected (R-08) | none | LOW (body pending) |
+| Connections / consent_grants | connection endpoints | RPC-only (`create_connection_request`, `accept_connection`) | intentional | MEDIUM |
+| Posts (community) | 15 policies covering `public`/`followers`/`private` × personal/org | scoped to author + workspace | followers via `follows` | LOW (Round 2 resolution) |
+| Notifications | recipient-scoped | inserts via DEFINER helpers | none | MEDIUM |
+| App settings | tenant membership | permission-gated | none | LOW |
+| Claim / access tables (`horse_owner_*`, `owner_claim_*`, `owner_delegations`, `horse_owner_access_grants`) | zero policies | RPC-only | intentional fail-closed | HIGH |
+
+### 13.3 Cross-tenant pattern classification (Round 1 subset)
+
+| Pattern | Vehicle | Notes |
+|---|---|---|
+| Stable ↔ Lab | `lab_horses` linked via microchip; `lab_requests` submissions | Do not merge with primary `horses` blindly |
+| Stable ↔ Horse Owner | `horse_owner_access_grants`, `horse_owner_invites`, `owner_delegations` | Zero-policy — RPC-only |
+| Stable ↔ Doctor | `doctor_services` separate from `tenant_services` (H-02 debt) | Round 2 audit |
+| Connected movement | `record_horse_movement_with_housing` + connection scoping | 20-parameter contract |
+| Partner connections | `connections` + `consent_grants` + `connection_horse_access` | LEAST/GREATEST unique partial index |
+| Consent grants | `consent_grants` (auto-revoke trigger) | `trg_connections_auto_revoke_grants` |
+| Horse sharing | `horse_shares`, `horse_share_packs` | Time/scope bounded |
+| Shared media | `media_share_links` (+ `shared-media-sign` edge fn) | Signed URLs may outlive revocation (R-04) |
+| Public token links | `SharedLabReport`, `SharedMedia`, `AcceptConnectionPage` | Token expiry enforcement not fully audited (R2) |
+| Invitations | `invitations` + `finalize_invitation_acceptance` | Verifies email/phone before joining |
+| Client claim | `claim_client_portal` DEFINER | Token-based |
+
+### 13.4 Isolation-risk review (evidence-boundary)
+
+- **Foreign-tenant-ID validation:** DEFINER RPCs typically accept `p_tenant_id` and rely on `is_active_tenant_member(auth.uid(), p_tenant_id)` (spot-verified). **Per-RPC validation across all 317 functions is unverified — requires Round 2 body audit.**
+- **Token expiry enforcement:** share/invite tokens carry `expires_at`; enforcement inside every consumer path is **unverified** in Round 1.
+- **Post-revocation signed URLs:** Storage signed URLs can outlive a revocation event (R-04).
+- **Storage `storage.objects` policies:** not enumerated in Round 1 (R-04).
+- **Duplicate / overlapping policies:** Round 1 did not run an overlap census; a duplicate-policy audit is a Round 2 input.
+
 ---
+
 
 ## 14. RPC, Function, and Trigger Registry
 
