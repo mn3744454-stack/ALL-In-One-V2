@@ -62,7 +62,7 @@ Current code and live database metadata override any historical claim on conflic
 - Edge functions: `expire-stale-connections`, `get-vapid-key`, `mark-overdue-invoices`, `send-invitation-email`, `send-ownership-notification`, `send-push-notification`, `shared-media-sign`.
 - Feature roots: `src/components/{boarding,breeding,clients,finance,horses,housing,hr,laboratory,movement,permissions,pos,services,vet,notifications}`, `src/hooks/{finance,housing,hr,laboratory,roles,notifications,…}`, `src/lib/{finance,housing,notifications,pricing,…}`.
 - Design system: semantic tokens in `src/index.css`; shadcn + Radix + Tailwind v3. Never hardcode colour utilities.
-- `DebugAuth` route is mounted only when `import.meta.env.DEV` is true; not shipped in production. Still captured as R-04.
+- `DebugAuth` route is mounted only when `import.meta.env.DEV` is true; not shipped in production. It is a DEV-only informational surface — **outside** the 16-row material risk register, and **not** R-04 (R-04 is the Storage-scoped risk). See the guard matrix in `DHB-R01-DEV` §8.1.
 
 ## 6. Identity, Tenant, and Permission Pointers
 
