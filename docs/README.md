@@ -24,11 +24,11 @@ This is the canonical index for every documentation file in this repository.
 4. Do **not** correct historical documents by editing them. Corrections belong in later canonical current-truth documents that supersede specific claims.
 5. Read `CONVENTIONS.md` before authoring or modifying any documentation file.
 
-## Status of this repository's documentation (as of DG.2)
+## Status of this repository's documentation (as of DG.2 / DG.2B)
 
 - **Central index and conventions:** established (DG.2).
 - **Canonical folder skeleton:** established (DG.2).
-- **Documentation 01–13 raw preservation + canonical historical Markdown:** established (DG.2).
+- **Documentation 01–13 raw preservation + canonical historical Markdown:** established (DG.2); rendering-only correction applied to canonical Docs 04, 06, 07, 08, 09, 10, 13 in DG.2B (outer plain-text fence removed so headings/anchors render natively — no wording, ordering, or claims changed; raw sources unchanged).
 - **Round 1 raw provenance (inputs + raw output):** established (DG.2).
 - **Rewritten external-developer Round 1 handoff (`round-01-developer-handoff.md`):** **PENDING** — not authored yet.
 - **Internal Lovable Round 1 reference (`round-01-lovable-reference.md`):** **PENDING** — not authored yet.
@@ -36,6 +36,10 @@ This is the canonical index for every documentation file in this repository.
 - **Root `README.md`:** unchanged (still a template placeholder). A later phase will rewrite it after owner approval.
 - **Legacy files** (`docs/aml_1_b_1/**`, `docs/*.md`, `docs/Documentation_13_-_Laboratory_Workstream_Closure.md`, root schema snapshots, root N2.2 report): **preserved in place**. A later acceptance-approved cleanup phase will retire or relocate them; until then they remain the source of truth for their topics.
 - **Owner-governance Word files:** intentionally **outside** this repository. Do not add.
+
+### Placeholder-README index exemption (DG.2B)
+
+Category-scope placeholder READMEs (files whose only content is folder-purpose/status metadata under an already-indexed parent folder — for example `docs/architecture/README.md`, `docs/modules/README.md`, `docs/operations/README.md`, `docs/workflows/README.md`, `docs/templates/README.md`, `docs/governance/README.md`, `docs/security/README.md`, `docs/handoff/final/README.md`, `docs/historical/execution-closures/README.md`, `docs/historical/module-legacy/README.md`, `docs/historical/module-legacy/laboratory/README.md`, `docs/historical/release-notes/README.md`, `docs/historical/schema-snapshots/README.md`) are **exempt** from individual central-index registration per `CONVENTIONS.md` §8, provided they carry no independent technical claims. Substantive READMEs (handoff, rounds, historical identity/supersession, runbooks, module docs, operations, audits, evidence) remain individually indexed.
 
 > ⚠️ **Cleanup warning:** legacy files remain at their original repository paths until a later acceptance-approved migration executes. Do not treat their presence at those paths as endorsement of that layout — see the pending-cleanup section below.
 
