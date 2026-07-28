@@ -77,11 +77,11 @@ Current code and live database metadata override any historical claim on conflic
 
 ## 7. RLS and Cross-Tenant Safety Pointers
 
-- Dual-scope tables: `tenant_id IS NULL` (personal) vs `tenant_id IS NOT NULL` (organization). Policies must honour both.
+- Workspace-scope pattern (only where verified): some tables support personal scope with `tenant_id IS NULL` and organization scope with `tenant_id IS NOT NULL`. **The exact table-by-table scope must be verified.** Do not generalize this pattern to every table, and do not generalize it to every paid account.
 - Every new `public` table must ship, in one migration: `CREATE TABLE` → `GRANT`s appropriate to policy roles → `ENABLE ROW LEVEL SECURITY` → explicit `CREATE POLICY` statements. Missing GRANTs cause runtime permission errors even with RLS.
 - Do not grant `anon` unless a policy actually permits anonymous reads.
 - Cross-tenant partner access flows through `connections`, `consent_grants`, `connection_horse_access`, `horse_shares`, `horse_share_packs`, `media_share_links`, and `accept_connection` / `create_connection_request` / `finalize_invitation_acceptance` RPCs. Do not bypass RPC/RLS to expose partner data.
-- Some tables intentionally fail closed (e.g. `hr_employees` DELETE). Absence of a policy is not automatically a bug — check first.
+- Observed policy absence on `hr_employees` DELETE: whether it is intentional fail-closed behaviour must be verified from current policy bodies and write paths. Do not add a DELETE policy without that investigation. Absence of a policy is not automatically a bug — check first.
 - Never modify `auth`, `storage`, `realtime`, `supabase_functions`, or `vault` schemas.
 - Full policy-body enumeration is Round 2 scope.
 
