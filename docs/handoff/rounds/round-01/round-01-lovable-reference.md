@@ -130,7 +130,9 @@ Current code and live database metadata override any historical claim on conflic
 
 ## 13. Round 2 Inputs
 
-Carry forward to Round 2:
+**Round 2 primary scope:** Account Types, Complete Module Inventory, and Current Implementation Reality (see `DHB-R01-DEV` §23.1).
+
+Foundation evidence closures carried alongside Round 2:
 
 1. Auth provider configuration (email/password, Google, phone, SAML, HIBP, password policy, templates).
 2. `tenant_type` behaviour matrix for all 10 types.
