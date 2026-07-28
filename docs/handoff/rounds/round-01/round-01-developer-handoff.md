@@ -406,31 +406,34 @@ Do **not** hardcode role names in new code — check permission keys. User roles
 
 **Function census: 317 public-schema functions.** Priority anchors (verified subset):
 
-| Function | Signature | Purpose | Callers |
-|---|---|---|---|
-| `create_invoice_with_items` | `(p_tenant_id uuid, p_idempotency_key uuid, p_payload jsonb)` DEFINER | Atomic invoice + items + snapshots + idempotency | `src/lib/finance/invoiceRpc.ts`, `useLabInvoiceDraft.ts` |
-| `create_source_checkout_invoice` | same shape | Source-checkout invoice with trace | POS `EmbeddedCheckout` |
-| `approve_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` DEFINER | Post ledger; freeze snapshots | `src/lib/finance/approveInvoice.ts` |
-| `cancel_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id, p_effective_date, p_reason)` DEFINER | Cancel + reverse ledger | finance hooks |
-| `delete_draft_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` DEFINER | Delete draft only | finance UI |
-| `post_payment_session` | `(p_tenant_id, p_idempotency_key, p_payload jsonb)` DEFINER | Atomic multi-invoice payment + allocation + idempotency | `src/lib/finance/postPaymentSession.ts` |
-| `get_payment_session` | `(p_tenant_id, p_session_id)` DEFINER | Read session with allocations | finance UI |
-| `create_pos_sale` | `(p_tenant_id, p_idempotency_key, p_payload)` DEFINER | POS sale | `pos/EmbeddedCheckout` |
-| `_finance_invoice_approve_inline` | `(p_tenant_id, p_invoice_id, p_actor)` DEFINER | Inline approval helper | internal |
-| `_finance_ledger_insert` | 12-arg DEFINER | Sole ledger insert path | internal |
-| `_finance_provision_tenant_payment_account` | `()` DEFINER | Auto-provision payment account | internal |
-| `initialize_tenant_defaults` | `(p_tenant_id uuid, p_tenant_type text)` DEFINER | Capability seeding | `TenantContext.createTenant` (non-blocking) |
-| `create_connection_request` | 8-arg DEFINER | Cross-tenant invite | connection hooks |
-| `accept_connection` | `(_token text)` DEFINER | Accept via token | `AcceptConnectionPage` |
-| `finalize_invitation_acceptance` | `(_token text)` DEFINER | Invite acceptance with email/phone verification | `InviteLandingPage` |
-| `claim_client_portal` | `(_token text)` DEFINER | Client claim | client portal flows |
-| `record_horse_movement_with_housing` | **20 parameters** DEFINER (see below) | Movement + housing sync | `movement/RecordMovementDialog` |
-| `create_boarding_contract_with_connection` | 7-arg DEFINER | Boarding contract via connection | boarding hooks |
-| `approve_boarding_contract_as_owner` / `_as_stable` | DEFINER | Two-sided approval | boarding UI |
-| `update_horse_identity` | `(p_horse_id, p_active_tenant_id, p_payload jsonb)` DEFINER | Governed identity edits | horse wizard |
-| `complete_local_horse_record` | same shape DEFINER | Custodial local completion | `HorseProfile` |
-| `create_lab_report_share` | DEFINER | Lab sharing | lab hooks |
-| `check_tenant_limit` | DEFINER | Enforce tenant limits | UI + policies |
+| Function | Signature / parameter shape | Security mode / search path | Purpose | Callers | Current status | Validation limitation |
+|---|---|---|---|---|---|---|
+| `create_invoice_with_items` | `(p_tenant_id uuid, p_idempotency_key uuid, p_payload jsonb)` | DEFINER, pinned | Atomic invoice + items + snapshots + idempotency | `src/lib/finance/invoiceRpc.ts`, `useLabInvoiceDraft.ts` | active | body inspection deferred to R2 |
+| `create_source_checkout_invoice` | same shape | DEFINER, pinned | Source-checkout invoice with trace | POS `EmbeddedCheckout` | active | body inspection deferred to R2 |
+| `approve_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` | DEFINER, pinned | Post ledger; freeze snapshots | `src/lib/finance/approveInvoice.ts` | active | body inspection deferred to R2 |
+| `cancel_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id, p_effective_date, p_reason)` | DEFINER, pinned | Cancel + reverse ledger | finance hooks | active | body inspection deferred to R2 |
+| `delete_draft_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` | DEFINER, pinned | Delete draft only | finance UI | active | body inspection deferred to R2 |
+| `post_payment_session` | `(p_tenant_id, p_idempotency_key, p_payload jsonb)` | DEFINER, pinned | Atomic multi-invoice payment + allocation + idempotency | `src/lib/finance/postPaymentSession.ts` | active | body inspection deferred to R2 |
+| `get_payment_session` | `(p_tenant_id, p_session_id)` | DEFINER, pinned | Read session with allocations | finance UI | active | — |
+| `create_pos_sale` | `(p_tenant_id, p_idempotency_key, p_payload)` | DEFINER, pinned | POS sale | `pos/EmbeddedCheckout` | active | body inspection deferred to R2 |
+| `_finance_invoice_approve_inline` | `(p_tenant_id, p_invoice_id, p_actor)` | DEFINER, pinned | Inline approval helper | internal | active | — |
+| `_finance_ledger_insert` | 12-arg | DEFINER, pinned | Sole ledger insert path | internal | active | — |
+| `_finance_provision_tenant_payment_account` | `()` | DEFINER, pinned | Auto-provision payment account | internal | active | — |
+| `initialize_tenant_defaults` | `(p_tenant_id uuid, p_tenant_type text)` | DEFINER, pinned | Capability seeding | `TenantContext.createTenant` (non-blocking) | active — non-blocking (R-02) | wraps within non-atomic createTenant flow |
+| `create_connection_request` | 8-arg | DEFINER, pinned | Cross-tenant invite | connection hooks | active | body inspection deferred to R2 |
+| `accept_connection` | `(_token text)` | DEFINER, pinned | Accept via token | `AcceptConnectionPage` | active | token-expiry enforcement across paths unverified |
+| `finalize_invitation_acceptance` | `(_token text)` | DEFINER, pinned | Invite acceptance with email/phone verification | `InviteLandingPage` | active | — |
+| `claim_client_portal` | `(_token text)` | DEFINER, pinned | Client claim | client portal flows | active | body inspection deferred to R2 |
+| `record_horse_movement_with_housing` | **20 parameters** (see below) | DEFINER, pinned | Movement + housing sync | `movement/RecordMovementDialog` | active | Direct occupancy writes forbidden |
+| `create_boarding_contract_with_connection` | 7-arg | DEFINER, pinned | Boarding contract via connection | boarding hooks | active | — |
+| `approve_boarding_contract_as_owner` / `_as_stable` | see source | DEFINER, pinned | Two-sided approval | boarding UI | active | — |
+| `update_horse_identity` | `(p_horse_id, p_active_tenant_id, p_payload jsonb)` | DEFINER, pinned | Governed identity edits | horse wizard | active | — |
+| `complete_local_horse_record` | same shape | DEFINER, pinned | Custodial local completion | `HorseProfile` | active | — |
+| `create_lab_report_share` | see source | DEFINER, pinned | Lab sharing | lab hooks | active | signed-URL longevity — R-04 |
+| `check_tenant_limit` | see source | DEFINER, pinned | Enforce tenant limits | UI + policies | active | — |
+
+Per-function tenant-authority validation was **not** enumerated across all 317 functions in Round 1; do not assume every DEFINER function validates `p_tenant_id` against `auth.uid()` without reading its body.
+
 
 **Movement RPC contract (directly verified in `supabase/migrations/20260620151442_65c6a9d4-a351-4e79-b470-c99d9e1f4f43.sql`):** `record_horse_movement_with_housing` now takes **20 parameters** — `p_tenant_id, p_horse_id, p_movement_type, p_from_location_id, p_to_location_id, p_from_area_id, p_from_unit_id, p_to_area_id, p_to_unit_id, p_movement_at, p_reason, p_notes, p_internal_location_note, p_is_demo, p_clear_housing, p_destination_type, p_from_external_location_id, p_to_external_location_id, p_movement_status, p_movement_subtype`. Prior v1.0.0 documentation stating "19 parameters" is corrected here. Returns `jsonb`. Direct writes to occupancy tables remain prohibited — go through admissions.
 
