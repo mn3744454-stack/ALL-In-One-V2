@@ -134,9 +134,28 @@ Frontend conventions (directly verified — source + project rules):
 
 - Router root: `src/App.tsx` (directly verified). Composes providers (`AuthContext`, `TenantContext`, `I18nContext`, TanStack Query) and mounts ~20 top-level routes plus nested workspace routes.
 - Authenticated shell: `src/components/layout/DashboardShell.tsx` + `DashboardHeader.tsx`.
-- Guards: `src/components/guards/` — includes `WorkspaceRouteGuard` (uses `hasPermission()` + workspace-mode gating), plus community/other route guards. UI-side authorization uses `hasPermission()` from `src/hooks/usePermissions.ts`; server-side authorization uses `has_permission()` in the database.
-- Public routes (no auth): `Index`, `Directory`, `PublicProfile`, `TenantPublicProfile`, `SharedLabReport`, `SharedMedia`, `InviteLandingPage`, `AcceptConnectionPage`, `ForgotPassword`, `ResetPassword`, `CommunityFeed`.
-- Debug route (directly verified — `src/App.tsx:161`): `DebugAuth` is mounted **only when `import.meta.env.DEV` is true**, so it is not shipped in production builds. It remains a source-level surface and is captured as R-04.
+- UI-side authorization uses `hasPermission()` from `src/hooks/usePermissions.ts`; server-side authorization uses `has_permission()` in the database. **UI hides are not enforcement.**
+- Route categories (directly verified — `src/App.tsx`):
+  - **Public** (no auth): `Index`, `Directory`, `PublicProfile`, `TenantPublicProfile`, `SharedLabReport`, `SharedMedia`, `InviteLandingPage`, `AcceptConnectionPage`, `ForgotPassword`, `ResetPassword`, `CommunityFeed`.
+  - **Auth**: `/auth`, `/forgot-password`, `/reset-password`.
+  - **Onboarding**: `/select-role`, `/create-profile/*`.
+  - **Dashboard** (authenticated): dashboard tree under `DashboardShell`.
+  - **Redirect / legacy**: `/dashboard/boarding-contracts` → `/dashboard/contracts?type=boarding`; standalone Movement → `/dashboard/housing?tab=movement`.
+
+### 8.1 Guard matrix (directly verified — `src/components/guards/`, `src/App.tsx`)
+
+| Guard | File | Purpose | Checks performed | Checks NOT performed | Risk / limitation | Evidence class |
+|---|---|---|---|---|---|---|
+| `ProtectedRoute` | `src/App.tsx` (route wrapper) | Require an authenticated user | Session presence via `AuthContext` | Tenant selection, permission keys, module capability | Authenticated routes that rely on RLS alone (e.g. `/dashboard`, `/dashboard/mobile/:moduleKey`, `/dashboard/my-payments`, `/dashboard/my-bookings`, `/profile/:id`, `/dashboard/settings/notifications`, `/dashboard/contracts/documents/:documentId`) may be **manually reachable**; data protection still depends on backend RLS | source code |
+| `AuthRoute` | `src/App.tsx` (route wrapper) | Redirect signed-in users away from auth pages | Session absence | Full onboarding state | Assumes hydration order; short-lived flicker acceptable | source code |
+| `WorkspaceRouteGuard` | `src/components/guards/WorkspaceRouteGuard.tsx` | Gate a route by workspace mode / active tenant / permission key | Waits for `tenantHydrated`; enforces `requiredMode`, active tenant (organization), `requiredPermission` via `hasPermission()` | Deep per-record authority — RLS is authoritative | Toasts + redirect on failure; not exhaustive per action | source code |
+| `ModuleGuard` | `src/components/guards/ModuleGuard.tsx` | Gate a module route (`laboratory`, `vet`, `housing`, `movement`, `breeding`) | `useModuleAccess` capability flag / lab mode | Permission keys inside the module | Missing capability toasts and redirects; only checks the named module | source code |
+| `CommunityRouteGuard` | `src/components/guards/CommunityRouteGuard.tsx` | Hybrid Community access | Personal mode allowed unconditionally; organization mode requires active tenant + `community.view` (owner bypass) | Per-post visibility — enforced by RLS on `posts` | Personal feed always allowed while signed in | source code |
+| `I18nRecoveryBoundary` | `src/components/guards/I18nRecoveryBoundary.tsx` | DEV-only recovery from stale I18n context after HMR | Catches error whose message includes `I18nProvider` and forces reload | Any production behaviour (no-op passthrough in prod) | Dev-experience only | source code |
+
+**DEV-only surface (directly verified — `src/App.tsx:161`):** the `DebugAuth` route is mounted **only when `import.meta.env.DEV` is true**, so it is not shipped in production builds. It is a source-level informational observation and is **outside the 16-row material risk register** (it is **not** R-04; R-04 is the Storage `storage.objects` policy risk). Manually reachable authenticated routes above do **not** bypass RLS; their data protection continues to depend on backend RLS enforcement.
+
+
 
 ---
 
