@@ -1,14 +1,14 @@
 <!--
 id: DHB-INDEX
 title: Dayli Horse — Documentation Index
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal+external
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.2; updated during DG.3A to record content-correction of DHB-R01-DEV and DHB-R01-INT to v1.1.0
+source: authored during DG.2; updated during DG.3A to record content-correction of DHB-R01-DEV and DHB-R01-INT to v1.1.0; updated during DG.3B to record evidence-completeness closure of DHB-R01-DEV and DHB-R01-INT to v1.2.0
 source-sha256: n/a
 -->
 
