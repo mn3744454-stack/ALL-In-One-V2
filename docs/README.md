@@ -24,14 +24,14 @@ This is the canonical index for every documentation file in this repository.
 4. Do **not** correct historical documents by editing them. Corrections belong in later canonical current-truth documents that supersede specific claims.
 5. Read `CONVENTIONS.md` before authoring or modifying any documentation file.
 
-## Status of this repository's documentation (as of DG.2 / DG.2B / DG.3 / DG.3A)
+## Status of this repository's documentation (as of DG.2 / DG.2B / DG.3 / DG.3A / DG.3B)
 
 - **Central index and conventions:** established (DG.2).
 - **Canonical folder skeleton:** established (DG.2).
 - **Documentation 01–13 raw preservation + canonical historical Markdown:** established (DG.2); rendering-only correction applied to canonical Docs 04, 06, 07, 08, 09, 10, 13 in DG.2B (outer plain-text fence removed so headings/anchors render natively — no wording, ordering, or claims changed; raw sources unchanged).
 - **Round 1 raw provenance (inputs + raw output):** established (DG.2).
-- **Rewritten external-developer Round 1 handoff (`round-01-developer-handoff.md`, `DHB-R01-DEV`):** **AUTHORED (DG.3); CORRECTED to v1.1.0 (DG.3A) — pending owner acceptance.** Content correction restored precise baseline counts, PWA kill-switch status, tenant-creation non-atomicity evidence, 20-parameter movement RPC contract, full 16-row risk register, 10 authority-question answers, and the permanent 21-part framework mapping.
-- **Internal Lovable Round 1 reference (`round-01-lovable-reference.md`, `DHB-R01-INT`):** **AUTHORED (DG.3); ALIGNED to v1.1.0 (DG.3A) — pending owner acceptance.**
+- **Rewritten external-developer Round 1 handoff (`round-01-developer-handoff.md`, `DHB-R01-DEV`):** **AUTHORED (DG.3); CORRECTED to v1.1.0 (DG.3A); EVIDENCE-CLOSURE to v1.2.0 (DG.3B) — pending owner acceptance.** DG.3B closed remaining evidence-depth, terminology, and internal-reference defects (route/guard matrix, database relationship map, isolation-helper inventory, RLS matrix, cross-tenant patterns, expanded RPC registry columns, qualified environment claim, removed unsupported paid-account generalization, removed hidden-memory language, fixed DebugAuth misclassification, exact 21-part framework titles, explicit Round 2 primary scope, precise Vitest test-file terminology).
+- **Internal Lovable Round 1 reference (`round-01-lovable-reference.md`, `DHB-R01-INT`):** **AUTHORED (DG.3); ALIGNED to v1.1.0 (DG.3A); RE-ALIGNED to v1.2.0 (DG.3B) — pending owner acceptance.**
 - **Round 1 acceptance (`round-01-acceptance.md`):** **PENDING — no acceptance has occurred.** Acceptance is created only after an independent owner review of `DHB-R01-DEV` and `DHB-R01-INT`.
 - **Root `README.md`:** unchanged (still a template placeholder). A later phase will rewrite it after owner approval.
 - **Legacy files** (`docs/aml_1_b_1/**`, `docs/*.md`, `docs/Documentation_13_-_Laboratory_Workstream_Closure.md`, root schema snapshots, root N2.2 report): **preserved in place**. A later acceptance-approved cleanup phase will retire or relocate them; until then they remain the source of truth for their topics.
