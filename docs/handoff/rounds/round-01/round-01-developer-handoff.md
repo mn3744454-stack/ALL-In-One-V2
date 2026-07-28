@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-DEV
 title: Round 1 — Platform Foundation, Architecture, Database, Tenancy, Authentication, Permissions, Storage, Edge Functions, and Environment
-version: 1.3.0
+version: 1.4.0
 status: canonical-accepted
 audience: external-developer
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth compressed in v1.0.0; evidence-closure correction during DG.3B to remove hidden-memory language, qualify the environment claim, remove the unsupported paid-account generalization, fix the DebugAuth risk misclassification, restore route/guard matrix, database relationship map, RLS/isolation-helper inventory and cross-tenant patterns, expand RPC registry columns, apply the exact permanent 21-part framework titles, clarify Round 2 primary scope, and use precise Vitest test-file terminology; DG.3D closure: applies the final DG.3C authorization and path corrections and records Round 1 acceptance.
+source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth compressed in v1.0.0; evidence-closure correction during DG.3B to remove hidden-memory language, qualify the environment claim, remove the unsupported paid-account generalization, fix the DebugAuth risk misclassification, restore route/guard matrix, database relationship map, RLS/isolation-helper inventory and cross-tenant patterns, expand RPC registry columns, apply the exact permanent 21-part framework titles, clarify Round 2 primary scope, and use precise Vitest test-file terminology; DG.3D closure: applies the final DG.3C authorization and path corrections and records Round 1 acceptance; v1.4.0 — Account Types and Identity Model alignment: preserved 10 current implemented account types, recorded 3 planned types and 13 approved target types, and added identity/workspace/role/capability/community representation clarification cross-referencing `docs/architecture/account-types-and-identity-model.md`.
 source-sha256: n/a
 confidentiality: Confidential Technical Handoff — No Credential or Secret Values Included
 -->
@@ -281,6 +281,28 @@ Source: `src/contexts/TenantContext.tsx:318-483` (verified this round: `createTe
 Failure classification: steps 1–4 are blocking; step 5 is silently non-blocking. This is captured as high-severity risk R-02 and its remediation (wrap in a single `SECURITY DEFINER` RPC) is the recommended next step for any team touching tenant creation.
 
 Onboarding routes exist for 10 tenant types (`stable`, `clinic`, `lab`, `academy`, `pharmacy`, `transport`, `auction`, `horse_owner`, `trainer`, `doctor`), all instantiating `CreateStableProfile` with a `tenantType` prop — parity with the `tenant_type` enum is confirmed.
+
+#### 11.1.1 Current, Planned and Target Account-Type Model
+
+Dayli Horse currently defines and supports **10 account/workspace types** in the existing platform model (the 10 `tenant_type` values listed above). The owner-approved target model expands this to **13** through **3 planned account/workspace types**: **Farrier**, **Professional Rider**, and **Jockey**.
+
+The 3 planned types are **not** currently implemented. They have **no** `tenant_type` enum value, no `/create-profile/*` onboarding route, no `SelectRole` entry, no dedicated module, no dedicated database architecture, no capability defaults, and no production-ready workflow.
+
+Naming-collision note: `farrier` and `exercise_rider` exist today only as values of the unrelated `hr_employee_type` enum (HR employee/professional classifications inside a workspace). Their presence is **not** evidence that a Farrier or Professional Rider account/workspace type exists.
+
+Full definition, distinctions (Independent Veterinarian vs Veterinary Clinic; Independent Trainer vs Trainer role; Professional Rider vs Jockey; Farrier), and the current/planned/target contract live in the current-truth architecture reference: [`../../../architecture/account-types-and-identity-model.md`](../../../architecture/account-types-and-identity-model.md).
+
+#### 11.1.2 Personal Identity × Workspace × Role × Profession × Capability × Permission × Scope
+
+A person registers once (one `auth.users` identity). The same person may own several workspaces and/or join others as manager, employee, professional, contractor, or member; membership roles and effective permissions may differ per workspace. Personal Mode (`workspaceMode === "personal"`) and Establishment Mode (`workspaceMode === "organization"` with an `activeTenant`) are distinct operating contexts on top of the same personal identity — see `src/contexts/TenantContext.tsx`, `WorkspaceRouteGuard.tsx`, and `src/navigation/workspaceNavConfig.ts`.
+
+Account/workspace type (`tenant_type`) is **not** the same as membership role (`tenant_role` + custom tenant roles). Profession or specialization alone does **not** grant organization-specific capabilities. Visible functionality is decided by the combination of active workspace type, enabled capabilities (`tenant_capabilities` via `useModuleAccess`), membership role, effective permissions (resolved by `has_permission()` / `hasPermission()`), and record/tenant scope (RLS + dual-scoping where applicable). **UI visibility is not backend authorization.**
+
+Full model: [`../../../architecture/account-types-and-identity-model.md`](../../../architecture/account-types-and-identity-model.md).
+
+#### 11.1.3 Community Publishing Identity Principle
+
+Personal Mode community activity represents the individual. Establishment Mode may represent the active workspace only when the user has explicit permission to publish or interact on behalf of that workspace. Workspace membership alone does **not** grant organizational publishing authority. This is a documentation-level principle only — the current documentation correction does not redesign or modify Community behaviour, permissions, RLS, or workflow.
 
 ---
 
@@ -648,7 +670,7 @@ Section names below use the **exact permanent 21-part framework titles**. Do not
 | # | Section | Covered? | Level | Remaining | Planned round |
 |---|---|---|---|---|---|
 | 1 | Project Definition and Scope | ✅ | Foundation | Marketing scope, business model | R2 |
-| 2 | Account Types | Partial | Foundation | Deep matrix by `tenant_type` | R2 (primary) |
+| 2 | Account Types | Partial | Foundation | Deep implementation-reality matrix for the 10 current implemented `tenant_type` values, plus separate architecture/readiness assessment for the 3 planned types (Farrier, Professional Rider, Jockey) toward the 13 approved target types | R2 (primary) |
 | 3 | Users, Memberships, and Roles | ✅ | Substantive | Owner-removal & self-role-change verification | R2 |
 | 4 | Technical Architecture | ✅ | Substantive | Refactor plan for oversized files | R3 |
 | 5 | Database | ✅ | Substantive | Full policy-body enumeration; view definitions | R2 |
@@ -679,7 +701,7 @@ Round 1 delivers Sections 1, 3, 4, 5, 6, 14, 15, 16 substantively and Sections 1
 
 ### 23.1 Primary Round 2 product/module evidence
 
-1. **10-account-type behaviour matrix** — for each `tenant_type` (`stable`, `clinic`, `lab`, `academy`, `pharmacy`, `transport`, `auction`, `horse_owner`, `trainer`, `doctor`): capabilities seeded by `initialize_tenant_defaults`, visible modules, nav-config path, and post-onboarding experience.
+1. **10-current-implemented-account-type behaviour matrix, with a separate readiness and foundation assessment for 3 planned account types** — for each of the 10 current `tenant_type` values (`stable`, `clinic`, `lab`, `academy`, `pharmacy`, `transport`, `auction`, `horse_owner`, `trainer`, `doctor`): capabilities seeded by `initialize_tenant_defaults`, visible modules, nav-config path, and post-onboarding experience. Separately, for the 3 planned types (Farrier, Professional Rider, Jockey): architectural readiness, required enum/onboarding/module/capability/permission foundations, and dependencies. The planned types must not be described as currently implemented. See `docs/architecture/account-types-and-identity-model.md`.
 2. **Tenant capability seeding** — read `tenant_capabilities` schema + default values by `tenant_type`; enumerate `useModuleAccess` flags.
 3. **Module inventory** — for every module, list routes, pages, components, hooks, tables, and RPCs.
 4. **Module implementation status** — classify each as `active` / `partial` / `schema-only` / `placeholder` / `legacy` / `planned`.
