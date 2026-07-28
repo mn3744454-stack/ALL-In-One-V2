@@ -641,29 +641,31 @@ Owner-only material (invitations, credential handling, recovery, vendor evaluati
 
 ## 22. Round 1 Coverage Against the Permanent 21-Part Handoff Framework
 
+Section names below use the **exact permanent 21-part framework titles**. Do not abbreviate, rename, or substitute terms in future rounds.
+
 | # | Section | Covered? | Level | Remaining | Planned round |
 |---|---|---|---|---|---|
-| 1 | Project definition & scope | ✅ | Foundation | Marketing scope, business model | R2 |
-| 2 | Account types | Partial | Foundation | Deep matrix by `tenant_type` | R2 |
-| 3 | Users, memberships, roles | ✅ | Substantive | Owner-removal & self-role-change verification | R2 |
-| 4 | Technical architecture | ✅ | Substantive | Refactor plan for oversized files | R3 |
-| 5 | Database architecture | ✅ | Substantive | Full policy-body enumeration; view definitions | R2 |
-| 6 | Multi-tenancy & isolation | ✅ | Substantive | Policy-body deep dive; cross-tenant matrix per table | R2 |
-| 7 | Full module inventory | Partial | Foundation | Per-module maturity, screens, hooks, edge cases | R2 |
-| 8 | Core user workflows | ❌ | — | Full workflow tracing | R3 |
-| 9 | Cross-account integrations | Partial | Foundation | Detailed accept/revoke/share flows | R3 |
-| 10 | Operational finance | Partial | Foundation | Full RPC contract catalog; ledger derivation model | R3 |
-| 11 | Dayli Horse SaaS subscriptions | ❌ | — | Plan model, entitlement mapping, billing | R4 |
-| 12 | Web / PWA / native | Partial | Foundation | Confirmed kill-switch PWA; native strategy TBD | R4 |
-| 13 | AR / EN / RTL | Partial | Foundation | i18n & RTL audit scripts exist; deeper audit due | R3 |
-| 14 | Storage & files | Partial | Foundation | Object-level policy audit outstanding | R2 |
-| 15 | Notifications & Edge Fns | ✅ | Substantive | Cron schedule verification; email provider name | R2 |
-| 16 | Deployment & environments | ✅ (findings) | Substantive | Environment separation plan | R2 |
-| 17 | Testing & quality | Foundation | Foundation | Coverage plan, RLS-negative suite | R3 |
-| 18 | Performance & reliability | Foundation | Foundation | Metrics baseline | R4 |
-| 19 | Known issues & tech debt | Foundation | Foundation | Full backlog | R4 |
-| 20 | Current status & roadmap | ❌ | — | Owner input required | R5 |
-| 21 | Receiving-developer instructions | Foundation | Foundation | Consolidated onboarding doc | R5 |
+| 1 | Project Definition and Scope | ✅ | Foundation | Marketing scope, business model | R2 |
+| 2 | Account Types | Partial | Foundation | Deep matrix by `tenant_type` | R2 (primary) |
+| 3 | Users, Memberships, and Roles | ✅ | Substantive | Owner-removal & self-role-change verification | R2 |
+| 4 | Technical Architecture | ✅ | Substantive | Refactor plan for oversized files | R3 |
+| 5 | Database | ✅ | Substantive | Full policy-body enumeration; view definitions | R2 |
+| 6 | Multi-Tenancy and Data Isolation | ✅ | Substantive | Policy-body deep dive; cross-tenant matrix per table | R2 |
+| 7 | Complete Module Inventory | Partial | Foundation | Per-module maturity, screens, hooks, edge cases | R2 (primary) |
+| 8 | Core User Flows | ❌ | — | Full workflow tracing | R3 |
+| 9 | Cross-Account Integrations | Partial | Foundation | Detailed accept/revoke/share flows | R3 |
+| 10 | Financial System | Partial | Foundation | Full RPC contract catalog; ledger derivation model | R3 |
+| 11 | Dayli Horse Commercial Subscriptions | ❌ | — | Plan model, entitlement mapping, billing | R4 |
+| 12 | Web, PWA, and Mobile Applications | Partial | Foundation | Confirmed kill-switch PWA; native strategy TBD | R4 |
+| 13 | Arabic, English, and RTL | Partial | Foundation | i18n & RTL audit scripts exist; deeper audit due | R3 |
+| 14 | Storage and Files | Partial | Foundation | Object-level policy audit outstanding | R2 |
+| 15 | Notifications and Edge Functions | ✅ | Substantive | Cron schedule verification; email provider name | R2 |
+| 16 | Deployment and Environments | ✅ (findings) | Substantive | Environment separation plan | R2 |
+| 17 | Testing and Quality | Foundation | Foundation | Coverage plan, RLS-negative suite | R3 |
+| 18 | Performance and Reliability | Foundation | Foundation | Metrics baseline | R4 |
+| 19 | Known Issues and Technical Debt | Foundation | Foundation | Full backlog | R4 |
+| 20 | Current Status and Continuation Roadmap | ❌ | — | Owner input required | R5 |
+| 21 | Incoming Developer Instructions | Foundation | Foundation | Consolidated onboarding doc | R5 |
 
 Round 1 delivers Sections 1, 3, 4, 5, 6, 14, 15, 16 substantively and Sections 17–19, 21 at foundation depth.
 
