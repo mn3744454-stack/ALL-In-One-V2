@@ -97,9 +97,9 @@ Current code and live database metadata override any historical claim on conflic
 
 ## 9. Testing, Build, and Environment Posture
 
-- Testing baseline: **19 Vitest tests** (12 finance lib, 4 finance components, 1 housing chip, 1 laboratory checkout, 1 POS contract), 1 hook test, 2 component tests, **5 SQL harnesses** under `supabase/tests/database/`, **no runnable Playwright suite**, no RLS/auth/tenancy tests, no migration tests.
+- Testing baseline: **19 Vitest test files** (individual test-case count not independently enumerated in Round 1) — 12 finance lib, 4 finance components, 1 housing chip, 1 laboratory checkout, 1 POS contract; plus 1 hook test, 2 component tests, **5 SQL harnesses** under `supabase/tests/database/`, **no runnable Playwright suite**, no RLS/auth/tenancy tests, no migration tests.
 - TS posture: `strictNullChecks: false`, `noImplicitAny: false`, `noUnusedLocals: false`, `noUnusedParameters: false`, `skipLibCheck: true`; ~**554** `as any` occurrences; no `typecheck` script wired.
-- Environment: single Supabase project bound to preview + published + custom domains (R-01, HIGH). No staging separation.
+- Environment: repository configuration contains one Supabase project reference; no separate staging backend is evidenced. Preview / published / custom-domain surfaces appear to use the same frontend binding; full runtime confirmation across every deployed surface is owner / platform-confirmation-required. Until confirmed otherwise, treat preview actions as capable of affecting the same backend data (R-01, HIGH). Evaluate separate staging before major database work.
 - PWA: kill-switch (`selfDestroying: true`); only `public/push-sw.js` retained.
 - Two toast systems (shadcn Toaster + sonner) mounted simultaneously (R-10). Twenty-plus components import `supabase` directly (R-15). Eight files exceed 1,200 lines (R-09). No error monitoring wired (R-11). Session persistence in `localStorage` (R-14).
 
