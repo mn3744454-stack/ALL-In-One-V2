@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-README
 title: Round 1 — README and status
-version: 1.2.0
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.2; updated during DG.3 to reflect canonical Round 1 authoring; DG.3A bump to record content-correction of DHB-R01-DEV and DHB-R01-INT to v1.1.0
+source: authored during DG.2; updated during DG.3 to reflect canonical Round 1 authoring; DG.3A bump to record content-correction of DHB-R01-DEV and DHB-R01-INT to v1.1.0; DG.3B bump to record evidence-completeness closure of DHB-R01-DEV and DHB-R01-INT to v1.2.0
 source-sha256: n/a
 -->
 
@@ -24,8 +24,8 @@ source-sha256: n/a
 |---|---|---|
 | `round-01-inputs.md` | Verbatim investigative and proceed prompts | Immutable evidence — complete |
 | `round-01-raw-audit-output.md` | Verbatim Round 1 Lovable output including mandated closing statement | Immutable evidence — complete |
-| `round-01-developer-handoff.md` | Canonical external-developer Round 1 document (`DHB-R01-DEV`) | Authored DG.3, corrected DG.3A to v1.1.0 — pending owner acceptance |
-| `round-01-lovable-reference.md` | Internal Lovable-facing condensed reference (`DHB-R01-INT`) | Authored DG.3, corrected DG.3A to v1.1.0 — pending owner acceptance |
+| `round-01-developer-handoff.md` | Canonical external-developer Round 1 document (`DHB-R01-DEV`) | Authored DG.3, corrected DG.3A to v1.1.0, evidence-closure DG.3B to v1.2.0 — pending owner acceptance |
+| `round-01-lovable-reference.md` | Internal Lovable-facing condensed reference (`DHB-R01-INT`) | Authored DG.3, corrected DG.3A to v1.1.0, aligned DG.3B to v1.2.0 — pending owner acceptance |
 
 ## Files planned but **not yet authored**
 

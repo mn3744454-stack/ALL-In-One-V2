@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-INT
 title: Round 1 — Internal Lovable Reference
-version: 1.1.0
+version: 1.2.0
 status: supporting-pending-owner-acceptance
 audience: internal-lovable
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions
+source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions; re-aligned during DG.3B to match DHB-R01-DEV v1.2.0 (qualified environment claim, removed paid-account generalization, removed remaining hidden-memory language, corrected DebugAuth misclassification, precise Vitest test-file terminology, explicit Round 2 primary scope, exact 21-part framework terms where referenced)
 source-sha256: n/a
 -->
 
@@ -21,6 +21,8 @@ Concise Round 1 companion to `DHB-R01-DEV`. Exists so that Lovable can retrieve 
 Prefer this file when a session needs a fast pointer to authoritative Round 1 sources, a summary of current-truth boundaries versus historical documents, or the rules Lovable must follow when acting on Round 1 material.
 
 > **DG.3A alignment (v1.1.0):** v1.0.0 propagated compressed claims from `DHB-R01-DEV` v1.0.0 (movement RPC arity, PWA status, coverage detail). v1.1.0 realigns every material fact with the corrected `DHB-R01-DEV` v1.1.0 and with the raw Round 1 evidence.
+>
+> **DG.3B re-alignment (v1.2.0):** matches `DHB-R01-DEV` v1.2.0. Qualified environment risk (repository shows one Supabase project reference; runtime confirmation across all deployed surfaces is owner / platform-confirmation-required). Removed the unsupported "paid accounts behave as organizations" generalization. Removed remaining hidden-memory language. Fixed the DebugAuth misclassification (DEV-only, informational, not R-04). Uses precise "Vitest test files" terminology. Round 2 primary scope is explicit: Account Types, Complete Module Inventory, Current Implementation Reality. Framework references use the exact permanent 21-part titles.
 
 ## 2. Authoritative Sources
 
@@ -60,7 +62,7 @@ Current code and live database metadata override any historical claim on conflic
 - Edge functions: `expire-stale-connections`, `get-vapid-key`, `mark-overdue-invoices`, `send-invitation-email`, `send-ownership-notification`, `send-push-notification`, `shared-media-sign`.
 - Feature roots: `src/components/{boarding,breeding,clients,finance,horses,housing,hr,laboratory,movement,permissions,pos,services,vet,notifications}`, `src/hooks/{finance,housing,hr,laboratory,roles,notifications,…}`, `src/lib/{finance,housing,notifications,pricing,…}`.
 - Design system: semantic tokens in `src/index.css`; shadcn + Radix + Tailwind v3. Never hardcode colour utilities.
-- `DebugAuth` route is mounted only when `import.meta.env.DEV` is true; not shipped in production. Still captured as R-04.
+- `DebugAuth` route is mounted only when `import.meta.env.DEV` is true; not shipped in production. It is a DEV-only informational surface — **outside** the 16-row material risk register, and **not** R-04 (R-04 is the Storage-scoped risk). See the guard matrix in `DHB-R01-DEV` §8.1.
 
 ## 6. Identity, Tenant, and Permission Pointers
 
@@ -75,11 +77,11 @@ Current code and live database metadata override any historical claim on conflic
 
 ## 7. RLS and Cross-Tenant Safety Pointers
 
-- Dual-scope tables: `tenant_id IS NULL` (personal) vs `tenant_id IS NOT NULL` (organization). Policies must honour both.
+- Workspace-scope pattern (only where verified): some tables support personal scope with `tenant_id IS NULL` and organization scope with `tenant_id IS NOT NULL`. **The exact table-by-table scope must be verified.** Do not generalize this pattern to every table, and do not generalize it to every paid account.
 - Every new `public` table must ship, in one migration: `CREATE TABLE` → `GRANT`s appropriate to policy roles → `ENABLE ROW LEVEL SECURITY` → explicit `CREATE POLICY` statements. Missing GRANTs cause runtime permission errors even with RLS.
 - Do not grant `anon` unless a policy actually permits anonymous reads.
 - Cross-tenant partner access flows through `connections`, `consent_grants`, `connection_horse_access`, `horse_shares`, `horse_share_packs`, `media_share_links`, and `accept_connection` / `create_connection_request` / `finalize_invitation_acceptance` RPCs. Do not bypass RPC/RLS to expose partner data.
-- Some tables intentionally fail closed (e.g. `hr_employees` DELETE). Absence of a policy is not automatically a bug — check first.
+- Observed policy absence on `hr_employees` DELETE: whether it is intentional fail-closed behaviour must be verified from current policy bodies and write paths. Do not add a DELETE policy without that investigation. Absence of a policy is not automatically a bug — check first.
 - Never modify `auth`, `storage`, `realtime`, `supabase_functions`, or `vault` schemas.
 - Full policy-body enumeration is Round 2 scope.
 
@@ -95,9 +97,9 @@ Current code and live database metadata override any historical claim on conflic
 
 ## 9. Testing, Build, and Environment Posture
 
-- Testing baseline: **19 Vitest tests** (12 finance lib, 4 finance components, 1 housing chip, 1 laboratory checkout, 1 POS contract), 1 hook test, 2 component tests, **5 SQL harnesses** under `supabase/tests/database/`, **no runnable Playwright suite**, no RLS/auth/tenancy tests, no migration tests.
+- Testing baseline: **19 Vitest test files** (individual test-case count not independently enumerated in Round 1) — 12 finance lib, 4 finance components, 1 housing chip, 1 laboratory checkout, 1 POS contract; plus 1 hook test, 2 component tests, **5 SQL harnesses** under `supabase/tests/database/`, **no runnable Playwright suite**, no RLS/auth/tenancy tests, no migration tests.
 - TS posture: `strictNullChecks: false`, `noImplicitAny: false`, `noUnusedLocals: false`, `noUnusedParameters: false`, `skipLibCheck: true`; ~**554** `as any` occurrences; no `typecheck` script wired.
-- Environment: single Supabase project bound to preview + published + custom domains (R-01, HIGH). No staging separation.
+- Environment: repository configuration contains one Supabase project reference; no separate staging backend is evidenced. Preview / published / custom-domain surfaces appear to use the same frontend binding; full runtime confirmation across every deployed surface is owner / platform-confirmation-required. Until confirmed otherwise, treat preview actions as capable of affecting the same backend data (R-01, HIGH). Evaluate separate staging before major database work.
 - PWA: kill-switch (`selfDestroying: true`); only `public/push-sw.js` retained.
 - Two toast systems (shadcn Toaster + sonner) mounted simultaneously (R-10). Twenty-plus components import `supabase` directly (R-15). Eight files exceed 1,200 lines (R-09). No error monitoring wired (R-11). Session persistence in `localStorage` (R-14).
 
@@ -128,7 +130,9 @@ Current code and live database metadata override any historical claim on conflic
 
 ## 13. Round 2 Inputs
 
-Carry forward to Round 2:
+**Round 2 primary scope:** Account Types, Complete Module Inventory, and Current Implementation Reality (see `DHB-R01-DEV` §23.1).
+
+Foundation evidence closures carried alongside Round 2:
 
 1. Auth provider configuration (email/password, Google, phone, SAML, HIBP, password policy, templates).
 2. `tenant_type` behaviour matrix for all 10 types.

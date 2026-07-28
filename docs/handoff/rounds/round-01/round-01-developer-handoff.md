@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-DEV
 title: Round 1 — Platform Foundation, Architecture, Database, Tenancy, Authentication, Permissions, Storage, Edge Functions, and Environment
-version: 1.1.0
+version: 1.2.0
 status: canonical-pending-owner-acceptance
 audience: external-developer
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth that were compressed or paraphrased in v1.0.0
+source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth compressed in v1.0.0; evidence-closure correction during DG.3B to remove hidden-memory language, qualify the environment claim, remove the unsupported paid-account generalization, fix the DebugAuth risk misclassification, restore route/guard matrix, database relationship map, RLS/isolation-helper inventory and cross-tenant patterns, expand RPC registry columns, apply the exact permanent 21-part framework titles, clarify Round 2 primary scope, and use precise Vitest test-file terminology
 source-sha256: n/a
 confidentiality: Confidential Technical Handoff — No Credential or Secret Values Included
 -->
@@ -18,7 +18,9 @@ confidentiality: Confidential Technical Handoff — No Credential or Secret Valu
 > **Confidential Technical Handoff — No Credential or Secret Values Included.**
 > This document is a canonical Round 1 developer handoff. It is **pending owner acceptance**; it is not a launch certification and does not authorize deployment, publication, or a merge to `main`.
 
-> **DG.3A correction (v1.1.0):** v1.0.0 compressed several material Round 1 findings (baseline counts, PWA kill-switch status, tenant-creation atomicity, movement RPC parameter count, authority-question answers, full risk register, and the 21-part framework mapping). v1.1.0 restores those facts verbatim from `round-01-raw-audit-output.md` and re-verifies each material claim against current source. No new investigative work has been performed; only content already established during Round 1 has been restored.
+> **DG.3A correction (v1.1.0):** v1.0.0 compressed several material Round 1 findings (baseline counts, PWA kill-switch status, tenant-creation atomicity, movement RPC parameter count, authority-question answers, full risk register, and the 21-part framework mapping). v1.1.0 restored those facts verbatim from `round-01-raw-audit-output.md` and re-verified each material claim against current source.
+
+> **DG.3B evidence-closure (v1.2.0):** narrow correction pass. v1.2.0 removes remaining hidden-memory language, qualifies the environment claim to the exact evidence boundary, removes the unsupported "paid accounts behave as organizations" generalization, corrects the internal-inconsistency that assigned the DEV-only `DebugAuth` route to R-04 (R-04 is Storage-scoped), restores the concise route/guard matrix, adds the core database relationship map and snapshot/polymorphic-pattern notes, expands the RLS/cross-tenant evidence (isolation-helper inventory, representative RLS matrix, cross-tenant pattern classification, isolation-risk review), completes RPC-registry columns (security mode + pinned search path + status + validation limitation), replaces abbreviated framework names with the exact permanent 21-part titles, makes the Round 2 primary scope explicit, and clarifies that the "19 Vitest tests" baseline is a **test-file** count. No new investigative work; only evidence already established during Round 1 has been restored or clarified.
 
 ---
 
@@ -79,7 +81,7 @@ Current source code, migrations, and live database state override any conflictin
 - **Product identity (directly verified — source code):** "Dayli Horse"; published site `daylihorse.com`, alt `www.daylihorse.com`; preview at `id-preview--…lovable.app`; internal published URL `horse-verse-link.lovable.app`.
 - **Delivery surface (directly verified — source code):** browser web application built with Vite 5 and React 18, packaged with `vite-plugin-pwa` in **kill-switch (`selfDestroying: true`)** mode. Only `public/push-sw.js` is retained as an active service worker.
 - **Backend (directly verified — live DB metadata / source code):** managed Supabase (Postgres + PostgREST + Auth + Storage + Edge Functions), consumed through `src/integrations/supabase/client.ts` (auto-generated) and typed via `src/integrations/supabase/types.ts` (auto-generated).
-- **Environments (verified — `.env` + `supabase/config.toml`):** a **single** managed Supabase project is bound to preview, published URL, and custom domains. There is no separate staging or production project in this repository. This concentration is captured as risk R-01.
+- **Environments (verified — `.env` + `supabase/config.toml`):** the repository configuration contains **a single Supabase project reference**; no separate staging backend is evidenced in the repository. Preview, published URL, and custom-domain surfaces appear to use the same frontend environment binding. Full runtime confirmation across every deployed surface remains **owner / platform-confirmation-required**. Until that confirmation is available, treat preview actions as capable of affecting the same backend data, and evaluate separate staging before major database work. This concentration is captured as risk R-01.
 
 ---
 
@@ -132,9 +134,28 @@ Frontend conventions (directly verified — source + project rules):
 
 - Router root: `src/App.tsx` (directly verified). Composes providers (`AuthContext`, `TenantContext`, `I18nContext`, TanStack Query) and mounts ~20 top-level routes plus nested workspace routes.
 - Authenticated shell: `src/components/layout/DashboardShell.tsx` + `DashboardHeader.tsx`.
-- Guards: `src/components/guards/` — includes `WorkspaceRouteGuard` (uses `hasPermission()` + workspace-mode gating), plus community/other route guards. UI-side authorization uses `hasPermission()` from `src/hooks/usePermissions.ts`; server-side authorization uses `has_permission()` in the database.
-- Public routes (no auth): `Index`, `Directory`, `PublicProfile`, `TenantPublicProfile`, `SharedLabReport`, `SharedMedia`, `InviteLandingPage`, `AcceptConnectionPage`, `ForgotPassword`, `ResetPassword`, `CommunityFeed`.
-- Debug route (directly verified — `src/App.tsx:161`): `DebugAuth` is mounted **only when `import.meta.env.DEV` is true**, so it is not shipped in production builds. It remains a source-level surface and is captured as R-04.
+- UI-side authorization uses `hasPermission()` from `src/hooks/usePermissions.ts`; server-side authorization uses `has_permission()` in the database. **UI hides are not enforcement.**
+- Route categories (directly verified — `src/App.tsx`):
+  - **Public** (no auth): `Index`, `Directory`, `PublicProfile`, `TenantPublicProfile`, `SharedLabReport`, `SharedMedia`, `InviteLandingPage`, `AcceptConnectionPage`, `ForgotPassword`, `ResetPassword`, `CommunityFeed`.
+  - **Auth**: `/auth`, `/forgot-password`, `/reset-password`.
+  - **Onboarding**: `/select-role`, `/create-profile/*`.
+  - **Dashboard** (authenticated): dashboard tree under `DashboardShell`.
+  - **Redirect / legacy**: `/dashboard/boarding-contracts` → `/dashboard/contracts?type=boarding`; standalone Movement → `/dashboard/housing?tab=movement`.
+
+### 8.1 Guard matrix (directly verified — `src/components/guards/`, `src/App.tsx`)
+
+| Guard | File | Purpose | Checks performed | Checks NOT performed | Risk / limitation | Evidence class |
+|---|---|---|---|---|---|---|
+| `ProtectedRoute` | `src/App.tsx` (route wrapper) | Require an authenticated user | Session presence via `AuthContext` | Tenant selection, permission keys, module capability | Authenticated routes that rely on RLS alone (e.g. `/dashboard`, `/dashboard/mobile/:moduleKey`, `/dashboard/my-payments`, `/dashboard/my-bookings`, `/profile/:id`, `/dashboard/settings/notifications`, `/dashboard/contracts/documents/:documentId`) may be **manually reachable**; data protection still depends on backend RLS | source code |
+| `AuthRoute` | `src/App.tsx` (route wrapper) | Redirect signed-in users away from auth pages | Session absence | Full onboarding state | Assumes hydration order; short-lived flicker acceptable | source code |
+| `WorkspaceRouteGuard` | `src/components/guards/WorkspaceRouteGuard.tsx` | Gate a route by workspace mode / active tenant / permission key | Waits for `tenantHydrated`; enforces `requiredMode`, active tenant (organization), `requiredPermission` via `hasPermission()` | Deep per-record authority — RLS is authoritative | Toasts + redirect on failure; not exhaustive per action | source code |
+| `ModuleGuard` | `src/components/guards/ModuleGuard.tsx` | Gate a module route (`laboratory`, `vet`, `housing`, `movement`, `breeding`) | `useModuleAccess` capability flag / lab mode | Permission keys inside the module | Missing capability toasts and redirects; only checks the named module | source code |
+| `CommunityRouteGuard` | `src/components/guards/CommunityRouteGuard.tsx` | Hybrid Community access | Personal mode allowed unconditionally; organization mode requires active tenant + `community.view` (owner bypass) | Per-post visibility — enforced by RLS on `posts` | Personal feed always allowed while signed in | source code |
+| `I18nRecoveryBoundary` | `src/components/guards/I18nRecoveryBoundary.tsx` | DEV-only recovery from stale I18n context after HMR | Catches error whose message includes `I18nProvider` and forces reload | Any production behaviour (no-op passthrough in prod) | Dev-experience only | source code |
+
+**DEV-only surface (directly verified — `src/App.tsx:161`):** the `DebugAuth` route is mounted **only when `import.meta.env.DEV` is true**, so it is not shipped in production builds. It is a source-level informational observation and is **outside the 16-row material risk register** (it is **not** R-04; R-04 is the Storage `storage.objects` policy risk). Manually reachable authenticated routes above do **not** bypass RLS; their data protection continues to depend on backend RLS enforcement.
+
+
 
 ---
 
@@ -187,7 +208,57 @@ Directly verified via live DB metadata during Round 1:
 
 Repository-root `.schema.txt` snapshots (`invoices`, `invoice_items`, `billing_links`, `customer_balances`, `expenses`) are legacy artifacts — treat as historical references, not current truth.
 
+### 10.1 Core relationship map (Round 1 verified subset)
+
+Textual relationship map — every arrow below is grounded in current source, generated types, or Round 1 raw evidence. Not exhaustive; exact per-column FKs must be regenerated from live metadata before structural change.
+
+```text
+auth.users ──1:1──> profiles (profiles.id = auth.users.id)
+auth.users ──1:N──> tenant_members ──N:1──> tenants
+tenants ──1:N──> tenant_roles / tenant_role_permissions / tenant_role_bundles / tenant_role_preset_bindings
+tenants ──1:N──> permission_bundles ──1:N──> bundle_permissions
+tenant_members ──1:N──> member_permissions / member_permission_bundles / delegation_scopes
+tenants ──1:N──> branches / horses / clients / invoices / tenant_capabilities
+horses ──1:N──> horse_ownership / horse_shares / horse_share_packs
+horses ──1:N──> horse_movements / boarding_admissions / housing_unit_occupants
+horses ──1:N──> vet_visits / vet_treatments / horse_vaccinations
+horses ──1:N──> lab_requests (direct)  and  ──microchip──> lab_horses ──1:N──> lab_requests
+clients ──1:N──> invoices ──1:N──> invoice_items
+invoices ──1:N──> ledger_entries; clients ──1:1──> customer_balances
+payment_sessions ──1:N──> payment_allocations ──1:N──> payment_horse_allocations
+payment_allocations ──N:1──> invoices
+connections (tenant_a ↔ tenant_b) ──1:N──> consent_grants / connection_horse_access
+```
+
+### 10.2 Snapshot vs live-reference patterns
+
+- `invoice_items` persists **frozen snapshots** (name, unit price, tax, service source, category, horse, boarding period) at approval time via `_invoice_items_fill_snapshots`; downstream renaming of source rows does not mutate the invoice line.
+- `ledger_entries` records posted amounts against the invoice at approval time; later invoice edits require cancel + re-approve to update the ledger.
+- `payment_allocations` and `payment_horse_allocations` capture per-session allocation decisions; totals should be recomputed from allocations, never mutated in place.
+
+### 10.3 Polymorphic and entity-reference patterns
+
+The following polymorphic references exist and **may not be FK-enforced**; referential integrity is enforced by application/RPC code, not by the database, so orphan rows must be handled defensively:
+
+| Table | Reference columns | Purpose |
+|---|---|---|
+| `notifications` | `entity_type` (text) + `entity_id` (uuid) | Route notification to the originating record |
+| `billing_links` | `source_type` (text) + `source_id` (uuid) | Map an operational event to an invoice (`deposit`/`final`/`refund`/`credit_note`) |
+| `ledger_entries` | reference columns for source-invoice / source-payment | Ledger provenance |
+| `contract_document_events` | entity + event_type | Contract document audit |
+
+### 10.4 Legacy / potentially-unused objects requiring verification before retirement
+
+- Root `.schema.txt` snapshots noted above.
+- `database_export_20_07_26` Storage bucket (R-13).
+- `admin` value in `tenant_role` enum (kept for backward compatibility, not used in UI — H-03).
+- Legacy `/dashboard/boarding-contracts` page (redirects; H-04).
+- Standalone Movement route (consolidated under Housing; H-05).
+
+Do not delete these without a dedicated verification round.
+
 ---
+
 
 ## 11. Authentication, Profiles, Tenants, and Memberships
 
@@ -266,44 +337,103 @@ Do **not** hardcode role names in new code — check permission keys. User roles
 
 - **Coverage (directly verified):** 158/158 public tables have RLS enabled; 507 policies across those tables; 0 tables have RLS disabled; 7 tables are zero-policy fail-closed (list above §10).
 - **Search-path safety:** the DB metadata scan returned **zero** `SECURITY DEFINER` functions in the `public` schema without a pinned `search_path`. No search-path-based privilege escalation surface was found this round. ✅
-- **Dual-scope tenant model:** tables use `tenant_id IS NULL` for personal workspace and `tenant_id IS NOT NULL` for organization workspace. Paid accounts behave as organizations. RLS must respect both scopes.
+- **Workspace-scope pattern (verified only where inspected):** some tables support a personal scope with `tenant_id IS NULL` and an organization scope with `tenant_id IS NOT NULL`. The exact table-by-table scope must be verified against each table's policy bodies; do not generalize this pattern to every table, and do not generalize it to every paid account. Broad account-type / subscription statements are out of Round 1 scope.
 - **Cross-tenant partner access:** governed by `connections`, `consent_grants`, `connection_horse_access`, `horse_shares`, `horse_share_packs`, `media_share_links`, and RPCs `accept_connection`, `create_connection_request`, `finalize_invitation_acceptance`. Do not bypass the RPC/RLS layer.
-- **Fail-closed tables:** `hr_employees` intentionally omits a DELETE policy (accepted per security memory). Absence of a policy is not automatically a bug — check first.
+- **Observed policy absence — `hr_employees` DELETE:** the current policy bodies show no client-visible DELETE policy on `hr_employees`. Whether that absence is intentional fail-closed behaviour or an unrecognized gap must be verified from the current policy bodies **and** the actual write paths (RPC vs UI). **Do not add a DELETE policy without that investigation.** Absence of a policy is not automatically a bug; it is also not automatically safe.
 - **Every new `public` table** must ship, in one migration: `CREATE TABLE` → `GRANT`s appropriate to policy roles → `ENABLE ROW LEVEL SECURITY` → explicit `CREATE POLICY` statements. Missing GRANTs cause runtime permission errors even with RLS.
 - **Never modify** the `auth`, `storage`, `realtime`, `supabase_functions`, `vault` schemas — including triggers on those schemas.
 - **Full policy-body enumeration is deferred to Round 2.** Spot checks show alignment with `has_permission()` on finance/horses; some legacy reads still use `is_tenant_member` (see H-07 §19).
 
+### 13.1 Isolation-helper inventory (`SECURITY DEFINER`, pinned `search_path` unless noted)
+
+| Function | Signature (shape) | Security mode / search path | Purpose |
+|---|---|---|---|
+| `has_permission` | `(_user_id uuid, _tenant_id uuid, _permission_key text) → boolean` | DEFINER, pinned | Authoritative permission check (RLS + UI parity) |
+| `check_tenant_permission` | `(_user_id uuid, _tenant_id uuid, _permission_key text) → boolean` | DEFINER, pinned | Alternate wrapper used by legacy policies |
+| `has_tenant_role` | `(_user_id uuid, _tenant_id uuid, _role text) → boolean` | DEFINER, pinned | Legacy role check (do not reintroduce hardcoded roles) |
+| `is_tenant_member` | `(_user_id uuid, _tenant_id uuid) → boolean` | DEFINER, pinned | Broad membership predicate — often too broad for writes |
+| `is_active_tenant_member` | `(_user_id uuid, _tenant_id uuid) → boolean` | DEFINER, pinned | Active membership predicate; preferred for write policies |
+| `can_delegate_permission` | `(_user_id uuid, _tenant_id uuid, _permission_key text) → boolean` | DEFINER, pinned | Delegation gate |
+| `can_invite_in_tenant` | `(_user_id uuid, _tenant_id uuid) → boolean` | DEFINER, pinned | Invite authority |
+| `can_access_shared_resource` | `(_user_id uuid, _resource_type text, _resource_id uuid) → boolean` | DEFINER, pinned | Shared-resource gate |
+| `_active_tenant_context` | `() → uuid` | DEFINER, pinned | Resolve currently-active tenant for the request |
+| `_resolve_horse_*` family (where verified) | horse authority helpers | DEFINER, pinned | Horse-scoped authority resolution |
+
+### 13.2 Representative RLS matrix (spot-verified, not exhaustive)
+
+| Domain | Read basis | Write basis | Cross-tenant exception | Confidence |
+|---|---|---|---|---|
+| Horses / horse_ownership | `is_tenant_member` or shared-access predicate | `has_permission('horse.*')` on inspected policies | `horse_shares`, `connection_horse_access` | HIGH (spot) |
+| Invoices / invoice_items | tenant membership + `has_permission('finance.invoice.view')` on inspected policies | `has_permission('finance.invoice.edit')`; approval only via RPC | none | HIGH (spot) |
+| Ledger entries | tenant membership | writes via `_finance_ledger_insert` DEFINER only | none | HIGH (spot) |
+| Payment sessions / allocations | tenant membership | writes via `post_payment_session` DEFINER only | none | MEDIUM |
+| POS sales | zero client policies | writes via `create_pos_sale` DEFINER only | none | HIGH |
+| Tenants / tenant_members | membership scoped | tenant-scoped writes — body not fully inspected (R-08) | none | LOW (body pending) |
+| Connections / consent_grants | connection endpoints | RPC-only (`create_connection_request`, `accept_connection`) | intentional | MEDIUM |
+| Posts (community) | 15 policies covering `public`/`followers`/`private` × personal/org | scoped to author + workspace | followers via `follows` | LOW (Round 2 resolution) |
+| Notifications | recipient-scoped | inserts via DEFINER helpers | none | MEDIUM |
+| App settings | tenant membership | permission-gated | none | LOW |
+| Claim / access tables (`horse_owner_*`, `owner_claim_*`, `owner_delegations`, `horse_owner_access_grants`) | zero policies | RPC-only | intentional fail-closed | HIGH |
+
+### 13.3 Cross-tenant pattern classification (Round 1 subset)
+
+| Pattern | Vehicle | Notes |
+|---|---|---|
+| Stable ↔ Lab | `lab_horses` linked via microchip; `lab_requests` submissions | Do not merge with primary `horses` blindly |
+| Stable ↔ Horse Owner | `horse_owner_access_grants`, `horse_owner_invites`, `owner_delegations` | Zero-policy — RPC-only |
+| Stable ↔ Doctor | `doctor_services` separate from `tenant_services` (H-02 debt) | Round 2 audit |
+| Connected movement | `record_horse_movement_with_housing` + connection scoping | 20-parameter contract |
+| Partner connections | `connections` + `consent_grants` + `connection_horse_access` | LEAST/GREATEST unique partial index |
+| Consent grants | `consent_grants` (auto-revoke trigger) | `trg_connections_auto_revoke_grants` |
+| Horse sharing | `horse_shares`, `horse_share_packs` | Time/scope bounded |
+| Shared media | `media_share_links` (+ `shared-media-sign` edge fn) | Signed URLs may outlive revocation (R-04) |
+| Public token links | `SharedLabReport`, `SharedMedia`, `AcceptConnectionPage` | Token expiry enforcement not fully audited (R2) |
+| Invitations | `invitations` + `finalize_invitation_acceptance` | Verifies email/phone before joining |
+| Client claim | `claim_client_portal` DEFINER | Token-based |
+
+### 13.4 Isolation-risk review (evidence-boundary)
+
+- **Foreign-tenant-ID validation:** DEFINER RPCs typically accept `p_tenant_id` and rely on `is_active_tenant_member(auth.uid(), p_tenant_id)` (spot-verified). **Per-RPC validation across all 317 functions is unverified — requires Round 2 body audit.**
+- **Token expiry enforcement:** share/invite tokens carry `expires_at`; enforcement inside every consumer path is **unverified** in Round 1.
+- **Post-revocation signed URLs:** Storage signed URLs can outlive a revocation event (R-04).
+- **Storage `storage.objects` policies:** not enumerated in Round 1 (R-04).
+- **Duplicate / overlapping policies:** Round 1 did not run an overlap census; a duplicate-policy audit is a Round 2 input.
+
 ---
+
 
 ## 14. RPC, Function, and Trigger Registry
 
 **Function census: 317 public-schema functions.** Priority anchors (verified subset):
 
-| Function | Signature | Purpose | Callers |
-|---|---|---|---|
-| `create_invoice_with_items` | `(p_tenant_id uuid, p_idempotency_key uuid, p_payload jsonb)` DEFINER | Atomic invoice + items + snapshots + idempotency | `src/lib/finance/invoiceRpc.ts`, `useLabInvoiceDraft.ts` |
-| `create_source_checkout_invoice` | same shape | Source-checkout invoice with trace | POS `EmbeddedCheckout` |
-| `approve_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` DEFINER | Post ledger; freeze snapshots | `src/lib/finance/approveInvoice.ts` |
-| `cancel_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id, p_effective_date, p_reason)` DEFINER | Cancel + reverse ledger | finance hooks |
-| `delete_draft_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` DEFINER | Delete draft only | finance UI |
-| `post_payment_session` | `(p_tenant_id, p_idempotency_key, p_payload jsonb)` DEFINER | Atomic multi-invoice payment + allocation + idempotency | `src/lib/finance/postPaymentSession.ts` |
-| `get_payment_session` | `(p_tenant_id, p_session_id)` DEFINER | Read session with allocations | finance UI |
-| `create_pos_sale` | `(p_tenant_id, p_idempotency_key, p_payload)` DEFINER | POS sale | `pos/EmbeddedCheckout` |
-| `_finance_invoice_approve_inline` | `(p_tenant_id, p_invoice_id, p_actor)` DEFINER | Inline approval helper | internal |
-| `_finance_ledger_insert` | 12-arg DEFINER | Sole ledger insert path | internal |
-| `_finance_provision_tenant_payment_account` | `()` DEFINER | Auto-provision payment account | internal |
-| `initialize_tenant_defaults` | `(p_tenant_id uuid, p_tenant_type text)` DEFINER | Capability seeding | `TenantContext.createTenant` (non-blocking) |
-| `create_connection_request` | 8-arg DEFINER | Cross-tenant invite | connection hooks |
-| `accept_connection` | `(_token text)` DEFINER | Accept via token | `AcceptConnectionPage` |
-| `finalize_invitation_acceptance` | `(_token text)` DEFINER | Invite acceptance with email/phone verification | `InviteLandingPage` |
-| `claim_client_portal` | `(_token text)` DEFINER | Client claim | client portal flows |
-| `record_horse_movement_with_housing` | **20 parameters** DEFINER (see below) | Movement + housing sync | `movement/RecordMovementDialog` |
-| `create_boarding_contract_with_connection` | 7-arg DEFINER | Boarding contract via connection | boarding hooks |
-| `approve_boarding_contract_as_owner` / `_as_stable` | DEFINER | Two-sided approval | boarding UI |
-| `update_horse_identity` | `(p_horse_id, p_active_tenant_id, p_payload jsonb)` DEFINER | Governed identity edits | horse wizard |
-| `complete_local_horse_record` | same shape DEFINER | Custodial local completion | `HorseProfile` |
-| `create_lab_report_share` | DEFINER | Lab sharing | lab hooks |
-| `check_tenant_limit` | DEFINER | Enforce tenant limits | UI + policies |
+| Function | Signature / parameter shape | Security mode / search path | Purpose | Callers | Current status | Validation limitation |
+|---|---|---|---|---|---|---|
+| `create_invoice_with_items` | `(p_tenant_id uuid, p_idempotency_key uuid, p_payload jsonb)` | DEFINER, pinned | Atomic invoice + items + snapshots + idempotency | `src/lib/finance/invoiceRpc.ts`, `useLabInvoiceDraft.ts` | active | body inspection deferred to R2 |
+| `create_source_checkout_invoice` | same shape | DEFINER, pinned | Source-checkout invoice with trace | POS `EmbeddedCheckout` | active | body inspection deferred to R2 |
+| `approve_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` | DEFINER, pinned | Post ledger; freeze snapshots | `src/lib/finance/approveInvoice.ts` | active | body inspection deferred to R2 |
+| `cancel_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id, p_effective_date, p_reason)` | DEFINER, pinned | Cancel + reverse ledger | finance hooks | active | body inspection deferred to R2 |
+| `delete_draft_invoice` | `(p_tenant_id, p_idempotency_key, p_invoice_id)` | DEFINER, pinned | Delete draft only | finance UI | active | body inspection deferred to R2 |
+| `post_payment_session` | `(p_tenant_id, p_idempotency_key, p_payload jsonb)` | DEFINER, pinned | Atomic multi-invoice payment + allocation + idempotency | `src/lib/finance/postPaymentSession.ts` | active | body inspection deferred to R2 |
+| `get_payment_session` | `(p_tenant_id, p_session_id)` | DEFINER, pinned | Read session with allocations | finance UI | active | — |
+| `create_pos_sale` | `(p_tenant_id, p_idempotency_key, p_payload)` | DEFINER, pinned | POS sale | `pos/EmbeddedCheckout` | active | body inspection deferred to R2 |
+| `_finance_invoice_approve_inline` | `(p_tenant_id, p_invoice_id, p_actor)` | DEFINER, pinned | Inline approval helper | internal | active | — |
+| `_finance_ledger_insert` | 12-arg | DEFINER, pinned | Sole ledger insert path | internal | active | — |
+| `_finance_provision_tenant_payment_account` | `()` | DEFINER, pinned | Auto-provision payment account | internal | active | — |
+| `initialize_tenant_defaults` | `(p_tenant_id uuid, p_tenant_type text)` | DEFINER, pinned | Capability seeding | `TenantContext.createTenant` (non-blocking) | active — non-blocking (R-02) | wraps within non-atomic createTenant flow |
+| `create_connection_request` | 8-arg | DEFINER, pinned | Cross-tenant invite | connection hooks | active | body inspection deferred to R2 |
+| `accept_connection` | `(_token text)` | DEFINER, pinned | Accept via token | `AcceptConnectionPage` | active | token-expiry enforcement across paths unverified |
+| `finalize_invitation_acceptance` | `(_token text)` | DEFINER, pinned | Invite acceptance with email/phone verification | `InviteLandingPage` | active | — |
+| `claim_client_portal` | `(_token text)` | DEFINER, pinned | Client claim | client portal flows | active | body inspection deferred to R2 |
+| `record_horse_movement_with_housing` | **20 parameters** (see below) | DEFINER, pinned | Movement + housing sync | `movement/RecordMovementDialog` | active | Direct occupancy writes forbidden |
+| `create_boarding_contract_with_connection` | 7-arg | DEFINER, pinned | Boarding contract via connection | boarding hooks | active | — |
+| `approve_boarding_contract_as_owner` / `_as_stable` | see source | DEFINER, pinned | Two-sided approval | boarding UI | active | — |
+| `update_horse_identity` | `(p_horse_id, p_active_tenant_id, p_payload jsonb)` | DEFINER, pinned | Governed identity edits | horse wizard | active | — |
+| `complete_local_horse_record` | same shape | DEFINER, pinned | Custodial local completion | `HorseProfile` | active | — |
+| `create_lab_report_share` | see source | DEFINER, pinned | Lab sharing | lab hooks | active | signed-URL longevity — R-04 |
+| `check_tenant_limit` | see source | DEFINER, pinned | Enforce tenant limits | UI + policies | active | — |
+
+Per-function tenant-authority validation was **not** enumerated across all 317 functions in Round 1; do not assume every DEFINER function validates `p_tenant_id` against `auth.uid()` without reading its body.
+
 
 **Movement RPC contract (directly verified in `supabase/migrations/20260620151442_65c6a9d4-a351-4e79-b470-c99d9e1f4f43.sql`):** `record_horse_movement_with_housing` now takes **20 parameters** — `p_tenant_id, p_horse_id, p_movement_type, p_from_location_id, p_to_location_id, p_from_area_id, p_from_unit_id, p_to_area_id, p_to_unit_id, p_movement_at, p_reason, p_notes, p_internal_location_note, p_is_demo, p_clear_housing, p_destination_type, p_from_external_location_id, p_to_external_location_id, p_movement_status, p_movement_subtype`. Prior v1.0.0 documentation stating "19 parameters" is corrected here. Returns `jsonb`. Direct writes to occupancy tables remain prohibited — go through admissions.
 
@@ -361,7 +491,7 @@ Every `verify_jwt=false` function must self-validate its caller.
 
 ## 17. Environments, Deployment, and Migration Workflow
 
-- **Environment binding (verified):** `.env` contains **only** `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL` — a single project reference. `supabase/config.toml.project_id` matches. Preview URL, published URL, and custom domains all resolve against the **same** Supabase project. Preview mutations therefore affect live data. Captured as high-severity R-01.
+- **Environment binding (verified):** `.env` contains **only** `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL` — a single project reference. `supabase/config.toml.project_id` matches. Preview, published URL, and custom-domain surfaces appear to use the **same** frontend environment binding, but full runtime confirmation across every deployed surface is **owner / platform-confirmation-required**. Until confirmed otherwise, treat preview actions as capable of affecting the same backend data, and evaluate separate staging before major database work. Captured as high-severity R-01.
 - **Build & deployment:** `vite build` (or `vite build --mode development`); no `typecheck` or `test` script wired in `package.json`; `lint` = `eslint .`. Deployment via Lovable managed hosting. Repository workflow: `.github/workflows/n2-4-controlled-supabase-runtime.yml` exists — content not inspected (R2 input).
 - **PWA generation:** kill-switch (`selfDestroying: true`) — no true app-shell PWA today. Only `public/push-sw.js` is retained.
 - **Environment-variable registry (values NOT included):**
@@ -387,7 +517,7 @@ Testing inventory (Round 1 baseline):
 
 | Kind | Present | Count | Notes |
 |---|---|---|---|
-| Unit tests (Vitest) | ✅ | 19 | Finance-heavy (12 in `src/lib/finance/__tests__/`), 4 in `src/components/finance/__tests__/`, 1 housing chip, 1 lab checkout safety, 1 POS checkout contract |
+| Unit tests (Vitest) | ✅ | **19 test files** (individual test-case count not independently enumerated in Round 1) | Finance-heavy (12 in `src/lib/finance/__tests__/`), 4 in `src/components/finance/__tests__/`, 1 housing chip, 1 lab checkout safety, 1 POS checkout contract |
 | Hook tests | ✅ | 1 (`useLabInvoiceDraftRpcCutover`) | Minimal |
 | Component tests | ✅ | 2 (invoice details, PDF paginator) | Minimal |
 | Integration tests | ⚠ | 0 | Absent |
@@ -409,7 +539,7 @@ Testing inventory (Round 1 baseline):
 
 | ID | Area | Finding | Type | Evidence | Severity | Confidence | Impact | Immediate concern? | Next step |
 |---|---|---|---|---|---|---|---|---|---|
-| R-01 | Environments | Single Supabase project serves preview + production + custom domains | Architectural limitation | `.env` single project ref; `supabase/config.toml` | **HIGH** | HIGH | Preview actions mutate live data | ✅ | Establish separate staging project before major DB work |
+| R-01 | Environments | Repository configuration contains a single Supabase project reference; no separate staging backend is evidenced. Preview / published / custom-domain surfaces appear to use the same frontend binding; runtime confirmation across every deployed surface is owner / platform-confirmation-required. Until confirmed otherwise, preview actions may affect the same backend data. | Architectural limitation | `.env` single project ref; `supabase/config.toml` | **HIGH** | HIGH | Preview actions may mutate live data until confirmed otherwise | ✅ | Establish separate staging project before major DB work |
 | R-02 | Tenancy | `TenantContext.createTenant` is a 3-step non-atomic client insert with partial rollback | Confirmed defect | `TenantContext.tsx:318-483` | **HIGH** | HIGH | Orphan tenants without capabilities on partial failure | ✅ | Wrap in DEFINER RPC `create_tenant_with_defaults` |
 | R-03 | TS posture | ~554 `as any`; strict null/implicit-any disabled; no `typecheck` script | Technical debt | `tsconfig.json`, rg count | MEDIUM | HIGH | Refactors unsafe; type drift hidden | ✅ | Add `tsc --noEmit` to CI; incremental strictness |
 | R-04 | Storage | Object-level policies not enumerated; signed URLs may outlive revocation | Incomplete evidence + security concern | Round 1 scope | MEDIUM | MEDIUM | Cross-tenant leak potential | ✅ | Audit `storage.objects` policies before any bucket changes |
@@ -511,29 +641,31 @@ Owner-only material (invitations, credential handling, recovery, vendor evaluati
 
 ## 22. Round 1 Coverage Against the Permanent 21-Part Handoff Framework
 
+Section names below use the **exact permanent 21-part framework titles**. Do not abbreviate, rename, or substitute terms in future rounds.
+
 | # | Section | Covered? | Level | Remaining | Planned round |
 |---|---|---|---|---|---|
-| 1 | Project definition & scope | ✅ | Foundation | Marketing scope, business model | R2 |
-| 2 | Account types | Partial | Foundation | Deep matrix by `tenant_type` | R2 |
-| 3 | Users, memberships, roles | ✅ | Substantive | Owner-removal & self-role-change verification | R2 |
-| 4 | Technical architecture | ✅ | Substantive | Refactor plan for oversized files | R3 |
-| 5 | Database architecture | ✅ | Substantive | Full policy-body enumeration; view definitions | R2 |
-| 6 | Multi-tenancy & isolation | ✅ | Substantive | Policy-body deep dive; cross-tenant matrix per table | R2 |
-| 7 | Full module inventory | Partial | Foundation | Per-module maturity, screens, hooks, edge cases | R2 |
-| 8 | Core user workflows | ❌ | — | Full workflow tracing | R3 |
-| 9 | Cross-account integrations | Partial | Foundation | Detailed accept/revoke/share flows | R3 |
-| 10 | Operational finance | Partial | Foundation | Full RPC contract catalog; ledger derivation model | R3 |
-| 11 | Dayli Horse SaaS subscriptions | ❌ | — | Plan model, entitlement mapping, billing | R4 |
-| 12 | Web / PWA / native | Partial | Foundation | Confirmed kill-switch PWA; native strategy TBD | R4 |
-| 13 | AR / EN / RTL | Partial | Foundation | i18n & RTL audit scripts exist; deeper audit due | R3 |
-| 14 | Storage & files | Partial | Foundation | Object-level policy audit outstanding | R2 |
-| 15 | Notifications & Edge Fns | ✅ | Substantive | Cron schedule verification; email provider name | R2 |
-| 16 | Deployment & environments | ✅ (findings) | Substantive | Environment separation plan | R2 |
-| 17 | Testing & quality | Foundation | Foundation | Coverage plan, RLS-negative suite | R3 |
-| 18 | Performance & reliability | Foundation | Foundation | Metrics baseline | R4 |
-| 19 | Known issues & tech debt | Foundation | Foundation | Full backlog | R4 |
-| 20 | Current status & roadmap | ❌ | — | Owner input required | R5 |
-| 21 | Receiving-developer instructions | Foundation | Foundation | Consolidated onboarding doc | R5 |
+| 1 | Project Definition and Scope | ✅ | Foundation | Marketing scope, business model | R2 |
+| 2 | Account Types | Partial | Foundation | Deep matrix by `tenant_type` | R2 (primary) |
+| 3 | Users, Memberships, and Roles | ✅ | Substantive | Owner-removal & self-role-change verification | R2 |
+| 4 | Technical Architecture | ✅ | Substantive | Refactor plan for oversized files | R3 |
+| 5 | Database | ✅ | Substantive | Full policy-body enumeration; view definitions | R2 |
+| 6 | Multi-Tenancy and Data Isolation | ✅ | Substantive | Policy-body deep dive; cross-tenant matrix per table | R2 |
+| 7 | Complete Module Inventory | Partial | Foundation | Per-module maturity, screens, hooks, edge cases | R2 (primary) |
+| 8 | Core User Flows | ❌ | — | Full workflow tracing | R3 |
+| 9 | Cross-Account Integrations | Partial | Foundation | Detailed accept/revoke/share flows | R3 |
+| 10 | Financial System | Partial | Foundation | Full RPC contract catalog; ledger derivation model | R3 |
+| 11 | Dayli Horse Commercial Subscriptions | ❌ | — | Plan model, entitlement mapping, billing | R4 |
+| 12 | Web, PWA, and Mobile Applications | Partial | Foundation | Confirmed kill-switch PWA; native strategy TBD | R4 |
+| 13 | Arabic, English, and RTL | Partial | Foundation | i18n & RTL audit scripts exist; deeper audit due | R3 |
+| 14 | Storage and Files | Partial | Foundation | Object-level policy audit outstanding | R2 |
+| 15 | Notifications and Edge Functions | ✅ | Substantive | Cron schedule verification; email provider name | R2 |
+| 16 | Deployment and Environments | ✅ (findings) | Substantive | Environment separation plan | R2 |
+| 17 | Testing and Quality | Foundation | Foundation | Coverage plan, RLS-negative suite | R3 |
+| 18 | Performance and Reliability | Foundation | Foundation | Metrics baseline | R4 |
+| 19 | Known Issues and Technical Debt | Foundation | Foundation | Full backlog | R4 |
+| 20 | Current Status and Continuation Roadmap | ❌ | — | Owner input required | R5 |
+| 21 | Incoming Developer Instructions | Foundation | Foundation | Consolidated onboarding doc | R5 |
 
 Round 1 delivers Sections 1, 3, 4, 5, 6, 14, 15, 16 substantively and Sections 17–19, 21 at foundation depth.
 
@@ -541,21 +673,34 @@ Round 1 delivers Sections 1, 3, 4, 5, 6, 14, 15, 16 substantively and Sections 1
 
 ## 23. Inputs Required for Round 2
 
+**Round 2 primary scope:** Account Types, Complete Module Inventory, and Current Implementation Reality.
+
+### 23.1 Primary Round 2 product/module evidence
+
+1. **10-account-type behaviour matrix** — for each `tenant_type` (`stable`, `clinic`, `lab`, `academy`, `pharmacy`, `transport`, `auction`, `horse_owner`, `trainer`, `doctor`): capabilities seeded by `initialize_tenant_defaults`, visible modules, nav-config path, and post-onboarding experience.
+2. **Tenant capability seeding** — read `tenant_capabilities` schema + default values by `tenant_type`; enumerate `useModuleAccess` flags.
+3. **Module inventory** — for every module, list routes, pages, components, hooks, tables, and RPCs.
+4. **Module implementation status** — classify each as `active` / `partial` / `schema-only` / `placeholder` / `legacy` / `planned`.
+5. **Per-account post-onboarding experience** — what the user sees after `initialize_tenant_defaults` completes.
+6. **Module visibility and navigation** — reconciled against `navConfig`, `workspaceNavConfig`, `labNavConfig`.
+
+### 23.2 Foundation evidence closures carried alongside Round 2
+
 1. Auth provider configuration — enumerate enabled providers (email/password, Google, phone, SAML), password policy, HIBP toggle, email template overrides.
-2. `tenant_type` full behaviour matrix — for each of 10 tenant types: capabilities seeded by `initialize_tenant_defaults`, visible modules, nav-config path.
-3. Module capability catalog — read `tenant_capabilities` schema + default values by `tenant_type`; enumerate `useModuleAccess` flags.
-4. Full RLS policy bodies — export every `pg_policies` row with expression bodies; tag as `is_tenant_member` / `has_permission` / `EXISTS` / other; produce per-table alignment report.
-5. DEFINER RPC body inspection — for each finance/tenancy/connection RPC, verify `p_tenant_id` validated against `auth.uid()`, idempotency handling, error path, transaction boundaries.
-6. `tenant_members` and `tenants` policy bodies — answer authority questions 4, 6, 7 with evidence.
-7. Storage `storage.objects` policies — enumerate by bucket, name, roles, USING expression.
-8. Scheduled job configuration — query `pg_cron` (if enabled) or platform config for `expire-stale-connections` and `mark-overdue-invoices`.
-9. Auth-trigger inventory — confirm the `handle_new_user`-style trigger on `auth.users`.
-10. Environment separation confirmation and remediation plan for R-01.
-11. Nav-config reconciliation across `navConfig`, `workspaceNavConfig`, `labNavConfig`.
-12. Doctor-billing debt audit (`doctor_services` vs `tenant_services`).
-13. Owner/Horse-Owner Portal boundaries — deep audit of the zero-policy tables and their RPC access paths.
-14. Community post visibility resolution — `posts` (15 policies) semantics for `public/private/followers` × personal/organization workspace.
-15. CI/CD workflow content — inspect `.github/workflows/n2-4-controlled-supabase-runtime.yml`.
+2. Full RLS policy bodies — export every `pg_policies` row with expression bodies; tag as `is_tenant_member` / `has_permission` / `EXISTS` / other; produce per-table alignment report.
+3. DEFINER RPC body inspection — for each finance/tenancy/connection RPC, verify `p_tenant_id` validated against `auth.uid()`, idempotency handling, error path, transaction boundaries.
+4. `tenant_members` and `tenants` policy bodies — answer authority questions 4, 6, 7 with evidence (membership authority).
+5. Storage `storage.objects` policies — enumerate by bucket, name, roles, USING expression.
+6. Scheduled job configuration — query `pg_cron` (if enabled) or platform config for `expire-stale-connections` and `mark-overdue-invoices`.
+7. Auth-trigger inventory — confirm the `handle_new_user`-style trigger on `auth.users`.
+8. Environment separation confirmation and remediation plan for R-01.
+9. Nav-config reconciliation across `navConfig`, `workspaceNavConfig`, `labNavConfig`.
+10. Doctor-billing debt audit (`doctor_services` vs `tenant_services`).
+11. Owner / Horse-Owner Portal boundaries — deep audit of the zero-policy tables and their RPC access paths.
+12. Community post visibility resolution — `posts` (15 policies) semantics for `public`/`private`/`followers` × personal/organization workspace.
+13. CI/CD workflow content — inspect `.github/workflows/n2-4-controlled-supabase-runtime.yml`.
+
+Full workflows, cross-account operational lifecycle tracing, full finance depth, PWA/native strategy, and the final roadmap remain **out** of the Round 2 primary scope — they belong to Rounds 3–5.
 
 ---
 
