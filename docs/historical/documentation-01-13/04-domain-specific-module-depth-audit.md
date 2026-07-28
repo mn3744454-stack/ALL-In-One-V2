@@ -1,7 +1,7 @@
 <!--
 id: DHB-DOC04
 title: Documentation 4 — Domain-Specific Module Depth Audit
-version: 1.0.0
+version: 1.1.0
 status: historical
 audience: internal
 date: unknown
@@ -16,10 +16,11 @@ source-sha256: 62a2734411ed906ba3933f0ded50b8fe7e51ca55fc47adc9b6e79cc596c4ce46
 
 > **Historical evidence — preserved verbatim.** This document is preserved as historical evidence. Current source code, migrations, database state, and later approved handoff documentation supersede specific claims where they conflict.
 >
+> **Rendering fix — DG.2B:** the historical body was converted from one outer plain-text fence into native Markdown for section navigation and Lovable retrieval. Historical wording and ordering were preserved; the immutable raw source remains unchanged.
+>
 > **Raw source:** [`docs/historical/documentation-01-13/raw/04-domain-specific-module-depth-audit.txt`](../documentation-01-13/raw/04-domain-specific-module-depth-audit.txt)
 > **Source SHA-256:** `62a2734411ed906ba3933f0ded50b8fe7e51ca55fc47adc9b6e79cc596c4ce46`
 
-```text
 
 
 # 19 — Domain-Specific Module Depth Audit
@@ -497,4 +498,3 @@ All findings evidence-based with file/line references. No code patches.
 ### 21.1 Final numbering point reached: **19.8.5**
 ### 21.2 Recommended next starting number: **22**
 ### 21.3 Recommended next audit slice: **Integration & Cross-Module Flow Audit** — examining cross-module data flows (Lab↔Stable, Doctor↔Stable, Connected Movements, Shared Results), broken integration pathways, and communication architecture readiness for the 10-module vision.
-```

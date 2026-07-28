@@ -1,7 +1,7 @@
 <!--
 id: DHB-DOC08
 title: Documentation 8 — Housing & Facilities Workstream
-version: 1.0.0
+version: 1.1.0
 status: historical
 audience: internal
 date: unknown
@@ -16,10 +16,11 @@ source-sha256: 00c88fa1b8474d7ba32b75b396dcf3a6a421602b18fa981d2d154f88736849d3
 
 > **Historical evidence — preserved verbatim.** This document is preserved as historical evidence. Current source code, migrations, database state, and later approved handoff documentation supersede specific claims where they conflict.
 >
+> **Rendering fix — DG.2B:** the historical body was converted from one outer plain-text fence into native Markdown for section navigation and Lovable retrieval. Historical wording and ordering were preserved; the immutable raw source remains unchanged.
+>
 > **Raw source:** [`docs/historical/documentation-01-13/raw/08-housing-facilities-workstream.txt`](../documentation-01-13/raw/08-housing-facilities-workstream.txt)
 > **Source SHA-256:** `00c88fa1b8474d7ba32b75b396dcf3a6a421602b18fa981d2d154f88736849d3`
 
-```text
 
 
 # Documentation 8
@@ -544,4 +545,3 @@ The full Housing & Facilities Phase 1: Branches establishment, inline Facilities
 
 #### 16.2.3. What remains explicitly for Phase 2
 Entrance-aware numbering, compass-based orientation, zigzag numbering patterns, bulk renumbering, facility-level activity logs, open-area zone management, fencing/ground type attributes, pasture condition scoring, scheduling/booking integration for activity facilities, live session tracking, maintenance workflows, map/spatial visualizations, L-shape/U-shape layouts, and treatment workflow linkage.
-```

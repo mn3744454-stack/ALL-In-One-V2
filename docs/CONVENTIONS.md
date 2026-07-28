@@ -88,6 +88,17 @@ Owner-governance documentation — access lists, vendor evaluations, account-rec
 
 Every documentation file (except transient placeholders) must be registered in `docs/README.md` with its ID, path, category, audience, status, version, and coverage. Adding a documentation file without indexing it is not permitted.
 
+### 8.1 Category-scope placeholder READMEs (DG.2B exemption)
+
+A **category-scope placeholder README** is exempt from individual central-index registration when **all** of the following hold:
+
+- The file is a `README.md` at the root of an already-indexed parent folder (for example `docs/architecture/`, `docs/modules/`, `docs/operations/`, `docs/workflows/`, `docs/templates/`, `docs/governance/`, `docs/security/`, `docs/handoff/final/`, `docs/historical/execution-closures/`, `docs/historical/module-legacy/`, `docs/historical/module-legacy/laboratory/`, `docs/historical/release-notes/`, `docs/historical/schema-snapshots/`).
+- Its content is limited to folder-purpose and status metadata (what the folder is for, what will land here, what governance applies).
+- It makes no independent technical, architectural, security, or historical claim.
+- The parent folder itself is already discoverable through `docs/README.md` (either directly or through a nearby indexed handoff/historical/audit entry).
+
+Substantive READMEs — including handoff READMEs, round READMEs, historical identity/supersession READMEs (e.g. `historical/documentation-01-13/README.md`), runbook READMEs, module docs, operations docs, audit READMEs, and evidence READMEs — are **not** exempt and must remain individually indexed. When a placeholder README grows to carry independent claims, it must be indexed at that time.
+
 ## 9. Change-review
 
 - Documentation changes must go through the same branch/review workflow as source changes.
