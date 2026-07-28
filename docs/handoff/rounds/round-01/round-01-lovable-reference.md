@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-INT
 title: Round 1 — Internal Lovable Reference
-version: 1.1.0
+version: 1.2.0
 status: supporting-pending-owner-acceptance
 audience: internal-lovable
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions
+source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions; re-aligned during DG.3B to match DHB-R01-DEV v1.2.0 (qualified environment claim, removed paid-account generalization, removed remaining hidden-memory language, corrected DebugAuth misclassification, precise Vitest test-file terminology, explicit Round 2 primary scope, exact 21-part framework terms where referenced)
 source-sha256: n/a
 -->
 
