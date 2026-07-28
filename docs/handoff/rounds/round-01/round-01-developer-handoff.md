@@ -81,7 +81,7 @@ Current source code, migrations, and live database state override any conflictin
 - **Product identity (directly verified — source code):** "Dayli Horse"; published site `daylihorse.com`, alt `www.daylihorse.com`; preview at `id-preview--…lovable.app`; internal published URL `horse-verse-link.lovable.app`.
 - **Delivery surface (directly verified — source code):** browser web application built with Vite 5 and React 18, packaged with `vite-plugin-pwa` in **kill-switch (`selfDestroying: true`)** mode. Only `public/push-sw.js` is retained as an active service worker.
 - **Backend (directly verified — live DB metadata / source code):** managed Supabase (Postgres + PostgREST + Auth + Storage + Edge Functions), consumed through `src/integrations/supabase/client.ts` (auto-generated) and typed via `src/integrations/supabase/types.ts` (auto-generated).
-- **Environments (verified — `.env` + `supabase/config.toml`):** a **single** managed Supabase project is bound to preview, published URL, and custom domains. There is no separate staging or production project in this repository. This concentration is captured as risk R-01.
+- **Environments (verified — `.env` + `supabase/config.toml`):** the repository configuration contains **a single Supabase project reference**; no separate staging backend is evidenced in the repository. Preview, published URL, and custom-domain surfaces appear to use the same frontend environment binding. Full runtime confirmation across every deployed surface remains **owner / platform-confirmation-required**. Until that confirmation is available, treat preview actions as capable of affecting the same backend data, and evaluate separate staging before major database work. This concentration is captured as risk R-01.
 
 ---
 
