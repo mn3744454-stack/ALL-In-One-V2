@@ -1,7 +1,7 @@
 <!--
 id: DHB-DOC07
 title: Documentation 7 — Post Baseline Delta Documentation
-version: 1.0.0
+version: 1.1.0
 status: historical
 audience: internal
 date: unknown
@@ -16,10 +16,11 @@ source-sha256: d971198574e5bfceb3602558eb2cb1722ab50b71d5d8ea5d01bbe87bd640dbf2
 
 > **Historical evidence — preserved verbatim.** This document is preserved as historical evidence. Current source code, migrations, database state, and later approved handoff documentation supersede specific claims where they conflict.
 >
+> **Rendering fix — DG.2B:** the historical body was converted from one outer plain-text fence into native Markdown for section navigation and Lovable retrieval. Historical wording and ordering were preserved; the immutable raw source remains unchanged.
+>
 > **Raw source:** [`docs/historical/documentation-01-13/raw/07-post-baseline-delta-documentation.txt`](../documentation-01-13/raw/07-post-baseline-delta-documentation.txt)
 > **Source SHA-256:** `d971198574e5bfceb3602558eb2cb1722ab50b71d5d8ea5d01bbe87bd640dbf2`
 
-```text
 
 
 # Comprehensive Platform Update Report — Dayli Horse
@@ -527,4 +528,3 @@ source-sha256: d971198574e5bfceb3602558eb2cb1722ab50b71d5d8ea5d01bbe87bd640dbf2
 12.2 Recommended next starting number for future documentation: **13**.
 
 12.3 Recommended next documentation or execution slice: Implementation of deferred Breeding/Movement Table modes, or refactoring `DetailRow` to accept ReactNode values for BilingualName adoption in detail sheets.
-```

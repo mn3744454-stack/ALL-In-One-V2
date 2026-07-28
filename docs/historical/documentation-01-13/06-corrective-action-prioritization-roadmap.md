@@ -1,7 +1,7 @@
 <!--
 id: DHB-DOC06
 title: Documentation 6 — Corrective Action Prioritization & Execution Roadmap
-version: 1.0.0
+version: 1.1.0
 status: historical
 audience: internal
 date: unknown
@@ -16,10 +16,11 @@ source-sha256: b5fd6b21a58d51dcf78c83a095b142409451e958c5a410dae3a3a3abdcceeeb3
 
 > **Historical evidence — preserved verbatim.** This document is preserved as historical evidence. Current source code, migrations, database state, and later approved handoff documentation supersede specific claims where they conflict.
 >
+> **Rendering fix — DG.2B:** the historical body was converted from one outer plain-text fence into native Markdown for section navigation and Lovable retrieval. Historical wording and ordering were preserved; the immutable raw source remains unchanged.
+>
 > **Raw source:** [`docs/historical/documentation-01-13/raw/06-corrective-action-prioritization-roadmap.txt`](../documentation-01-13/raw/06-corrective-action-prioritization-roadmap.txt)
 > **Source SHA-256:** `b5fd6b21a58d51dcf78c83a095b142409451e958c5a410dae3a3a3abdcceeeb3`
 
-```text
 
 
 # 25 — Corrective Action Prioritization & Execution Roadmap
@@ -574,4 +575,3 @@ All recommendations are evidence-based with gap IDs tracing to prior audit secti
 ### 27.1 Final numbering point reached: **25.16.4**
 ### 27.2 Recommended next starting number: **28**
 ### 27.3 Recommended next audit slice: **Wave 1 Execution Verification Audit** — confirming all truthfulness and quick-win fixes are correctly applied across all 10 tenant types before proceeding to Wave 2 commercial fixes.
-```

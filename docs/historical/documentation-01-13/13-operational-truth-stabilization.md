@@ -1,7 +1,7 @@
 <!--
 id: DHB-DOC13
 title: Documentation 13 — Operational Truth Stabilization
-version: 1.0.0
+version: 1.1.0
 status: historical
 audience: internal
 date: unknown
@@ -16,10 +16,11 @@ source-sha256: 367440b1771119841ac343c01fb1b3d97f56bbbf3864e51c8ad1d3cd059c4627
 
 > **Historical evidence — preserved verbatim.** This document is preserved as historical evidence. Current source code, migrations, database state, and later approved handoff documentation supersede specific claims where they conflict.
 >
+> **Rendering fix — DG.2B:** the historical body was converted from one outer plain-text fence into native Markdown for section navigation and Lovable retrieval. Historical wording and ordering were preserved; the immutable raw source remains unchanged.
+>
 > **Raw source:** [`docs/historical/documentation-01-13/raw/13-operational-truth-stabilization.txt`](../documentation-01-13/raw/13-operational-truth-stabilization.txt)
 > **Source SHA-256:** `367440b1771119841ac343c01fb1b3d97f56bbbf3864e51c8ad1d3cd059c4627`
 
-```text
 Documentation 13
 
 Formal Title (proposed):
@@ -455,4 +456,3 @@ Non-blocking residuals are explicitly not blockers; they are tracked for visibil
 16.1 No code, data, schema, migrations, RPCs, RLS, triggers, indexes, frontend code, i18n files, or documentation files were modified by this investigative documentation refinement. This artifact is text only and is not persisted to disk in this turn.
 
 Awaiting your explicit go-ahead to persist this as the official `docs/Documentation_13...md` (and to retire the Laboratory-only draft) in a separate execution prompt.
-```

@@ -1,7 +1,7 @@
 <!--
 id: DHB-DOC09
 title: Documentation 9 — Post-Documentation 8 Continuation Report
-version: 1.0.0
+version: 1.1.0
 status: historical
 audience: internal
 date: unknown
@@ -16,10 +16,11 @@ source-sha256: 764b0a08252ddbe42ec16b0ac7fd8eb291efac59515590ebe81a17b52a31f3bb
 
 > **Historical evidence — preserved verbatim.** This document is preserved as historical evidence. Current source code, migrations, database state, and later approved handoff documentation supersede specific claims where they conflict.
 >
+> **Rendering fix — DG.2B:** the historical body was converted from one outer plain-text fence into native Markdown for section navigation and Lovable retrieval. Historical wording and ordering were preserved; the immutable raw source remains unchanged.
+>
 > **Raw source:** [`docs/historical/documentation-01-13/raw/09-post-documentation-8-continuation-report.txt`](../documentation-01-13/raw/09-post-documentation-8-continuation-report.txt)
 > **Source SHA-256:** `764b0a08252ddbe42ec16b0ac7fd8eb291efac59515590ebe81a17b52a31f3bb`
 
-```text
 # Documentation 9
 
 ## Dayli Horse Platform — Post-Documentation 8 Continuation Report
@@ -546,4 +547,3 @@ The identity/profile layer is now architecturally stable and should not be reope
 
 ### 17.1–17.7
 This document uses formal documentation language, strict hierarchical numbering throughout, comprehensive technical detail without code output, and serves as a formal continuation artifact suitable for archival continuity after Documentation 8.
-```
