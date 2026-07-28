@@ -30,9 +30,9 @@ This is the canonical index for every documentation file in this repository.
 - **Canonical folder skeleton:** established (DG.2).
 - **Documentation 01–13 raw preservation + canonical historical Markdown:** established (DG.2); rendering-only correction applied to canonical Docs 04, 06, 07, 08, 09, 10, 13 in DG.2B (outer plain-text fence removed so headings/anchors render natively — no wording, ordering, or claims changed; raw sources unchanged).
 - **Round 1 raw provenance (inputs + raw output):** established (DG.2).
-- **Rewritten external-developer Round 1 handoff (`round-01-developer-handoff.md`):** **PENDING** — not authored yet.
-- **Internal Lovable Round 1 reference (`round-01-lovable-reference.md`):** **PENDING** — not authored yet.
-- **Round 1 acceptance (`round-01-acceptance.md`):** **PENDING — no acceptance has occurred.**
+- **Rewritten external-developer Round 1 handoff (`round-01-developer-handoff.md`, `DHB-R01-DEV`):** **AUTHORED (DG.3) — pending owner acceptance.**
+- **Internal Lovable Round 1 reference (`round-01-lovable-reference.md`, `DHB-R01-INT`):** **AUTHORED (DG.3) — pending owner acceptance.**
+- **Round 1 acceptance (`round-01-acceptance.md`):** **PENDING — no acceptance has occurred.** Acceptance is created only after an independent owner review of `DHB-R01-DEV` and `DHB-R01-INT`.
 - **Root `README.md`:** unchanged (still a template placeholder). A later phase will rewrite it after owner approval.
 - **Legacy files** (`docs/aml_1_b_1/**`, `docs/*.md`, `docs/Documentation_13_-_Laboratory_Workstream_Closure.md`, root schema snapshots, root N2.2 report): **preserved in place**. A later acceptance-approved cleanup phase will retire or relocate them; until then they remain the source of truth for their topics.
 - **Owner-governance Word files:** intentionally **outside** this repository. Do not add.
@@ -55,6 +55,8 @@ Category-scope placeholder READMEs (files whose only content is folder-purpose/s
 | `DHB-R01-README` | Round 1 — README and status | `docs/handoff/rounds/round-01/README.md` | handoff-round | internal+external | current | 1.0.0 | DG.2 | Round 1 status | — | — | — | — |
 | `DHB-R01-INPUTS` | Round 1 — Investigative and Proceed Prompts (verbatim) | `docs/handoff/rounds/round-01/round-01-inputs.md` | handoff-round-evidence | internal | evidence-immutable | 1.0.0 | DG.2 | Round 1 prompts | — | — | immutable | — |
 | `DHB-R01-RAW` | Round 1 — Raw Audit Output (verbatim) | `docs/handoff/rounds/round-01/round-01-raw-audit-output.md` | handoff-round-evidence | internal | evidence-immutable | 1.0.0 | DG.2 | Round 1 output | — | — | immutable | — |
+| `DHB-R01-DEV` | Round 1 — Platform Foundation, Architecture, Database, Tenancy, Authentication, Permissions, Storage, Edge Functions, and Environment | `docs/handoff/rounds/round-01/round-01-developer-handoff.md` | handoff-round-canonical | external-developer | canonical-pending-owner-acceptance | 1.0.0 | DG.3 | canonical Round 1 external-developer handoff | — | — | acceptance file pending | pending owner acceptance |
+| `DHB-R01-INT` | Round 1 — Internal Lovable Reference | `docs/handoff/rounds/round-01/round-01-lovable-reference.md` | handoff-round-internal | internal-lovable | supporting-pending-owner-acceptance | 1.0.0 | DG.3 | internal-facing condensed Round 1 companion to DHB-R01-DEV | — | — | acceptance file pending | pending owner acceptance |
 | `DHB-HIST-DOCS-README` | Historical Documentation 01–13 — README | `docs/historical/documentation-01-13/README.md` | historical-index | internal | current | 1.0.0 | DG.2 | 01–13 archive overview | — | — | — | — |
 | `DHB-DOC01-13-SRC-MANIFEST` | Documentation 01–13 — Source manifest | `docs/historical/documentation-01-13/source-manifest.md` | historical-manifest | internal | current | 1.0.0 | DG.2 | raw source hash registry | — | — | — | — |
 | `DHB-DOC01` | Documentation 1 — Forensic Platform Architecture Audit | `docs/historical/documentation-01-13/01-forensic-platform-architecture-audit.md` | historical-doc-canonical | internal | historical | 1.0.0 | owner-supplied | historical baseline | — | later canonical current-truth documents (module/architecture) where they conflict | content may conflict with current implementation truth | — |
