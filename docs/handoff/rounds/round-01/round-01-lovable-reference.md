@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-INT
 title: Round 1 — Internal Lovable Reference
-version: 1.2.0
-status: supporting-pending-owner-acceptance
+version: 1.3.0
+status: supporting-accepted
 audience: internal-lovable
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions; re-aligned during DG.3B to match DHB-R01-DEV v1.2.0 (qualified environment claim, removed paid-account generalization, removed remaining hidden-memory language, corrected DebugAuth misclassification, precise Vitest test-file terminology, explicit Round 2 primary scope, exact 21-part framework terms where referenced)
+source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions; re-aligned during DG.3B to match DHB-R01-DEV v1.2.0 (qualified environment claim, removed paid-account generalization, removed remaining hidden-memory language, corrected DebugAuth misclassification, precise Vitest test-file terminology, explicit Round 2 primary scope, exact 21-part framework terms where referenced); DG.3D closure: applies the final DG.3C manager-authorization correction and records Round 1 acceptance in step with DHB-R01-DEV v1.3.0.
 source-sha256: n/a
 -->
 
@@ -72,7 +72,7 @@ Current code and live database metadata override any historical claim on conflic
 - Permissions vocabulary: **104 keys**, authoritative via `permission_definitions`.
 - Client-side check: `src/hooks/usePermissions.ts:207-240` — owner → role-direct → role-bundle → member-bundle → member-override.
 - Server-side check: `public.has_permission(uuid, uuid, text)` `SECURITY DEFINER`, called from RLS policies.
-- Delegation: `delegation_scopes` + `admin.permissions.delegate` key. `manager` role has everything except delegation.
+- Manager effective permissions are derived from persisted role grants (`tenant_role_permissions`), role bundles (`tenant_role_bundles` → `bundle_permissions`), member bundles, and member overrides. Owner is the only role with a server-side bypass in `has_permission()`. Delegation additionally requires `admin.permissions.delegate`, a delegatable `permission_definitions` row, and an applicable `delegation_scopes` entry. Manager is a tenant-seeded system role and is tenant-configurable; do not assume every manager has every non-delegation permission — verify the tenant's current `tenant_role_permissions` configuration.
 - Never store roles on `profiles`; keep them in tenant-role / user-roles tables.
 
 ## 7. RLS and Cross-Tenant Safety Pointers

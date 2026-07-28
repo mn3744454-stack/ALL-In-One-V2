@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-DEV
 title: Round 1 — Platform Foundation, Architecture, Database, Tenancy, Authentication, Permissions, Storage, Edge Functions, and Environment
-version: 1.2.0
-status: canonical-pending-owner-acceptance
+version: 1.3.0
+status: canonical-accepted
 audience: external-developer
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth compressed in v1.0.0; evidence-closure correction during DG.3B to remove hidden-memory language, qualify the environment claim, remove the unsupported paid-account generalization, fix the DebugAuth risk misclassification, restore route/guard matrix, database relationship map, RLS/isolation-helper inventory and cross-tenant patterns, expand RPC registry columns, apply the exact permanent 21-part framework titles, clarify Round 2 primary scope, and use precise Vitest test-file terminology
+source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth compressed in v1.0.0; evidence-closure correction during DG.3B to remove hidden-memory language, qualify the environment claim, remove the unsupported paid-account generalization, fix the DebugAuth risk misclassification, restore route/guard matrix, database relationship map, RLS/isolation-helper inventory and cross-tenant patterns, expand RPC registry columns, apply the exact permanent 21-part framework titles, clarify Round 2 primary scope, and use precise Vitest test-file terminology; DG.3D closure: applies the final DG.3C authorization and path corrections and records Round 1 acceptance.
 source-sha256: n/a
 confidentiality: Confidential Technical Handoff — No Credential or Secret Values Included
 -->
@@ -114,7 +114,7 @@ Top-level `src/` paths (directly verified — source code):
 - `src/components/**` — feature-scoped trees (`boarding/`, `breeding/`, `clients/`, `finance/`, `horses/`, `housing/`, `hr/`, `laboratory/`, `movement/`, `permissions/`, `pos/`, `services/`, `vet/`, `notifications/`, `pwa/`, `push/`, `guards/`).
 - `src/hooks/**` — feature and cross-cutting hooks including `usePermissions.ts`, `useModuleAccess.ts`, `useNotifications`, `useClients`, plus subfolders `finance/`, `housing/`, `hr/`, `laboratory/`, `roles/`, `notifications/`.
 - `src/lib/**` — pure logic: `finance/` (allocation, distribution, KPI, tax, invoice presentation, pagination), boarding proration, breeding eligibility, notifications helpers, pricing resolver, formatters, validations.
-- `src/contexts/**` — `AuthContext`, `TenantContext`, `I18nContext`.
+- `src/contexts/**` — `AuthContext`, `TenantContext`. (`I18nContext` lives under `src/i18n/**`; see the i18n row above.)
 - `src/i18n/**` — bilingual (EN/AR) localization with RTL.
 - `src/navigation/**` — three declarative nav configs: `navConfig.ts`, `workspaceNavConfig.ts`, `labNavConfig.ts` (909 total lines — a single-source reconciliation is a Round 2 output; risk R-16).
 - `src/integrations/supabase/{client,types}.ts` — auto-generated. **Do not hand-edit.**
@@ -310,7 +310,9 @@ Permission architecture (DB metadata + `src/hooks/usePermissions.ts`):
 4. Member bundles (`member_permission_bundles` → `bundle_permissions`).
 5. Member overrides (`member_permissions.granted` — last wins).
 
-Non-owner effective permissions are cached for 5 min. UI hides are not enforcement; server RLS is the truth. Delegation requires: has permission + has `admin.permissions.delegate` + `permission_definitions.is_delegatable` + explicit `delegation_scopes` row. `manager` role includes all permissions except `admin.permissions.delegate`.
+Non-owner effective permissions are cached for 5 min. UI hides are not enforcement; server RLS is the truth.
+
+Manager effective permissions are derived from persisted role grants (`tenant_role_permissions`), role bundles (`tenant_role_bundles` → `bundle_permissions`), member bundles, and member overrides. Owner is the only role with a server-side bypass in `has_permission()`. Delegation additionally requires `admin.permissions.delegate`, a delegatable `permission_definitions` row, and an applicable `delegation_scopes` entry. Manager is a tenant-seeded system role and is tenant-configurable; do not assume every manager has every non-delegation permission — verify the tenant's current `tenant_role_permissions` configuration.
 
 **Backend enforcement helpers (`SECURITY DEFINER`, all with pinned `search_path`):** `has_permission`, `has_tenant_role`, `is_tenant_member`, `is_active_tenant_member`, `check_tenant_permission`, `can_delegate_permission`, `can_invite_in_tenant`, `can_access_shared_resource`.
 
@@ -324,7 +326,7 @@ Do **not** hardcode role names in new code — check permission keys. User roles
 | 2 | Can a custom role see a button but be rejected by RLS? | Yes — `usePermissions` cache is 5 min; server RLS is the truth. UI can lag. By design. |
 | 3 | Can a hidden route be opened manually? | Yes for `ProtectedRoute`-only routes (`/dashboard`, `/dashboard/mobile/:moduleKey`, `/dashboard/my-payments`, `/dashboard/my-bookings`, `/profile/:id`, `/dashboard/settings/notifications`, `/dashboard/contracts/documents/:documentId`). All rely on RLS to hide data. |
 | 4 | Can the final owner be removed or demoted? | Not verified this round. No explicit "last owner" guard was found. Requires reading `remove_tenant_member` / role-update RPCs. Flagged R-08. |
-| 5 | Can a manager delegate owner-level authority? | No — `manager` lacks `admin.permissions.delegate`. |
+| 5 | Can a manager delegate owner-level authority? | No. `admin.permissions.delegate` is never granted to `manager` in any current tenant, and delegation additionally requires a delegatable definition plus a `delegation_scopes` row. Other manager permissions are tenant-configurable. |
 | 6 | Can a user change their own tenant role? | Not verified this round — `tenant_members` policy bodies not inspected. Flagged R-08. |
 | 7 | Can one tenant modify another tenant's membership? | RLS on `tenant_members` should scope by tenant; body not verified this round. Flagged R-08. |
 | 8 | Can a `SECURITY DEFINER` function accept a foreign tenant ID? | Functions take `p_tenant_id` and rely on internal `is_active_tenant_member(auth.uid(), p_tenant_id)` checks (pattern verified in `create_source_checkout_invoice`, `post_payment_session`). All DEFINER functions in this pass have pinned `search_path`. Per-function verification is Round 2 scope. |
