@@ -139,9 +139,11 @@ const Dashboard = () => {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                {activeTenant
-                  ? t("dashboard.todayAt").replace("{{org}}", activeTenant.tenant.name)
-                  : t("dashboard.noTenantMessage")}
+                {workspaceMode === "personal"
+                  ? t("dashboard.personalSubtitle")
+                  : activeTenant
+                    ? t("dashboard.todayAt").replace("{{org}}", activeTenant.tenant.name)
+                    : t("dashboard.noTenantMessage")}
               </p>
             </div>
             {/* Desktop search bar - in greeting row. Hidden for Horse Owner
