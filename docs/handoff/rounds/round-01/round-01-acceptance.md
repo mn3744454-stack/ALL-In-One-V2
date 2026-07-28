@@ -1,7 +1,7 @@
 <!--
 id: DHB-R01-ACC
 title: Round 1 — Acceptance and Closure Record
-version: 1.0.0
+version: 1.1.0
 status: accepted
 audience: internal+external
 source-round: R01
@@ -9,7 +9,7 @@ date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3D as the Round 1 acceptance and closure record following the DG.3C read-only re-audit and DG.3D narrow documentation correction pass
+source: authored during DG.3D as the Round 1 acceptance and closure record following the DG.3C read-only re-audit and DG.3D narrow documentation correction pass; v1.1.0 — ratifies the additive Account Types and Identity Model alignment (DEV v1.4.0, INT v1.4.0, new architecture reference `docs/architecture/account-types-and-identity-model.md` v1.0.0)
 source-sha256: n/a
 -->
 
@@ -29,6 +29,7 @@ Round 1 is a **foundation handoff**. It is not a production-readiness certificat
 | `DHB-R01-INT` | `docs/handoff/rounds/round-01/round-01-lovable-reference.md` | Internal Lovable Round 1 reference |
 | `DHB-R01-INPUTS` | `docs/handoff/rounds/round-01/round-01-inputs.md` | Round 1 raw investigative and proceed prompts (immutable evidence) |
 | `DHB-R01-RAW` | `docs/handoff/rounds/round-01/round-01-raw-audit-output.md` | Round 1 raw audit output (immutable evidence) |
+| `DHB-ARCH-ACCOUNT-TYPES-IDENTITY` | `docs/architecture/account-types-and-identity-model.md` | Current-truth architecture reference for account types and the identity model (added under this acceptance) |
 | DG.1 → DG.3C evidence chain | `docs/historical/audits/**` and repository-history evidence | Governance-audit evidence supporting acceptance |
 | Documentation governance foundation | `docs/README.md`, `docs/CONVENTIONS.md`, canonical folder skeleton, canonical Documentation 01–13 rendering | Foundation created by DG.2 / DG.2B |
 
@@ -36,9 +37,10 @@ Round 1 is a **foundation handoff**. It is not a production-readiness certificat
 
 | ID | Version | Status |
 |---|---|---|
-| `DHB-R01-DEV` | 1.3.0 | canonical-accepted |
-| `DHB-R01-INT` | 1.3.0 | supporting-accepted |
-| `DHB-R01-ACC` (this file) | 1.0.0 | accepted |
+| `DHB-R01-DEV` | 1.4.0 | canonical-accepted |
+| `DHB-R01-INT` | 1.4.0 | supporting-accepted |
+| `DHB-ARCH-ACCOUNT-TYPES-IDENTITY` | 1.0.0 | accepted |
+| `DHB-R01-ACC` (this file) | 1.1.0 | accepted |
 
 ## 4. Evidence Chain
 
@@ -54,6 +56,7 @@ Acceptance is grounded in the following governance sequence:
 - **DG.3B** — evidence-completeness closure (route/guard matrix, relationship map, isolation-helper inventory, RLS matrix, cross-tenant patterns, RPC-registry columns, framework-title precision, environment qualification, DebugAuth reclassification, Vitest test-file terminology).
 - **DG.3C** — read-only acceptance re-audit that identified two remaining material corrections (broad manager-permission claim; `I18nContext` physical-location claim).
 - **DG.3D** — narrow documentation correction that applied the DG.3C-mandated wording to `DHB-R01-DEV` and `DHB-R01-INT`, created this acceptance record, updated the Round 1 README, and updated the central index.
+- **Account Types and Identity Model alignment (v1.1.0 of this record)** — additive correction that preserved the verified "10 currently implemented account types" evidence, added the 3 planned types (Farrier, Professional Rider, Jockey), the 13 approved target contract, and the personal identity × workspace × role × profession × capability × permission × scope model. Codified in `docs/architecture/account-types-and-identity-model.md` and cross-referenced from `DHB-R01-DEV` and `DHB-R01-INT`.
 
 ## 5. Confirmed Corrections
 
@@ -63,9 +66,18 @@ Corrections applied during DG.3D that this acceptance ratifies:
 - **Authority question row 5.** Updated in `DHB-R01-DEV` to state that `admin.permissions.delegate` is never granted to `manager` in any current tenant and that delegation additionally requires a delegatable definition plus a `delegation_scopes` row, while other manager permissions are tenant-configurable.
 - **`I18nContext` physical path.** `DHB-R01-DEV` §Global architecture now records `src/contexts/**` as containing `AuthContext` and `TenantContext` only, and explicitly points to `src/i18n/**` for `I18nContext`, matching the filesystem and the i18n row already present in the same section.
 
-No other Round 1 content was modified during DG.3D.
+Additional corrections applied under v1.1.0 of this record:
 
-## 6. Residual Limitations Carried Forward
+- **Account-type count contract (10 / 3 / 13).** `DHB-R01-DEV` and `DHB-R01-INT` now explicitly record: 10 current implemented account/workspace types (verified against `public.tenant_type` and onboarding routes), 3 planned account/workspace types (Farrier, Professional Rider, Jockey), 13 approved target account/workspace types. Both files cross-reference `docs/architecture/account-types-and-identity-model.md` and explicitly state that the 3 planned types have no `tenant_type` enum value, onboarding route, `SelectRole` entry, dedicated module, capability defaults, or production-ready workflow.
+- **Naming-collision disambiguation.** Both DEV/INT and the new architecture reference distinguish the existing HR classifications (`hr_employee_type = 'farrier'`, `exercise_rider`) from the planned Farrier and Professional Rider account/workspace types.
+- **Identity model documentation.** DEV/INT now include a concise Personal Identity × Workspace × Role × Profession × Capability × Permission × Scope subsection and a Community Publishing Identity Principle note; the full model lives in the new architecture reference.
+- **Confidentiality boundary preserved.** The private owner-governance Word document remains **outside** the shared repository. No owner-only governance content was added to `docs/`. The developer-facing Word file also remains external and is regenerated separately from the updated Markdown after repository acceptance.
+
+## 6. Additivity Statement
+
+The v1.1.0 correction is **additive**. It does not reopen or invalidate any previously accepted architecture evidence, metric, contract, classification, or count in Round 1. The first documentation package remains accepted after this correction. Historical documents (including all files under `docs/historical/**` that reference only "10 tenant types") are preserved unchanged as historical evidence; the new architecture reference provides current-truth qualification.
+
+## 7. Residual Limitations Carried Forward
 
 These are carried into Round 2 as verification tasks, not as closed product defects:
 
@@ -77,16 +89,21 @@ These are carried into Round 2 as verification tasks, not as closed product defe
 - **Cron / scheduled-job schedule verification** against `supabase/config.toml`, Edge Function schedules, and live cron-catalog metadata.
 - **Membership authority review** including last-owner protection, self-role-change protection, and cross-tenant-membership isolation (Round 1 flagged as R-08).
 - **CI / CD configuration confirmation** including branch protection, required checks, deployment triggers, and migration-application workflow.
-- **Round 2 account-type and module implementation-reality mapping** (see §7).
+- **Round 2 account-type and module implementation-reality mapping** (see §8) — including the required separate readiness assessment for the 3 planned types.
 
-## 7. Round 2 Entry Criteria
+## 8. Round 2 Entry Criteria
 
 Round 1 closure is sufficient to begin Round 2. Round 2 primary scope is:
 
 **Account Types, Complete Module Inventory, and Current Implementation Reality.**
 
-Round 2 must open with the residual limitations in §6 as explicit inputs and must not re-litigate Round 1 counts, contracts, or classifications unless new evidence emerges from live source or database metadata.
+Round 2 must:
 
-## 8. Closure Statement
+- deeply audit the 10 current implemented account/workspace types;
+- separately assess architectural readiness and required foundations for the 3 planned account/workspace types (Farrier, Professional Rider, Jockey) toward the 13 approved target types;
+- never claim the 3 planned types are currently implemented;
+- open with the residual limitations in §7 as explicit inputs and not re-litigate Round 1 counts, contracts, or classifications unless new evidence emerges from live source or database metadata.
 
-> Round 1 is accepted and closed as the authoritative foundation handoff for platform architecture, repository structure, database baseline, tenancy, authentication, permissions, RLS, RPCs, Storage, Edge Functions, environments, testing signals, risks, and receiving-developer start instructions. This acceptance is not a production-readiness, launch-readiness, security-certification, or full-platform-completion declaration.
+## 9. Closure Statement
+
+> Round 1 is accepted and closed as the authoritative foundation handoff for platform architecture, repository structure, database baseline, tenancy, authentication, permissions, RLS, RPCs, Storage, Edge Functions, environments, testing signals, risks, and receiving-developer start instructions. The additive Account Types and Identity Model alignment (10 current implemented / 3 planned / 13 approved target) is accepted and does not reopen or invalidate previously accepted architecture evidence. This acceptance is not a production-readiness, launch-readiness, security-certification, or full-platform-completion declaration.

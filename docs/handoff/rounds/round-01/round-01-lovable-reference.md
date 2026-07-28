@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-INT
 title: Round 1 — Internal Lovable Reference
-version: 1.3.0
+version: 1.4.0
 status: supporting-accepted
 audience: internal-lovable
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions; re-aligned during DG.3B to match DHB-R01-DEV v1.2.0 (qualified environment claim, removed paid-account generalization, removed remaining hidden-memory language, corrected DebugAuth misclassification, precise Vitest test-file terminology, explicit Round 2 primary scope, exact 21-part framework terms where referenced); DG.3D closure: applies the final DG.3C manager-authorization correction and records Round 1 acceptance in step with DHB-R01-DEV v1.3.0.
+source: authored during DG.3 as an internal-facing condensed companion to DHB-R01-DEV; corrected during DG.3A to align counts, contracts, and PWA truth with DHB-R01-DEV v1.1.0 and to remove hidden-memory assumptions; re-aligned during DG.3B to match DHB-R01-DEV v1.2.0 (qualified environment claim, removed paid-account generalization, removed remaining hidden-memory language, corrected DebugAuth misclassification, precise Vitest test-file terminology, explicit Round 2 primary scope, exact 21-part framework terms where referenced); DG.3D closure: applies the final DG.3C manager-authorization correction and records Round 1 acceptance in step with DHB-R01-DEV v1.3.0; v1.4.0 — condensed Account Types and Identity Model alignment (10 current / 3 planned / 13 approved target) with cross-reference to `docs/architecture/account-types-and-identity-model.md`.
 source-sha256: n/a
 -->
 
@@ -132,10 +132,26 @@ Current code and live database metadata override any historical claim on conflic
 
 **Round 2 primary scope:** Account Types, Complete Module Inventory, and Current Implementation Reality (see `DHB-R01-DEV` §23.1).
 
-Foundation evidence closures carried alongside Round 2:
+### 13.1 Account-type count contract (condensed)
+
+- **10 current implemented** account/workspace types: `stable`, `clinic`, `lab`, `academy`, `pharmacy`, `transport`, `auction`, `horse_owner`, `trainer`, `doctor`.
+- **3 planned** account/workspace types (readiness targets, not implemented): **Farrier**, **Professional Rider**, **Jockey**.
+- **13 approved target** account/workspace types in the future model.
+
+Round 2 must produce a deep implementation-reality matrix for the **10 current implemented types** and a **separate** architecture/readiness assessment for the **3 planned types**. Never claim the 3 planned types are currently implemented. Full definition: [`../../../architecture/account-types-and-identity-model.md`](../../../architecture/account-types-and-identity-model.md).
+
+### 13.2 Condensed identity/authority reminders
+
+- personal identity ≠ workspace;
+- workspace type ≠ membership role;
+- profession ≠ capability;
+- UI visibility ≠ backend authorization;
+- establishment community representation requires explicit permission (workspace membership alone does not grant it).
+
+### 13.3 Foundation evidence closures carried alongside Round 2
 
 1. Auth provider configuration (email/password, Google, phone, SAML, HIBP, password policy, templates).
-2. `tenant_type` behaviour matrix for all 10 types.
+2. Behaviour matrix for the 10 current implemented `tenant_type` values, plus separate readiness assessment for the 3 planned types.
 3. Module capability catalog (`tenant_capabilities` + `useModuleAccess`).
 4. Full RLS policy-body enumeration and per-table alignment report.
 5. DEFINER RPC body inspection (tenant validation, idempotency, transaction boundaries).
