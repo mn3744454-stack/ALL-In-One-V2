@@ -517,7 +517,7 @@ Testing inventory (Round 1 baseline):
 
 | Kind | Present | Count | Notes |
 |---|---|---|---|
-| Unit tests (Vitest) | ✅ | 19 | Finance-heavy (12 in `src/lib/finance/__tests__/`), 4 in `src/components/finance/__tests__/`, 1 housing chip, 1 lab checkout safety, 1 POS checkout contract |
+| Unit tests (Vitest) | ✅ | **19 test files** (individual test-case count not independently enumerated in Round 1) | Finance-heavy (12 in `src/lib/finance/__tests__/`), 4 in `src/components/finance/__tests__/`, 1 housing chip, 1 lab checkout safety, 1 POS checkout contract |
 | Hook tests | ✅ | 1 (`useLabInvoiceDraftRpcCutover`) | Minimal |
 | Component tests | ✅ | 2 (invoice details, PDF paginator) | Minimal |
 | Integration tests | ⚠ | 0 | Absent |
