@@ -24,8 +24,8 @@ source-sha256: n/a
 |---|---|---|
 | `round-01-inputs.md` | Verbatim investigative and proceed prompts | Immutable evidence — complete |
 | `round-01-raw-audit-output.md` | Verbatim Round 1 Lovable output including mandated closing statement | Immutable evidence — complete |
-| `round-01-developer-handoff.md` | Canonical external-developer Round 1 document (`DHB-R01-DEV`) | Authored DG.3, corrected DG.3A to v1.1.0 — pending owner acceptance |
-| `round-01-lovable-reference.md` | Internal Lovable-facing condensed reference (`DHB-R01-INT`) | Authored DG.3, corrected DG.3A to v1.1.0 — pending owner acceptance |
+| `round-01-developer-handoff.md` | Canonical external-developer Round 1 document (`DHB-R01-DEV`) | Authored DG.3, corrected DG.3A to v1.1.0, evidence-closure DG.3B to v1.2.0 — pending owner acceptance |
+| `round-01-lovable-reference.md` | Internal Lovable-facing condensed reference (`DHB-R01-INT`) | Authored DG.3, corrected DG.3A to v1.1.0, aligned DG.3B to v1.2.0 — pending owner acceptance |
 
 ## Files planned but **not yet authored**
 
