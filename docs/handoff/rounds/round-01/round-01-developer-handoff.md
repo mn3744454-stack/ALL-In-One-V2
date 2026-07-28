@@ -1,14 +1,14 @@
 <!--
 id: DHB-R01-DEV
 title: Round 1 — Platform Foundation, Architecture, Database, Tenancy, Authentication, Permissions, Storage, Edge Functions, and Environment
-version: 1.1.0
+version: 1.2.0
 status: canonical-pending-owner-acceptance
 audience: external-developer
 date: 2026-07-28
 last-verified: 2026-07-28
 supersedes: []
 superseded-by: null
-source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth that were compressed or paraphrased in v1.0.0
+source: authored during DG.3 from Round 1 raw evidence, DG.1/DG.1A audits, current repository source, and current live database metadata; corrected during DG.3A to restore material evidence, precise counts, and contract-level truth compressed in v1.0.0; evidence-closure correction during DG.3B to remove hidden-memory language, qualify the environment claim, remove the unsupported paid-account generalization, fix the DebugAuth risk misclassification, restore route/guard matrix, database relationship map, RLS/isolation-helper inventory and cross-tenant patterns, expand RPC registry columns, apply the exact permanent 21-part framework titles, clarify Round 2 primary scope, and use precise Vitest test-file terminology
 source-sha256: n/a
 confidentiality: Confidential Technical Handoff — No Credential or Secret Values Included
 -->
@@ -18,7 +18,9 @@ confidentiality: Confidential Technical Handoff — No Credential or Secret Valu
 > **Confidential Technical Handoff — No Credential or Secret Values Included.**
 > This document is a canonical Round 1 developer handoff. It is **pending owner acceptance**; it is not a launch certification and does not authorize deployment, publication, or a merge to `main`.
 
-> **DG.3A correction (v1.1.0):** v1.0.0 compressed several material Round 1 findings (baseline counts, PWA kill-switch status, tenant-creation atomicity, movement RPC parameter count, authority-question answers, full risk register, and the 21-part framework mapping). v1.1.0 restores those facts verbatim from `round-01-raw-audit-output.md` and re-verifies each material claim against current source. No new investigative work has been performed; only content already established during Round 1 has been restored.
+> **DG.3A correction (v1.1.0):** v1.0.0 compressed several material Round 1 findings (baseline counts, PWA kill-switch status, tenant-creation atomicity, movement RPC parameter count, authority-question answers, full risk register, and the 21-part framework mapping). v1.1.0 restored those facts verbatim from `round-01-raw-audit-output.md` and re-verified each material claim against current source.
+
+> **DG.3B evidence-closure (v1.2.0):** narrow correction pass. v1.2.0 removes remaining hidden-memory language, qualifies the environment claim to the exact evidence boundary, removes the unsupported "paid accounts behave as organizations" generalization, corrects the internal-inconsistency that assigned the DEV-only `DebugAuth` route to R-04 (R-04 is Storage-scoped), restores the concise route/guard matrix, adds the core database relationship map and snapshot/polymorphic-pattern notes, expands the RLS/cross-tenant evidence (isolation-helper inventory, representative RLS matrix, cross-tenant pattern classification, isolation-risk review), completes RPC-registry columns (security mode + pinned search path + status + validation limitation), replaces abbreviated framework names with the exact permanent 21-part titles, makes the Round 2 primary scope explicit, and clarifies that the "19 Vitest tests" baseline is a **test-file** count. No new investigative work; only evidence already established during Round 1 has been restored or clarified.
 
 ---
 
