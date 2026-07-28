@@ -673,23 +673,34 @@ Round 1 delivers Sections 1, 3, 4, 5, 6, 14, 15, 16 substantively and Sections 1
 
 ## 23. Inputs Required for Round 2
 
-1. Auth provider configuration — enumerate enabled providers (email/password, Google, phone, SAML), password policy, HIBP toggle, email template overrides.
-2. `tenant_type` full behaviour matrix — for each of 10 tenant types: capabilities seeded by `initialize_tenant_defaults`, visible modules, nav-config path.
-3. Module capability catalog — read `tenant_capabilities` schema + default values by `tenant_type`; enumerate `useModuleAccess` flags.
-4. Full RLS policy bodies — export every `pg_policies` row with expression bodies; tag as `is_tenant_member` / `has_permission` / `EXISTS` / other; produce per-table alignment report.
-5. DEFINER RPC body inspection — for each finance/tenancy/connection RPC, verify `p_tenant_id` validated against `auth.uid()`, idempotency handling, error path, transaction boundaries.
-6. `tenant_members` and `tenants` policy bodies — answer authority questions 4, 6, 7 with evidence.
-7. Storage `storage.objects` policies — enumerate by bucket, name, roles, USING expression.
-8. Scheduled job configuration — query `pg_cron` (if enabled) or platform config for `expire-stale-connections` and `mark-overdue-invoices`.
-9. Auth-trigger inventory — confirm the `handle_new_user`-style trigger on `auth.users`.
-10. Environment separation confirmation and remediation plan for R-01.
-11. Nav-config reconciliation across `navConfig`, `workspaceNavConfig`, `labNavConfig`.
-12. Doctor-billing debt audit (`doctor_services` vs `tenant_services`).
-13. Owner/Horse-Owner Portal boundaries — deep audit of the zero-policy tables and their RPC access paths.
-14. Community post visibility resolution — `posts` (15 policies) semantics for `public/private/followers` × personal/organization workspace.
-15. CI/CD workflow content — inspect `.github/workflows/n2-4-controlled-supabase-runtime.yml`.
+**Round 2 primary scope:** Account Types, Complete Module Inventory, and Current Implementation Reality.
 
----
+### 23.1 Primary Round 2 product/module evidence
+
+1. **10-account-type behaviour matrix** — for each `tenant_type` (`stable`, `clinic`, `lab`, `academy`, `pharmacy`, `transport`, `auction`, `horse_owner`, `trainer`, `doctor`): capabilities seeded by `initialize_tenant_defaults`, visible modules, nav-config path, and post-onboarding experience.
+2. **Tenant capability seeding** — read `tenant_capabilities` schema + default values by `tenant_type`; enumerate `useModuleAccess` flags.
+3. **Module inventory** — for every module, list routes, pages, components, hooks, tables, and RPCs.
+4. **Module implementation status** — classify each as `active` / `partial` / `schema-only` / `placeholder` / `legacy` / `planned`.
+5. **Per-account post-onboarding experience** — what the user sees after `initialize_tenant_defaults` completes.
+6. **Module visibility and navigation** — reconciled against `navConfig`, `workspaceNavConfig`, `labNavConfig`.
+
+### 23.2 Foundation evidence closures carried alongside Round 2
+
+1. Auth provider configuration — enumerate enabled providers (email/password, Google, phone, SAML), password policy, HIBP toggle, email template overrides.
+2. Full RLS policy bodies — export every `pg_policies` row with expression bodies; tag as `is_tenant_member` / `has_permission` / `EXISTS` / other; produce per-table alignment report.
+3. DEFINER RPC body inspection — for each finance/tenancy/connection RPC, verify `p_tenant_id` validated against `auth.uid()`, idempotency handling, error path, transaction boundaries.
+4. `tenant_members` and `tenants` policy bodies — answer authority questions 4, 6, 7 with evidence (membership authority).
+5. Storage `storage.objects` policies — enumerate by bucket, name, roles, USING expression.
+6. Scheduled job configuration — query `pg_cron` (if enabled) or platform config for `expire-stale-connections` and `mark-overdue-invoices`.
+7. Auth-trigger inventory — confirm the `handle_new_user`-style trigger on `auth.users`.
+8. Environment separation confirmation and remediation plan for R-01.
+9. Nav-config reconciliation across `navConfig`, `workspaceNavConfig`, `labNavConfig`.
+10. Doctor-billing debt audit (`doctor_services` vs `tenant_services`).
+11. Owner / Horse-Owner Portal boundaries — deep audit of the zero-policy tables and their RPC access paths.
+12. Community post visibility resolution — `posts` (15 policies) semantics for `public`/`private`/`followers` × personal/organization workspace.
+13. CI/CD workflow content — inspect `.github/workflows/n2-4-controlled-supabase-runtime.yml`.
+
+Full workflows, cross-account operational lifecycle tracing, full finance depth, PWA/native strategy, and the final roadmap remain **out** of the Round 2 primary scope — they belong to Rounds 3–5.
 
 ## 24. References and Evidence Paths
 
