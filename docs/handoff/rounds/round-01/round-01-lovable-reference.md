@@ -21,6 +21,8 @@ Concise Round 1 companion to `DHB-R01-DEV`. Exists so that Lovable can retrieve 
 Prefer this file when a session needs a fast pointer to authoritative Round 1 sources, a summary of current-truth boundaries versus historical documents, or the rules Lovable must follow when acting on Round 1 material.
 
 > **DG.3A alignment (v1.1.0):** v1.0.0 propagated compressed claims from `DHB-R01-DEV` v1.0.0 (movement RPC arity, PWA status, coverage detail). v1.1.0 realigns every material fact with the corrected `DHB-R01-DEV` v1.1.0 and with the raw Round 1 evidence.
+>
+> **DG.3B re-alignment (v1.2.0):** matches `DHB-R01-DEV` v1.2.0. Qualified environment risk (repository shows one Supabase project reference; runtime confirmation across all deployed surfaces is owner / platform-confirmation-required). Removed the unsupported "paid accounts behave as organizations" generalization. Removed remaining hidden-memory language. Fixed the DebugAuth misclassification (DEV-only, informational, not R-04). Uses precise "Vitest test files" terminology. Round 2 primary scope is explicit: Account Types, Complete Module Inventory, Current Implementation Reality. Framework references use the exact permanent 21-part titles.
 
 ## 2. Authoritative Sources
 
