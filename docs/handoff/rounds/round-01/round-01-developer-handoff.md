@@ -491,7 +491,7 @@ Every `verify_jwt=false` function must self-validate its caller.
 
 ## 17. Environments, Deployment, and Migration Workflow
 
-- **Environment binding (verified):** `.env` contains **only** `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL` — a single project reference. `supabase/config.toml.project_id` matches. Preview URL, published URL, and custom domains all resolve against the **same** Supabase project. Preview mutations therefore affect live data. Captured as high-severity R-01.
+- **Environment binding (verified):** `.env` contains **only** `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL` — a single project reference. `supabase/config.toml.project_id` matches. Preview, published URL, and custom-domain surfaces appear to use the **same** frontend environment binding, but full runtime confirmation across every deployed surface is **owner / platform-confirmation-required**. Until confirmed otherwise, treat preview actions as capable of affecting the same backend data, and evaluate separate staging before major database work. Captured as high-severity R-01.
 - **Build & deployment:** `vite build` (or `vite build --mode development`); no `typecheck` or `test` script wired in `package.json`; `lint` = `eslint .`. Deployment via Lovable managed hosting. Repository workflow: `.github/workflows/n2-4-controlled-supabase-runtime.yml` exists — content not inspected (R2 input).
 - **PWA generation:** kill-switch (`selfDestroying: true`) — no true app-shell PWA today. Only `public/push-sw.js` is retained.
 - **Environment-variable registry (values NOT included):**
