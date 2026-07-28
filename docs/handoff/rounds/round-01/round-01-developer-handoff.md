@@ -702,6 +702,8 @@ Round 1 delivers Sections 1, 3, 4, 5, 6, 14, 15, 16 substantively and Sections 1
 
 Full workflows, cross-account operational lifecycle tracing, full finance depth, PWA/native strategy, and the final roadmap remain **out** of the Round 2 primary scope — they belong to Rounds 3–5.
 
+---
+
 ## 24. References and Evidence Paths
 
 - Central index: `docs/README.md`
