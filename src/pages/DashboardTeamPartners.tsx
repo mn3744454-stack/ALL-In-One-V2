@@ -28,6 +28,17 @@ import { useToast } from "@/hooks/use-toast";
 import type { UnifiedPerson } from "@/hooks/team/useUnifiedTeam";
 import type { ConnectionWithDetails } from "@/hooks/connections/useConnectionsWithDetails";
 
+type TeamSurface = "people" | "partners";
+
+/** Phase 2 — recognized surface resolution from the current search parameters. */
+function resolveSurface(searchParams: URLSearchParams): TeamSurface | null {
+  if (searchParams.has("connectionId")) return "partners";
+  const tab = searchParams.get("tab");
+  if (tab === "partners") return "partners";
+  if (tab === "people") return "people";
+  return null;
+}
+
 const DashboardTeamPartners = () => {
   const { t, lang } = useI18n();
   const { activeTenant, activeRole } = useTenant();
