@@ -165,7 +165,13 @@ export const NAV_MODULES: NavModule[] = [
         key: "team",
         icon: Users,
         labelKey: "hr.title",
-        route: "/dashboard/hr",
+        route: "/dashboard/hr?kind=employee",
+      },
+      {
+        key: "collaborators",
+        icon: Users,
+        labelKey: "hr.collaborators",
+        route: "/dashboard/hr?kind=collaborator",
       },
       {
         key: "payroll",

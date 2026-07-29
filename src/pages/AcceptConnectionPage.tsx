@@ -46,7 +46,7 @@ const AcceptConnectionPage = () => {
         title: t("common.success"),
         description: t("connections.accepted"),
       });
-      navigate("/dashboard/team");
+      navigate("/dashboard/team?tab=partners");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error 
         ? error.message 
@@ -85,7 +85,7 @@ const AcceptConnectionPage = () => {
         title: t("common.success"),
         description: t("connections.rejected"),
       });
-      navigate("/dashboard/team");
+      navigate("/dashboard/team?tab=partners");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error 
         ? error.message 

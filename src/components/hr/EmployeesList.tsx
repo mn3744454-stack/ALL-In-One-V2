@@ -25,7 +25,7 @@ import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
 import { BilingualName } from '@/components/ui/BilingualName';
 import { ResponsibilitiesCell } from './ResponsibilitiesCell';
-import { Plus, Search, Settings, Users } from 'lucide-react';
+import { KeyRound, Plus, Search, Settings, Users } from 'lucide-react';
 import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
 import { useEmployeesAssignmentCounts } from '@/hooks/hr/useEmployeesAssignmentCounts';
 import { ViewSwitcher, getGridClass } from '@/components/ui/ViewSwitcher';
@@ -48,8 +48,15 @@ interface EmployeesListProps {
   onDeactivateEmployee: (id: string) => Promise<Employee>;
   isCreating?: boolean;
   isUpdating?: boolean;
+  /** Phase 2 — normalized HR entry kind. undefined = legacy unfiltered behavior. */
+  kind?: 'employee' | 'collaborator';
   /** Optional secondary action (e.g. HR Settings) shown in the toolbar next to Add Employee */
   settingsAction?: {
+    label: string;
+    onClick: () => void;
+  };
+  /** Optional Access & Invitations action (visible only with team.view) */
+  accessAction?: {
     label: string;
     onClick: () => void;
   };
@@ -66,7 +73,9 @@ export function EmployeesList({
   onDeactivateEmployee,
   isCreating,
   isUpdating,
+  kind,
   settingsAction,
+  accessAction,
 }: EmployeesListProps) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
@@ -76,13 +85,21 @@ export function EmployeesList({
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
+  // Phase 2 — client-side employment-kind filtering (no additional query, no stored value change)
+  const visibleEmployees = kind === 'employee'
+    ? employees.filter(e => e.employment_kind === 'internal')
+    : kind === 'collaborator'
+      ? employees.filter(e => e.employment_kind === 'external')
+      : employees;
+
   // Summary counts
-  const totalCount = employees.length;
+  const totalCount = visibleEmployees.length;
   const internalCount = employees.filter(e => e.employment_kind === 'internal').length;
   const externalCount = employees.filter(e => e.employment_kind === 'external').length;
 
+
   // Phase D — aggregate horse-backed responsibility counts for the visible list.
-  const { countsMap } = useEmployeesAssignmentCounts(employees.map(e => e.id));
+  const { countsMap } = useEmployeesAssignmentCounts(visibleEmployees.map(e => e.id));
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value });
@@ -131,7 +148,7 @@ export function EmployeesList({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-foreground">
-            {t('hr.title')}
+            {kind === 'collaborator' ? t('hr.collaborators') : t('hr.title')}
           </h1>
           {!isLoading && (
             <div className="flex items-center gap-2">
@@ -167,6 +184,17 @@ export function EmployeesList({
             >
               <Settings className="h-4 w-4" />
               <span>{settingsAction.label}</span>
+            </Button>
+          )}
+          {accessAction && (
+            <Button
+              variant="outline"
+              size={isMobile ? "sm" : "default"}
+              onClick={accessAction.onClick}
+              className="gap-2 shrink-0 hidden md:inline-flex"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span>{accessAction.label}</span>
             </Button>
           )}
           <Button
@@ -236,13 +264,13 @@ export function EmployeesList({
             <Skeleton key={i} className="h-[80px] rounded-xl" />
           ))}
         </div>
-      ) : employees.length === 0 ? (
+      ) : visibleEmployees.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <Users className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium text-foreground mb-1">
-            {t('hr.noEmployees')}
+            {kind === 'collaborator' ? t('hr.noCollaborators') : t('hr.noEmployees')}
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
             {t('hr.addFirstEmployee')}
@@ -266,7 +294,7 @@ export function EmployeesList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employees.map((employee) => (
+              {visibleEmployees.map((employee) => (
                 <TableRow
                   key={employee.id}
                   className="cursor-pointer hover:bg-muted/50"
@@ -309,7 +337,7 @@ export function EmployeesList({
         </div>
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
-          {employees.map((employee) => (
+          {visibleEmployees.map((employee) => (
             <EmployeeCard
               key={employee.id}
               employee={employee}

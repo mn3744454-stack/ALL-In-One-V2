@@ -252,10 +252,15 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   }, [horses.length, breedingEnabled, vetEnabled, labMode, movementEnabled, t]);
 
   // Build HR nav items (Partnerships is a separate top-level entry)
+  // Phase 2 — Employees points at the legacy unfiltered href while already on an
+  // unfiltered /dashboard/hr so the existing exact-match active rule keeps it highlighted.
+  const hrKindParam = searchParams.get('kind');
+  const onUnfilteredHr = location.pathname === '/dashboard/hr' && hrKindParam !== 'employee' && hrKindParam !== 'collaborator';
   const hrNavItems = useMemo(() => [
-    { icon: Users, label: t('hr.title'), href: "/dashboard/hr" },
+    { icon: Users, label: t('hr.title'), href: onUnfilteredHr ? "/dashboard/hr" : "/dashboard/hr?kind=employee" },
+    { icon: Users, label: t('hr.collaborators'), href: "/dashboard/hr?kind=collaborator" },
     { icon: Wallet, label: t('hr.payroll.title'), href: "/dashboard/hr/payroll" },
-  ], [t]);
+  ], [t, onUnfilteredHr]);
 
   // Build Finance nav items
   const financeNavItems = useMemo(() => [

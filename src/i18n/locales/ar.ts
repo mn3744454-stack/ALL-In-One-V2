@@ -272,6 +272,9 @@ export const ar = {
     createdAt: "تاريخ الإضافة",
     searchPlaceholder: "البحث بالاسم...",
     noEmployees: "لا يوجد موظفون",
+    noCollaborators: "لا يوجد متعاونون",
+    collaborators: "المتعاونين",
+    accessAndInvitations: "إدارة الوصول والدعوات",
     addFirstEmployee: "أضف أول عضو في فريقك",
     salaryPayment: "دفعة راتب",
     salaryPaymentCreated: "تم تسجيل دفعة الراتب بنجاح",
@@ -6430,6 +6433,8 @@ export const ar = {
   teamPartners: {
     title: "الفريق والشركاء",
     subtitle: "إدارة أعضاء الفريق والمنظمات الشريكة",
+    partnershipsTitle: "الشراكات والجهات المتصلة",
+    partnershipsSubtitle: "إدارة الجهات الشريكة وطلبات الشراكة",
     invitePerson: "دعوة شخص",
     addPartner: "إضافة شريك",
     tabs: { people: "الأشخاص", partners: "الشركاء" },

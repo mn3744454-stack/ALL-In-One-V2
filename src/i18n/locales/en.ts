@@ -260,6 +260,9 @@ export const en = {
     createdAt: "Created",
     searchPlaceholder: "Search by name...",
     noEmployees: "No employees found",
+    noCollaborators: "No collaborators found",
+    collaborators: "Collaborators",
+    accessAndInvitations: "Access & Invitations",
     addFirstEmployee: "Add your first team member",
     salaryPayment: "Salary Payment",
     salaryPaymentCreated: "Salary payment recorded successfully",
@@ -6437,6 +6440,8 @@ export const en = {
   teamPartners: {
     title: "Team & Partners",
     subtitle: "Manage your team members and partner organizations",
+    partnershipsTitle: "Partnerships & Connected Organizations",
+    partnershipsSubtitle: "Manage your partner organizations and connection requests",
     invitePerson: "Invite Person",
     addPartner: "Add Partner",
     tabs: { people: "People", partners: "Partners" },

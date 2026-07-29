@@ -28,6 +28,17 @@ import { useToast } from "@/hooks/use-toast";
 import type { UnifiedPerson } from "@/hooks/team/useUnifiedTeam";
 import type { ConnectionWithDetails } from "@/hooks/connections/useConnectionsWithDetails";
 
+type TeamSurface = "people" | "partners";
+
+/** Phase 2 — recognized surface resolution from the current search parameters. */
+function resolveSurface(searchParams: URLSearchParams): TeamSurface | null {
+  if (searchParams.has("connectionId")) return "partners";
+  const tab = searchParams.get("tab");
+  if (tab === "partners") return "partners";
+  if (tab === "people") return "people";
+  return null;
+}
+
 const DashboardTeamPartners = () => {
   const { t, lang } = useI18n();
   const { activeTenant, activeRole } = useTenant();
@@ -45,10 +56,16 @@ const DashboardTeamPartners = () => {
   const [selectedPerson, setSelectedPerson] = useState<UnifiedPerson | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<ConnectionWithDetails | null>(null);
   const [invitePrefilledEmail, setInvitePrefilledEmail] = useState("");
-  const [activeTab, setActiveTab] = useState(() => {
-    const tabParam = new URLSearchParams(window.location.search).get("tab");
-    return tabParam === "partners" ? "partners" : "people";
-  });
+  const [activeTab, setActiveTab] = useState<TeamSurface>(() =>
+    resolveSurface(new URLSearchParams(window.location.search)) ?? "people"
+  );
+
+  // Phase 2 — synchronize with client-side query changes without remounting.
+  // A null resolution (e.g. after deep-link cleanup) must never reset the local state.
+  useEffect(() => {
+    const resolved = resolveSurface(searchParams);
+    if (resolved && resolved !== activeTab) setActiveTab(resolved);
+  }, [searchParams, activeTab]);
 
   // Deep-link: open specific connection from notification
   useEffect(() => {
@@ -65,6 +82,7 @@ const DashboardTeamPartners = () => {
     setSearchParams(next, { replace: true });
   }, [searchParams, connectionsLoading, connectionsWithDetails, setSearchParams]);
 
+  const isPartnersSurface = activeTab === "partners";
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
   const nonOwnerPeople = people.filter(p => p.role !== "owner");
 
@@ -126,22 +144,28 @@ const DashboardTeamPartners = () => {
 
   return (
     <DashboardShell>
-      <MobilePageHeader title={t("teamPartners.title")} backTo="/dashboard" />
+      <MobilePageHeader title={isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.title")} backTo="/dashboard" />
 
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="w-full">
           {/* Header with actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-xl font-bold text-foreground">{t("teamPartners.title")}</h1>
-              <p className="text-sm text-muted-foreground mt-1">{t("teamPartners.subtitle")}</p>
+              <h1 className="text-xl font-bold text-foreground">
+                {isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.title")}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isPartnersSurface ? t("teamPartners.partnershipsSubtitle") : t("teamPartners.subtitle")}
+              </p>
             </div>
             {canManage && (
               <div className="flex gap-2">
-                <Button variant="gold" size="sm" onClick={() => { setInvitePrefilledEmail(""); setInvitePersonOpen(true); }} className="gap-2">
-                  <UserPlus className="w-4 h-4" />
-                  <span>{t("teamPartners.invitePerson")}</span>
-                </Button>
+                {!isPartnersSurface && (
+                  <Button variant="gold" size="sm" onClick={() => { setInvitePrefilledEmail(""); setInvitePersonOpen(true); }} className="gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    <span>{t("teamPartners.invitePerson")}</span>
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => setAddPartnerOpen(true)} className="gap-2">
                   <Building2 className="w-4 h-4" />
                   <span>{t("teamPartners.addPartner")}</span>
@@ -151,45 +175,50 @@ const DashboardTeamPartners = () => {
           </div>
 
           {/* Summary counters */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <div className="text-center p-2 rounded-lg border bg-card">
-              <p className="text-lg font-bold text-foreground">{counts.total}</p>
-              <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.total")}</p>
+          {!isPartnersSurface && (
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="text-center p-2 rounded-lg border bg-card">
+                <p className="text-lg font-bold text-foreground">{counts.total}</p>
+                <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.total")}</p>
+              </div>
+              <div className="text-center p-2 rounded-lg border bg-card">
+                <p className="text-lg font-bold text-foreground">{counts.active}</p>
+                <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.withAccess")}</p>
+              </div>
+              <div className="text-center p-2 rounded-lg border bg-card">
+                <p className="text-lg font-bold text-foreground">{counts.hrOnly}</p>
+                <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.hrOnly")}</p>
+              </div>
             </div>
-            <div className="text-center p-2 rounded-lg border bg-card">
-              <p className="text-lg font-bold text-foreground">{counts.active}</p>
-              <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.withAccess")}</p>
-            </div>
-            <div className="text-center p-2 rounded-lg border bg-card">
-              <p className="text-lg font-bold text-foreground">{counts.hrOnly}</p>
-              <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.hrOnly")}</p>
-            </div>
-          </div>
+          )}
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="people" className="flex-1 sm:flex-none gap-1.5">
-                <Users className="w-4 h-4" />
-                {t("teamPartners.tabs.people")}
-                {nonOwnerPeople.length > 0 && (
-                  <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
-                    {nonOwnerPeople.length + pendingInvitations.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="partners" className="flex-1 sm:flex-none gap-1.5">
-                <Building2 className="w-4 h-4" />
-                {t("teamPartners.tabs.partners")}
-                {(connectionsWithDetails?.length || 0) > 0 && (
-                  <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
-                    {connectionsWithDetails?.length || 0}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            </TabsList>
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TeamSurface)} className="space-y-4">
+            {!isPartnersSurface && (
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="people" className="flex-1 sm:flex-none gap-1.5">
+                  <Users className="w-4 h-4" />
+                  {t("teamPartners.tabs.people")}
+                  {nonOwnerPeople.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
+                      {nonOwnerPeople.length + pendingInvitations.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="partners" className="flex-1 sm:flex-none gap-1.5">
+                  <Building2 className="w-4 h-4" />
+                  {t("teamPartners.tabs.partners")}
+                  {(connectionsWithDetails?.length || 0) > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
+                      {connectionsWithDetails?.length || 0}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            )}
 
             {/* ── People Tab ── */}
             <TabsContent value="people" className="space-y-4">
+
               {/* Pending invitations */}
               {pendingInvitations.length > 0 && (
                 <div className="space-y-2">
