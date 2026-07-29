@@ -56,10 +56,16 @@ const DashboardTeamPartners = () => {
   const [selectedPerson, setSelectedPerson] = useState<UnifiedPerson | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<ConnectionWithDetails | null>(null);
   const [invitePrefilledEmail, setInvitePrefilledEmail] = useState("");
-  const [activeTab, setActiveTab] = useState(() => {
-    const tabParam = new URLSearchParams(window.location.search).get("tab");
-    return tabParam === "partners" ? "partners" : "people";
-  });
+  const [activeTab, setActiveTab] = useState<TeamSurface>(() =>
+    resolveSurface(new URLSearchParams(window.location.search)) ?? "people"
+  );
+
+  // Phase 2 — synchronize with client-side query changes without remounting.
+  // A null resolution (e.g. after deep-link cleanup) must never reset the local state.
+  useEffect(() => {
+    const resolved = resolveSurface(searchParams);
+    if (resolved && resolved !== activeTab) setActiveTab(resolved);
+  }, [searchParams, activeTab]);
 
   // Deep-link: open specific connection from notification
   useEffect(() => {
