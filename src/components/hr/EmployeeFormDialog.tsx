@@ -128,13 +128,13 @@ export function EmployeeFormDialog({
         email: '',
         notes: '',
         tags: [],
-        employment_kind: 'internal', // New employees default to internal
+        employment_kind: defaultEmploymentKind, // Phase 2.1 — kind-aware create default
         salary_amount: null,
         salary_currency: 'SAR',
         start_date: null,
       });
     }
-  }, [open, employee]);
+  }, [open, employee, defaultEmploymentKind]);
 
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const { isDirty } = useDirtyForm({ formData, phones }, open);
