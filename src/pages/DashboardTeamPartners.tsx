@@ -166,7 +166,7 @@ const DashboardTeamPartners = () => {
 
   return (
     <DashboardShell>
-      <MobilePageHeader title={isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.title")} backTo="/dashboard" />
+      <MobilePageHeader title={isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.peopleTitle")} backTo="/dashboard" />
 
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="w-full">
@@ -174,26 +174,36 @@ const DashboardTeamPartners = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
               <h1 className="text-xl font-bold text-foreground">
-                {isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.title")}
+                {isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.peopleTitle")}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                {isPartnersSurface ? t("teamPartners.partnershipsSubtitle") : t("teamPartners.subtitle")}
+                {isPartnersSurface ? t("teamPartners.partnershipsSubtitle") : t("teamPartners.peopleSubtitle")}
               </p>
             </div>
-            {canManage && (
-              <div className="flex gap-2">
-                {!isPartnersSurface && (
+            <div className="flex items-center gap-2">
+              {isPartnersSurface && (
+                <ViewSwitcher
+                  viewMode={viewMode}
+                  gridColumns={gridColumns}
+                  onViewModeChange={setViewMode}
+                  onGridColumnsChange={setGridColumns}
+                  className="hidden sm:flex"
+                />
+              )}
+              {canManage && (
+                isPartnersSurface ? (
+                  <Button variant="outline" size="sm" onClick={() => setAddPartnerOpen(true)} className="gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>{t("teamPartners.addPartner")}</span>
+                  </Button>
+                ) : (
                   <Button variant="gold" size="sm" onClick={() => { setInvitePrefilledEmail(""); setInvitePersonOpen(true); }} className="gap-2">
                     <UserPlus className="w-4 h-4" />
                     <span>{t("teamPartners.invitePerson")}</span>
                   </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={() => setAddPartnerOpen(true)} className="gap-2">
-                  <Building2 className="w-4 h-4" />
-                  <span>{t("teamPartners.addPartner")}</span>
-                </Button>
-              </div>
-            )}
+                )
+              )}
+            </div>
           </div>
 
           {/* Summary counters */}
@@ -214,32 +224,11 @@ const DashboardTeamPartners = () => {
             </div>
           )}
 
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TeamSurface)} className="space-y-4">
+          <div className="space-y-4">
+            {/* ── People surface ── */}
             {!isPartnersSurface && (
-              <TabsList className="w-full sm:w-auto">
-                <TabsTrigger value="people" className="flex-1 sm:flex-none gap-1.5">
-                  <Users className="w-4 h-4" />
-                  {t("teamPartners.tabs.people")}
-                  {nonOwnerPeople.length > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
-                      {nonOwnerPeople.length + pendingInvitations.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="partners" className="flex-1 sm:flex-none gap-1.5">
-                  <Building2 className="w-4 h-4" />
-                  {t("teamPartners.tabs.partners")}
-                  {(connectionsWithDetails?.length || 0) > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
-                      {connectionsWithDetails?.length || 0}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-            )}
+            <div className="space-y-4">
 
-            {/* ── People Tab ── */}
-            <TabsContent value="people" className="space-y-4">
 
               {/* Pending invitations */}
               {pendingInvitations.length > 0 && (
