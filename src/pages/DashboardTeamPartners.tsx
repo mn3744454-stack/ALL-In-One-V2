@@ -82,6 +82,7 @@ const DashboardTeamPartners = () => {
     setSearchParams(next, { replace: true });
   }, [searchParams, connectionsLoading, connectionsWithDetails, setSearchParams]);
 
+  const isPartnersSurface = activeTab === "partners";
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
   const nonOwnerPeople = people.filter(p => p.role !== "owner");
 
