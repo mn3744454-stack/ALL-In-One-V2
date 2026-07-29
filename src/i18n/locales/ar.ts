@@ -6433,6 +6433,8 @@ export const ar = {
   teamPartners: {
     title: "الفريق والشركاء",
     subtitle: "إدارة أعضاء الفريق والمنظمات الشريكة",
+    partnershipsTitle: "الشراكات والجهات المتصلة",
+    partnershipsSubtitle: "إدارة الجهات الشريكة وطلبات الشراكة",
     invitePerson: "دعوة شخص",
     addPartner: "إضافة شريك",
     tabs: { people: "الأشخاص", partners: "الشركاء" },

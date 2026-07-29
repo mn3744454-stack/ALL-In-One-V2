@@ -6440,6 +6440,8 @@ export const en = {
   teamPartners: {
     title: "Team & Partners",
     subtitle: "Manage your team members and partner organizations",
+    partnershipsTitle: "Partnerships & Connected Organizations",
+    partnershipsSubtitle: "Manage your partner organizations and connection requests",
     invitePerson: "Invite Person",
     addPartner: "Add Partner",
     tabs: { people: "People", partners: "Partners" },
