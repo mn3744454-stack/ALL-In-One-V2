@@ -48,8 +48,15 @@ interface EmployeesListProps {
   onDeactivateEmployee: (id: string) => Promise<Employee>;
   isCreating?: boolean;
   isUpdating?: boolean;
+  /** Phase 2 — normalized HR entry kind. undefined = legacy unfiltered behavior. */
+  kind?: 'employee' | 'collaborator';
   /** Optional secondary action (e.g. HR Settings) shown in the toolbar next to Add Employee */
   settingsAction?: {
+    label: string;
+    onClick: () => void;
+  };
+  /** Optional Access & Invitations action (visible only with team.view) */
+  accessAction?: {
     label: string;
     onClick: () => void;
   };
@@ -66,7 +73,9 @@ export function EmployeesList({
   onDeactivateEmployee,
   isCreating,
   isUpdating,
+  kind,
   settingsAction,
+  accessAction,
 }: EmployeesListProps) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
@@ -76,10 +85,18 @@ export function EmployeesList({
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
+  // Phase 2 — client-side employment-kind filtering (no additional query, no stored value change)
+  const visibleEmployees = kind === 'employee'
+    ? employees.filter(e => e.employment_kind === 'internal')
+    : kind === 'collaborator'
+      ? employees.filter(e => e.employment_kind === 'external')
+      : employees;
+
   // Summary counts
-  const totalCount = employees.length;
+  const totalCount = visibleEmployees.length;
   const internalCount = employees.filter(e => e.employment_kind === 'internal').length;
   const externalCount = employees.filter(e => e.employment_kind === 'external').length;
+
 
   // Phase D — aggregate horse-backed responsibility counts for the visible list.
   const { countsMap } = useEmployeesAssignmentCounts(employees.map(e => e.id));
