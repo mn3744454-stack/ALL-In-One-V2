@@ -164,6 +164,94 @@ const DashboardTeamPartners = () => {
     return <Users className="w-4 h-4 text-primary" />;
   };
 
+  /** Phase 2.1 — shared partner derivation used by List, Grid and Table renderers. */
+  const partnerInfo = (conn: ConnectionWithDetails) => {
+    const isMine = conn.initiator_tenant_id === activeTenant?.tenant_id;
+    const partnerName = isMine ? conn.recipient_tenant_name : conn.initiator_tenant_name;
+    const partnerType = isMine ? conn.recipient_tenant_type : conn.initiator_tenant_type;
+    return {
+      isMine,
+      partnerName,
+      partnerType,
+      isOperational: ["doctor", "trainer", "vet_clinic"].includes(partnerType || ""),
+      isPendingInbound: conn.status === "pending" && !isMine,
+    };
+  };
+
+  /** The existing partner Card — reused unchanged for List and Grid modes. */
+  const renderPartnerCard = (conn: ConnectionWithDetails) => {
+    const { isMine, partnerName, isOperational, isPendingInbound } = partnerInfo(conn);
+    return (
+      <Card
+        key={conn.id}
+        className={`overflow-hidden cursor-pointer transition-colors hover:bg-muted/40 ${isPendingInbound ? "border-primary/30" : ""}`}
+        onClick={() => setSelectedPartner(conn)}
+      >
+        <CardContent className="p-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4 text-accent-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{partnerName || t("teamPartners.unknownPartner")}</p>
+              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                <Badge
+                  variant={conn.status === "accepted" ? "default" : conn.status === "pending" ? "outline" : "destructive"}
+                  className="text-[10px]"
+                >
+                  {t(`teamPartners.connectionStatus.${conn.status}`) || conn.status}
+                </Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  {isOperational
+                    ? t("teamPartners.partnerTypes.operational")
+                    : t("teamPartners.partnerTypes.service")}
+                </Badge>
+              </div>
+              {isPendingInbound && (
+                <p className="text-[10px] text-primary mt-0.5">
+                  {t("teamPartners.partnerDetail.pendingInbound")}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {isPendingInbound && canManage && (
+                <>
+                  <Button
+                    variant="gold" size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); handleAcceptPartner(conn); }}
+                    disabled={acceptConnection.isPending}
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline" size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); handleRejectPartner(conn); }}
+                    disabled={rejectConnection.isPending}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+              {(conn.status === "accepted" || (conn.status === "pending" && isMine)) && canManage && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => { e.stopPropagation(); setSelectedPartner(conn); }}
+                  title={t("teamPartners.configure")}
+                >
+                  <Settings2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <DashboardShell>
       <MobilePageHeader title={isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.peopleTitle")} backTo="/dashboard" />
