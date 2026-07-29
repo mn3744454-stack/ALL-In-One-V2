@@ -97,6 +97,11 @@ export function EmployeesList({
   const internalCount = employees.filter(e => e.employment_kind === 'internal').length;
   const externalCount = employees.filter(e => e.employment_kind === 'external').length;
 
+  // Phase 2.1 — kind-aware creation context
+  const isCollaboratorKind = kind === 'collaborator';
+  const createLabel = isCollaboratorKind ? t('hr.addCollaborator') : t('hr.addEmployee');
+  const createDefaultKind: 'internal' | 'external' = isCollaboratorKind ? 'external' : 'internal';
+
 
   // Phase D — aggregate horse-backed responsibility counts for the visible list.
   const { countsMap } = useEmployeesAssignmentCounts(visibleEmployees.map(e => e.id));
