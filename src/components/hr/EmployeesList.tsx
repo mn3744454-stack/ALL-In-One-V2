@@ -216,7 +216,7 @@ export function EmployeesList({
             className="gap-2 shrink-0"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('hr.addEmployee')}</span>
+            <span className="hidden sm:inline">{createLabel}</span>
             <span className="sm:hidden">{t('common.add')}</span>
           </Button>
         </div>
