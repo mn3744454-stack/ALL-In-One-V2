@@ -884,7 +884,7 @@ This document is acceptance-ready when all of the following hold:
 1. Exactly two files changed: this document and `docs/README.md`.
 2. Document ID is `DHB-ARCH-COMMERCIAL-MONETIZATION`; version `1.0.0`.
 3. `docs/README.md` links the exact path.
-4. All ten owner rulings are covered (§39.1 mapping).
+4. All ten owner rulings are covered (Appendix H mapping).
 5. Ruling 4 carries the priority clarification.
 6. Current and target are separated everywhere.
 7. All 13 target account types are represented, with the three planned types never described as implemented.
