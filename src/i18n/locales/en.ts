@@ -166,7 +166,8 @@ export const en = {
     publicProfile: "Public Profile",
     settings: "Settings",
     signOut: "Sign Out",
-    hr: "HR / Team",
+    hr: "Human Resources",
+    partnerships: "Partnerships",
     movement: "Movement",
     housing: "Housing",
     boardingContracts: "Contracts",
@@ -220,7 +221,7 @@ export const en = {
     deviceRemoved: "Device removed",
   },
   hr: {
-    title: "Team Directory",
+    title: "Employees",
     name: "Name",
     addEmployee: "Add Employee",
     editEmployee: "Edit Employee",
@@ -1819,7 +1820,7 @@ export const en = {
     },
   },
   movement: {
-    title: "Horse Movement",
+    title: "Horse Movements",
     subtitle: "Track entries, exits, and transfers between locations",
     tabs: {
       movements: "Movements",
@@ -1907,8 +1908,8 @@ export const en = {
     },
     destination: {
       internal: "Internal",
-      external: "External",
-      connected: "Connected",
+      external: "Not Registered on Dayli Horse",
+      connected: "Registered on Dayli Horse",
       externalLocation: "External Location",
       selectExternal: "Select external location",
       addNew: "Add New Location",
@@ -1918,7 +1919,7 @@ export const en = {
       noConnectedDestinations: "No connected stables or clinics yet",
       noConnectedDestinationsHint: "Search for and request a partnership with another stable or clinic to enable connected movements.",
       requestPartnership: "Request Partnership",
-      linkAnotherOrganization: "Link another organization",
+      linkAnotherOrganization: "Link Another Organization",
       partnershipRequested: "Partnership request sent",
       orUseExternal: "Or use External destination for non-partner locations",
       pendingRequests: "Pending Requests",
@@ -2082,8 +2083,8 @@ export const en = {
       deactivated: "Location deactivated",
     },
     wizard: {
-      step1Title: "Select Type",
-      step1Desc: "Choose the type of movement",
+      step1Title: "Select Movement Direction",
+      step1Desc: "Choose whether the horse is arriving, departing, or transferring between branches.",
       step2Title: "Select Horse",
       step2Desc: "Choose the horse to move",
       step3Title: "Select Location",
@@ -6458,8 +6459,8 @@ export const en = {
       hrOnly: "HR Only",
     },
     classification: {
-      internal: "Internal Staff",
-      external: "External Collaborator",
+      internal: "Employee",
+      external: "Collaborator",
     },
     counts: {
       total: "Total",

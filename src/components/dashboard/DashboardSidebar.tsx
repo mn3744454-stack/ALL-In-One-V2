@@ -26,6 +26,7 @@ import {
   Calendar,
   FileText,
   Users,
+  Handshake,
   Settings,
   BookOpen,
   Heart,
@@ -250,9 +251,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     return items;
   }, [horses.length, breedingEnabled, vetEnabled, labMode, movementEnabled, t]);
 
-  // Build HR nav items (now includes Team & Partners)
+  // Build HR nav items (Partnerships is a separate top-level entry)
   const hrNavItems = useMemo(() => [
-    { icon: Users, label: t('teamPartners.title') || 'Team & Partners', href: "/dashboard/team" },
     { icon: Users, label: t('hr.title'), href: "/dashboard/hr" },
     { icon: Wallet, label: t('hr.payroll.title'), href: "/dashboard/hr/payroll" },
   ], [t]);
@@ -595,12 +595,24 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 />
                 
                 
-                {/* HR / Team NavGroup - requires team or hr permission */}
-                {(hasPermission('team.view') || hasPermission('hr.view')) && (
+                {/* HR NavGroup - requires HR permission */}
+                {hasPermission('hr.view') && (
                   <NavGroup
                     icon={Users}
                     label={t('sidebar.hr')}
                     items={hrNavItems}
+                    onNavigate={onClose}
+                    {...navProps}
+                  />
+                )}
+
+                {/* Partnerships - existing /dashboard/team route, partners tab */}
+                {hasPermission('team.view') && (
+                  <NavItem
+                    icon={Handshake}
+                    label={t('sidebar.partnerships')}
+                    href="/dashboard/team?tab=partners"
+                    active={isActive("/dashboard/team")}
                     onNavigate={onClose}
                     {...navProps}
                   />

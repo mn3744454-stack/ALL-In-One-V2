@@ -195,6 +195,14 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
     ],
   },
   {
+    key: "partnerships",
+    icon: Users,
+    labelKey: "sidebar.partnerships",
+    route: "/dashboard/team?tab=partners",
+    roles: ["owner", "manager"],
+    permissionKey: "team.view",
+  },
+  {
     key: "housing",
     icon: Warehouse,
     labelKey: "sidebar.housing",
