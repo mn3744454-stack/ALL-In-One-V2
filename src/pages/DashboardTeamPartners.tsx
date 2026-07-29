@@ -2,10 +2,19 @@ import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
+import {
+  Table as UiTable,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Users, Building2, UserPlus, Send, Clock, Check, X,
   Mail, Loader2, Settings2, Monitor, FileText, Briefcase,
