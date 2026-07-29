@@ -148,7 +148,7 @@ export function EmployeesList({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-foreground">
-            {t('hr.title')}
+            {kind === 'collaborator' ? t('hr.collaborators') : t('hr.title')}
           </h1>
           {!isLoading && (
             <div className="flex items-center gap-2">
