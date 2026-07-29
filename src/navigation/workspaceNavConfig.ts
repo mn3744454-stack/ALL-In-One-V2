@@ -184,7 +184,13 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
         key: "team",
         icon: Users,
         labelKey: "hr.title",
-        route: "/dashboard/hr",
+        route: "/dashboard/hr?kind=employee",
+      },
+      {
+        key: "collaborators",
+        icon: Users,
+        labelKey: "hr.collaborators",
+        route: "/dashboard/hr?kind=collaborator",
       },
       {
         key: "payroll",
