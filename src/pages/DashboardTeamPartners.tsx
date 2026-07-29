@@ -400,10 +400,21 @@ const DashboardTeamPartners = () => {
                   ))}
                 </div>
               )}
-            </TabsContent>
+            </div>
+            )}
 
-            {/* ── Partners Tab ── */}
-            <TabsContent value="partners" className="space-y-4">
+            {/* ── Partnerships surface ── */}
+            {isPartnersSurface && (
+            <div className="space-y-4">
+              {/* Mobile switcher position matches platform pages */}
+              <div className="sm:hidden">
+                <ViewSwitcher
+                  viewMode={viewMode}
+                  gridColumns={gridColumns}
+                  onViewModeChange={setViewMode}
+                  onGridColumnsChange={setGridColumns}
+                />
+              </div>
               {connectionsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -421,89 +432,106 @@ const DashboardTeamPartners = () => {
                     )}
                   </CardContent>
                 </Card>
-              ) : (
-                connectionsWithDetails.map((conn) => {
-                  const isMine = conn.initiator_tenant_id === activeTenant?.tenant_id;
-                  const partnerName = isMine ? conn.recipient_tenant_name : conn.initiator_tenant_name;
-                  const partnerType = isMine ? conn.recipient_tenant_type : conn.initiator_tenant_type;
-                  const isOperational = ["doctor", "trainer", "vet_clinic"].includes(partnerType || "");
-                  const isPendingInbound = conn.status === "pending" && !isMine;
-
-                    return (
-                    <Card
-                      key={conn.id}
-                      className={`overflow-hidden cursor-pointer transition-colors hover:bg-muted/40 ${isPendingInbound ? "border-primary/30" : ""}`}
-                      onClick={() => setSelectedPartner(conn)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                            <Building2 className="w-4 h-4 text-accent-foreground" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{partnerName || t("teamPartners.unknownPartner")}</p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
+              ) : viewMode === "table" ? (
+                <div className="rounded-md border overflow-x-auto">
+                  <UiTable>
+                    <TableHeader className="bg-muted">
+                      <TableRow className="border-b-2 border-border hover:bg-muted">
+                        <TableHead>{t("teamPartners.partnersTable.organization")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.type")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.status")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.direction")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.date")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.consents")}</TableHead>
+                        <TableHead className="text-end">{t("teamPartners.partnersTable.actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {connectionsWithDetails.map((conn) => {
+                        const info = partnerInfo(conn);
+                        return (
+                          <TableRow
+                            key={conn.id}
+                            className="cursor-pointer"
+                            onClick={() => setSelectedPartner(conn)}
+                          >
+                            <TableCell className="font-medium">
+                              {info.partnerName || t("teamPartners.unknownPartner")}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="text-[10px]">
+                                {info.isOperational
+                                  ? t("teamPartners.partnerTypes.operational")
+                                  : t("teamPartners.partnerTypes.service")}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
                               <Badge
                                 variant={conn.status === "accepted" ? "default" : conn.status === "pending" ? "outline" : "destructive"}
                                 className="text-[10px]"
                               >
                                 {t(`teamPartners.connectionStatus.${conn.status}`) || conn.status}
                               </Badge>
-                              <Badge variant="secondary" className="text-[10px]">
-                                {isOperational
-                                  ? t("teamPartners.partnerTypes.operational")
-                                  : t("teamPartners.partnerTypes.service")}
-                              </Badge>
-                            </div>
-                            {isPendingInbound && (
-                              <p className="text-[10px] text-primary mt-0.5">
-                                {t("teamPartners.partnerDetail.pendingInbound")}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            {/* Accept/Reject for pending inbound */}
-                            {isPendingInbound && canManage && (
-                              <>
-                                <Button
-                                  variant="gold" size="icon"
-                                  className="h-8 w-8"
-                                  onClick={(e) => { e.stopPropagation(); handleAcceptPartner(conn); }}
-                                  disabled={acceptConnection.isPending}
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline" size="icon"
-                                  className="h-8 w-8"
-                                  onClick={(e) => { e.stopPropagation(); handleRejectPartner(conn); }}
-                                  disabled={rejectConnection.isPending}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
-                            {/* Config button for accepted or own pending */}
-                            {(conn.status === "accepted" || (conn.status === "pending" && isMine)) && canManage && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={(e) => { e.stopPropagation(); setSelectedPartner(conn); }}
-                                title={t("teamPartners.configure")}
-                              >
-                                <Settings2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {info.isMine
+                                ? t("teamPartners.partnersTable.outgoing")
+                                : t("teamPartners.partnersTable.incoming")}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {conn.created_at
+                                ? formatDistanceToNow(new Date(conn.created_at), { addSuffix: true, ...(lang === "ar" ? { locale: ar } : {}) })
+                                : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {conn.active_grants_count ?? 0}
+                            </TableCell>
+                            <TableCell className="text-end">
+                              <div className="flex items-center justify-end gap-1">
+                                {info.isPendingInbound && canManage && (
+                                  <>
+                                    <Button
+                                      variant="gold" size="icon" className="h-8 w-8"
+                                      onClick={(e) => { e.stopPropagation(); handleAcceptPartner(conn); }}
+                                      disabled={acceptConnection.isPending}
+                                    >
+                                      <Check className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline" size="icon" className="h-8 w-8"
+                                      onClick={(e) => { e.stopPropagation(); handleRejectPartner(conn); }}
+                                      disabled={rejectConnection.isPending}
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </>
+                                )}
+                                {(conn.status === "accepted" || (conn.status === "pending" && info.isMine)) && canManage && (
+                                  <Button
+                                    variant="ghost" size="icon" className="h-8 w-8"
+                                    onClick={(e) => { e.stopPropagation(); setSelectedPartner(conn); }}
+                                    title={t("teamPartners.configure")}
+                                  >
+                                    <Settings2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </UiTable>
+                </div>
+              ) : (
+                <div className={getGridClass(gridColumns, viewMode)}>
+                  {connectionsWithDetails.map((conn) => renderPartnerCard(conn))}
+                </div>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+            )}
+          </div>
+
         </div>
       </div>
 
