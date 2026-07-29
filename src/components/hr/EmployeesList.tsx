@@ -264,13 +264,13 @@ export function EmployeesList({
             <Skeleton key={i} className="h-[80px] rounded-xl" />
           ))}
         </div>
-      ) : employees.length === 0 ? (
+      ) : visibleEmployees.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <Users className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium text-foreground mb-1">
-            {t('hr.noEmployees')}
+            {kind === 'collaborator' ? t('hr.noCollaborators') : t('hr.noEmployees')}
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
             {t('hr.addFirstEmployee')}
