@@ -99,7 +99,7 @@ export function EmployeesList({
 
 
   // Phase D — aggregate horse-backed responsibility counts for the visible list.
-  const { countsMap } = useEmployeesAssignmentCounts(employees.map(e => e.id));
+  const { countsMap } = useEmployeesAssignmentCounts(visibleEmployees.map(e => e.id));
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value });
