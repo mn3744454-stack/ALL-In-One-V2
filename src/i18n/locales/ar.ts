@@ -2080,7 +2080,7 @@ export const ar = {
       noMovements: "لا توجد حركات",
       adjustFilters: "جرب تعديل عوامل التصفية",
       recordFirst: "سجل أول حركة لخيولك",
-      recordMovement: "تسجيل حركة",
+      recordMovement: "تسجيل تنقّل",
     },
     locations: {
       title: "المواقع",
@@ -2149,7 +2149,7 @@ export const ar = {
       unitTransition: "الوحدة",
     },
     form: {
-      recordMovement: "تسجيل حركة",
+      recordMovement: "تسجيل تنقّل",
       movementDate: "تاريخ الحركة",
       movementType: "نوع الحركة",
       selectHorse: "الخيل",
