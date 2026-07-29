@@ -294,7 +294,7 @@ export function EmployeesList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employees.map((employee) => (
+              {visibleEmployees.map((employee) => (
                 <TableRow
                   key={employee.id}
                   className="cursor-pointer hover:bg-muted/50"
@@ -337,7 +337,7 @@ export function EmployeesList({
         </div>
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
-          {employees.map((employee) => (
+          {visibleEmployees.map((employee) => (
             <EmployeeCard
               key={employee.id}
               employee={employee}
