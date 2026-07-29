@@ -2,10 +2,19 @@ import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
+import {
+  Table as UiTable,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Users, Building2, UserPlus, Send, Clock, Check, X,
   Mail, Loader2, Settings2, Monitor, FileText, Briefcase,
@@ -60,12 +69,13 @@ const DashboardTeamPartners = () => {
     resolveSurface(new URLSearchParams(window.location.search)) ?? "people"
   );
 
-  // Phase 2 — synchronize with client-side query changes without remounting.
-  // A null resolution (e.g. after deep-link cleanup) must never reset the local state.
+  // Phase 2.1 — react to actual search-parameter changes only. A null resolution
+  // (e.g. after deep-link cleanup) must never reset the local surface state.
   useEffect(() => {
     const resolved = resolveSurface(searchParams);
-    if (resolved && resolved !== activeTab) setActiveTab(resolved);
-  }, [searchParams, activeTab]);
+    if (!resolved) return;
+    setActiveTab((current) => (current === resolved ? current : resolved));
+  }, [searchParams]);
 
   // Deep-link: open specific connection from notification
   useEffect(() => {
@@ -85,6 +95,18 @@ const DashboardTeamPartners = () => {
   const isPartnersSurface = activeTab === "partners";
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
   const nonOwnerPeople = people.filter(p => p.role !== "owner");
+
+  // Phase 2.1 — platform-standard Partnerships view system (default: list)
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference("team_partners");
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("daylihorse_view_pref_team_partners")
+        && !localStorage.getItem("khail_view_pref_team_partners")) {
+        setViewMode("list");
+      }
+    } catch { /* storage unavailable */ }
+  }, [setViewMode]);
+
 
   const handleAddPartner = async (recipientTenantId: string) => {
     await createConnection.mutateAsync({ connectionType: "b2b", recipientTenantId });
@@ -142,9 +164,97 @@ const DashboardTeamPartners = () => {
     return <Users className="w-4 h-4 text-primary" />;
   };
 
+  /** Phase 2.1 — shared partner derivation used by List, Grid and Table renderers. */
+  const partnerInfo = (conn: ConnectionWithDetails) => {
+    const isMine = conn.initiator_tenant_id === activeTenant?.tenant_id;
+    const partnerName = isMine ? conn.recipient_tenant_name : conn.initiator_tenant_name;
+    const partnerType = isMine ? conn.recipient_tenant_type : conn.initiator_tenant_type;
+    return {
+      isMine,
+      partnerName,
+      partnerType,
+      isOperational: ["doctor", "trainer", "vet_clinic"].includes(partnerType || ""),
+      isPendingInbound: conn.status === "pending" && !isMine,
+    };
+  };
+
+  /** The existing partner Card — reused unchanged for List and Grid modes. */
+  const renderPartnerCard = (conn: ConnectionWithDetails) => {
+    const { isMine, partnerName, isOperational, isPendingInbound } = partnerInfo(conn);
+    return (
+      <Card
+        key={conn.id}
+        className={`overflow-hidden cursor-pointer transition-colors hover:bg-muted/40 ${isPendingInbound ? "border-primary/30" : ""}`}
+        onClick={() => setSelectedPartner(conn)}
+      >
+        <CardContent className="p-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4 text-accent-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{partnerName || t("teamPartners.unknownPartner")}</p>
+              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                <Badge
+                  variant={conn.status === "accepted" ? "default" : conn.status === "pending" ? "outline" : "destructive"}
+                  className="text-[10px]"
+                >
+                  {t(`teamPartners.connectionStatus.${conn.status}`) || conn.status}
+                </Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  {isOperational
+                    ? t("teamPartners.partnerTypes.operational")
+                    : t("teamPartners.partnerTypes.service")}
+                </Badge>
+              </div>
+              {isPendingInbound && (
+                <p className="text-[10px] text-primary mt-0.5">
+                  {t("teamPartners.partnerDetail.pendingInbound")}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {isPendingInbound && canManage && (
+                <>
+                  <Button
+                    variant="gold" size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); handleAcceptPartner(conn); }}
+                    disabled={acceptConnection.isPending}
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline" size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); handleRejectPartner(conn); }}
+                    disabled={rejectConnection.isPending}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+              {(conn.status === "accepted" || (conn.status === "pending" && isMine)) && canManage && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => { e.stopPropagation(); setSelectedPartner(conn); }}
+                  title={t("teamPartners.configure")}
+                >
+                  <Settings2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <DashboardShell>
-      <MobilePageHeader title={isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.title")} backTo="/dashboard" />
+      <MobilePageHeader title={isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.peopleTitle")} backTo="/dashboard" />
 
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="w-full">
@@ -152,26 +262,36 @@ const DashboardTeamPartners = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
               <h1 className="text-xl font-bold text-foreground">
-                {isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.title")}
+                {isPartnersSurface ? t("teamPartners.partnershipsTitle") : t("teamPartners.peopleTitle")}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                {isPartnersSurface ? t("teamPartners.partnershipsSubtitle") : t("teamPartners.subtitle")}
+                {isPartnersSurface ? t("teamPartners.partnershipsSubtitle") : t("teamPartners.peopleSubtitle")}
               </p>
             </div>
-            {canManage && (
-              <div className="flex gap-2">
-                {!isPartnersSurface && (
+            <div className="flex items-center gap-2">
+              {isPartnersSurface && (
+                <ViewSwitcher
+                  viewMode={viewMode}
+                  gridColumns={gridColumns}
+                  onViewModeChange={setViewMode}
+                  onGridColumnsChange={setGridColumns}
+                  className="hidden sm:flex"
+                />
+              )}
+              {canManage && (
+                isPartnersSurface ? (
+                  <Button variant="outline" size="sm" onClick={() => setAddPartnerOpen(true)} className="gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>{t("teamPartners.addPartner")}</span>
+                  </Button>
+                ) : (
                   <Button variant="gold" size="sm" onClick={() => { setInvitePrefilledEmail(""); setInvitePersonOpen(true); }} className="gap-2">
                     <UserPlus className="w-4 h-4" />
                     <span>{t("teamPartners.invitePerson")}</span>
                   </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={() => setAddPartnerOpen(true)} className="gap-2">
-                  <Building2 className="w-4 h-4" />
-                  <span>{t("teamPartners.addPartner")}</span>
-                </Button>
-              </div>
-            )}
+                )
+              )}
+            </div>
           </div>
 
           {/* Summary counters */}
@@ -192,32 +312,11 @@ const DashboardTeamPartners = () => {
             </div>
           )}
 
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TeamSurface)} className="space-y-4">
+          <div className="space-y-4">
+            {/* ── People surface ── */}
             {!isPartnersSurface && (
-              <TabsList className="w-full sm:w-auto">
-                <TabsTrigger value="people" className="flex-1 sm:flex-none gap-1.5">
-                  <Users className="w-4 h-4" />
-                  {t("teamPartners.tabs.people")}
-                  {nonOwnerPeople.length > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
-                      {nonOwnerPeople.length + pendingInvitations.length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="partners" className="flex-1 sm:flex-none gap-1.5">
-                  <Building2 className="w-4 h-4" />
-                  {t("teamPartners.tabs.partners")}
-                  {(connectionsWithDetails?.length || 0) > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
-                      {connectionsWithDetails?.length || 0}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-            )}
+            <div className="space-y-4">
 
-            {/* ── People Tab ── */}
-            <TabsContent value="people" className="space-y-4">
 
               {/* Pending invitations */}
               {pendingInvitations.length > 0 && (
@@ -389,10 +488,21 @@ const DashboardTeamPartners = () => {
                   ))}
                 </div>
               )}
-            </TabsContent>
+            </div>
+            )}
 
-            {/* ── Partners Tab ── */}
-            <TabsContent value="partners" className="space-y-4">
+            {/* ── Partnerships surface ── */}
+            {isPartnersSurface && (
+            <div className="space-y-4">
+              {/* Mobile switcher position matches platform pages */}
+              <div className="sm:hidden">
+                <ViewSwitcher
+                  viewMode={viewMode}
+                  gridColumns={gridColumns}
+                  onViewModeChange={setViewMode}
+                  onGridColumnsChange={setGridColumns}
+                />
+              </div>
               {connectionsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -410,89 +520,106 @@ const DashboardTeamPartners = () => {
                     )}
                   </CardContent>
                 </Card>
-              ) : (
-                connectionsWithDetails.map((conn) => {
-                  const isMine = conn.initiator_tenant_id === activeTenant?.tenant_id;
-                  const partnerName = isMine ? conn.recipient_tenant_name : conn.initiator_tenant_name;
-                  const partnerType = isMine ? conn.recipient_tenant_type : conn.initiator_tenant_type;
-                  const isOperational = ["doctor", "trainer", "vet_clinic"].includes(partnerType || "");
-                  const isPendingInbound = conn.status === "pending" && !isMine;
-
-                    return (
-                    <Card
-                      key={conn.id}
-                      className={`overflow-hidden cursor-pointer transition-colors hover:bg-muted/40 ${isPendingInbound ? "border-primary/30" : ""}`}
-                      onClick={() => setSelectedPartner(conn)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                            <Building2 className="w-4 h-4 text-accent-foreground" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{partnerName || t("teamPartners.unknownPartner")}</p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
+              ) : viewMode === "table" ? (
+                <div className="rounded-md border overflow-x-auto">
+                  <UiTable>
+                    <TableHeader className="bg-muted">
+                      <TableRow className="border-b-2 border-border hover:bg-muted">
+                        <TableHead>{t("teamPartners.partnersTable.organization")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.type")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.status")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.direction")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.date")}</TableHead>
+                        <TableHead>{t("teamPartners.partnersTable.consents")}</TableHead>
+                        <TableHead className="text-end">{t("teamPartners.partnersTable.actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {connectionsWithDetails.map((conn) => {
+                        const info = partnerInfo(conn);
+                        return (
+                          <TableRow
+                            key={conn.id}
+                            className="cursor-pointer"
+                            onClick={() => setSelectedPartner(conn)}
+                          >
+                            <TableCell className="font-medium">
+                              {info.partnerName || t("teamPartners.unknownPartner")}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="text-[10px]">
+                                {info.isOperational
+                                  ? t("teamPartners.partnerTypes.operational")
+                                  : t("teamPartners.partnerTypes.service")}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
                               <Badge
                                 variant={conn.status === "accepted" ? "default" : conn.status === "pending" ? "outline" : "destructive"}
                                 className="text-[10px]"
                               >
                                 {t(`teamPartners.connectionStatus.${conn.status}`) || conn.status}
                               </Badge>
-                              <Badge variant="secondary" className="text-[10px]">
-                                {isOperational
-                                  ? t("teamPartners.partnerTypes.operational")
-                                  : t("teamPartners.partnerTypes.service")}
-                              </Badge>
-                            </div>
-                            {isPendingInbound && (
-                              <p className="text-[10px] text-primary mt-0.5">
-                                {t("teamPartners.partnerDetail.pendingInbound")}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            {/* Accept/Reject for pending inbound */}
-                            {isPendingInbound && canManage && (
-                              <>
-                                <Button
-                                  variant="gold" size="icon"
-                                  className="h-8 w-8"
-                                  onClick={(e) => { e.stopPropagation(); handleAcceptPartner(conn); }}
-                                  disabled={acceptConnection.isPending}
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline" size="icon"
-                                  className="h-8 w-8"
-                                  onClick={(e) => { e.stopPropagation(); handleRejectPartner(conn); }}
-                                  disabled={rejectConnection.isPending}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
-                            {/* Config button for accepted or own pending */}
-                            {(conn.status === "accepted" || (conn.status === "pending" && isMine)) && canManage && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={(e) => { e.stopPropagation(); setSelectedPartner(conn); }}
-                                title={t("teamPartners.configure")}
-                              >
-                                <Settings2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {info.isMine
+                                ? t("teamPartners.partnersTable.outgoing")
+                                : t("teamPartners.partnersTable.incoming")}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {conn.created_at
+                                ? formatDistanceToNow(new Date(conn.created_at), { addSuffix: true, ...(lang === "ar" ? { locale: ar } : {}) })
+                                : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {conn.active_grants_count ?? 0}
+                            </TableCell>
+                            <TableCell className="text-end">
+                              <div className="flex items-center justify-end gap-1">
+                                {info.isPendingInbound && canManage && (
+                                  <>
+                                    <Button
+                                      variant="gold" size="icon" className="h-8 w-8"
+                                      onClick={(e) => { e.stopPropagation(); handleAcceptPartner(conn); }}
+                                      disabled={acceptConnection.isPending}
+                                    >
+                                      <Check className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline" size="icon" className="h-8 w-8"
+                                      onClick={(e) => { e.stopPropagation(); handleRejectPartner(conn); }}
+                                      disabled={rejectConnection.isPending}
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </>
+                                )}
+                                {(conn.status === "accepted" || (conn.status === "pending" && info.isMine)) && canManage && (
+                                  <Button
+                                    variant="ghost" size="icon" className="h-8 w-8"
+                                    onClick={(e) => { e.stopPropagation(); setSelectedPartner(conn); }}
+                                    title={t("teamPartners.configure")}
+                                  >
+                                    <Settings2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </UiTable>
+                </div>
+              ) : (
+                <div className={getGridClass(gridColumns, viewMode)}>
+                  {connectionsWithDetails.map((conn) => renderPartnerCard(conn))}
+                </div>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+            )}
+          </div>
+
         </div>
       </div>
 

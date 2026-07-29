@@ -97,6 +97,11 @@ export function EmployeesList({
   const internalCount = employees.filter(e => e.employment_kind === 'internal').length;
   const externalCount = employees.filter(e => e.employment_kind === 'external').length;
 
+  // Phase 2.1 — kind-aware creation context
+  const isCollaboratorKind = kind === 'collaborator';
+  const createLabel = isCollaboratorKind ? t('hr.addCollaborator') : t('hr.addEmployee');
+  const createDefaultKind: 'internal' | 'external' = isCollaboratorKind ? 'external' : 'internal';
+
 
   // Phase D — aggregate horse-backed responsibility counts for the visible list.
   const { countsMap } = useEmployeesAssignmentCounts(visibleEmployees.map(e => e.id));
@@ -152,15 +157,23 @@ export function EmployeesList({
           </h1>
           {!isLoading && (
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {totalCount} {t('hr.total')}
-              </Badge>
-              <Badge variant="default" className="text-xs">
-                {internalCount} {t('hr.internal')}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                {externalCount} {t('hr.external')}
-              </Badge>
+              {kind ? (
+                <Badge variant="outline" className="text-xs">
+                  {totalCount} {isCollaboratorKind ? t('hr.collaborators') : t('hr.title')}
+                </Badge>
+              ) : (
+                <>
+                  <Badge variant="outline" className="text-xs">
+                    {totalCount} {t('hr.total')}
+                  </Badge>
+                  <Badge variant="default" className="text-xs">
+                    {internalCount} {t('hr.internal')}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {externalCount} {t('hr.external')}
+                  </Badge>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -203,7 +216,7 @@ export function EmployeesList({
             className="gap-2 shrink-0"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('hr.addEmployee')}</span>
+            <span className="hidden sm:inline">{createLabel}</span>
             <span className="sm:hidden">{t('common.add')}</span>
           </Button>
         </div>
@@ -277,7 +290,7 @@ export function EmployeesList({
           </p>
           <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
             <Plus className="h-4 w-4" />
-            {t('hr.addEmployee')}
+            {createLabel}
           </Button>
         </div>
       ) : viewMode === 'table' ? (
@@ -351,6 +364,7 @@ export function EmployeesList({
       <EmployeeFormDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
+        defaultEmploymentKind={createDefaultKind}
         onSubmit={async (data) => {
           await onCreateEmployee(data);
           setShowCreateDialog(false);

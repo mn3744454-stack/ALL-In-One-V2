@@ -87,7 +87,7 @@ export default function DashboardHR() {
               onClick: () => navigate('/dashboard/hr/settings'),
             } : undefined}
             accessAction={hasPermission('team.view') ? {
-              label: t('hr.accessAndInvitations'),
+              label: t('hr.peopleAndInvitations'),
               onClick: () => navigate('/dashboard/team?tab=people'),
             } : undefined}
           />
