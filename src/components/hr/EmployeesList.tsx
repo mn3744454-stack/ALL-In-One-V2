@@ -364,6 +364,7 @@ export function EmployeesList({
       <EmployeeFormDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
+        defaultEmploymentKind={createDefaultKind}
         onSubmit={async (data) => {
           await onCreateEmployee(data);
           setShowCreateDialog(false);
