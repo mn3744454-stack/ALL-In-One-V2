@@ -25,7 +25,7 @@ import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
 import { BilingualName } from '@/components/ui/BilingualName';
 import { ResponsibilitiesCell } from './ResponsibilitiesCell';
-import { Plus, Search, Settings, Users } from 'lucide-react';
+import { KeyRound, Plus, Search, Settings, Users } from 'lucide-react';
 import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
 import { useEmployeesAssignmentCounts } from '@/hooks/hr/useEmployeesAssignmentCounts';
 import { ViewSwitcher, getGridClass } from '@/components/ui/ViewSwitcher';
