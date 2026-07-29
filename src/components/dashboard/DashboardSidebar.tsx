@@ -594,12 +594,24 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 />
                 
                 
-                {/* HR / Team NavGroup - requires team or hr permission */}
-                {(hasPermission('team.view') || hasPermission('hr.view')) && (
+                {/* HR NavGroup - requires HR permission */}
+                {hasPermission('hr.view') && (
                   <NavGroup
                     icon={Users}
                     label={t('sidebar.hr')}
                     items={hrNavItems}
+                    onNavigate={onClose}
+                    {...navProps}
+                  />
+                )}
+
+                {/* Partnerships - existing /dashboard/team route, partners tab */}
+                {hasPermission('team.view') && (
+                  <NavItem
+                    icon={Handshake}
+                    label={t('sidebar.partnerships')}
+                    href="/dashboard/team?tab=partners"
+                    active={isActive("/dashboard/team")}
                     onNavigate={onClose}
                     {...navProps}
                   />
