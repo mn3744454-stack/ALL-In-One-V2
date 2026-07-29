@@ -157,15 +157,23 @@ export function EmployeesList({
           </h1>
           {!isLoading && (
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {totalCount} {t('hr.total')}
-              </Badge>
-              <Badge variant="default" className="text-xs">
-                {internalCount} {t('hr.internal')}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                {externalCount} {t('hr.external')}
-              </Badge>
+              {kind ? (
+                <Badge variant="outline" className="text-xs">
+                  {totalCount} {isCollaboratorKind ? t('hr.collaborators') : t('hr.title')}
+                </Badge>
+              ) : (
+                <>
+                  <Badge variant="outline" className="text-xs">
+                    {totalCount} {t('hr.total')}
+                  </Badge>
+                  <Badge variant="default" className="text-xs">
+                    {internalCount} {t('hr.internal')}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {externalCount} {t('hr.external')}
+                  </Badge>
+                </>
+              )}
             </div>
           )}
         </div>
