@@ -69,12 +69,13 @@ const DashboardTeamPartners = () => {
     resolveSurface(new URLSearchParams(window.location.search)) ?? "people"
   );
 
-  // Phase 2 — synchronize with client-side query changes without remounting.
-  // A null resolution (e.g. after deep-link cleanup) must never reset the local state.
+  // Phase 2.1 — react to actual search-parameter changes only. A null resolution
+  // (e.g. after deep-link cleanup) must never reset the local surface state.
   useEffect(() => {
     const resolved = resolveSurface(searchParams);
-    if (resolved && resolved !== activeTab) setActiveTab(resolved);
-  }, [searchParams, activeTab]);
+    if (!resolved) return;
+    setActiveTab((current) => (current === resolved ? current : resolved));
+  }, [searchParams]);
 
   // Deep-link: open specific connection from notification
   useEffect(() => {
@@ -94,6 +95,18 @@ const DashboardTeamPartners = () => {
   const isPartnersSurface = activeTab === "partners";
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
   const nonOwnerPeople = people.filter(p => p.role !== "owner");
+
+  // Phase 2.1 — platform-standard Partnerships view system (default: list)
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference("team_partners");
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("daylihorse_view_pref_team_partners")
+        && !localStorage.getItem("khail_view_pref_team_partners")) {
+        setViewMode("list");
+      }
+    } catch { /* storage unavailable */ }
+  }, [setViewMode]);
+
 
   const handleAddPartner = async (recipientTenantId: string) => {
     await createConnection.mutateAsync({ connectionType: "b2b", recipientTenantId });
