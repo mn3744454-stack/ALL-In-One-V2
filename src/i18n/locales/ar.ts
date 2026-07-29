@@ -179,6 +179,7 @@ export const ar = {
     settings: "الإعدادات",
     signOut: "تسجيل الخروج",
     hr: "الموارد البشرية",
+    partnerships: "الشراكات",
     movement: "الوصول والمغادرة",
     housing: "الإسكان",
     boardingContracts: "العقود",
