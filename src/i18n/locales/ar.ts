@@ -233,7 +233,7 @@ export const ar = {
     deviceRemoved: "تم إزالة الجهاز",
   },
   hr: {
-    title: "دليل الفريق",
+    title: "الموظفون",
     name: "الاسم",
     addEmployee: "إضافة موظف",
     editEmployee: "تعديل بيانات الموظف",
@@ -1838,7 +1838,7 @@ export const ar = {
     },
   },
   movement: {
-    title: "حركة الخيول",
+    title: "تنقّلات الخيل",
     subtitle: "تتبع الوصول والمغادرة والنقل بين المواقع",
     tabs: {
       movements: "الحركات",
@@ -1926,8 +1926,8 @@ export const ar = {
     },
     destination: {
       internal: "داخلي",
-      external: "خارجي",
-      connected: "متصل",
+      external: "غير مسجلة على ديلي هورس",
+      connected: "مسجلة على ديلي هورس",
       externalLocation: "موقع خارجي",
       selectExternal: "اختر موقع خارجي",
       addNew: "إضافة موقع جديد",
@@ -2101,8 +2101,8 @@ export const ar = {
       deactivated: "تم إلغاء تفعيل الموقع",
     },
     wizard: {
-      step1Title: "اختر النوع",
-      step1Desc: "اختر نوع الحركة",
+      step1Title: "اختر مسار التنقّل",
+      step1Desc: "حدد ما إذا كان الخيل سيصل، يغادر، أو ينتقل بين الفروع.",
       step2Title: "اختر الخيل",
       step2Desc: "اختر الخيل للنقل",
       step3Title: "اختر الموقع",
@@ -6452,8 +6452,8 @@ export const ar = {
       hrOnly: "موارد بشرية فقط",
     },
     classification: {
-      internal: "موظف داخلي",
-      external: "متعاون خارجي",
+      internal: "موظف",
+      external: "متعاون",
     },
     counts: {
       total: "الإجمالي",
