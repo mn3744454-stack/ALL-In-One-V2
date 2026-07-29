@@ -830,18 +830,22 @@ export function RecordMovementDialog({
                 moves should be recorded as Inter-Branch Transfer instead. */}
             {formData.movementType === "out" && (
               <>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch gap-2">
                   <button
+                    type="button"
+                    aria-pressed={formData.destinationType === 'external'}
                     onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null, connectedTenantId: null })}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
+                      "flex-1 min-w-0 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all text-center",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50 focus-visible:ring-offset-2",
                       formData.destinationType === 'external'
-                        ? "border-primary bg-primary/5 text-primary"
-                        : "border-border text-muted-foreground hover:border-primary/50"
+                        ? "border-destructive bg-destructive/10 text-destructive shadow-sm"
+                        : "border-destructive/30 bg-destructive/5 text-destructive/80 hover:border-destructive/60 hover:bg-destructive/10"
                     )}
                   >
-                    <MapPin className="h-3.5 w-3.5" />
-                    {t("movement.destination.external")}
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 break-words">{t("movement.destination.external")}</span>
+                    {formData.destinationType === 'external' && <Check className="h-3.5 w-3.5 shrink-0" />}
                   </button>
                   <button
                     type="button"
@@ -850,22 +854,25 @@ export function RecordMovementDialog({
                       setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null });
                     }}
                     aria-disabled={!canSendConnected}
+                    aria-pressed={formData.destinationType === 'connected'}
                     title={!canSendConnected ? t("movement.connected.noPermission") : undefined}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
+                      "flex-1 min-w-0 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all text-center",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success/50 focus-visible:ring-offset-2",
                       formData.destinationType === 'connected'
-                        ? "border-primary bg-primary/5 text-primary"
-                        : "border-border text-muted-foreground hover:border-primary/50",
-                      !canSendConnected && "opacity-50 cursor-not-allowed hover:border-border"
+                        ? "border-success bg-success/15 text-success shadow-sm"
+                        : "border-success/30 bg-success/5 text-success/80 hover:border-success/60 hover:bg-success/10",
+                      !canSendConnected && "opacity-50 cursor-not-allowed hover:border-success/30"
                     )}
                   >
-                    <Link2 className="h-3.5 w-3.5" />
-                    {t("movement.destination.connected")}
+                    <Link2 className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 break-words">{t("movement.destination.connected")}</span>
                     {canSendConnected && connectedDestinations.length > 0 && (
-                      <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
+                      <Badge variant="secondary" className="shrink-0 text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
                         {connectedDestinations.length}
                       </Badge>
                     )}
+                    {formData.destinationType === 'connected' && <Check className="h-3.5 w-3.5 shrink-0" />}
                   </button>
                 </div>
                 {!canSendConnected && (

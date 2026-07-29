@@ -233,7 +233,7 @@ export const ar = {
     deviceRemoved: "تم إزالة الجهاز",
   },
   hr: {
-    title: "الموظفون",
+    title: "الموظفين",
     name: "الاسم",
     addEmployee: "إضافة موظف",
     editEmployee: "تعديل بيانات الموظف",
@@ -1926,8 +1926,8 @@ export const ar = {
     },
     destination: {
       internal: "داخلي",
-      external: "غير مسجلة على ديلي هورس",
-      connected: "مسجلة على ديلي هورس",
+      external: "وجهة غير مسجلة على ديلي هورس",
+      connected: "وجهة مسجلة على ديلي هورس",
       externalLocation: "موقع خارجي",
       selectExternal: "اختر موقع خارجي",
       addNew: "إضافة موقع جديد",
