@@ -54,6 +54,8 @@ interface EmployeeFormDialogProps {
   employee?: Employee & { employment_kind?: EmploymentKind; salary_amount?: number; salary_currency?: string; start_date?: string };
   onSubmit: (data: ExtendedEmployeeData) => Promise<void>;
   isSubmitting?: boolean;
+  /** Phase 2.1 — classification applied only when initializing a NEW record. */
+  defaultEmploymentKind?: EmploymentKind;
 }
 
 export function EmployeeFormDialog({
@@ -62,6 +64,7 @@ export function EmployeeFormDialog({
   employee,
   onSubmit,
   isSubmitting,
+  defaultEmploymentKind = 'internal',
 }: EmployeeFormDialogProps) {
   const { t, dir } = useI18n();
   const isMobile = useIsMobile();
