@@ -26,6 +26,7 @@ import {
   Calendar,
   FileText,
   Users,
+  Handshake,
   Settings,
   BookOpen,
   Heart,
