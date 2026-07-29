@@ -186,6 +186,17 @@ export function EmployeesList({
               <span>{settingsAction.label}</span>
             </Button>
           )}
+          {accessAction && (
+            <Button
+              variant="outline"
+              size={isMobile ? "sm" : "default"}
+              onClick={accessAction.onClick}
+              className="gap-2 shrink-0 hidden md:inline-flex"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span>{accessAction.label}</span>
+            </Button>
+          )}
           <Button
             onClick={() => setShowCreateDialog(true)}
             size={isMobile ? "sm" : "default"}
