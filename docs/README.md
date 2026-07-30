@@ -54,7 +54,7 @@ Category-scope placeholder READMEs (files whose only content is folder-purpose/s
 | ID | Title | Path | Category | Audience | Status | Version | Source round | Coverage | Supersedes | Superseded by | Remaining gaps | Owner approval |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `DHB-INDEX` | Documentation index (this file) | `docs/README.md` | index | internal+external | current | 1.0.0 | DG.2 | index registry | — | — | extends as new docs land | — |
-| `DHB-CONV` | Documentation Conventions | `docs/CONVENTIONS.md` | conventions | internal+external | current | 1.0.0 | DG.2 | authoring & governance rules | — | — | — | — |
+| `DHB-CONV` | Documentation Conventions | `docs/CONVENTIONS.md` | conventions | internal+external | current | 1.1.0 | DG.2; §11 added during RM-DH-003 / Phase 2 | authoring & governance rules; §11 stable Roadmap and Workstream governance | — | — | — | — |
 | `DHB-AUDIT-DG1` | DG.1 — Documentation Governance & Repository Cleanup Audit | `docs/historical/audits/dg-1-documentation-governance-audit.md` | audit | internal | historical-audit | 1.0.0 | DG.1 | documentation inventory + first cleanup proposal | — | DHB-AUDIT-DG1A | corrections captured in DG.1A | — |
 | `DHB-AUDIT-DG1A` | DG.1A — Documentation Alignment & Evidence Closure Audit | `docs/historical/audits/dg-1a-alignment-evidence-closure.md` | audit | internal | historical-audit | 1.0.0 | DG.1A | corrects DG.1; final import + cleanup model | DHB-AUDIT-DG1 | — | — | — |
 | `DHB-HANDOFF-README` | Handoff — README | `docs/handoff/README.md` | handoff | internal+external | current | 1.0.0 | DG.2 | handoff folder overview | — | — | — | — |
