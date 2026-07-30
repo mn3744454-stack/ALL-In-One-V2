@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002)
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T21:47:00+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved.
 source-sha256: n/a
 -->
 
@@ -52,9 +52,11 @@ No later Phase is created or named here. Later Phases require owner approval bef
 | Decision D-01 (`DEC-RM-DH-003-001`) | Approved |
 | Decision D-02 (`DEC-RM-DH-003-002`) | Approved |
 | Decision D-04 (`DEC-RM-DH-003-003`) | Approved |
-| Repository Execution | Current execution |
-| Acceptance Re-Audit | Pending |
-| Closure | Not permitted |
+| Repository Execution | Completed |
+| Acceptance Re-Audit | Passed |
+| Acceptance Persistence | Completed |
+| Owner Closure | Pending |
+| Phase Closure | Not approved |
 
 ## Dependencies
 
@@ -63,19 +65,23 @@ No later Phase is created or named here. Later Phases require owner approval bef
 
 ## Remaining work in this Phase
 
-- Read-only Acceptance Re-Audit of the governance change set.
+- Read-only verification of the Acceptance-Persistence change set.
+- Explicit owner closure decision for `RM-DH-003 / Phase 2` and `WS-DH-2026-0002`.
 - No other work item is declared, because none is owner-approved.
 
 ## Current stopping point
 
 ```text
-Execution completed; Acceptance Re-Audit required
+Acceptance Re-Audit passed and Acceptance was persisted; explicit owner
+closure decision is required.
 ```
 
 ## Next permitted step
 
 ```text
-Read-only Acceptance Re-Audit of the 17-file governance change set
+Read-only verification of the Acceptance-Persistence change set, followed by
+the owner's explicit decision on closing RM-DH-003 / Phase 2 and
+WS-DH-2026-0002.
 ```
 
 This Roadmap may not accept or close itself.

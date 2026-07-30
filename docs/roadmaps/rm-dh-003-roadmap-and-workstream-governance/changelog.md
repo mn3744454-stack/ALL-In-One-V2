@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-003-CHANGELOG
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (changelog)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002)
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — appends the Acceptance-Persistence entry during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T21:47:00+03:00 (Asia/Riyadh — UTC+03:00)
 source-sha256: n/a
 -->
 
@@ -42,6 +42,21 @@ Append-oriented chronological record. Newest entries are added at the bottom of 
 - `docs/README.md` raised to 1.9.0 and `docs/CONVENTIONS.md` raised to 1.1.0.
 - Phase state recorded: Phase 0 Completed, Phase 1 Completed, Phase 2 Current.
 - Acceptance Re-Audit is pending. Closure is not permitted.
+
+### 2026-07-30T21:47:00+03:00 — Acceptance persisted (acceptance recording only)
+
+- **Persistence execution timestamp:** 2026-07-30T21:47:00+03:00 — the actual time of this write.
+- **Acceptance audit timestamp:** 2026-07-30T21:41:00+03:00 — the time of the preceding independent read-only Acceptance Re-Audit. The two timestamps are distinct events and are not interchangeable.
+- Acceptance Verdict: **Passed** — `ACCEPTED — READY FOR OWNER CLOSURE AND ACCEPTANCE-PERSISTENCE DECISION`.
+- Execution Commit Range: `6395524d..458931b2`.
+- Execution Change Set: 15 added / 2 modified / 0 deleted / 0 renamed.
+- Persistence Decision: **Acceptance recorded only.** No closure action was taken.
+- Owner Closure Decision: **Not issued.**
+- Workstream Status: `EXECUTED_AWAITING_REAUDIT` → `ACCEPTED_AWAITING_OWNER_CLOSURE`.
+- `RM-DH-003` remains `Active`; `RM-DH-003 / Phase 2` remains open.
+- QA remains `Pending`; the Acceptance Re-Audit did not evidence a completed QA stage, so none was recorded.
+- Files modified in this persistence run: `workstream.md`, this Roadmap's `roadmap.md` and `changelog.md`, `docs/README.md` (1.9.0 → 1.10.0), and `docs/workstreams/README.md` (1.0.0 → 1.1.0).
+- `docs/CONVENTIONS.md`, the `RM-DH-001` package, and the `RM-DH-002` package were not modified.
 
 ### Note on earlier Phase events
 
