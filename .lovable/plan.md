@@ -1,44 +1,35 @@
-# RM-DH-003 / Phase 2 — Governance Foundation Execution Scope
+# Acceptance-Persistence — RM-DH-003 / Phase 2 (post-audit, owner-approval gated)
 
-Investigation (Phase 1) is complete and returned READY FOR OWNER ALIGNMENT. This plan is the narrow execution scope that follows, held until the owner answers three decisions.
+The read-only Acceptance Re-Audit passed. Nothing in the repository has been changed by the audit, so every Roadmap and Workstream file still shows pre-Acceptance status. This plan is the narrow, optional follow-up that would record the Acceptance outcome — it runs only if the Dayli Horse Platform Owner approves closure.
 
-## Owner decisions blocking execution
+## Scope
 
-- D-01 — Roadmap file shape: two files per roadmap at creation (registry + `roadmap.md`, changelog split only on demand) — recommended — or strict three files from the start.
-- D-02 — RM-DH-002 in the first execution: identity-only stub with status Draft and recovery-required flag — recommended — or omit until recovery.
-- D-04 — Amend `docs/CONVENTIONS.md` with a governance section in the same execution — recommended — or keep the rules only inside the roadmap registry.
+Exactly 4 files, all documentation. No new Roadmap, no new Workstream, no reopening of the 17-file execution scope, no application, database, migration, or canonical Round change.
 
-## What gets created
+1. `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` (1.0.0 to 1.1.0)
+   - Stage: Execution to Acceptance Re-Audit complete.
+   - Status: `EXECUTED_AWAITING_REAUDIT` to `ACCEPTED_AWAITING_OWNER_CLOSURE` (or `CLOSED` if the owner closes in the same step).
+   - Stage history: QA and Acceptance Re-Audit marked Complete; add the acceptance evidence line (execution commit range and 17-file change set).
+   - Next permitted step: owner closure decision.
 
-- `docs/roadmaps/README.md` — central roadmap registry (ID, title, Arabic, status, priority, current phase, stopping point, dates, linked documents, linked workstreams, next permitted action).
-- `docs/roadmaps/rm-dh-001-documentation-and-developer-handover/roadmap.md`
-- `docs/roadmaps/rm-dh-002-core-operations-and-expansion/roadmap.md` (identity stub, pending D-02)
-- `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md`
-- `docs/workstreams/README.md` — central workstream registry.
-- `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` — this initiative's own staged record.
+2. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` (1.0.0 to 1.1.0)
+   - Phase 2 stage table: Acceptance Re-Audit `Pending` to `Passed`.
+   - Current stopping point: `Acceptance Re-Audit passed; owner closure decision required`.
+   - Next permitted step: owner closure of `RM-DH-003 / Phase 2`.
 
-## What gets modified
+3. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` (1.0.0 to 1.1.0)
+   - Append one entry with the audit timestamp, verdict, and evidence (commit range `6395524d..458931b2`, 15 added / 2 modified / 0 deleted / 0 renamed).
 
-- `docs/README.md` — six new registry rows, index header 1.8.0 to 1.9.0. No existing row renamed, reordered or re-versioned.
-- `docs/CONVENTIONS.md` — new governance section (ID formats `RM-DH-###` and `WS-DH-YYYY-NNNN`, mandatory compound phase reference `RM-DH-00X / Phase N`, evidence-versus-canonical rule, persistence-claim rule), version 1.0.0 to 1.1.0. Pending D-04.
+4. `docs/README.md` (1.9.0 to 1.10.0)
+   - Update the "Owner approval" column from `pending Acceptance Re-Audit` to the accepted value on the 15 governance rows.
+   - Append the version-provenance sentence to the `source:` field, matching the existing repository convention.
 
-## Explicitly untouched
+## Optional non-blocking hygiene (owner may decline)
 
-Rounds 1-5 canonical documents and their registry rows, `docs/historical/**`, `docs/aml_1_b_1/**`, `docs/handoff/**`, `src/**`, `supabase/**`, configuration and environment files. No historical backfill, no templates, no archive folders, no file moves or renames, no database or application change.
+Both modified files gained a trailing blank line at end of file (`git diff --check` reports "new blank line at EOF" for `docs/CONVENTIONS.md:176` and `docs/README.md:169`). Cosmetic only; no convention forbids it. It can be removed in the same persistence pass or left as is.
 
-## Governance rules the files encode
+## Rules for the persistence run
 
-- Roadmap statuses: Draft, Active, Paused, Blocked, Completed, Superseded.
-- Item statuses: Proposed, Ready, Investigating, Awaiting Owner Decision, In Execution, Awaiting Re-Audit, Accepted, Closed-Other (with reason). Accepted is reachable only through Awaiting Re-Audit.
-- Workstream risk levels: low, standard, high — risk drives how many files a workstream has. Types (primary, supporting, interruption, correction) are relationship labels, not risk.
-- Completion is reported as an accepted-item fraction, never a percentage; execution alone never moves it.
-- Registries hold pointers; a report body exists in exactly one place.
-- A persistence claim may name a path only when a successful write produced it.
-
-## Acceptance criteria
-
-Exactly six files created and two modified; valid front matter on every new file; all six registered with unique IDs; index at 1.9.0 and conventions at 1.1.0; no Round 1-5 row altered; no percentages, private content or secrets; `git status` shows only the intended paths.
-
-## Rollback
-
-Delete `docs/roadmaps/` and `docs/workstreams/`; revert `docs/README.md` to 1.8.0 and `docs/CONVENTIONS.md` to 1.0.0. Pure file revert — no data or schema involved.
+- Registries stay indexes: `docs/roadmaps/README.md` and `docs/workstreams/README.md` are updated only if a status word they display becomes stale.
+- No historical backfill, no RM-DH-002 change, no Phase invention, no new decision ID.
+- Acceptance is recorded as a fact with its evidence, never as a self-declared closure.
