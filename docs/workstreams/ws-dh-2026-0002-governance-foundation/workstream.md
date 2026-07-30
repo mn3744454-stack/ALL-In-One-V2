@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-2026-0002
 title: WS-DH-2026-0002 — Governance Foundation
-version: 1.1.1
+version: 1.1.2
 status: current
 audience: internal
 date: 2026-07-30
