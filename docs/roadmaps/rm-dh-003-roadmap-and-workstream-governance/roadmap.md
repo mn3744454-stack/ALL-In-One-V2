@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.1.1
+version: 1.1.2
 status: current
 audience: internal
 date: 2026-07-30
