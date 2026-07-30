@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-003-CHANGELOG
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (changelog)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002)
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — appends the Acceptance-Persistence entry during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T21:47:00+03:00 (Asia/Riyadh — UTC+03:00)
 source-sha256: n/a
 -->
 

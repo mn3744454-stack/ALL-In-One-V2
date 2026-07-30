@@ -65,19 +65,23 @@ No later Phase is created or named here. Later Phases require owner approval bef
 
 ## Remaining work in this Phase
 
-- Read-only Acceptance Re-Audit of the governance change set.
+- Read-only verification of the Acceptance-Persistence change set.
+- Explicit owner closure decision for `RM-DH-003 / Phase 2` and `WS-DH-2026-0002`.
 - No other work item is declared, because none is owner-approved.
 
 ## Current stopping point
 
 ```text
-Execution completed; Acceptance Re-Audit required
+Acceptance Re-Audit passed and Acceptance was persisted; explicit owner
+closure decision is required.
 ```
 
 ## Next permitted step
 
 ```text
-Read-only Acceptance Re-Audit of the 17-file governance change set
+Read-only verification of the Acceptance-Persistence change set, followed by
+the owner's explicit decision on closing RM-DH-003 / Phase 2 and
+WS-DH-2026-0002.
 ```
 
 This Roadmap may not accept or close itself.
