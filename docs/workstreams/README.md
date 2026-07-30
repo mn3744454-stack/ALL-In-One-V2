@@ -1,0 +1,59 @@
+<!--
+id: DHB-WS-REGISTRY
+title: Dayli Horse — Central Workstream Registry
+version: 1.0.0
+status: current
+audience: internal
+date: 2026-07-30
+last-verified: 2026-07-30
+supersedes: []
+superseded-by: null
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002)
+source-sha256: n/a
+-->
+
+# Dayli Horse — Central Workstream Registry
+
+**العنوان العربي:** السجل المركزي لمسارات العمل — ديلي هورس
+
+This registry is an **index only**. Each Workstream's own file is authoritative for its content and stage.
+
+## Workstream lifecycle
+
+Normal stage order:
+
+```text
+Investigative Audit
+  -> Mini Investigative Audit (only when needed)
+  -> Owner Alignment
+  -> Execution
+  -> QA
+  -> Acceptance Re-Audit
+  -> Closure
+```
+
+Rules:
+
+1. **Investigative first.** Work begins with investigation, not with implementation.
+2. **Low-risk work may skip unnecessary stages.** A small, well-understood, reversible change does not require Owner Alignment, a Mini Investigative Audit, or a separate QA stage.
+3. **High-risk work requires strict staged governance.** Nothing may be skipped when the change touches security, authority, finance, data integrity, migrations, or cross-tenant behavior.
+4. **Execution is not Acceptance.** Completing the work does not accept the work.
+5. **Acceptance Re-Audit is mandatory before Closure**, at every risk level.
+6. **ID gaps are permitted.** A missing `WS-DH-YYYY-NNNN` number does not prove a missing repository file. Some Workstreams exist only outside this repository and are intentionally not published here.
+7. **Private planning content is excluded.** Private conversations, unapproved options, owner notes, and hidden reasoning never enter this registry.
+
+Workstream ID format: `WS-DH-YYYY-NNNN`.
+
+## Registered Workstreams
+
+| Workstream ID | English title | Arabic title | Primary Roadmap | Stage | Status | File |
+|---|---|---|---|---|---|---|
+| `WS-DH-2026-0002` | Governance Foundation | تأسيس نظام الحوكمة داخل مستودع Lovable | `RM-DH-003` | Execution | EXECUTED_AWAITING_REAUDIT | [`workstream.md`](./ws-dh-2026-0002-governance-foundation/workstream.md) |
+
+Only `WS-DH-2026-0002` is registered in this execution.
+
+## Related registries
+
+- [`../roadmaps/README.md`](../roadmaps/README.md) — central Roadmap registry.
+- [`../CONVENTIONS.md`](../CONVENTIONS.md) — repository-wide Roadmap and Workstream governance rules.
+- [`../README.md`](../README.md) — central documentation index.

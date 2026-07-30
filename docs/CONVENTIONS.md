@@ -1,14 +1,14 @@
 <!--
 id: DHB-CONV
 title: Documentation Conventions
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-07-27
-last-verified: 2026-07-27
+last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during DG.2 (aligned with DG.1A §I, §J, §L)
+source: authored during DG.2 (aligned with DG.1A §I, §J, §L); v1.1.0 — adds §11 Roadmap and Workstream governance (stable rules only) during RM-DH-003 / Phase 2 — Governance Foundation Execution, Workstream WS-DH-2026-0002, at 2026-07-30T21:16:54+03:00 (Asia/Riyadh — UTC+03:00)
 source-sha256: n/a
 -->
 
@@ -112,3 +112,65 @@ Substantive READMEs — including handoff READMEs, round READMEs, historical ide
 - Committing secret values.
 - Filename-based version suffixes (`-final`, `-latest`, `-copy`, `-v2`).
 - Bypassing the metadata header on documentation files.
+
+## 11. Roadmap and Workstream governance
+
+These are **stable repository-wide rules**. They apply to all of `docs/**`. Dynamic state — current Roadmap status, current Workstream status, pending owner decisions, progress snapshots, implementation results, historical recovery details — must never be recorded here. It lives in `docs/roadmaps/**` and `docs/workstreams/**`.
+
+### 11.1 Identifiers
+
+- Roadmap ID format: `RM-DH-###`.
+- Workstream ID format: `WS-DH-YYYY-NNNN`.
+- A Phase must always be cited in the compound form `RM-DH-00X / Phase N`. A bare phase number is not a valid reference.
+- Decision ID format inside a Roadmap package: `DEC-<Roadmap ID>-NNN`, consecutive. An earlier informal alias may be recorded alongside the canonical ID.
+
+### 11.2 Owner approval boundary
+
+Creating a Roadmap, changing its structural classification, registering it centrally, and closing it require explicit approval by the Dayli Horse Platform Owner. No agent and no contributor may create or reclassify a Roadmap unilaterally.
+
+### 11.3 Four-file Roadmap package
+
+Every Roadmap has, from creation, exactly these files, with exclusive authority:
+
+- `README.md` — stable identity and navigation.
+- `roadmap.md` — authoritative current state, Phases, Tracks, dependencies, stopping point, remaining work, next permitted step.
+- `decisions.md` — approved decisions, options, rationale, rejected alternatives, unique Decision IDs.
+- `changelog.md` — append-oriented chronological changes with absolute timestamps.
+
+A single-file Roadmap package is not permitted. `decisions.md` and `changelog.md` may not be deferred.
+
+### 11.4 Registry as index
+
+`docs/roadmaps/README.md` and `docs/workstreams/README.md` are indexes. A registry summary never overrides a package's authoritative files. Canonical report bodies are linked, never copied.
+
+### 11.5 Workstream lifecycle
+
+Stages: Investigative Audit, Mini Investigative Audit (when needed), Owner Alignment, Execution, QA, Acceptance Re-Audit, Closure.
+
+- **Investigative-first:** work begins with investigation, not implementation.
+- **Low-risk work** may skip stages that add no value.
+- **High-risk work** — security, authority, finance, data integrity, migrations, cross-tenant behavior — requires strict staged governance and may skip nothing.
+- **Execution is not Acceptance.** Completing work does not accept it.
+- **Acceptance Re-Audit is mandatory before Closure** at every risk level.
+- Workstream ID gaps are permitted and do not prove a missing repository file.
+
+### 11.6 Evidence and truth
+
+- Evidence precedence: current repository contents, then current live system state, then accepted canonical documentation, then owner-approved decisions, then historical documentation, then explicitly verified historical records.
+- **Historical evidence never overrides current accepted truth.** Historical claims are preserved as evidence and qualified, not silently corrected.
+- Unsupported recollection is not evidence.
+
+### 11.7 Persistence and honesty
+
+- A document may claim that something was stored only **after** the corresponding file write has succeeded. A path may be cited only when a successful write produced it.
+- A contradiction between two authoritative files is an **acceptance-blocking defect**, not a stylistic issue.
+- No historical backfill may be performed without explicit, scoped authorization.
+
+### 11.8 Privacy boundary
+
+Private conversation transcripts, hidden reasoning, unapproved options, owner-private notes, vendor, financial, negotiation, and credential content must never enter Roadmap or Workstream files. §6 and §7 apply in full.
+
+### 11.9 Timestamps
+
+Absolute timestamps in `Asia/Riyadh — UTC+03:00`, Latin digits 0–9. When the exact time of a historical event is not verified, record `Exact time not recorded` rather than inventing one.
+
