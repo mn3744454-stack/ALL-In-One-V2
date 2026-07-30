@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002)
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T21:47:00+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved.
 source-sha256: n/a
 -->
 
@@ -52,9 +52,11 @@ No later Phase is created or named here. Later Phases require owner approval bef
 | Decision D-01 (`DEC-RM-DH-003-001`) | Approved |
 | Decision D-02 (`DEC-RM-DH-003-002`) | Approved |
 | Decision D-04 (`DEC-RM-DH-003-003`) | Approved |
-| Repository Execution | Current execution |
-| Acceptance Re-Audit | Pending |
-| Closure | Not permitted |
+| Repository Execution | Completed |
+| Acceptance Re-Audit | Passed |
+| Acceptance Persistence | Completed |
+| Owner Closure | Pending |
+| Phase Closure | Not approved |
 
 ## Dependencies
 

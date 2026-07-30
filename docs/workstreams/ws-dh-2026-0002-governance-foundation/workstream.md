@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0002
 title: WS-DH-2026-0002 — Governance Foundation
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution; v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T21:47:00+03:00 (Asia/Riyadh — UTC+03:00). Acceptance recorded only; closure not approved.
 source-sha256: n/a
 -->
 
@@ -70,19 +70,58 @@ Dayli Horse Platform Owner
 |---|---|
 | Investigative Audit | Complete |
 | Owner Alignment | Complete |
-| Execution | This run |
-| QA | Pending |
-| Acceptance Re-Audit | Pending |
-| Closure | Not permitted |
+| Execution | Completed |
+| QA | Pending — see the QA note below |
+| Acceptance Re-Audit | Passed |
+| Acceptance Persistence | Completed |
+| Owner Closure | Pending — not approved |
+
+### QA note
+
+QA remains `Pending`. The read-only Acceptance Re-Audit did not state that a separate QA stage had been performed or that QA was formally absorbed into Acceptance, so no QA event is recorded here. This state is preserved deliberately and was not advanced by the Acceptance-Persistence execution.
+
+## Acceptance evidence
+
+```text
+Acceptance Verdict:
+ACCEPTED — READY FOR OWNER CLOSURE AND ACCEPTANCE-PERSISTENCE DECISION
+
+Acceptance Audit Timestamp:
+2026-07-30T21:41:00+03:00 (Asia/Riyadh — UTC+03:00)
+
+Execution Commit Range:
+6395524d..458931b2
+
+Accepted Execution Change Set:
+15 added
+2 modified
+0 deleted
+0 renamed
+
+Link Validation:
+63 internal links checked, 0 broken
+
+Scope Validation:
+No path outside the 17-file allowlist changed
+```
 
 ## Current state
 
 ```text
 Stage:
-Execution
+Acceptance Re-Audit
+
+Execution Status:
+Completed
+
+Acceptance Re-Audit:
+Passed
 
 Status:
-EXECUTED_AWAITING_REAUDIT
+ACCEPTED_AWAITING_OWNER_CLOSURE
+
+Closure:
+Not approved
 ```
 
 ## File plan
@@ -129,7 +168,8 @@ Pure repository-documentation revert: delete the 15 created files (and the now-e
 ## Next permitted step
 
 ```text
-Read-only Acceptance Re-Audit
+Read-only Acceptance-Persistence verification, followed by an explicit
+owner closure decision
 ```
 
 Timezone for all timestamps in this Workstream: Asia/Riyadh — UTC+03:00. Execution timestamp: 2026-07-30T21:16:54+03:00.
