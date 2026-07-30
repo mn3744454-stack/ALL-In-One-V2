@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.1.0
+version: 1.1.1
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T21:47:00+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). No status, Phase, stopping point, next step, or closure state was changed.
 source-sha256: n/a
 -->
 
