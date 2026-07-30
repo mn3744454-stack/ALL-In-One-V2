@@ -45,12 +45,16 @@ Append-oriented chronological record. Newest entries are added at the bottom of 
 
 ### 2026-07-30T23:35:55+03:00 — Acceptance persisted (acceptance recording only)
 
-- **Persistence execution timestamp:** 2026-07-30T23:35:55+03:00 — the Git-evidenced authoritative completion time of this write.
-- **Persistence Git run:** 2026-07-30T23:33:21–23:35:55+03:00.
-- **Persistence commit sequence:** `1161817f6`, `1d5fd715b`, `653ab83fa`, `2eb046ac0`, `89e851d38`, `e8e4a9f91`.
-- **Authoritative completion timestamp:** 2026-07-30T23:35:55+03:00.
+This heading is the **run-closing completion timestamp** of the Acceptance-Persistence run. It is not the time at which the final file content was written.
+
+- **Persistence content-write run:** 2026-07-30T23:33:21–23:35:03+03:00.
+- **Persistence commit sequence (content writes):** `1161817f6`, `1d5fd715b`, `653ab83fa`, `2eb046ac0`, `89e851d38`, `e8e4a9f91`.
+- **Last content-write commit:** `e8e4a9f91` — 2026-07-30T23:35:03+03:00.
+- **Run-closing commit:** `71556af2e` — 2026-07-30T23:35:55+03:00. Empty commit: no file changes.
+- **Authoritative run-completion timestamp:** 2026-07-30T23:35:55+03:00 (run-closing, per the commit above).
 - **Acceptance audit timestamp:** 2026-07-30T21:41:00+03:00 — the time of the preceding independent read-only Acceptance Re-Audit. The two timestamps are distinct events and are not interchangeable.
 - **Correction note (defect D-01):** the previously persisted value 2026-07-30T21:47:00+03:00 was inaccurate and was corrected using the verified Git author/committer evidence for the Acceptance-Persistence write sequence. That value is quoted here only as a historical record of the corrected error and is no longer an active timestamp field.
+- **Correction note (finding PV-DEF-03):** 2026-07-30T23:35:55+03:00 remains the run-completion timestamp, but it belongs to the empty run-closing commit `71556af2e`; the last content-writing commit was `e8e4a9f91` at 2026-07-30T23:35:03+03:00. The previous wording blurred these two events by describing 23:35:55 as the completion time of the file write, and has been corrected against Git author/committer evidence.
 - Acceptance Verdict: **Passed** — `ACCEPTED — READY FOR OWNER CLOSURE AND ACCEPTANCE-PERSISTENCE DECISION`.
 - Execution Commit Range: `6395524d..458931b2`.
 - Execution Change Set: 15 added / 2 modified / 0 deleted / 0 renamed.
