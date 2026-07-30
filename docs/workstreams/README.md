@@ -46,9 +46,9 @@ Workstream ID format: `WS-DH-YYYY-NNNN`.
 
 ## Registered Workstreams
 
-| Workstream ID | English title | Arabic title | Primary Roadmap | Stage | Status | Next step | File |
-|---|---|---|---|---|---|---|---|
-| `WS-DH-2026-0002` | Governance Foundation | تأسيس نظام الحوكمة داخل مستودع Lovable | `RM-DH-003` | Acceptance Re-Audit complete | ACCEPTED_AWAITING_OWNER_CLOSURE | Read-only persistence verification, then owner closure decision | [`workstream.md`](./ws-dh-2026-0002-governance-foundation/workstream.md) |
+| Workstream ID | English title | Arabic title | Primary Roadmap | Stage | Status | File |
+|---|---|---|---|---|---|---|
+| `WS-DH-2026-0002` | Governance Foundation | تأسيس نظام الحوكمة داخل مستودع Lovable | `RM-DH-003` | Acceptance Re-Audit complete | ACCEPTED_AWAITING_OWNER_CLOSURE | [`workstream.md`](./ws-dh-2026-0002-governance-foundation/workstream.md) |
 
 Only `WS-DH-2026-0002` is registered in this execution.
 
