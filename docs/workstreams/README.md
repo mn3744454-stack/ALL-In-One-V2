@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-REGISTRY
 title: Dayli Horse — Central Workstream Registry
-version: 1.1.1
+version: 1.1.2
 status: current
 audience: internal
 date: 2026-07-30
