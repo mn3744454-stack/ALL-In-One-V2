@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-003-CHANGELOG
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (changelog)
-version: 1.1.0
+version: 1.1.1
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — appends the Acceptance-Persistence entry during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T21:47:00+03:00 (Asia/Riyadh — UTC+03:00)
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — appends the Acceptance-Persistence entry during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00); v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence execution timestamp is restated from the inaccurate value to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). The Acceptance Re-Audit timestamp 2026-07-30T21:41:00+03:00 is unchanged.
 source-sha256: n/a
 -->
 
@@ -43,10 +43,14 @@ Append-oriented chronological record. Newest entries are added at the bottom of 
 - Phase state recorded: Phase 0 Completed, Phase 1 Completed, Phase 2 Current.
 - Acceptance Re-Audit is pending. Closure is not permitted.
 
-### 2026-07-30T21:47:00+03:00 — Acceptance persisted (acceptance recording only)
+### 2026-07-30T23:35:55+03:00 — Acceptance persisted (acceptance recording only)
 
-- **Persistence execution timestamp:** 2026-07-30T21:47:00+03:00 — the actual time of this write.
+- **Persistence execution timestamp:** 2026-07-30T23:35:55+03:00 — the Git-evidenced authoritative completion time of this write.
+- **Persistence Git run:** 2026-07-30T23:33:21–23:35:55+03:00.
+- **Persistence commit sequence:** `1161817f6`, `1d5fd715b`, `653ab83fa`, `2eb046ac0`, `89e851d38`, `e8e4a9f91`.
+- **Authoritative completion timestamp:** 2026-07-30T23:35:55+03:00.
 - **Acceptance audit timestamp:** 2026-07-30T21:41:00+03:00 — the time of the preceding independent read-only Acceptance Re-Audit. The two timestamps are distinct events and are not interchangeable.
+- **Correction note (defect D-01):** the previously persisted value 2026-07-30T21:47:00+03:00 was inaccurate and was corrected using the verified Git author/committer evidence for the Acceptance-Persistence write sequence. That value is quoted here only as a historical record of the corrected error and is no longer an active timestamp field.
 - Acceptance Verdict: **Passed** — `ACCEPTED — READY FOR OWNER CLOSURE AND ACCEPTANCE-PERSISTENCE DECISION`.
 - Execution Commit Range: `6395524d..458931b2`.
 - Execution Change Set: 15 added / 2 modified / 0 deleted / 0 renamed.
