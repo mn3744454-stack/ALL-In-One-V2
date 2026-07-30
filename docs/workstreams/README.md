@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-REGISTRY
 title: Dayli Horse — Central Workstream Registry
-version: 1.1.1
+version: 1.1.2
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — index row synchronized with the persisted Acceptance outcome during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00); v1.1.1 — RM-DH-003 / Phase 2 — Persistence Correction: corrects defect D-01 by restating the Acceptance-Persistence timestamp to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00), and corrects defect D-02 by removing the unauthorized `Next step` registry column, restoring the seven-column index table. The accepted Workstream Stage and Status are preserved; the next permitted step remains authoritative in the Workstream's own file.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — index row synchronized with the persisted Acceptance outcome during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00); v1.1.1 — RM-DH-003 / Phase 2 — Persistence Correction: corrects defect D-01 by restating the Acceptance-Persistence timestamp to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00), and corrects defect D-02 by removing the unauthorized `Next step` registry column, restoring the seven-column index table. The accepted Workstream Stage and Status are preserved; the next permitted step remains authoritative in the Workstream's own file; v1.1.2 — RM-DH-003 / Phase 2 — Timestamp Semantics Correction (finding PV-DEF-03): last Persistence content write 2026-07-30T23:35:03+03:00; Persistence run closing 2026-07-30T23:35:55+03:00 — empty commit. The seven-column table schema, Stage, and Status are unchanged and no registry field was added.
 source-sha256: n/a
 -->
 
