@@ -190,11 +190,23 @@ Modified (2):
 
 Pure repository-documentation revert: delete the 15 created files (and the now-empty `docs/roadmaps/` and `docs/workstreams/` trees), revert `docs/README.md` to 1.8.0 and `docs/CONVENTIONS.md` to 1.0.0. No SQL, no application change, no database object requires rollback.
 
+## Exception-documentation correction — file set (7)
+
+1. `docs/CONVENTIONS.md` — 1.1.0 to 1.2.0 (§11.10 added).
+2. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md` — 1.0.0 to 1.1.0 (`DEC-RM-DH-003-004`).
+3. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` — 1.1.2 to 1.2.0.
+4. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` — 1.1.2 to 1.2.0.
+5. `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` — 1.1.2 to 1.2.0.
+6. `docs/README.md` — 1.10.2 to 1.11.0.
+7. `docs/workstreams/README.md` — 1.1.2 to 1.2.0.
+
+`docs/roadmaps/README.md`, `.gitignore`, and every other `.lovable/` path are out of scope. Platform-generated `.lovable/plan.md` activity is disclosed separately and is never counted among these seven files.
+
 ## Next permitted step
 
 ```text
-Read-only Acceptance-Persistence verification, followed by an explicit
-owner closure decision
+A separate read-only targeted Acceptance Re-Audit of the seven-file
+planning-artifact exception-documentation correction
 ```
 
-Timezone for all timestamps in this Workstream: Asia/Riyadh — UTC+03:00. Execution timestamp: 2026-07-30T21:16:54+03:00.
+Timezone for all timestamps in this Workstream: Asia/Riyadh — UTC+03:00. Governance-baseline execution timestamp: 2026-07-30T21:16:54+03:00.
