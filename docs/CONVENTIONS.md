@@ -174,3 +174,19 @@ Private conversation transcripts, hidden reasoning, unapproved options, owner-pr
 
 Absolute timestamps in `Asia/Riyadh — UTC+03:00`, Latin digits 0–9. When the exact time of a historical event is not verified, record `Exact time not recorded` rather than inventing one.
 
+### 11.10 Planning-artifact governance exception
+
+This subsection states stable repository-wide rules only. It records no status, no chronology, and no evidence identifiers.
+
+1. `.lovable/plan.md` is a platform-managed planning artifact. It is the **only** file covered by this exception.
+2. The exception does not extend to `.lovable/`, `.lovable/*`, `.lovable/**`, or to any other current or future path under `.lovable/`.
+3. Plan Mode and Chat Mode remain **strictly read-only** for every other tracked repository file.
+4. The exception applies only to changes generated automatically by the Lovable platform.
+5. Manual edits and agent-directed edits to `.lovable/plan.md` during read-only work remain prohibited.
+6. A change to any other `.lovable/` path during read-only work remains a contract violation unless separately audited and owner-approved.
+7. `.lovable/plan.md` must never contain credentials, secrets, private owner information, vendor information, financial information, strategic content, conversation transcripts, or hidden reasoning. §6 and §7 apply in full.
+8. A platform-generated `.lovable/plan.md` change or commit is not implementation, is not Acceptance evidence, and is not proof that other files remained unchanged.
+9. Every read-only audit report and every execution report must disclose the platform-generated path separately from the intended tracked scope, exclude it from the intended-file count, and retain it in complete Git evidence.
+10. Untracking `.lovable/plan.md` must not be retried unless a future owner-approved Re-Audit demonstrates that platform behavior changed.
+11. The existing single-file ignore rule for `.lovable/plan.md` may remain in place; it is inert while the platform keeps the file indexed.
+
