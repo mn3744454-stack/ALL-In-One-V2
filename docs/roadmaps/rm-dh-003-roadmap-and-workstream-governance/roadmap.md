@@ -85,14 +85,16 @@ No later Phase is created or named here. Later Phases require owner approval bef
 
 ## Remaining work in this Phase
 
-- Explicit owner closure decision for `RM-DH-003 / Phase 2` and `WS-DH-2026-0002`.
-- No other work item is declared, because none is owner-approved.
+- None. `RM-DH-003 / Phase 2` is closed and no further work item is declared inside it.
 
 ## Current status
 
 ```text
 Workstream Status:
-ACCEPTED_AWAITING_OWNER_CLOSURE
+CLOSED
+
+Phase 2 Status:
+CLOSED
 
 Acceptance of the exception correction:
 Accepted and persisted
@@ -101,25 +103,28 @@ Previous baseline Acceptance:
 Preserved as historical evidence
 
 QA:
-Pending
+Complete — satisfied by the passed Final Targeted Acceptance Re-Audit
 
 Closure:
-Not approved
+Approved and persisted
+
+Roadmap Status:
+Active
 
 Phase advance:
-None — RM-DH-003 / Phase 2 remains current
+None — no Phase 3 or later Phase exists or is owner-approved
 ```
 
-## Current stopping point
+## Final Phase 2 stopping point
 
 ```text
-Acceptance persisted; awaiting explicit owner Closure decision.
+Phase 2 closed after successful Acceptance and explicit owner Closure approval.
 ```
 
-## Next permitted step
+## Next permitted Roadmap action
 
 ```text
-Owner decision on Closure of RM-DH-003 / Phase 2 and WS-DH-2026-0002.
+Owner-approved classification and read-only investigation of the Lovable Persistent Instructions Architecture.
 ```
 
-This Roadmap may not accept or close itself.
+That investigation was not classified or begun by this Closure execution. This Roadmap may not accept or close itself; the Closure recorded here is the explicit owner decision.
