@@ -64,23 +64,40 @@ Dayli Horse Platform Owner
 - Accepted Rounds 1–5 paths were read from the repository, not assumed: `docs/handoff/rounds/round-01/` and the five architecture references under `docs/architecture/`.
 - Preflight found no repository evidence of an omitted owner decision named D-03.
 
+### Planning-artifact governance evidence (subsequent correction lifecycle)
+
+| Event | Git evidence | Author time |
+|---|---|---|
+| External untracking correction (content commit) | `9fb0b56998b3f0a9887bf87e835d40a776552213` | 2026-07-31T05:04:27+03:00 |
+| Merge of the external correction into `main` | `06467d6cc7a2d689094e6874600bcee8d821004a` | 2026-07-31T05:38:59+03:00 |
+| First behavioral-smoke platform commit (file recreated and force-added) | `64ab74ab609ecf46e45157a7c6ab6303eb741d2d` | 2026-07-31T02:47:36+00:00 |
+| Later platform-generated planning commits | `b6cabc4e8161efa47638ed102fad43e4b2ef6079`, `92226e1065d50959f0ce01e41ad4b2cf8118d03b`, `ebec2b3e92e1ef52dc8fb7b243bcea1c2b33a88e` | 2026-07-31T02:48:15+00:00, 2026-07-31T04:14:12+00:00, 2026-07-31T04:14:21+00:00 |
+
+Raw Git offsets are preserved as recorded by Git. Behavioral Smoke Verification therefore **failed** for sustainable untracking, and the owner approved the narrow exception recorded as `DEC-RM-DH-003-004`.
+
 ## Stage history
 
 | Stage | Status |
 |---|---|
 | Investigative Audit | Complete |
 | Owner Alignment | Complete |
-| Execution | Completed |
+| Execution (governance baseline) | Completed |
 | QA | Pending — see the QA note below |
-| Acceptance Re-Audit | Passed |
-| Acceptance Persistence | Completed |
+| Acceptance Re-Audit (governance baseline) | Passed — historical |
+| Acceptance Persistence (governance baseline) | Completed — historical |
+| External untracking correction | Merged |
+| Behavioral Smoke Verification | Failed — untracking not sustainable |
+| Mini Owner-Alignment Audit | Complete |
+| Owner approval of the narrow exception (`DEC-RM-DH-003-004`) | Approved |
+| Exception-documentation correction (seven files) | Executed |
+| Acceptance Re-Audit of the exception correction | Pending |
 | Owner Closure | Pending — not approved |
 
 ### QA note
 
-QA remains `Pending`. The read-only Acceptance Re-Audit did not state that a separate QA stage had been performed or that QA was formally absorbed into Acceptance, so no QA event is recorded here. This state is preserved deliberately and was not advanced by the Acceptance-Persistence execution.
+QA remains `Pending`. Neither the read-only Acceptance Re-Audit nor the subsequent correction passes stated that a separate QA stage had been performed or that QA was formally absorbed into Acceptance, so no QA event is recorded here. This state is preserved deliberately and was not advanced by any correction execution.
 
-## Acceptance evidence
+## Acceptance evidence (governance baseline — historical, preserved)
 
 ```text
 Acceptance Verdict:
@@ -105,20 +122,28 @@ Scope Validation:
 No path outside the 17-file allowlist changed
 ```
 
+This Acceptance event is preserved as historical evidence. It is not invalidated, reopened, or overwritten by the subsequent exception-documentation correction, and it does not accept that correction.
+
 ## Current state
 
 ```text
 Stage:
-Acceptance Re-Audit
+Exception-documentation correction executed
 
 Execution Status:
-Completed
-
-Acceptance Re-Audit:
-Passed
+Completed — seven intended tracked governance files
 
 Status:
-ACCEPTED_AWAITING_OWNER_CLOSURE
+EXECUTED_AWAITING_REAUDIT
+
+QA:
+Pending
+
+Acceptance of the new correction:
+Pending targeted Acceptance Re-Audit
+
+Previous baseline Acceptance:
+Preserved as historical evidence
 
 Closure:
 Not approved
