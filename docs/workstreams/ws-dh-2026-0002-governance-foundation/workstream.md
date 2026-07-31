@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0002
 title: WS-DH-2026-0002 — Governance Foundation
-version: 1.2.0
+version: 1.2.1
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-31
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution; v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Acceptance recorded only; closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Status, QA state, acceptance evidence, and closure state are unchanged; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Status remains ACCEPTED_AWAITING_OWNER_CLOSURE, QA remains Pending, closure remains not approved, and no lifecycle stage was created or advanced; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the canonical status becomes EXECUTED_AWAITING_REAUDIT, the earlier baseline Acceptance is preserved as historical evidence, QA remains Pending, and closure remains not approved.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution; v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Acceptance recorded only; closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Status, QA state, acceptance evidence, and closure state are unchanged; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Status remains ACCEPTED_AWAITING_OWNER_CLOSURE, QA remains Pending, closure remains not approved, and no lifecycle stage was created or advanced; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the canonical status becomes EXECUTED_AWAITING_REAUDIT, the earlier baseline Acceptance is preserved as historical evidence, QA remains Pending, and closure remains not approved; v1.2.1 — persists the passed final targeted Acceptance Re-Audit of the seven-file exception-documentation correction, including EV-DEF-01. The canonical status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. The preceding EXECUTED_AWAITING_REAUDIT stage is retained in Stage history as the state preceding the successful Re-Audit, the earlier baseline Acceptance remains historical evidence, QA remains Pending, and owner closure remains not approved.
 source-sha256: n/a
 -->
 
@@ -89,8 +89,10 @@ Raw Git offsets are preserved as recorded by Git. Behavioral Smoke Verification 
 | Behavioral Smoke Verification | Failed — untracking not sustainable |
 | Mini Owner-Alignment Audit | Complete |
 | Owner approval of the narrow exception (`DEC-RM-DH-003-004`) | Approved |
-| Exception-documentation correction (seven files) | Executed |
-| Acceptance Re-Audit of the exception correction | Pending |
+| Exception-documentation correction (seven files) | Executed — recorded at the time as `EXECUTED_AWAITING_REAUDIT` |
+| EV-DEF-01 narrow two-file correction | Executed |
+| Acceptance Re-Audit of the exception correction | Passed |
+| Acceptance Persistence of the exception correction | Completed |
 | Owner Closure | Pending — not approved |
 
 ### QA note
@@ -124,23 +126,54 @@ No path outside the 17-file allowlist changed
 
 This Acceptance event is preserved as historical evidence. It is not invalidated, reopened, or overwritten by the subsequent exception-documentation correction, and it does not accept that correction.
 
+## Acceptance evidence (exception-documentation correction, including EV-DEF-01)
+
+```text
+Acceptance Re-Audit Verdict:
+TARGETED ACCEPTANCE RE-AUDIT PASSED — READY FOR ACCEPTANCE PERSISTENCE
+
+Acceptance Scope:
+7 unique governance files, including the final EV-DEF-01 state
+
+Acceptance Re-Audit repository HEAD (start and end):
+acd831767c235771b145dfeda4612a7ec51c32d4
+
+Latest governance-content HEAD:
+589ec1d1272d5ded131956b98e512831b71ec55a
+
+Working tree (start and end):
+Clean
+
+Acceptance Re-Audit Run Start:
+31-07-2026 — July, 10:41 (Asia/Riyadh — UTC+03:00)
+Source: sandbox UTC clock at audit start, 2026-07-31T07:41:50Z
+
+Acceptance Re-Audit Run End:
+Exact time not recorded
+
+Acceptance Verdict Generated Time:
+Exact time not recorded
+```
+
+Re-Audit results: all seven files passed at their expected versions and contracts; `DEC-RM-DH-003-004` verified correct and unique; EV-DEF-01 verified fully corrected; registries, authoritative files, internal links, privacy validation, and Git evidence all passed; no tracked file changed during the Re-Audit; no Acceptance-blocking defect remained.
+
 ## Current state
 
 ```text
 Stage:
-Exception-documentation correction executed
+Acceptance persisted — awaiting owner Closure
 
 Execution Status:
-Completed — seven intended tracked governance files
+Completed — seven intended tracked governance files, plus the EV-DEF-01 two-file patch
 
 Status:
-EXECUTED_AWAITING_REAUDIT
+ACCEPTED_AWAITING_OWNER_CLOSURE
 
 QA:
 Pending
 
 Acceptance of the new correction:
-Pending targeted Acceptance Re-Audit
+Accepted and persisted
 
 Previous baseline Acceptance:
 Preserved as historical evidence
@@ -205,8 +238,7 @@ Pure repository-documentation revert: delete the 15 created files (and the now-e
 ## Next permitted step
 
 ```text
-A separate read-only targeted Acceptance Re-Audit of the seven-file
-planning-artifact exception-documentation correction
+Owner decision on Closure of RM-DH-003 / Phase 2 and WS-DH-2026-0002
 ```
 
 Timezone for all timestamps in this Workstream: Asia/Riyadh — UTC+03:00. Governance-baseline execution timestamp: 2026-07-30T21:16:54+03:00.
