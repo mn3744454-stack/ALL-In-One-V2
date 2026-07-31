@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Lovable platform-managed planning scratch file; excluded from version control under RM-DH-003 / Phase 2 governance correction.
+.lovable/plan.md
