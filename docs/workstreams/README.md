@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-REGISTRY
 title: Dayli Horse — Central Workstream Registry
-version: 1.2.0
+version: 1.2.1
 status: current
 audience: internal
 date: 2026-07-30
@@ -48,7 +48,7 @@ Workstream ID format: `WS-DH-YYYY-NNNN`.
 
 | Workstream ID | English title | Arabic title | Primary Roadmap | Stage | Status | File |
 |---|---|---|---|---|---|---|
-| `WS-DH-2026-0002` | Governance Foundation | تأسيس نظام الحوكمة داخل مستودع Lovable | `RM-DH-003` | Exception-documentation correction executed | EXECUTED_AWAITING_REAUDIT | [`workstream.md`](./ws-dh-2026-0002-governance-foundation/workstream.md) |
+| `WS-DH-2026-0002` | Governance Foundation | تأسيس نظام الحوكمة داخل مستودع Lovable | `RM-DH-003` | Acceptance persisted — awaiting owner Closure | ACCEPTED_AWAITING_OWNER_CLOSURE | [`workstream.md`](./ws-dh-2026-0002-governance-foundation/workstream.md) |
 
 Only `WS-DH-2026-0002` is registered in this execution.
 
