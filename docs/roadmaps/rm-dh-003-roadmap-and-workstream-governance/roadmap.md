@@ -53,10 +53,26 @@ No later Phase is created or named here. Later Phases require owner approval bef
 | Decision D-02 (`DEC-RM-DH-003-002`) | Approved |
 | Decision D-04 (`DEC-RM-DH-003-003`) | Approved |
 | Repository Execution | Completed |
-| Acceptance Re-Audit | Passed |
-| Acceptance Persistence | Completed |
+| Acceptance Re-Audit (governance baseline) | Passed — historical |
+| Acceptance Persistence (governance baseline) | Completed — historical |
+| Planning-artifact untracking correction (external) | Merged |
+| Behavioral Smoke Verification of untracking | Failed — untracking not sustainable |
+| Decision `DEC-RM-DH-003-004` (narrow exception) | Approved |
+| Exception-documentation correction (seven files) | Executed |
+| Acceptance Re-Audit of the exception correction | Pending |
+| QA | Pending |
 | Owner Closure | Pending |
 | Phase Closure | Not approved |
+
+## Planning-artifact governance finding — current state
+
+- The external untracking correction was merged into `main`.
+- Behavioral Smoke Verification **failed** for sustainable untracking: the platform recreates, force-adds, and auto-commits `.lovable/plan.md`.
+- The owner approved a **narrow exception** for `.lovable/plan.md` only, recorded as `DEC-RM-DH-003-004` and as stable rules in [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §11.10.
+- The seven-file exception-documentation correction has been **executed**.
+- The finding is therefore **resolved by narrow exception, not by successful untracking**.
+- The previous governance-baseline Acceptance remains **historical evidence** and is not invalidated.
+- The new correction is **awaiting Acceptance Re-Audit** and is not accepted by having been executed.
 
 ## Dependencies
 
@@ -65,23 +81,40 @@ No later Phase is created or named here. Later Phases require owner approval bef
 
 ## Remaining work in this Phase
 
-- Read-only verification of the Acceptance-Persistence change set.
+- Targeted read-only Acceptance Re-Audit of the seven-file exception-documentation correction.
+- Acceptance persistence for that correction, only after a passed Re-Audit.
 - Explicit owner closure decision for `RM-DH-003 / Phase 2` and `WS-DH-2026-0002`.
 - No other work item is declared, because none is owner-approved.
+
+## Current status
+
+```text
+Workstream Status:
+EXECUTED_AWAITING_REAUDIT
+
+QA:
+Pending
+
+Closure:
+Not approved
+
+Phase advance:
+None — RM-DH-003 / Phase 2 remains current
+```
 
 ## Current stopping point
 
 ```text
-Acceptance Re-Audit passed and Acceptance was persisted; explicit owner
-closure decision is required.
+The seven-file planning-artifact exception-documentation correction is
+executed and awaits an independent read-only Acceptance Re-Audit. Neither
+Acceptance persistence nor owner closure is authorized from this execution.
 ```
 
 ## Next permitted step
 
 ```text
-Read-only verification of the Acceptance-Persistence change set, followed by
-the owner's explicit decision on closing RM-DH-003 / Phase 2 and
-WS-DH-2026-0002.
+A separate read-only targeted Acceptance Re-Audit of the seven-file
+documentation correction.
 ```
 
 This Roadmap may not accept or close itself.
