@@ -66,6 +66,25 @@ This heading is the **run-closing completion timestamp** of the Acceptance-Persi
 - Files modified in this persistence run: `workstream.md`, this Roadmap's `roadmap.md` and `changelog.md`, `docs/README.md` (1.9.0 → 1.10.0), and `docs/workstreams/README.md` (1.0.0 → 1.1.0).
 - `docs/CONVENTIONS.md`, the `RM-DH-001` package, and the `RM-DH-002` package were not modified.
 
+### 2026-07-31 — Planning-artifact governance exception documentation correction
+
+Chronology of this correction, distinguishing each event class. Raw Git offsets are preserved as recorded by Git.
+
+- **External correction content commit:** `9fb0b56998b3f0a9887bf87e835d40a776552213` — author time 2026-07-31T05:04:27+03:00. Added the narrow `.gitignore` rule for `.lovable/plan.md` and removed the file from Git tracking.
+- **Pull-request merge commit:** `06467d6cc7a2d689094e6874600bcee8d821004a` — author time 2026-07-31T05:38:59+03:00. Merged the external correction into `main`.
+- **First behavioral-smoke platform commit:** `64ab74ab609ecf46e45157a7c6ab6303eb741d2d` — author time 2026-07-31T02:47:36+00:00. Standalone one-file commit; the platform recreated and force-added `.lovable/plan.md` despite the ignore rule.
+- **Later platform-generated planning commits:** `b6cabc4e8161efa47638ed102fad43e4b2ef6079` — 2026-07-31T02:48:15+00:00 (merge, "Update plan"); `92226e1065d50959f0ce01e41ad4b2cf8118d03b` — 2026-07-31T04:14:12+00:00 (one-file `.lovable/plan.md`); `ebec2b3e92e1ef52dc8fb7b243bcea1c2b33a88e` — 2026-07-31T04:14:21+00:00 (merge, "Update plan").
+- **Conclusion recorded:** the external untracking was technically valid but is not behaviorally sustainable in the current Lovable environment. This is an evidence-based inference from repeated observation, not a vendor guarantee.
+- **Owner decision:** `DEC-RM-DH-003-004` approved — narrow `.lovable/plan.md` platform-artifact governance exception, covering that single path only. It has no alias and is not the historical label `D-04`.
+- **This execution's documentation content commits:** DOC_COMMIT_RANGE_PLACEHOLDER
+- **First documentation content write:** FIRST_WRITE_PLACEHOLDER
+- **Last documentation content write:** LAST_WRITE_PLACEHOLDER
+- **Separate platform-generated `.lovable/plan.md` commits during this run:** PLATFORM_RUN_PLACEHOLDER
+- **Run-closing empty commit:** RUN_CLOSING_PLACEHOLDER
+- **Files changed by this correction (7 intended tracked files):** `docs/CONVENTIONS.md` (1.1.0 → 1.2.0, §11.10 added), this Roadmap's `decisions.md` (1.0.0 → 1.1.0), `roadmap.md` (1.1.2 → 1.2.0) and `changelog.md` (1.1.2 → 1.2.0), `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` (1.1.2 → 1.2.0), `docs/README.md` (1.10.2 → 1.11.0), and `docs/workstreams/README.md` (1.1.2 → 1.2.0). `docs/roadmaps/README.md` was not modified.
+- **Newly disclosed pre-existing defect:** several `docs/README.md` governance rows still displayed version `1.0.0` for files that had since reached `1.1.x`, and the `DHB-WS-2026-0002` row still carried the stale coverage text `EXECUTED_AWAITING_REAUDIT` while the Status column read `Accepted — awaiting owner closure`. These rows were corrected in this pass and are disclosed as a pre-existing index staleness defect, not as incidental cleanup.
+- **Status effect:** Workstream status `ACCEPTED_AWAITING_OWNER_CLOSURE` → `EXECUTED_AWAITING_REAUDIT` for this new correction. The earlier baseline Acceptance of 2026-07-30T21:41:00+03:00 is preserved as historical evidence and is not invalidated. QA remains `Pending`. Owner closure remains **not approved**. `RM-DH-003 / Phase 2` did not advance.
+
 ### Note on earlier Phase events
 
 No timestamp is recorded for `RM-DH-003 / Phase 0` or `RM-DH-003 / Phase 1` events. Exact time not recorded for those historical events in this repository, and none has been invented.
