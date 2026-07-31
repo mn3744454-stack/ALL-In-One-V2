@@ -87,6 +87,23 @@ Chronology of this correction, distinguishing each event class. Raw Git offsets 
 - **Newly disclosed pre-existing defect:** several `docs/README.md` governance rows still displayed version `1.0.0` for files that had since reached `1.1.x`, and the `DHB-WS-2026-0002` row still carried the stale coverage text `EXECUTED_AWAITING_REAUDIT` while the Status column read `Accepted — awaiting owner closure`. These rows were corrected in this pass and are disclosed as a pre-existing index staleness defect, not as incidental cleanup.
 - **Status effect:** Workstream status `ACCEPTED_AWAITING_OWNER_CLOSURE` → `EXECUTED_AWAITING_REAUDIT` for this new correction. The earlier baseline Acceptance of 2026-07-30T21:41:00+03:00 is preserved as historical evidence and is not invalidated. QA remains `Pending`. Owner closure remains **not approved**. `RM-DH-003 / Phase 2` did not advance.
 
+### 2026-07-31 — Acceptance persisted for the planning-artifact exception-documentation correction (acceptance recording only)
+
+- **Acceptance Re-Audit verdict:** `TARGETED ACCEPTANCE RE-AUDIT PASSED — READY FOR ACCEPTANCE PERSISTENCE`.
+- **Acceptance Re-Audit repository HEAD (start and end):** `acd831767c235771b145dfeda4612a7ec51c32d4`. Unchanged across the audit.
+- **Latest governance-content HEAD:** `589ec1d1272d5ded131956b98e512831b71ec55a`.
+- **Verified scope:** seven unique governance files, including the final EV-DEF-01 state. EV-DEF-01 passed.
+- **Repository effect of the Re-Audit:** no tracked file changed; the working tree was clean at audit start and end; no Acceptance persistence, QA change, closure, or Phase advance was performed by the audit itself.
+- **Acceptance Re-Audit Run Start:** 31-07-2026 — July, 10:41 (Asia/Riyadh — UTC+03:00). Evidence source: sandbox UTC clock recorded at audit start, `2026-07-31T07:41:50Z`.
+- **Acceptance Re-Audit Run End:** Exact time not recorded.
+- **Acceptance Verdict Generated Time:** Exact time not recorded.
+- **Final Report Generated Time:** Exact time not recorded.
+- **Acceptance persistence scope:** exactly five governance files — `roadmap.md` (1.2.0 → 1.2.1), this `changelog.md` (1.2.1 → 1.2.2), `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` (1.2.0 → 1.2.1), `docs/workstreams/README.md` (1.2.0 → 1.2.1), and `docs/README.md` (1.11.1 → 1.11.2). `docs/CONVENTIONS.md`, `decisions.md`, and `docs/roadmaps/README.md` were not modified.
+- **Status effect:** Workstream status `EXECUTED_AWAITING_REAUDIT` → `ACCEPTED_AWAITING_OWNER_CLOSURE`. The earlier governance-baseline Acceptance of 2026-07-30T21:41:00+03:00 remains preserved as historical evidence.
+- **QA:** remains `Pending`. The Acceptance Re-Audit did not evidence a completed QA stage.
+- **Closure:** owner closure remains **not approved**. Acceptance persistence is not closure. `RM-DH-003 / Phase 2` did not advance and `RM-DH-003` remains `Active`.
+- **Self-reference rule:** the commits that persist this entry cannot be recorded inside the entry they create. The Acceptance-persistence commit chronology belongs in the execution report and in any later Closure audit.
+
 ### Note on earlier Phase events
 
 No timestamp is recorded for `RM-DH-003 / Phase 0` or `RM-DH-003 / Phase 1` events. Exact time not recorded for those historical events in this repository, and none has been invented.
