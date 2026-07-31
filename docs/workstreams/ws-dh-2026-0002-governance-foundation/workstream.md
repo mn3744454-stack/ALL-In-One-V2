@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0002
 title: WS-DH-2026-0002 — Governance Foundation
-version: 1.1.2
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-07-30
+last-verified: 2026-07-31
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution; v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Acceptance recorded only; closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Status, QA state, acceptance evidence, and closure state are unchanged; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Status remains ACCEPTED_AWAITING_OWNER_CLOSURE, QA remains Pending, closure remains not approved, and no lifecycle stage was created or advanced.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution; v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Acceptance recorded only; closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Status, QA state, acceptance evidence, and closure state are unchanged; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Status remains ACCEPTED_AWAITING_OWNER_CLOSURE, QA remains Pending, closure remains not approved, and no lifecycle stage was created or advanced; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the canonical status becomes EXECUTED_AWAITING_REAUDIT, the earlier baseline Acceptance is preserved as historical evidence, QA remains Pending, and closure remains not approved.
 source-sha256: n/a
 -->
 
@@ -64,23 +64,40 @@ Dayli Horse Platform Owner
 - Accepted Rounds 1–5 paths were read from the repository, not assumed: `docs/handoff/rounds/round-01/` and the five architecture references under `docs/architecture/`.
 - Preflight found no repository evidence of an omitted owner decision named D-03.
 
+### Planning-artifact governance evidence (subsequent correction lifecycle)
+
+| Event | Git evidence | Author time |
+|---|---|---|
+| External untracking correction (content commit) | `9fb0b56998b3f0a9887bf87e835d40a776552213` | 2026-07-31T05:04:27+03:00 |
+| Merge of the external correction into `main` | `06467d6cc7a2d689094e6874600bcee8d821004a` | 2026-07-31T05:38:59+03:00 |
+| First behavioral-smoke platform commit (file recreated and force-added) | `64ab74ab609ecf46e45157a7c6ab6303eb741d2d` | 2026-07-31T02:47:36+00:00 |
+| Later platform-generated planning commits | `b6cabc4e8161efa47638ed102fad43e4b2ef6079`, `92226e1065d50959f0ce01e41ad4b2cf8118d03b`, `ebec2b3e92e1ef52dc8fb7b243bcea1c2b33a88e` | 2026-07-31T02:48:15+00:00, 2026-07-31T04:14:12+00:00, 2026-07-31T04:14:21+00:00 |
+
+Raw Git offsets are preserved as recorded by Git. Behavioral Smoke Verification therefore **failed** for sustainable untracking, and the owner approved the narrow exception recorded as `DEC-RM-DH-003-004`.
+
 ## Stage history
 
 | Stage | Status |
 |---|---|
 | Investigative Audit | Complete |
 | Owner Alignment | Complete |
-| Execution | Completed |
+| Execution (governance baseline) | Completed |
 | QA | Pending — see the QA note below |
-| Acceptance Re-Audit | Passed |
-| Acceptance Persistence | Completed |
+| Acceptance Re-Audit (governance baseline) | Passed — historical |
+| Acceptance Persistence (governance baseline) | Completed — historical |
+| External untracking correction | Merged |
+| Behavioral Smoke Verification | Failed — untracking not sustainable |
+| Mini Owner-Alignment Audit | Complete |
+| Owner approval of the narrow exception (`DEC-RM-DH-003-004`) | Approved |
+| Exception-documentation correction (seven files) | Executed |
+| Acceptance Re-Audit of the exception correction | Pending |
 | Owner Closure | Pending — not approved |
 
 ### QA note
 
-QA remains `Pending`. The read-only Acceptance Re-Audit did not state that a separate QA stage had been performed or that QA was formally absorbed into Acceptance, so no QA event is recorded here. This state is preserved deliberately and was not advanced by the Acceptance-Persistence execution.
+QA remains `Pending`. Neither the read-only Acceptance Re-Audit nor the subsequent correction passes stated that a separate QA stage had been performed or that QA was formally absorbed into Acceptance, so no QA event is recorded here. This state is preserved deliberately and was not advanced by any correction execution.
 
-## Acceptance evidence
+## Acceptance evidence (governance baseline — historical, preserved)
 
 ```text
 Acceptance Verdict:
@@ -105,20 +122,28 @@ Scope Validation:
 No path outside the 17-file allowlist changed
 ```
 
+This Acceptance event is preserved as historical evidence. It is not invalidated, reopened, or overwritten by the subsequent exception-documentation correction, and it does not accept that correction.
+
 ## Current state
 
 ```text
 Stage:
-Acceptance Re-Audit
+Exception-documentation correction executed
 
 Execution Status:
-Completed
-
-Acceptance Re-Audit:
-Passed
+Completed — seven intended tracked governance files
 
 Status:
-ACCEPTED_AWAITING_OWNER_CLOSURE
+EXECUTED_AWAITING_REAUDIT
+
+QA:
+Pending
+
+Acceptance of the new correction:
+Pending targeted Acceptance Re-Audit
+
+Previous baseline Acceptance:
+Preserved as historical evidence
 
 Closure:
 Not approved
@@ -165,11 +190,23 @@ Modified (2):
 
 Pure repository-documentation revert: delete the 15 created files (and the now-empty `docs/roadmaps/` and `docs/workstreams/` trees), revert `docs/README.md` to 1.8.0 and `docs/CONVENTIONS.md` to 1.0.0. No SQL, no application change, no database object requires rollback.
 
+## Exception-documentation correction — file set (7)
+
+1. `docs/CONVENTIONS.md` — 1.1.0 to 1.2.0 (§11.10 added).
+2. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md` — 1.0.0 to 1.1.0 (`DEC-RM-DH-003-004`).
+3. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` — 1.1.2 to 1.2.0.
+4. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` — 1.1.2 to 1.2.0.
+5. `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` — 1.1.2 to 1.2.0.
+6. `docs/README.md` — 1.10.2 to 1.11.0.
+7. `docs/workstreams/README.md` — 1.1.2 to 1.2.0.
+
+`docs/roadmaps/README.md`, `.gitignore`, and every other `.lovable/` path are out of scope. Platform-generated `.lovable/plan.md` activity is disclosed separately and is never counted among these seven files.
+
 ## Next permitted step
 
 ```text
-Read-only Acceptance-Persistence verification, followed by an explicit
-owner closure decision
+A separate read-only targeted Acceptance Re-Audit of the seven-file
+planning-artifact exception-documentation correction
 ```
 
-Timezone for all timestamps in this Workstream: Asia/Riyadh — UTC+03:00. Execution timestamp: 2026-07-30T21:16:54+03:00.
+Timezone for all timestamps in this Workstream: Asia/Riyadh — UTC+03:00. Governance-baseline execution timestamp: 2026-07-30T21:16:54+03:00.
