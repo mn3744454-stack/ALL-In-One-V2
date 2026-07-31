@@ -165,16 +165,22 @@ Re-Audit results: all seven files passed at their expected versions and contract
 
 ```text
 Stage:
-Acceptance persisted — awaiting owner Closure
+Closure persisted
 
 Execution Status:
 Completed — seven intended tracked governance files, plus the EV-DEF-01 two-file patch
 
 Status:
+CLOSED
+
+Closed scope:
+WS-DH-2026-0002 — Governance Foundation
+
+State immediately preceding Closure:
 ACCEPTED_AWAITING_OWNER_CLOSURE
 
 QA:
-Pending
+Complete — satisfied by the passed Final Targeted Acceptance Re-Audit
 
 Acceptance of the new correction:
 Accepted and persisted
@@ -183,7 +189,7 @@ Previous baseline Acceptance:
 Preserved as historical evidence
 
 Closure:
-Not approved
+Approved and persisted
 ```
 
 ## File plan
