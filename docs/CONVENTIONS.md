@@ -1,14 +1,14 @@
 <!--
 id: DHB-CONV
 title: Documentation Conventions
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-07-27
 last-verified: 2026-07-30
 supersedes: []
 superseded-by: null
-source: authored during DG.2 (aligned with DG.1A §I, §J, §L); v1.1.0 — adds §11 Roadmap and Workstream governance (stable rules only) during RM-DH-003 / Phase 2 — Governance Foundation Execution, Workstream WS-DH-2026-0002, at 2026-07-30T21:16:54+03:00 (Asia/Riyadh — UTC+03:00)
+source: authored during DG.2 (aligned with DG.1A §I, §J, §L); v1.1.0 — adds §11 Roadmap and Workstream governance (stable rules only) during RM-DH-003 / Phase 2 — Governance Foundation Execution, Workstream WS-DH-2026-0002, at 2026-07-30T21:16:54+03:00 (Asia/Riyadh — UTC+03:00); v1.2.0 — adds §11.10 Planning-artifact governance exception (stable rules only) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction, Workstream WS-DH-2026-0002, under approved Decision DEC-RM-DH-003-004. No other section was changed and no dynamic status, commit ID, or timestamp was introduced into §11.10.
 source-sha256: n/a
 -->
 
