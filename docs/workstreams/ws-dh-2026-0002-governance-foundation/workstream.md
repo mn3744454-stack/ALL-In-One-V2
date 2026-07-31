@@ -245,10 +245,18 @@ Pure repository-documentation revert: delete the 15 created files (and the now-e
 
 `docs/roadmaps/README.md`, `.gitignore`, and every other `.lovable/` path are out of scope. Platform-generated `.lovable/plan.md` activity is disclosed separately and is never counted among these seven files.
 
+## Final stopping point
+
+```text
+WS-DH-2026-0002 closed after successful Acceptance and explicit owner Closure approval.
+```
+
 ## Next permitted step
 
 ```text
-Owner decision on Closure of RM-DH-003 / Phase 2 and WS-DH-2026-0002
+Begin a separate read-only Lovable Persistent Instructions Architecture investigation under a separately classified governance scope.
 ```
+
+That scope was not created, classified, or begun by this Closure execution.
 
 Timezone for all timestamps in this Workstream: Asia/Riyadh — UTC+03:00. Governance-baseline execution timestamp: 2026-07-30T21:16:54+03:00.
