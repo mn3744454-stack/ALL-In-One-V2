@@ -103,6 +103,27 @@ Chronology of this correction, distinguishing each event class. Raw Git offsets 
 - **QA:** remains `Pending`. The Acceptance Re-Audit did not evidence a completed QA stage.
 - **Closure:** owner closure remains **not approved**. Acceptance persistence is not closure. `RM-DH-003 / Phase 2` did not advance and `RM-DH-003` remains `Active`.
 - **Self-reference rule:** the commits that persist this entry cannot be recorded inside the entry they create. The Acceptance-persistence commit chronology belongs in the execution report and in any later Closure audit.
+- **Externally verified final chronology of the Acceptance-persistence run (added in v1.2.3):** verified read-only from Git during the Closure pass. Final Acceptance-persistence content HEAD `bdc28425ae5faa7909181daf44bd4ae127ddc4bc`; the branch state entering Closure was the merge commit `277fd6af73db4958d3d1cd8276f7334eb61328f5` — raw Git `2026-07-31T08:04:58+00:00`, equivalent to 31-07-2026 — July, 11:04 (Asia/Riyadh — UTC+03:00) — whose parents are `acd831767c235771b145dfeda4612a7ec51c32d4` and `bdc28425ae5faa7909181daf44bd4ae127ddc4bc`. That merge introduced no content change of its own. The working tree was clean at the start of the Closure pass, and no commit other than that merge existed after `bdc28425a`.
+
+### 2026-07-31 — Owner Closure of RM-DH-003 / Phase 2 and WS-DH-2026-0002 (Closure persistence)
+
+- **Acceptance basis:** the Final Targeted Acceptance Re-Audit of the seven-file planning-artifact exception-documentation correction, including EV-DEF-01, returned `TARGETED ACCEPTANCE RE-AUDIT PASSED — READY FOR ACCEPTANCE PERSISTENCE` at verified audit HEAD `acd831767c235771b145dfeda4612a7ec51c32d4`.
+- **Acceptance persistence:** completed in the preceding run and unchanged by this entry. Acceptance remains `Accepted and persisted`.
+- **Owner QA decision:** the owner explicitly decided that the passed Final Targeted Acceptance Re-Audit constitutes the **final QA evidence** for this documentation-only governance correction, and that no separate duplicative QA run is required. The exact historical time of the owner decision is not recorded in this repository: **Exact time not recorded**. Prompt Preparation metadata is not used as a substitute.
+- **QA state change:** `Pending` → `Complete — satisfied by the passed Final Targeted Acceptance Re-Audit`.
+- **Workstream:** `WS-DH-2026-0002 — Governance Foundation` is **CLOSED**. The immediately preceding status `ACCEPTED_AWAITING_OWNER_CLOSURE` is retained in Stage history.
+- **Phase:** `RM-DH-003 / Phase 2 — Governance Foundation Execution` is **CLOSED**.
+- **Roadmap:** `RM-DH-003` remains **Active**. It was not closed.
+- **Phase creation and advance:** no new Phase was created, approved, or begun, and no Phase advance occurred. The Roadmap position is `Phase 2 closed; next Roadmap structure or Phase has not been owner-approved.`
+- **Planning-artifact finding:** remains resolved by the narrow `.lovable/plan.md` exception under `DEC-RM-DH-003-004`, not by successful untracking. No Decision was created or changed by this Closure.
+- **Closure persistence scope:** exactly six governance files — `roadmap.md` (1.2.1 → 1.2.2), this `changelog.md` (1.2.2 → 1.2.3), `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` (1.2.1 → 1.2.2), `docs/workstreams/README.md` (1.2.1 → 1.2.2), `docs/roadmaps/README.md` (1.0.0 → 1.0.1), and `docs/README.md` (1.11.2 → 1.11.3). `docs/CONVENTIONS.md`, `decisions.md`, and `.gitignore` were not modified.
+- **Non-governance impact:** no application, database, migration, RPC, RLS, configuration, live-data, Project Knowledge, Workspace Knowledge, Skill, or cross-project sharing-setting change occurred.
+- **Closure-persistence Git evidence observed while authoring this entry:** the run began at HEAD `277fd6af73db4958d3d1cd8276f7334eb61328f5`. First Closure-persistence content write: `400a23ab8f6ca8e86512cc9ea38d268096385dd3` — raw Git `2026-07-31T08:30:18+00:00`, equivalent to 31-07-2026 — July, 11:30 (Asia/Riyadh — UTC+03:00). Last content write observed at authoring time: `818c92a76c901017623a430591af57fa6fa29d5a` — raw Git `2026-07-31T08:31:39+00:00`, equivalent to 31-07-2026 — July, 11:31 (Asia/Riyadh — UTC+03:00).
+- **Self-reference rule:** the commits that finalize this Closure entry and the `docs/README.md` synchronization necessarily follow the commit named above and are therefore **not** self-recorded here. They are reported externally in the Closure execution report. No empty run-closing commit is to be created merely so that this changelog can self-record its own final persistence hash.
+- **Separate platform-generated `.lovable/plan.md` activity:** none observed in `277fd6af7..818c92a76`. Any such commit created later by the platform is disclosed under `docs/CONVENTIONS.md` §11.10, is excluded from the six-file intended count, and is never Closure or QA evidence.
+- **Final stopping point:** `WS-DH-2026-0002` closed after successful Acceptance and explicit owner Closure approval. Next permitted step: a separately classified, owner-approved read-only investigation of the Lovable Persistent Instructions Architecture, which was not begun in this run.
+
+
 
 ### Note on earlier Phase events
 
