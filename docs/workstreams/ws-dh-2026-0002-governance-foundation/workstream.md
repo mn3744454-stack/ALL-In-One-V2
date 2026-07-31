@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0002
 title: WS-DH-2026-0002 — Governance Foundation
-version: 1.2.1
+version: 1.2.2
 status: current
 audience: internal
 date: 2026-07-30
 last-verified: 2026-07-31
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution; v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Acceptance recorded only; closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Status, QA state, acceptance evidence, and closure state are unchanged; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Status remains ACCEPTED_AWAITING_OWNER_CLOSURE, QA remains Pending, closure remains not approved, and no lifecycle stage was created or advanced; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the canonical status becomes EXECUTED_AWAITING_REAUDIT, the earlier baseline Acceptance is preserved as historical evidence, QA remains Pending, and closure remains not approved; v1.2.1 — persists the passed final targeted Acceptance Re-Audit of the seven-file exception-documentation correction, including EV-DEF-01. The canonical status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. The preceding EXECUTED_AWAITING_REAUDIT stage is retained in Stage history as the state preceding the successful Re-Audit, the earlier baseline Acceptance remains historical evidence, QA remains Pending, and owner closure remains not approved.
+source: v1.2.2 — records the explicit owner Closure decision for RM-DH-003 / Phase 2 and WS-DH-2026-0002 and persists Closure. Under that decision the passed Final Targeted Acceptance Re-Audit is accepted as the final QA evidence for this documentation-only governance correction, so QA moves from Pending to Complete. The Workstream status becomes CLOSED, the preceding ACCEPTED_AWAITING_OWNER_CLOSURE state is retained in Stage history as the state immediately preceding Closure, Acceptance remains accepted and persisted, all Investigation, Execution, Correction, Acceptance and Acceptance-Persistence history is preserved, RM-DH-003 remains Active, no Phase was created or advanced, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; authored during RM-DH-003 / Phase 2 — Governance Foundation Execution; v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Acceptance recorded only; closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Status, QA state, acceptance evidence, and closure state are unchanged; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Status remains ACCEPTED_AWAITING_OWNER_CLOSURE, QA remains Pending, closure remains not approved, and no lifecycle stage was created or advanced; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the canonical status becomes EXECUTED_AWAITING_REAUDIT, the earlier baseline Acceptance is preserved as historical evidence, QA remains Pending, and closure remains not approved; v1.2.1 — persists the passed final targeted Acceptance Re-Audit of the seven-file exception-documentation correction, including EV-DEF-01. The canonical status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. The preceding EXECUTED_AWAITING_REAUDIT stage is retained in Stage history as the state preceding the successful Re-Audit, the earlier baseline Acceptance remains historical evidence, QA remains Pending, and owner closure remains not approved.
 source-sha256: n/a
 -->
 
@@ -82,7 +82,7 @@ Raw Git offsets are preserved as recorded by Git. Behavioral Smoke Verification 
 | Investigative Audit | Complete |
 | Owner Alignment | Complete |
 | Execution (governance baseline) | Completed |
-| QA | Pending — see the QA note below |
+| QA | Complete — satisfied by the passed Final Targeted Acceptance Re-Audit; see the QA note below |
 | Acceptance Re-Audit (governance baseline) | Passed — historical |
 | Acceptance Persistence (governance baseline) | Completed — historical |
 | External untracking correction | Merged |
@@ -93,11 +93,15 @@ Raw Git offsets are preserved as recorded by Git. Behavioral Smoke Verification 
 | EV-DEF-01 narrow two-file correction | Executed |
 | Acceptance Re-Audit of the exception correction | Passed |
 | Acceptance Persistence of the exception correction | Completed |
-| Owner Closure | Pending — not approved |
+| State immediately preceding Closure | `ACCEPTED_AWAITING_OWNER_CLOSURE` |
+| Owner QA interpretation decision | Approved — the passed Final Targeted Acceptance Re-Audit is the final QA evidence |
+| QA | Complete — satisfied by the passed Final Targeted Acceptance Re-Audit |
+| Owner Closure | Approved |
+| Closure Persistence | Completed |
 
 ### QA note
 
-QA remains `Pending`. Neither the read-only Acceptance Re-Audit nor the subsequent correction passes stated that a separate QA stage had been performed or that QA was formally absorbed into Acceptance, so no QA event is recorded here. This state is preserved deliberately and was not advanced by any correction execution.
+QA is `Complete`. No separate duplicative QA run was performed. Under the explicit owner decision recorded in this Closure pass, the passed Final Targeted Acceptance Re-Audit of the seven-file exception-documentation correction — including EV-DEF-01 — is accepted as the final QA evidence for this documentation-only governance correction. The earlier `Pending` QA state is preserved above as historical lifecycle truth: it was accurate until the owner issued this interpretation, and it was not advanced by any correction execution.
 
 ## Acceptance evidence (governance baseline — historical, preserved)
 
