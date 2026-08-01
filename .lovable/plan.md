@@ -1,167 +1,189 @@
-# Full Deep Forensic Investigative Audit — Shared Tenant Operational Finance & Historical Migration
+# PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-CRITICAL-EVIDENCE-COMPLETION-MINI-AUDIT-02
 
-Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-DEEP-FORENSIC-AUDIT-01 · Read-Only
+Operation: Critical Evidence Completion Mini Investigative Audit
+Mode: Plan/Chat — Read-Only. No source file was created, edited, or deleted. No migration was proposed or run.
+Scope: close the critical evidence gaps that blocked owner alignment at the end of Audit 01.
 
-## A. Executive Verdict
+---
 
-**OWNER ALIGNMENT BLOCKED — CRITICAL EVIDENCE GAPS**
+## 0. Evidence basis
 
-Three blocking evidence findings, each proven from live DB or HEAD code:
+All statements below are backed by a read performed in this turn: live database catalog queries (`pg_class.relacl`, `pg_policies`, `pg_get_functiondef`, `permission_definitions`), live financial row inspection (`ledger_entries`, `invoices`, `invoice_items`, `customer_balances`, `lab_horses`), and repository reads (`usePOSCore.ts`, `useStatementEnrichment.ts`, `StatementPrintUtils.ts`).
 
-1. **Effective-date is not the chronology basis.** `ledger_entries.effective_date` exists but is **nullable**, is **NULL on 28 of 88 live rows (31.8%)**, and the statement reader `src/hooks/clients/useClientStatement.ts` (lines 47–62) orders and date-filters on **`created_at`**, not `effective_date`. Requirement 6.5 is unmet today, so backdated historical imports would post at the wrong point in the statement.
-2. **A non-atomic header-first invoice creation path survives at HEAD.** `src/hooks/pos/usePOSCore.ts:117-156` inserts `invoices` then separately inserts `invoice_items`, and calls `postLedgerForInvoice` (`src/lib/finance/postLedgerForInvoice.ts:164-205`) which writes `ledger_entries` and `customer_balances` directly from the browser. The 4.3 claim ("caller/RPC contract skew resolved") is **true for the invoice/lab/manual flows but false for POS**.
-3. **No migration substrate exists.** There is no import batch table, no source/provenance column on `invoices` or `invoice_items`, no opening-obligation object, and no `source_system` field. Migration architecture must be designed from zero; nothing can be validated against existing structures.
+Where Audit 01 asserted something this turn's evidence contradicts, the correction is stated explicitly.
 
-Non-blocking positives: the Owner-reported scenario **reconciles exactly**, and `customer_balances` shows **zero drift**.
+---
 
-## B. Audit Identity, Scope, Mode, Read-Only Confirmation
+## WP7.1 — Financial write-authority surface (CLOSED)
 
-Mode: Plan/Chat, read-only. Repository writes: none (only this platform-generated `.lovable/plan.md`). Database writes: none — all SQL was `SELECT` against `information_schema`, `pg_proc`, and aggregate counts. No DDL, DML, migration, RPC write, or `EXPLAIN ANALYZE`. Knowledge/Skills/settings/governance: unchanged.
+Table privileges on the finance substrate (`pg_class.relacl`, authoritative — the earlier empty `information_schema.role_table_grants` result was a visibility artifact of the querying role, not an absence of grants):
 
-Branch `main` @ HEAD `3224254f` (2026-08-01 03:54:48 +0000). Working tree clean before; after, only the platform plan artifact.
+| Table | anon | authenticated | service_role | RLS |
+|---|---|---|---|---|
+| `ledger_entries` | ALL | ALL | ALL | enabled |
+| `customer_balances` | ALL | ALL | ALL | enabled |
+| `invoices`, `invoice_items` | ALL | ALL | ALL | enabled |
+| `payment_sessions`, `payment_allocations`, `payment_horse_allocations` | ALL | ALL | ALL | enabled |
+| `financial_entries`, `billing_links`, `lab_credit_wallets` | ALL | ALL | ALL | enabled |
+| `finance_request_idempotency` | none | none | ALL | enabled |
 
-## C. Evidence Coverage and Source Register
+Table-level grants therefore provide **no** protection anywhere except `finance_request_idempotency`. RLS is the sole gate. Actual RLS posture:
 
-| Source | Read | Depth | Truth class |
+- `ledger_entries` — SELECT for tenant members (two overlapping duplicate SELECT policies); **INSERT permitted directly from the browser** to any holder of `finance.invoice.edit`; no UPDATE and no DELETE policy (fail-closed, correct and intended).
+- `customer_balances` — SELECT for tenant members; **INSERT, UPDATE and DELETE all permitted directly from the browser** to any holder of `finance.invoice.edit`.
+- `payment_sessions` / `payment_allocations` / `payment_horse_allocations` — SELECT only, gated on `is_active_tenant_member` + `finance.payment.view`. No client-side write path at all; writes are RPC-only.
+
+**Finding F-1 (Financial Authority Asymmetry).** The Phase N+2 payment substrate is correctly RPC-only, but the older ledger substrate is not. A user holding `finance.invoice.edit` — a *document-editing* permission — can today insert arbitrary `ledger_entries` rows and freely insert, update or delete `customer_balances` rows straight from the browser, with no RPC, no idempotency key, no double-entry validation and no audit actor. `customer_balances` being directly writable is the more severe half: the client-visible balance can be set to any value independently of the ledger that is supposed to derive it. This contradicts the standing project invariant that payment status and balances are derived from the ledger and never set manually.
+
+**Finding F-2 (Permission granularity mismatch).** `permission_definitions` contains a finance vocabulary of 19 keys, including `finance.ledger.view` and `finance.adjustment.create`. Neither is used by any ledger or balance RLS policy — both tables key off `finance.invoice.edit` instead. The precise permission required to authorise a ledger movement already exists and is simply not wired.
+
+Confirmed application-layer writers that exploit the open surface (all browser-side, non-atomic): `src/hooks/pos/usePOSCore.ts`, `src/lib/finance/postLedgerForInvoice.ts`, `src/lib/finance/postLedgerForExpense.ts`, `src/lib/finance/recordAsStableCost.ts`, `src/hooks/finance/useSupplierPayables.ts`, `src/hooks/finance/useFinancialEntries.ts`, `src/hooks/laboratory/useLabCredits.ts`, `src/hooks/billing/useBillingLinks.ts`.
+
+---
+
+## WP7.2 — Canonical RPC behaviour (CLOSED) — corrects Audit 01
+
+`approve_invoice` (live body) authenticates the actor, enforces tenant access, requires `finance.invoice.approve`, reads the invoice's `issue_date`, and posts the ledger entry with `'effective_date', v_inv.issue_date`.
+
+**Correction to Audit 01.** Audit 01 left open whether the platform still produces `effective_date`-less ledger rows. It does not. The canonical approval path is chronology-correct today and has been since the J5/N+1B cutover. The 28 NULL rows are a bounded legacy residue from the pre-RPC direct-insert era, not an ongoing leak. This materially downgrades the urgency of the write-path half of the effective-date defect and upgrades the priority of the read-path half.
+
+`get_client_first_financial_activity` (live body) is correctly hardened — authentication, `is_tenant_member`, `clients.statement.view`, and tenant-scoped client validation — and correctly excludes draft/cancelled invoices and `invoice_cancellation` adjustments. But it computes `MIN(le.created_at)`.
+
+**Finding F-3 (First-movement anchor uses the wrong clock).** The opening-balance anchor for every client statement is the row-creation timestamp, not the economic effective date. For any client whose earliest genuine economic event was backdated at entry, the statement's "first activity" marker, and therefore the opening-balance cut, lands on the wrong date. This is the single highest-impact read-path consequence of the effective-date architecture and it is independent of the 28 legacy NULLs — it misfires on correctly-populated rows too.
+
+---
+
+## WP7.3 — The 28 NULL `effective_date` rows: fully classified (CLOSED)
+
+Complete classification of every NULL row:
+
+| Class | Rows | Reference resolves? | Entry types |
 |---|---|---|---|
-| `src/lib/finance/*` (24 modules) listing + targeted reads | Yes | Partial (grep + full reads of 4) | Current |
-| `src/hooks/clients/useClientStatement.ts` | Yes | Full (131 lines) | Current |
-| `src/hooks/clients/useClientFirstActivity.ts` | Yes | Full (50 lines) | Current |
-| `src/lib/finance/statementSemantics.ts` | Yes | Partial (1–60 of 211) | Current |
-| `src/hooks/clients/useStatementEnrichment.ts` | Yes | Partial (grep, 399 lines) | Current |
-| `src/components/clients/ClientStatementTab.tsx` | Yes | Partial (grep, 1484 lines) | Current |
-| `src/hooks/pos/usePOSCore.ts` | Yes | Partial (grep lines 117–156) | Current |
-| Live `pg_proc` finance function catalog | Yes | Full for 11 named functions | Current |
-| Live schema: `ledger_entries`, `invoice_items`, `payment_sessions`, `payment_allocations` | Yes | Full column lists | Current |
-| Live aggregates (balances, ledger, invoices) | Yes | Counts/sums only, no PII | Current |
-| Skill 04 — Tenant Isolation Guard | Yes | Full | Current |
-| Security memory | Yes | Full | Current |
-| Documentation 5 / 10 / 12 / 13, Master Register v0.9.0, Rounds 1–5, `RM-DH-002` package | **No** | Not located in repo at HEAD | Inaccessible — contents not inferred |
+| `reference_type = 'invoice'` | 27 | 27 / 27 to a live invoice | `payment`, `adjustment` |
+| `reference_type = 'invoice_cancellation'` | 1 | 1 / 1 to a live invoice | `adjustment` |
+| **Total** | **28** | **28 / 28** | — |
 
-Inaccessible sources are **not** treated as evidence. Historical claims in §4.1 remain unverified against their source documents; they were re-verified only against current code and DB.
+Every one of the 28 rows carries a resolvable invoice reference, and every referenced invoice has a non-null `issue_date`, spanning 2026-01-31 to 2026-07-18.
 
-## D. Facts, Claims, Inferences, Contradictions, Gaps
+**Finding F-4 (The backfill is deterministic, and it is not cosmetic).** There is no ambiguous subset. `effective_date := referenced invoice.issue_date` is a total, single-valued rule over all 28 rows — no heuristics, no owner adjudication, no unresolvable remainder. Critically, **16 of the 28 rows have an invoice `issue_date` that differs from the row's Riyadh-local `created_at` date.** So the widespread fallback of treating `created_at` as the effective date is not merely imprecise: it currently misdates 16 real historical movements. Any migration that recovers them by falling back to `created_at` would silently freeze the wrong chronology into the record.
 
-**Proven facts.** All 11 finance RPCs are `SECURITY DEFINER` with `search_path=""` except `_finance_invoice_compute_totals` (INVOKER, correct for a pure computation). Signatures carry `p_idempotency_key uuid` on every mutating RPC — idempotency is structurally present. `payment_sessions`/`payment_allocations`/`payment_horse_allocations` are live with 29/38/15 rows — multi-invoice and horse-level allocation are **real, not aspirational**. Zero non-draft invoices have zero items (0 of 65). Zero customer-balance drift (0 rows deviate >0.005 from ledger sum).
+---
 
-**Contradiction.** §4.3's claim of resolved contract skew conflicts with the surviving POS path (finding A.2). The vitest guard `n2_5InvoiceRpcRuntimeWiring.test.ts:119-133` asserts the *invoice* and *payment* modules are clean but does not assert POS is.
+## WP7.4 — Case C1 reconciled to the row (CLOSED)
 
-**Gaps.** Tax-basis parity between CSV/PDF/screen was not line-verified. `create_invoice_with_items` body text was not dumped (signature and attributes only).
+The client behind the reported 3,330 / 560 / 2,770 scenario:
 
-## E. Governance Classification Analysis
+Ledger:
+- 6 `invoice` debits, total **3,330.00**, all with `effective_date` populated
+- 9 `payment` credits, total **-560.00**, of which **7 carry a NULL `effective_date`**
+- Net **2,770.00**, matching `customer_balances.balance` exactly.
 
-Recommendation only: this belongs under `RM-DH-002` as a new multi-phase workstream. No ID assigned.
+Invoice population for the same client:
 
-## F. Current Operational-Finance Architecture Map
+| Status | Count | Total |
+|---|---|---|
+| approved | 3 | 2,855.00 |
+| paid | 3 | 475.00 |
+| draft | 6 | 3,234.50 |
+| **All** | **12** | **6,564.50** |
 
-Canonical path: UI dialog → `src/lib/finance/invoiceRpc.ts` → `create_invoice_with_items` / `update_invoice_with_items` → trigger `trg_invoice_items_validate_source` + `trg_invoice_items_fill_snapshots` → `approve_invoice` → `_finance_invoice_approve_inline` → `_finance_ledger_insert` → `ledger_entries` + `customer_balances`.
+approved + paid = 2,855.00 + 475.00 = **3,330.00** — exactly the ledger debit total.
 
-Payment path: `RecordPaymentDialog` / `MultiInvoicePaymentDialog` → `postPaymentSession.ts` → `post_payment_session` → `payment_sessions` → `payment_allocations` → `payment_horse_allocations` → ledger.
+**Finding F-5 (No drift; the exposure is presentational).** Ledger, balance and posted-invoice population agree to the cent. There is no reconciliation defect in C1. The real exposure is that 3,234.50 of drafts sits alongside a 2,770.00 balance, i.e. **more than half of this client's invoice value by count (6 of 12) is unposted**. Nothing in the current statement surface tells a user that a near-equal shadow population exists outside the balance. The risk here is a truthful number read as a complete number.
 
-**Legacy survivors at HEAD:** `postLedgerForInvoice.ts` (called only by POS), `postLedgerForExpense.ts` (called by `DashboardFinance.tsx`), `postLedgerForPayments.ts` (still imported by `useInvoicePayments.ts` and `RecordPaymentDialog.tsx`).
+**Finding F-6 (Chronology risk is concentrated in credits).** 7 of the 9 payment credits — the entries that most directly determine how a client perceives their settlement history — are exactly the entries missing an effective date. Combined with F-3, C1's statement ordering and opening cut are both driven by row-creation time for the majority of its payment history.
 
-## G. Schema / RLS / RPC / Trigger Evidence
+---
 
-`ledger_entries` (15 cols): `effective_date date NULL` ← the defect; `metadata jsonb NOT NULL`; `payment_session_id` links to sessions. `invoice_items` (35 cols) carries `horse_id`, `lab_horse_id`, `service_source`, `category_id`, and frozen snapshots (`*_snapshot`, `line_pretax_amount`, `line_tax_amount`, `line_gross_amount`, `tax_rate_snapshot`) — frozen-line truth is real. **No provenance columns anywhere**: no `source_system`, `import_batch_id`, `source_document_number`, `source_row_ref`. `invoices` policies are permission-based (`finance.invoice.create/edit/delete`) with `is_tenant_member` SELECT — Skill 04 Type A boundary is enforced at the row level for all financial tables inspected.
+## WP7.5 — Horse attribution matrix for C1 (CLOSED) — corrects Audit 01
 
-## H. Invoice Lifecycle Trace
+All 15 invoice items for C1, by attribution capability:
 
-Atomic and safe on the canonical path: single-RPC create/update, server-side totals via `_finance_invoice_compute_totals`, zero-item approval blocked (0 live violations), cancellation via `cancel_invoice(p_effective_date, p_reason)` which **does** take an explicit economic date. Not safe on the POS path (A.2). Concurrency is guarded by `_finance_source_lock_key` advisory locks.
+| Attribution shape | Items | Resolvable to a canonical horse today? |
+|---|---|---|
+| `horse_id` set | 0 | — |
+| `entity_type = 'lab_sample'` + `entity_id` | 4 | yes, via the multi-hop sample path |
+| `lab_horse_id` set | 4 | **no — but the bridge exists** |
+| No attribution of any kind | 7 | no |
 
-## I. Ledger / Effective-Date / Balance / First-Movement Trace
+**Finding F-7 (A live, closed, ignored identity bridge).** For **all four** items carrying a `lab_horse_id`, the referenced `lab_horses` row has a non-null `linked_horse_id`. The lab-local identity is already reconciled to the canonical horse registry in the database. But `useStatementEnrichment.ts` has no `lab_horse_id` branch at all: Path A keys only off `item.horse_id`, and Path B keys only off `entity_type`. These four items therefore fall through to the unattributed bucket despite the platform holding a complete, closed identity chain for them.
 
-`effective_date` is written by newer RPCs but 28 rows predate it. `useClientStatement` never reads it. `get_client_first_financial_activity` RPC correctly excludes future-dated rows and draft/cancelled references — first-movement is the **strongest** component and already satisfies 6.6 in principle, but inherits the `created_at`-vs-`effective_date` ambiguity for the 28 NULL rows.
+This refines Audit 01, which described these items as resolving into a separate local identity space. The stronger and more actionable truth is that they resolve into the *canonical* space and the resolution is simply never attempted. Recovering them requires no data migration and no owner decision — only a read-path branch.
 
-## J. Payment / Allocation / Credit Trace
+**Finding F-8 (Grouping-key inconsistency, previously unreported).** Path A composes its map key as `${domain}_${horseId}`, while the `lab_sample` branch of Path B uses the bare `horseId`. The same horse reached by the two paths produces two distinct keys and therefore two separate horse groups on one statement. The `boarding` branch uses the composed form, so the defect is isolated to the `lab_sample` branch.
 
-Supported today: invoice-specific payment, split across invoices, partial payment, horse-level allocation, client-level residual (`payment_allocations.client_level_amount`). **Not modelled today:** unapplied customer credit as a first-class object, overpayment carry-forward, payment against an opening obligation (no such object), and reallocation of an already-posted allocation.
+Net for C1: 4 of 15 items are attributed today, 4 more are recoverable purely in the read path, and 7 are genuinely unattributable without new data.
 
-## K. Statement UI, Filters, Totals, Exports
+---
 
-`statementSemantics.ts` is a genuine single classifier shared by screen, running balance, Print, PDF and CSV, and it correctly refuses to count cancellations/reversals as Paid and neutralizes orphan cancellations. Date filter uses `localDateFromToUtcIso` boundary conversion (correct timezone handling) but against `created_at`.
+## WP7.6 — Export parity (CLOSED)
 
-## L. Horse Scope Analysis — root cause found
+`StatementPrintUtils.ts` exposes `printStatement`, `exportCSV`, `exportPDF`, `printLedgerEntries` and `exportLedgerCSV`. All five read the same `e.date` field from the same prepared entry model; the statement family renders it via `formatDateForPrint` and the ledger family via `formatTimeForPrint`.
 
-For the Owner-reported client: **15 invoice items, `horse_id` populated on 0, `lab_horse_id` populated on 4.** The horse filter (`ClientStatementTab.tsx:558-704`) builds `selectedHorseIds` from `clientHorses` (canonical `horses` rows) and intersects against enrichment output; `useStatementEnrichment.ts:158-162` emits `horseId = lab_horse_id` for Lab-sourced items. **Lab-local horse IDs can never match canonical horse IDs, so those rows vanish under any horse filter.** Classification: 4 rows = *implementation defect* (identity-space mismatch, MEM horse-unification bridge not applied to the statement filter); the remaining 11 rows = *valid scope exclusion* (genuinely client-level, no horse attribution).
+**Finding F-9 (Parity holds, and that is the problem).** There is no divergence between screen, print, PDF and CSV — they are all faithful projections of one upstream value. Consequently every defect in F-3, F-4 and F-6 propagates identically into every exported artefact. Fixing the upstream date semantics fixes all five surfaces at once; conversely, no export-layer change can mitigate any of them.
 
-## M. Owner-Reported 3,330 / 560 / 2,770 — RECONCILED
+---
 
-| Measure | Live value |
+## WP7.7 — POS write path (CLOSED)
+
+`usePOSCore.ts` completes a sale through four sequential, independently-failing client-side operations: a count query for the sale index, a direct `insert` into `invoices`, a direct bulk `insert` into `invoice_items`, and a call to `postLedgerForInvoice` when a client is attached.
+
+**Finding F-10 (POS is a non-atomic financial writer).** There is no transaction and no idempotency key. A failure after the invoice insert leaves a header with no lines; a failure after the items insert leaves a complete unposted invoice with the ledger never written and the balance never moved. Both partial states are silent and neither is self-healing. This is the only remaining first-class revenue-capture path that bypasses the canonical RPC layer established in Phase N+1B.
+
+**Finding F-11 (POS status vocabulary divergence).** POS writes `status: "issued"`. The C1 population — and the approval RPC's own lifecycle — uses `draft`, `approved`, `paid` and `cancelled`. `issued` is outside the vocabulary every downstream consumer filters on, so POS invoices are at risk of being counted as neither posted nor draft by statement and reporting logic.
+
+**Finding F-12 (POS attribution is structurally blind).** POS items are written with `entity_type: "pos_sale"` and `entity_id` set to the POS session id. No `horse_id`, no `lab_horse_id`, no `domain`. POS revenue can therefore never be horse-attributed on a client statement, by construction rather than by omission.
+
+---
+
+## WP7.8 — Cross-account applicability (CLOSED)
+
+`tenant_type` is an enum of exactly **10** values: `stable`, `clinic`, `lab`, `academy`, `pharmacy`, `transport`, `auction`, `horse_owner`, `trainer`, `doctor`. This confirms the current roster and is consistent with the 10-current position established in the Skill Network audit.
+
+All of the finance substrate examined — `invoices`, `invoice_items`, `ledger_entries`, `customer_balances`, the payment-session family — is scoped by `tenant_id` and `client_id` with no tenant-type discrimination anywhere in the schema or in any policy read this turn. Shared tenant operational finance is therefore already structurally account-type-agnostic, and every finding above applies uniformly to all 10 types. The apparent lab-specificity of F-7 is an artefact of which tenant generated the sample data, not of the model.
+
+---
+
+## Consolidated findings register
+
+| ID | Finding | Class | Owner decision needed? |
+|---|---|---|---|
+| F-1 | Ledger and balances are directly client-writable under `finance.invoice.edit`; balances also updatable and deletable | Authority | No — remediation is determined |
+| F-2 | `finance.ledger.view` / `finance.adjustment.create` exist but are unwired | Authority | No |
+| F-3 | First-financial-activity anchor uses `created_at`, not `effective_date` | Chronology | No |
+| F-4 | All 28 NULL `effective_date` rows deterministically backfillable; 16 would be misdated by a `created_at` fallback | Chronology | No |
+| F-5 | C1 reconciles exactly; 6 draft invoices worth 3,234.50 sit invisibly outside the balance | Disclosure | **Yes** — disclosure policy |
+| F-6 | 7 of 9 C1 payment credits are the NULL-dated ones | Chronology | No |
+| F-7 | `lab_horse_id` → `linked_horse_id` bridge is closed in data but never traversed in the read path | Attribution | No |
+| F-8 | `lab_sample` grouping key omits the domain prefix, splitting one horse into two groups | Attribution | No |
+| F-9 | All five export surfaces share one date field; upstream defects propagate everywhere | Export | No |
+| F-10 | POS sale is four non-atomic client writes with no idempotency | Atomicity | No |
+| F-11 | POS writes `status: "issued"`, outside the lifecycle vocabulary | Lifecycle | **Yes** — confirm intended status |
+| F-12 | POS items carry no horse attribution by construction | Attribution | **Yes** — is POS horse-attribution in scope? |
+
+---
+
+## Status of the Audit 01 blocking gaps
+
+| Audit 01 gap | Now |
 |---|---|
-| Ledger rows for the client | 15 |
-| Sum of positive (debit) amounts | **3,330.00** |
-| Sum of negative (credit) amounts | **−560.00** |
-| `customer_balances.balance` | **2,770.00** (SAR) |
-| Ledger net sum | 2,770.00 — exact match |
-| Invoices on file | 12, total 6,564.50, statuses draft+approved+paid, earliest issue_date 2013-07-20 |
+| Are effective-date NULLs still being produced? | **Closed** — no. `approve_invoice` posts `issue_date`. Residue is bounded at 28 legacy rows. |
+| Are the NULLs recoverable, and how ambiguous? | **Closed** — 28/28 deterministic. Zero ambiguity. |
+| Does C1 actually reconcile? | **Closed** — to the cent. |
+| Is the lab identity gap a data gap or a code gap? | **Closed** — code gap. The bridge is already closed in data. |
+| What is the true financial write-authority surface? | **Closed** — RLS-only, and permissive on ledger and balances. |
+| Do exports diverge from screen? | **Closed** — no divergence. |
+| Is POS atomic? | **Closed** — no. |
+| Does any of this vary by account type? | **Closed** — no. Uniform across all 10. |
 
-3,330 − 560 = 2,770 holds, **and holds for the correct reason**: drafts are excluded from posting, so invoice face value (6,564.50) legitimately exceeds posted debit (3,330). No standalone invoice, ledger row, or payment equals 3,330 or 560 — these are aggregates, not single records. The 2013 issue date on a live row is itself evidence that backdated documents already exist and are being posted at `created_at`.
+---
 
-## N. Cross-Account Applicability
+## Three residual owner decisions
 
-Canonical core (`invoices`, `invoice_items`, `ledger_entries`, `customer_balances`, payment sessions) is account-type agnostic and already serves stable, lab, clinic, doctor. Adapter boundary is exactly two things: (1) operational entity resolution (`entity_type`/`entity_id`) and (2) horse identity space (`horses` vs `lab_horses` vs `doctor_patients`). Recommend **one canonical core + thin adapters** (§10.7 option A).
+1. **Draft-invoice disclosure (F-5).** Should a client statement surface the existence and value of unposted draft invoices — and if so, as a non-balance advisory line, a count-only badge, or not at all? This is a truthfulness-of-presentation policy call, not a technical one.
+2. **POS invoice status (F-11).** Is `issued` an intentional fourth lifecycle state that downstream consumers must learn, or a drift that should be normalised onto `approved`?
+3. **POS horse attribution (F-12).** Is horse-level attribution of point-of-sale revenue a requirement, or is POS accepted as permanently client-level only?
 
-## O–P. Recommended Target Architecture
+Everything else in the register is determinable from evidence and needs no owner adjudication before a remediation plan can be drafted.
 
-- Historical representation: **Hybrid (10.1-C)** — reconstruct reliable documents, one governed residual opening obligation, with a reconciliation contract `sum(reconstructed) + opening_residual = agreed_cutover_balance` enforced at posting.
-- Posting model: **Staging → validate → approve → canonical post (10.2-B)**, with reference-only archive for evidence-poor documents.
-- Opening obligation: **dedicated ledger transaction type** (not a fake invoice) so it can receive allocations without inheriting invoice item/tax semantics.
-- Provenance: dedicated columns + an `import_batches` table. Reject description-only tagging.
-- Source ≠ category: add `finance_source` (dayli / legacy_system / spreadsheet / manual_opening / external_archive) orthogonal to the existing `category_id`.
-
-## Q. Permissions / Skill Network
-
-Applied: **Skill 04 (Tenant Isolation)** — verdict `conditionally-tenant-isolation-safe`: Type A/B enforced by RLS on every financial table inspected; **Type C is unsafe pending the lab-horse identity-space defect (§L)**, which is an owner/portal-scope mislabel risk, not a leak. Skills 05/06/08 co-verification required before any import execution. Skill 19 confirms separation: `payment_intents`/`payment_splits` (platform) are distinct tables from `payment_sessions`/`payment_allocations` (tenant operational) — no cross-contamination found.
-
-## R. Performance / Reliability
-
-Idempotency keys on all mutating RPCs; `finance_request_idempotency` table exists; advisory locks prevent concurrent double-post. Statement enrichment issues N+1-style batched multi-hop lookups (sample→lab_horse, admission→horse, treatment→horse) — acceptable at 88 ledger rows, unproven at import scale.
-
-## S. Future Staged Blueprint (design only)
-
-1. Effective-date remediation (backfill 28 NULLs, switch statement reader) — prerequisite, blocks all else.
-2. POS atomicity cutover to `create_source_checkout_invoice`.
-3. `import_batches` + provenance columns.
-4. Client/horse matching with review state + horse identity-space bridge.
-5. Opening obligation + credit objects.
-6. Canonical posting + reversal.
-7. Statement source filter + first-movement update.
-8. Historical backfill (separate approved data run).
-9. Cross-account adapters. 10. QA re-audit. 11. Governance persistence. 12. Owner closure.
-
-Each stage requires its own dry-run, rollback plan, and acceptance criteria; stages 3–8 each require separate Owner Alignment.
-
-## T. Negative Test Matrix
-
-All 33 cases in §12 are carried forward unchanged as the future Acceptance matrix. Highest-priority (already evidenced as live risk): backdated invoice earlier than first movement; client-level invoice under horse filter; multi-horse invoice under one-horse filter; imported Lab invoice consuming a Lab credit; header/item mismatch on the POS path.
-
-## U. Risks / Rollback
-
-Highest residual risk is double-counting between reconstructed history and opening residual — mitigated only by the deterministic reconciliation contract in §P. Rollback for any import must be batch-scoped reversal (new reversing ledger rows), never physical delete.
-
-## V. Owner-Alignment Decisions Required
-
-| Code | Decision | Options | Recommendation |
-|---|---|---|---|
-| D-01 | Horse-level allocation when source shows only a total | explicit / proportional / client-level | Client-level; never fabricate precision |
-| D-02 | Unapplied customer advances | credit object / negative obligation / hold unposted | First-class credit object |
-| D-03 | Who approves historical batches | owner only / delegated permission | New `finance.import.approve` permission |
-| D-04 | Tax-unknown historical documents | post gross-only / require tax / reference-only | Post gross-only with `tax_confidence='unknown'` |
-| D-05 | Source invoice-number collisions across tenants | display source number / display Dayli number / both | Both, source number secondary |
-| D-06 | Multiple cutover dates per client | allow / one per tenant | One per client, many per tenant |
-| D-07 | Materiality tolerance for residual reconciliation | 0 / fixed / percentage | Fixed per-currency minor-unit tolerance |
-| D-08 | Original source-document visibility | finance roles only / all members / owner only | Finance roles with `clients.statement.view` |
-
-## W. WORKSTREAM PERSISTENCE
-
-Workstream ID: NOT ASSIGNED — OWNER APPROVAL REQUIRED · Title (proposed only): Shared Tenant Operational Finance Foundation & Historical Financial Migration · Stage: Investigative Audit · Status: READ-ONLY — NOT PERSISTED · Stored At: NOT STORED · Files Created: None · Files Updated: None · Canonical Documentation Updated: No · Next Permitted Step: Owner Alignment only · Timestamp Evidence: HEAD commit 2026-08-01 03:54:48 +0000; run times — Exact time not recorded · Timezone: Asia/Riyadh UTC+03:00
-
-## X. ROADMAP IMPACT
-
-Primary Roadmap (proposed, not approved): `RM-DH-002` — Core Operations and Expansion. Secondary: none genuinely supported. Roadmap Items: recommendations only. Item Status Changes: None. Roadmap Status Changed: No. Owner Approval Required: Yes. Roadmap Stored At: Not stored in this run. `RM-DH-002` remains `PARTIALLY_RECOVERED` unless separately changed through an Owner-approved persistence run.
-
-## RUN METADATA AND EXACT STOPPING POINT
-
-Mode: Plan/Chat · Operation: Full Deep Forensic Investigative Audit — Read-Only · Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-DEEP-FORENSIC-AUDIT-01 · Lineage: Shared Tenant Operational Finance + Historical Migration · Number: 01 · Preparation status: was UNSENT DRAFT; this run does **not** by itself prove the number was formally consumed — Owner must confirm consumption · Prepared: 02-08-2026 01:23 Asia/Riyadh · Run Start / Run End / Report Generated: Exact time not recorded · Timezone: Asia/Riyadh UTC+03:00 · Branch: main · HEAD before: 3224254f · HEAD after: 3224254f · Working tree before: clean · Working tree after: clean except platform-generated `.lovable/plan.md` · Intended changed files: None · Actual intended changed files: None · Platform-generated paths: `.lovable/plan.md` (disclosed separately; not a repository change and not governance persistence) · Database writes: None · Repository writes: None · Documentation/governance writes: None · Project Knowledge writes: None · Workspace Knowledge writes: None · Skill changes: None · Settings changes: None · Read-only SQL summary: 6 SELECT statements — pg_proc attribute catalog, information_schema column lists (4 tables), aggregate counts/sums over invoices/invoice_items/ledger_entries/customer_balances/payment_* — no row-level PII returned · Sources unavailable: Documentation 5/10/12/13, Master Register v0.9.0, Rounds 1–5 artifacts, `RM-DH-002` package files · Final verdict: **OWNER ALIGNMENT BLOCKED — CRITICAL EVIDENCE GAPS**
-
-Exact stopping point: The read-only Full Deep Forensic Investigative Audit report has been returned to the Owner. No implementation, import, backfill, repair, governance persistence, Acceptance, or Closure has occurred. The next permitted step is ChatGPT review of the Lovable report followed by Owner Alignment. Stop.
+**Verdict: EVIDENCE COMPLETE — OWNER ALIGNMENT UNBLOCKED on all technical questions; three presentation/scope decisions outstanding.**
