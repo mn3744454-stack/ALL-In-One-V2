@@ -1,304 +1,238 @@
 # PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-REAUDIT-03
 
-## STAGE A — COMPLETE PROJECT MEMORY EXTRACTION — BATCH A1
+## STAGE A — COMPLETE PROJECT MEMORY EXTRACTION — BATCH A2
 
 Stage A only. Stage B, C, D, and E not started. No Project Knowledge text is reconstructed in this output.
 
-### A1 scope
+### A2 scope
 
-- Items delivered in this batch: MEM-001 through MEM-034 (9 Core rules + the first 25 referenced memory files).
-- URI range covered: Core rules 1–9 (index `## Core` block), then `mem://security/community-workspace-rls-logic` through `mem://architecture/stable/housing-paddock-occupancy-model` in index order.
-- Cumulative delivered: 34.
+- Items delivered in this batch: MEM-035 through MEM-059 (25 referenced memory files).
+- URI range covered: `mem://architecture/stable/vet-medical-records-system` through `mem://security/granular-backend-enforcement` (index Memories rows 26–50).
+- Cumulative delivered: 59.
 - Expected final: 103 (9 Core + 94 referenced files), subject to Stage A reconciliation.
-- Remaining after this batch: 69.
-- Next batch cursor: `mem://architecture/stable/vet-medical-records-system` (index Memories row 26) → MEM-035.
+- Remaining after this batch: 44.
+- Next batch cursor: `mem://security/roles/manager-role-baseline` (index Memories row 51) → MEM-060.
 
 ### Per-item field defaults
 
-Unless a specific item states otherwise, for every item below: field 6 (read status) = **directly read**; field 7 (provenance metadata visible in the item) = **none present**; field 8 (last-updated/timestamp evidence in the item) = **none present**; field 12 (duplicate/overlap IDs) = **none identified in this batch**; field 13 (contradiction IDs) = **none identified in this batch**.
-
-Core rules are delivered from the injected index `## Core` block, which is the only accessible representation of them; they have no separate `mem://` URI.
+Unless a specific item states otherwise: field 6 (read status) = **directly read**; field 7 (provenance metadata) = **none present**; field 8 (last-updated/timestamp evidence) = **none present**; field 12 (duplicate/overlap IDs) = as noted per item; field 13 (contradiction IDs) = as noted per item.
 
 ---
 
-### Core rules (MEM-001 – MEM-009)
+### BATCH A1 CATEGORY-COUNT CORRECTION (owner-requested item 1)
 
-**MEM-001** — URI: `mem://index.md#Core` (line 1) · Title: Mobile-first and RTL core rule · Group: Core / UX
-```
-Mobile-first UI. RTL (Arabic) mode uses flex-1/flex-grow for horizontal layout balance.
-```
-Type: UX rule (stable global). Initial classification: possible Project Knowledge rule. Internal references: none. Stage B verification required: No.
+The A1 interim tallies stated "possible Project Knowledge 14; possible Skill-only 18", which accounts for only 32 of 34 delivered entries. Both numbers were wrong. The corrected A1 counts, derived by re-reading each A1 item's stated field-10 classification, are:
 
-**MEM-002** — URI: `mem://index.md#Core` (line 2) · Title: Workspace-class dialog layout · Group: Core / UX
-```
-Workspace-class dialogs: flex-col, fixed header/footer (shrink-0), single scrollable body max-h-[85vh]. No nested scroll containers.
-```
-Type: UX rule. Initial classification: possible Project Knowledge rule (component-level detail may reduce to Skill-only). Stage B verification required: No.
+| Initial classification | Corrected A1 count | Item IDs |
+| --- | --- | --- |
+| Possible Project Knowledge rule | 16 | MEM-001, MEM-002, MEM-003, MEM-004, MEM-005, MEM-006, MEM-007, MEM-008, MEM-009, MEM-015, MEM-017, MEM-019, MEM-024, MEM-027, MEM-028, MEM-029 |
+| Possible Skill-only rule | 17 | MEM-010, MEM-011, MEM-012, MEM-014, MEM-016, MEM-018, MEM-020, MEM-021, MEM-022, MEM-023, MEM-025, MEM-026, MEM-030, MEM-031, MEM-032, MEM-033, MEM-034 |
+| Requires Stage B verification (primary classification) | 1 | MEM-013 |
+| Possible repository-governance rule | 0 | — |
+| Possible Current-Prompt-only rule | 0 | — |
+| Possible stale rule | 0 | — |
+| Possible contradiction | 0 | — |
+| Possible private exclusion | 0 | — |
+| Not material | 0 | — |
+| **Total** | **34** | — |
 
-**MEM-003** — URI: `mem://index.md#Core` (line 3) · Title: Neutral form defaults and cascade resets · Group: Core / UX
-```
-Form inputs default to neutral states (e.g. `_none`, `__neutral__`). Forced default selections are prohibited. Cascade resets on changes (e.g. Gender).
-```
-Type: UX rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-098 (reproduction form logic), MEM-096 (wizard selection standards). Stage B verification required: No.
+Previously unaccounted items identified: **MEM-013** (`mem://architecture/party-horse-relationship-model`) — primary classification is "requires Stage B verification", which the A1 tally omitted as a category; and the count error absorbed **MEM-024** (moved into the Project Knowledge column, where its item entry places it) and **MEM-013** simultaneously. The list above is now item-complete and sums to 34.
 
-**MEM-004** — URI: `mem://index.md#Core` (line 4) · Title: In-Context Creation Bridge · Group: Core / UX
-```
-Use In-Context Creation Bridge (+ Add New) for selectors to prevent dead ends. Auto-select and remount UI on save.
-```
-Type: UX rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-083 (creation bridge pattern), MEM-100 (quick create bridge). Stage B verification required: No.
-
-**MEM-005** — URI: `mem://index.md#Core` (line 5) · Title: Bilingual identity display · Group: Core / Localization
-```
-Stacked `<BilingualName />` for identity lists. English inputs use English placeholders in AR mode.
-```
-Type: language/terminology rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-029 (bilingual naming architecture), component `<BilingualName />`. Stage B verification required: No.
-
-**MEM-006** — URI: `mem://index.md#Core` (line 6) · Title: Archive/Deactivate over hard delete · Group: Core / Lifecycle
-```
-Hard delete forbidden if history exists; cascade Archive (`is_archived`) or Deactivate (`is_active`). Lists default to Active-only.
-```
-Type: technical architecture fact + stable global rule. Initial classification: possible Project Knowledge rule. Internal references: columns `is_archived`, `is_active`. Stage B verification required: No.
-
-**MEM-007** — URI: `mem://index.md#Core` (line 7) · Title: Permission-based authorization · Group: Core / Security
-```
-Authorization: Use `hasPermission()` in UI; Backend uses `has_permission()` for 104 granular keys. No hardcoded roles like owner/manager.
-```
-Type: permission/RLS rule + current implementation claim (the count "104"). Initial classification: possible Project Knowledge rule; the numeric count requires verification. Internal references: `hasPermission()`, `has_permission()`. Stage B verification required: **Yes** — verify current permission-key count against the live permission registry before any count is restated in Project Knowledge.
-
-**MEM-008** — URI: `mem://index.md#Core` (line 8) · Title: Dual RLS scoping model · Group: Core / Security
-```
-RLS Models: Dual scoping (personal `tenant_id IS NULL` vs organization `tenant_id IS NOT NULL`). Paid accounts act as organizations.
-```
-Type: permission/RLS rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-010, MEM-017. Stage B verification required: **Yes** — confirm the scoping model is current and whether it is community-scoped or platform-wide.
-
-**MEM-009** — URI: `mem://index.md#Core` (line 9) · Title: Financial status integrity · Group: Core / Finance
-```
-Financial Status Integrity: Never manually set 'paid'/'partial' status on invoices; they are strictly derived from the payment ledger.
-```
-Type: finance rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-024, MEM-025. Stage B verification required: No.
+Secondary Stage-B verification flags remain unchanged: MEM-007, MEM-008, MEM-013, MEM-015, MEM-024, MEM-029.
 
 ---
 
-### Referenced memory files (MEM-010 – MEM-034)
+### Referenced memory files (MEM-035 – MEM-059)
 
-**MEM-010** — URI: `mem://security/community-workspace-rls-logic` · Title: Community Workspace RLS · Group: security
+**MEM-035** — URI: `mem://architecture/stable/vet-medical-records-system` · Title: Vet Medical Records System · Group: architecture/stable
 ```
-Community module RLS supports dual scoping:
-1. Personal Scope (tenant_id IS NULL): Existing behavior for public/followers/own posts.
-2. Organization Scope (tenant_id IS NOT NULL): Access is gated by tenant membership and permissions.
-'can_view_community' and 'can_manage_community' helper functions handle authorization. SELECT access requires 'community.view' permission. INSERT (posts) and moderation (UPDATE/DELETE) require 'community.manage'. Comments and likes automatically inherit the tenant_id of their parent post to prevent cross-tenant leakage.
+The Vet & Health module is a horse-centric medical records system organized into five primary tabs: Treatments (vet_treatments), Vaccinations (horse_vaccinations), Visits (vet_visits), Follow-ups (vet_followups), and Vaccination Programs (برامج التطعيم). It is functionally distinct from the clinical 'Doctor' module. Operational management is centered around a 'TreatmentDetailSheet' providing visibility into horse context, medications (vet_medications), and linked follow-up tasks. The 'Vaccination Programs' tab, specifically for managing protocols, ensures focused discoverability compared to a generic settings label.
 ```
-Type: permission/RLS rule; module-specific mechanic. Initial classification: possible Skill-only rule (module mechanic); the dual-scoping principle overlaps MEM-008. Internal references: functions `can_view_community()`, `can_manage_community()`; permissions `community.view`, `community.manage`. Overlap: MEM-008. Stage B verification: No (Stage D may cite it as the source of MEM-008's scope).
+Type: module-specific mechanic; technical architecture fact. Initial classification: possible Skill-only rule. Internal references: tables `vet_treatments`, `horse_vaccinations`, `vet_visits`, `vet_followups`, `vet_medications`; `src/hooks/vet/*` (present in the repository); `src/pages/DashboardVet.tsx`. Overlaps: MEM-036, MEM-037. Stage B verification required: No.
 
-**MEM-011** — URI: `mem://features/finance/credit-limit-enforcement` · Title: Credit Limit Enforcement · Group: features/finance
+**MEM-036** — URI: `mem://features/stable/vet-treatment-and-medication-logic` · Title: Vet Treatment & Medication Logic · Group: features/stable
 ```
-The credit limit system tracks client utilization by comparing their outstanding balance against their credit_limit. Consumption is calculated as 'used = max(ledger_balance, 0)', meaning only positive "owes" (debt) consume the limit, while negative balances (credits) do not. During billing, a Credit Info Card displays the Limit, Current Outstanding (used), and Available Credit. Warnings or blocks are triggered at 80% and 100% utilization respectively. Overriding a block requires the 'clients.creditLimit.override' permission.
+Vet treatments follow a formal status lifecycle (draft, scheduled, in_progress, completed, cancelled) and track medical category, priority, and service mode. Medications are explicitly linked to treatment records, allowing for drug name, dosage, frequency, and duration tracking via an inline form in the Treatment Detail Sheet. The system includes a status history section for clinical traceability and supports full record editability through a unified dialog. Includes specific categories for 'respiratory' and 'musculoskeletal' health with dedicated badge configurations and fallbacks to prevent runtime crashes on unknown categories.
 ```
-Type: finance rule; module-specific mechanic; business formula. Initial classification: possible Skill-only rule. Internal references: column `credit_limit`; permission `clients.creditLimit.override`. Stage B verification required: No.
+Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `src/hooks/vet/useVetTreatments.ts`, `src/hooks/vet/useVetMedications.ts` (both present). Overlap: MEM-035. Stage B verification required: No.
 
-**MEM-012** — URI: `mem://features/finance/client-statement-system` · Title: Client Statement System · Group: features/finance
+**MEM-037** — URI: `mem://features/stable/vaccination-and-health-management` · Title: Vaccination & Health Management · Group: features/stable
 ```
-The Client Statement (كشف حساب) provides a unified cross-module financial history driven by ledger entries.
-1. Scoped View Model: Summary cards are derived from filtered ledger entries, while running balances are recomputed row-by-row from the visible exploded rows to ensure chronological consistency within the active horse/category filter.
-2. Card Labels:
-   - Scoped: 'إجمالي الفواتير ضمن النطاق المحدد' (Total Invoices), 'إجمالي المبلغ المسدد ضمن النطاق المحدد' (Total Paid), 'إجمالي المبلغ المستحق ضمن النطاق المحدد' (Total Outstanding).
-   - Global: 'إجمالي جميع الفواتير التي تخص العميل' (Total All Client Invoices).
-3. Value Sourcing: The 4th card sums all 'invoice' type ledger entries for the account, providing global context outside the active filter.
-4. Ordering: User-toggled chronological sort (Oldest-to-Newest default).
-5. Boarding Row Semantics: Rows use the 'Period End' date (accounting due date logic) and "From/To" (من/إلى) range wording.
-6. Multi-Domain Attribution: Prioritizes direct 'invoice_items' metadata (horse_id, domain, service_id).
-7. Tax Basis: Statement rows are unified on a post-tax basis to align with summary cards. For multi-segment boarding invoices, tax is distributed proportionally across segments based on the invoice snapshot.
-8. Stability: Loading guards (skeletons and disabled exports) prevent rendering stale or incomplete data during enrichment/filter transitions.
-9. Reconciliation: Discrepancies between the ledger debit and the sum of boarding segments (e.g. from non-boarding items on the same invoice) are injected as an 'Other charges' (رسوم أخرى) row to ensure the running balance matches summary cards.
-10. Multi-Horse Invoices: Summary cards prioritize ledger truth over proportional line-item allocation. If an invoice contains line items for multiple horses, the full post-tax ledger debit is included in the scoped summary totals if any of the horses associated with that invoice match the current filter. This ensures totals align with real ledger obligations even when row views are filtered.
+Vaccinations are managed through a dedicated registry that supports both program definition and individual dose scheduling via a 'ScheduleVaccinationDialog'. The Vet dashboard is optimized for operational scanning through a top-level horse filter and status-specific chips. All health-side operational terminology is fully localized to ensure Arabic-first compliance across categories, priorities, and follow-up types.
 ```
-Type: finance rule; module-specific mechanic; UX rule (labels). Initial classification: possible Skill-only rule. Internal references: table `invoice_items` (horse_id, domain, service_id); ledger entries. Stage B verification required: No.
+Type: module-specific mechanic; language/terminology rule ("Arabic-first compliance"). Initial classification: possible Skill-only rule; the Arabic-first localization obligation is a possible Project Knowledge rule and is relevant to Correction 6. Internal references: `src/hooks/vet/useHorseVaccinations.ts` (present). Overlap: MEM-035. Stage B verification required: **Yes** — confirm the general localization-parity obligation against current i18n audit scripts (`scripts/audit-i18n.ts`).
 
-**MEM-013** — URI: `mem://architecture/party-horse-relationship-model` · Title: Party/Horse Relationships · Group: architecture
+**MEM-038** — URI: `mem://architecture/stable/unified-commercial-model` · Title: Unified Commercial Model · Group: architecture/stable
 ```
-The platform uses a junction table 'party_horse_links' to manage many-to-many relationships between business entities (Parties/Clients) and horses across all segments (Stables, Labs, etc.). This model supports multiple relationship types such as 'owner', 'stable', 'trainer', 'payer', and 'lab_customer', allowing a single horse profile to be shared and accessed across different modules while maintaining granular permission scoping and segment-specific metadata.
+The Stable module integrates all commercial domains—including Housing, Breeding, Veterinary, Training, and Transport—through a shared 'tenant_services' catalog. All source-generated invoices (from admissions, treatments, or breeding events) persist the 'service_id' on 'invoice_items', establishing a permanent commercial audit trail from financial records back to catalog definitions. Admissions preserve an operational snapshot-rate model while maintaining this link to catalog entries for commercial grounding.
 ```
-Type: technical architecture fact; current implementation claim. Initial classification: requires Stage B verification (table existence and current use). Internal references: table `party_horse_links`. Stage B verification required: **Yes** — confirm `party_horse_links` exists and is current.
+Type: technical architecture fact; finance rule. Initial classification: possible Project Knowledge rule (single shared service catalog as commercial source of truth). Internal references: tables `tenant_services`, `invoice_items.service_id`. Overlap: MEM-041, MEM-047. Stage B verification required: No.
 
-**MEM-014** — URI: `mem://features/horse-unification-strategy` · Title: Horse Unification Strategy · Group: features
+**MEM-039** — URI: `mem://architecture/stable/provider-cost-integration` · Title: Provider Cost Integration · Group: architecture/stable
 ```
-Horse records are managed through a dual-registry system: 'horses' (rich facility records with pedigree, lineages, and housing) and 'lab_horses' (lightweight records for external/walk-in lab intake). These records are unified via the 'linked_horse_id' column in the 'lab_horses' table.
+The 'supplier_payables' foundation supports tracking external service costs. Saving a Vet treatment, vaccination, or Breeding event with 'service_mode=external' automatically generates a linked 'supplier_payables' record. This establishes a cost reference for pass-through or markup billing workflows and ensures that Stable-side liabilities to external professionals are tracked at the moment of operational or clinical recording.
+```
+Type: technical architecture fact; finance rule; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: table `supplier_payables`; `src/lib/finance/createSupplierPayableForExternal.ts` (present and invoked from `useHorseVaccinations.ts`). Overlap: MEM-040, MEM-041. Stage B verification required: No.
 
-Cross-Tenant Unification:
-- When sharing is granted via connections, Lab records can bridge back to canonical facility 'horses' using the 'linked_horse_id'.
-- Deterministic matching based on microchip, passport, or UELN numbers is used to establish and verify canonical horse identities across different tenant boundaries.
-- This allows for a unified history (tests, results, treatments) for a single horse across the platform while respecting tenant data ownership.
+**MEM-040** — URI: `mem://features/stable/provider-markup-logic` · Title: Provider Markup Logic · Group: features/stable
 ```
-Type: technical architecture fact. Initial classification: possible Skill-only rule; the dual-registry fact may qualify as Project Knowledge context. Internal references: tables `horses`, `lab_horses`; column `linked_horse_id` (corroborated by `invoice_items.lab_horse_id` FK to `lab_horses`). Stage B verification required: No.
+The Stable module implements a 'Provider Markup Helper' within the treatment, vaccination, and breeding invoicing flows to support commercial decision-making for external-mode services. When a linked 'supplier_payable' exists, the helper displays a real-time comparison between the provider cost and the billed amount, utilizing color-coded indicators (Pass-through, With Markup, Below Cost) and providing a one-click 'Apply Exact Pass-Through' action to sync the invoice total with the provider cost.
+```
+Type: module-specific mechanic; finance rule. Initial classification: possible Skill-only rule. Internal references: `supplier_payables`. Overlap: MEM-039. Stage B verification required: No.
 
-**MEM-015** — URI: `mem://architecture/platform-sharing-reference-pattern` · Title: Platform Sharing Reference Pattern · Group: architecture
+**MEM-041** — URI: `mem://features/stable/financial-traceability-system` · Title: Financial Traceability System · Group: features/stable
 ```
-The platform uses a 3-layer reference architecture for all cross-tenant data sharing:
-1. Connection: Establish the relationship (tenant-to-tenant or tenant-to-profile).
-2. Grant: Define the sharing scope (resource_type, access_level).
-3. RLS: Domain tables (lab_results, horses, vet_records, etc.) implement shared access policies using the 'can_access_shared_resource()' helper.
-This pattern ensures a single source of truth for relationships, prevents data duplication across tenants, and provides a scalable way to plug new modules (Lab, Stable, Clinic, Pharmacy) into the sharing ecosystem without breaking security boundaries.
+The Stable module implements a bidirectional financial traceability system linking operational events with their financial records.
+1. Reusable Status Section: A 'FinancialStatusSection' component is integrated into Treatment, Vaccination, and Breeding/Foaling detail sheets, providing a consolidated view of Invoice, Stable Cost, and Supplier Payable statuses. The Invoice status is clickable, allowing operators to drill down directly into the 'InvoiceDetailsSheet'.
+2. Invoiced Navigation: Interactive badges on source records identify linked invoices. Zero-charge invoices (typically for included services) are visually flagged with a 'Zero-Charge' badge to distinguish them from standard billables.
+3. Finance-to-Source Drill-down: Both the 'InternalCostsTab' and 'SupplierPayablesTab' support outbound navigation. Clicking a record (e.g. a vet treatment or vaccination) fetches the source data and opens the corresponding operational detail sheet. These surfaces include automated horse name resolution for immediate context.
+4. Rebilling Visibility: The 'SupplierPayablesTab' displays a 'Client Invoiced' or 'Not Invoiced' status derived from 'billing_links', helping operators ensure that external provider costs are captured in client billing where appropriate.
+5. Line Item Enrichment: The 'InvoiceDetailsSheet' enriches stable-origin entity types (vet, vaccination, breeding, foaling) by replacing raw record IDs with human-readable descriptions combining service titles and horse identities.
 ```
-Type: technical architecture fact; permission/RLS rule. Initial classification: possible Project Knowledge rule (cross-tenant sharing contract). Internal references: function `can_access_shared_resource()`. Stage B verification required: **Yes** — confirm the helper and 3-layer model are current.
+Type: module-specific mechanic; finance rule; UX rule. Initial classification: possible Skill-only rule; the bidirectional-traceability principle is a possible Project Knowledge rule. Internal references: `billing_links`; `InvoiceDetailsSheet`. Overlap: MEM-019, MEM-027, MEM-039. Stage B verification required: No.
 
-**MEM-016** — URI: `mem://architecture/notification-system-standard` · Title: Notification System Standard · Group: architecture
+**MEM-042** — URI: `mem://architecture/finance/invoice-item-attribution` · Title: Invoice Item Attribution · Group: architecture/finance
 ```
-The notification system uses a metadata-driven architecture for expressive, source-aware alerts.
-1. Data Model: A 'metadata' JSONB column stores snapshots of context (e.g., 'actor_tenant_name', 'horse_name', 'entity_label', 'status') at creation time to ensure historical clarity and avoid RLS data loss.
-2. Backend Infrastructure: The internal notification helper includes a 10-second deduplication window to prevent identical alerts within a short interval and logs warnings for high-volume fan-outs exceeding 50 recipients.
-3. Rendering: Titles and bodies are rendered at display-time using i18n interpolation (e.g., 't("notifications.events.type.body", metadata)').
-4. i18n Key Normalization: To prevent lookup failures in the dot-notation resolver, notification event types are normalized by replacing dots with underscores (e.g., 'lab_request.status_changed' becomes 'lab_request_status_changed') before building the translation lookup keys.
-5. Localization: Status enums map to labels via 'tStatus()'. Relative time uses the active 'date-fns' locale.
-6. UI: The notification drawer is responsive: mobile (w-[95vw]), tablet (sm:w-[480px]), and desktop (lg:w-[520px]).
-7. Navigation: Event-specific routes (e.g., 'movement.*' -> '/dashboard/housing?tab=arrivalsAndDepartures') ensure deep-linking to the correct module surfaces. Routes must utilize the actual canonical tab keys defined in the destination components to avoid falling back to default tabs.
-8. Legacy Compatibility: The system maintains readability for older notifications lacking metadata by falling back to the stored database 'title' and 'body' strings if the i18n lookup fails or interpolation results in incomplete content.
+The 'invoice_items' table serves as the primary architectural insertion point for financial attribution, capturing direct links to 'horse_id' (UUID), 'domain' (text), and 'service_id' (FK to tenant_services). For duration-based services like boarding, it persists the specific 'period_start' and 'period_end' dates. This model ensures catalog lineage and accurate statement filtering without relying on expensive post-fetch multi-hop enrichment.
 ```
-Type: technical architecture fact; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `src/lib/notifications/*`, route `/dashboard/housing?tab=arrivalsAndDepartures`. Stage B verification required: No.
+Type: technical architecture fact; finance rule. Initial classification: possible Project Knowledge rule. Internal references: `invoice_items` columns `horse_id`, `domain`, `service_id`, `period_start`, `period_end`; `invoice_items.schema.txt` (present at repository root). Overlap: MEM-012, MEM-043, MEM-047. Stage B verification required: No.
 
-**MEM-017** — URI: `mem://domain/horse-owner-tenant-isolation` · Title: Horse Owner Tenant Isolation · Group: domain
+**MEM-043** — URI: `mem://architecture/stable/boarding-period-tracking` · Title: Boarding Period Tracking · Group: architecture/stable
 ```
-The 'Horse Owner' account is implemented as a paid industry tenant package, not as part of the personal/free user layer. This distinction ensures that ownership records, financial interactions, and pedigree data are managed within an organization workspace, separate from the user's personal community activity and bookings.
+Boarding stay periods are tracked directly on 'invoice_items'. The 'CreateInvoiceFromAdmission' dialog enforces financial integrity by displaying a list of already-billed periods, showing the remaining pre-tax billable amount, and preventing the creation of invoices with overlapping date ranges.
 ```
-Type: technical architecture fact; account-model rule. Initial classification: possible Project Knowledge rule (supports the account-type model). Internal references: `tenant_type` value `horse_owner` (present in the live enum). Stage B verification required: No — corroborated by the live enum evidence.
+Type: module-specific mechanic; finance rule. Initial classification: possible Skill-only rule. Internal references: `invoice_items.period_start/period_end`; `CreateInvoiceFromAdmission`. Overlap: MEM-042, MEM-046. Stage B verification required: No.
 
-**MEM-018** — URI: `mem://architecture/shared-client-registry-and-identity` · Title: Shared Client Registry · Group: architecture
+**MEM-044** — URI: `mem://finance/tax-configuration-standard` · Title: Tax Configuration Standard · Group: finance
 ```
-The platform utilizes a shared 'clients' table for all billing parties, but auto-registration mechanics differ by module to prevent unpopulated registries.
-1. Laboratory: Clients (via 'linked_tenant_id') and horses (via 'linked_horse_id') are automatically registered when a Lab operator opens the 'Create Sample' dialog for an incoming B2B request. This ensures they appear in the registry only at the start of a meaningful operational transaction.
-2. Stable: Client registration remains manual. Operators select from the shared registry during admission or intake, with 'intake_draft' status used for new horses until arrival is confirmed.
-3. Partnerships: B2B partnership or connection acceptance alone does NOT trigger client creation; registration is deferred until the first operational interaction (e.g., stay, service request, or sample intake).
+The platform uses a layered Tax Model (Tenant Defaults -> Service Overrides -> Invoice Overrides):
+1. Tenant Settings: Configurable via the 'Tax & Pricing' card. Defines 'default_tax_rate' and 'prices_tax_inclusive' mode.
+2. Service Settings: Services include an 'is_taxable' toggle to determine if tax applies, inheriting the rate and pricing mode from the tenant.
+3. Calculation Logic: Unified via 'src/lib/taxUtils.ts'. Manual invoices separate taxable and non-taxable subtotals to respect service overrides.
+4. Statement Presentation: Rows and cards are unified on a post-tax basis. Boarding segments reflect proportional post-tax amounts from invoice snapshots.
+5. Implementation: All financial flows, including Consultations and Laboratory invoices, are grounded in service definitions to ensure consistent 'is_taxable' behavior.
 ```
-Type: technical architecture fact; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: table `clients`; columns `linked_tenant_id`, `linked_horse_id`; status `intake_draft`. Overlap: MEM-022 (intake_draft). Stage B verification required: No.
+Type: finance rule; current implementation claim (item 5 is a universality claim). Initial classification: possible Project Knowledge rule (layered tax inheritance), with the universality wording in item 5 flagged for Correction 7 treatment. Internal references: `src/lib/taxUtils.ts` (present); columns `default_tax_rate`, `prices_tax_inclusive`, `is_taxable`. Overlap: MEM-048. Stage B verification required: **Yes** — item 5's "all financial flows" claim must not be restated as universal compliance without evidence.
 
-**MEM-019** — URI: `mem://architecture/finance/billing-linkage-pattern` · Title: Billing Linkage Pattern · Group: architecture/finance
+**MEM-045** — URI: `mem://architecture/stable/boarding-proration-engine` · Title: Boarding Proration Engine · Group: architecture/stable
 ```
-The 'billing_links' table serves as the standard junction for associating domain-specific operational records (e.g., doctor consultations, future service bookings) with financial records (invoices). Each link record stores 'source_type', 'source_id', 'invoice_id', 'amount', and 'tenant_id'. This architectural pattern allows the finance module to track the revenue source and provides a standardized way for operational modules to trigger billing workflows and track linked financial status without direct coupling to the invoices table schema.
+Boarding cost calculations utilize a unified calendar-aware proration engine (src/lib/boardingPeriodEngine.ts) that decomposes stays into segments based on calendar month boundaries. The daily rate for each segment is derived from the actual number of days in that specific month (monthlyRate / days_in_month), ensuring a full calendar month exactly matches the monthly rate regardless of length (28, 29, 30, or 31 days). The system generates distinct 'invoice_items' for every calendar segment, recording 'period_start', 'period_end', the calculated daily rate, and the number of days charged to provide a transparent commercial audit trail.
 ```
-Type: technical architecture fact. Initial classification: possible Project Knowledge rule (operational-to-financial linkage principle), detail to Skill. Internal references: table `billing_links` (corroborated: FK `billing_links_invoice_id_fkey` in `docs/aml_1_b_1/stage_j5_1/preflight/02_invoices_schema.txt`). Stage B verification required: No.
+Type: finance rule; business formula; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `src/lib/boardingPeriodEngine.ts` (present). Overlap: MEM-042, MEM-043. Stage B verification required: No.
 
-**MEM-020** — URI: `mem://architecture/stable/housing-and-facility-management` · Title: Housing & Facility Management · Group: architecture/stable
+**MEM-046** — URI: `mem://architecture/finance/tenant-currency-model` · Title: Tenant Currency Model · Group: architecture/finance
 ```
-Stable housing operations are strictly separated between Physical Facilities and Commercial Stays (Admissions). The module utilizes a standardized 4-tab Information Architecture (IA): (1) Branches (الفروع) - the primary operational command center and location index. (2) Facilities (المرافق) - physical infrastructure and unit management. (3) Admissions (الإيواء) - commercial stay contracts and billing. (4) Arrivals & Departures (الوصول والمغادرة) - logistics and movements. Sidebar navigation sub-items are aligned to exactly mirror these four tabs, ensuring a consistent mental model across the platform. Admissions acts as the transaction layer that consumes the physical resources defined in the Facilities layer.
+Currency Defaulting: All new invoices, admissions, packages, and service resolutions automatically inherit the tenant's configured currency to ensure consistency with the organization's financial settings.
 ```
-Type: module-specific mechanic; UX rule. Initial classification: possible Skill-only rule. Internal references: `src/pages/DashboardHousing.tsx`; navigation config. Stage B verification required: No.
+Type: finance rule; stable global rule. Initial classification: possible Project Knowledge rule. Internal references: `src/lib/currencyOptions.ts` (present). Stage B verification required: No.
 
-**MEM-021** — URI: `mem://architecture/stable/boarding-stay-and-care-lifecycle` · Title: Boarding Stay Lifecycle · Group: architecture/stable
+**MEM-047** — URI: `mem://architecture/stable/commercial-truth-hierarchy` · Title: Commercial Truth Hierarchy · Group: architecture/stable
 ```
-The 'boarding_admissions' lifecycle (draft -> active -> checkout_pending -> checked_out) is integrated with the financial system.
-1. Invoicing: Staff manually trigger invoice generation from the stay detail, which creates an invoice starting in 'draft' status.
-2. Line Items: Invoices include 'boarding' entity type items with standardized descriptions: '{Horse} | {Branch} | {Date Range} | {Rate}'.
-3. Accounting: Financial impact (ledger posting) occurs only when the invoice is transitioned to 'approved' via a unified approval utility.
-4. Financial Gate: Checkout and physical dispatch are blocked for staff if an outstanding balance exists. The balance calculation uses a 'Financial Truth' model that considers both financially active invoices and unbilled accruals. Overriding a block requires a recorded manager override.
-5. Domain Components: The domain includes 'boarding_status_history' for lifecycle tracking and 'horse_care_notes' for recording specific care instructions or observations linked to an admission.
-6. Creation Integrity: New admissions follow a specific three-step commit sequence: (a) create draft admission, (b) execute the movement RPC, (c) update admission with the resulting movement ID and set status to 'active'. To prevent un-admitted placements or un-housed commercial records, the system implements programmatic rollback (deleting the draft admission) if the movement RPC or ID extraction fails.
+The platform follows a strict 5-layer hierarchy of commercial truth to ensure financial integrity:
+1. Catalog Truth (tenant_services): Defines the canonical services and their default pricing/taxability.
+2. Packaging Truth (stable_service_plans): Defines bundled packages and recurring billing cycles.
+3. Operational Truth (admissions/events): Represents the actual service delivery, using 'snapshot' rates from plans at the time of contract/entry.
+4. Financial-Record Truth (invoice_items): Records exactly what was billed, for what period (period_start/end), and which catalog service was used (service_id).
+5. Ledger Truth (ledger_entries/statements): Reflects the chronological financial impact and cumulative account balance.
 ```
-Type: module-specific mechanic; finance rule. Initial classification: possible Skill-only rule. Internal references: tables `boarding_admissions`, `boarding_status_history`, `horse_care_notes`; movement RPC. Stage B verification required: No.
+Type: technical architecture fact; finance rule; stable global rule. Initial classification: possible Project Knowledge rule (strong candidate: the platform's canonical commercial-truth layering). Internal references: `tenant_services`, `stable_service_plans`, `invoice_items`, `ledger_entries`. Overlap: MEM-038, MEM-042. Stage B verification required: No.
 
-**MEM-022** — URI: `mem://architecture/stable/horse-registry-and-onboarding-logic` · Title: Horse Registry Onboarding · Group: architecture/stable
+**MEM-048** — URI: `mem://features/finance/consultation-and-lab-grounding` · Title: Consultation & Lab Grounding · Group: features/finance
 ```
-The 'Manual Arrival' flow supports immediate operational intake by allowing lightweight horse registration (name, sex, intake notes) directly within the movement wizard.
-1. Transitional Status: New horses are initialized with an 'intake_draft' status and do not count toward 'Inside Stable' totals or occupy housing until the arrival movement is confirmed.
-2. Profile Completeness: These records are flagged as 'Incomplete'. The Horse Profile surfaces an 'Incomplete' badge and a checklist of missing critical data (birth date, microchip, passport) with a CTA to finish the record via the full registration wizard.
-3. Historical Onboarding: The system supports accurate legacy record entry by allowing custom 'admitted_at' and 'movement_at' timestamps, which override the default current-time behavior for admissions, movements, and housing occupancy.
+The Consultation invoice flow is grounded in the veterinary service catalog, supporting service selection, 'is_taxable' overrides, and the generation of detailed 'invoice_items' for statement attribution (previously header-only). Additionally, Laboratory invoices are integrated into the tenant-level tax configuration, utilizing the shared 'computeTax' utility to ensure consistent financial behavior.
 ```
-Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: status `intake_draft`; `src/pages/HorseProfile.tsx`. Overlap: MEM-026, MEM-018. Stage B verification required: No.
+Type: module-specific mechanic; finance rule; historical implementation claim ("previously header-only"). Initial classification: possible Skill-only rule. Internal references: `computeTax` in `src/lib/taxUtils.ts`. Overlap: MEM-044. Note: a separate index entry (Doctor Billing Mismatch) records that Doctor services are architecturally separate from `tenant_services`; that entry will be delivered in a later batch and must be compared against this one. Potential contradiction ID: pending (Doctor Billing Mismatch). Stage B verification required: **Yes**.
 
-**MEM-023** — URI: `mem://features/stable/movement-and-logistics` · Title: Movement & Logistics · Group: features/stable
+**MEM-049** — URI: `mem://ux/mobile-first-design-standard` · Title: Mobile-First Design Standard · Group: ux
 ```
-Horse movements are managed through a unified 'Arrivals & Departures' interface tracking inbound, outbound, and internal logistics. (1) Eligibility: Selection lists are filtered by movement type. (2) Source Branching: Arrivals support 'Existing Horse Lookup' and 'Manual External Arrival'. (3) Unified View: Sub-tabs for Arrivals, Departures, Incoming, Pending, Completed, and Cancelled. (4) Auto-resolution: Wizard auto-resolves 'From' location for OUT and TRANSFER movements. (5) Housing Clearance: Occupancy is released only upon 'dispatched' status. (6) Connected Movements: Confirming a connected incoming movement requires an explicit receiving branch selection; no silent fallback to the first branch is allowed. (7) Recipient Integration: Confirmation automatically creates an arrival movement and a boarding admission at the destination. (8) Lifecycle: Follows scheduled -> dispatched -> completed transition. (9) Destinations: Supports connected platform partners (filtered by 'stable' or 'clinic' types) and off-platform 'external_locations'.
+The platform adheres to a mandatory 'Mobile-First' governance rule for all UI/UX design and architectural decisions. All features are evaluated and implemented for the mobile experience first, ensuring usability, readability, and action clarity on small screens before scaling up to tablet and desktop breakpoints. Desktop patterns must not be forced into mobile; instead, mobile-safe density and layout alternatives must be prioritized to prevent visual clutter and maintain action clarity across the global header and module surfaces.
 ```
-Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: table `external_locations`; tenant types `stable`, `clinic` (both present in the live enum); `src/pages/DashboardMovement.tsx`. Stage B verification required: No.
+Type: UX rule; stable global rule. Initial classification: possible Project Knowledge rule (strong candidate; corroborates Core rule MEM-001). Overlap: MEM-001. Stage B verification required: No.
 
-**MEM-024** — URI: `mem://finance/payment-status-integrity-rule` · Title: Payment Status Integrity · Group: finance
+**MEM-050** — URI: `mem://architecture/identity/unified-people-model` · Title: Unified People Model · Group: architecture/identity
 ```
-To maintain accounting integrity, the system forbids manual status updates to 'paid' or 'partial' via simple column toggles or dropdowns. These statuses are strictly derived from formal payment records processed through 'postLedgerForPayments'. This enforcement prevents 'Paid' invoices from existing without corresponding negative ledger entries, ensuring that the visual status always remains synchronized with the client's actual financial balance.
+The platform distinguishes between Platform Members (access-focused via 'tenant_members') and Employees (payroll/personnel-focused via 'hr_employees'). These tracks are unified through an architectural bridge where:
+1. Auto-Creation: Accepting an invitation automatically creates an HR record (defaulting to 'external' employment kind) linked via 'user_id'.
+2. Back-linking: For employees existing only in the HR registry (HR-Only), the system provides an 'Invite to Platform' action that prefills the invitation form with existing contact details, ensuring that joined users link to their established personnel records rather than creating duplicates.
 ```
-Type: finance rule. Initial classification: possible Project Knowledge rule. Internal references: `src/lib/finance/postLedgerForPayments.ts` (present in the repository). Overlap: MEM-009, MEM-025. Note: later memory entries and current code describe payment-session RPC posting (`post_payment_session`), so the named utility may be partially superseded. Stage B verification required: **Yes** — confirm the current authoritative payment-posting path before restating this rule.
+Type: technical architecture fact; identity model. Initial classification: possible Project Knowledge rule (member identity vs personnel identity distinction). Internal references: tables `tenant_members`, `hr_employees`. Overlap: MEM-053, MEM-054. Stage B verification required: No.
 
-**MEM-025** — URI: `mem://finance/invoice-accounting-lifecycle` · Title: Invoice Accounting Lifecycle · Group: finance
+**MEM-051** — URI: `mem://architecture/invitations/invitation-scoping-standard` · Title: Invitation Scoping Standard · Group: architecture/invitations
 ```
-Invoices follow a strict accounting lifecycle: 'draft' or 'reviewed' (financially invisible) -> 'approved' (accounting activation) -> 'shared' (external visibility) -> 'paid'/'overdue'/'cancelled'.
-1. Database Integrity: The 'invoices' table enforces this lifecycle via the 'invoices_status_check' constraint.
-2. Activation: Transitioning to 'approved' via the 'approveInvoice' utility triggers idempotent ledger posting and balance updates.
-3. Reversal and Adjustment: Statuses 'paid' or 'partial' are derived from payments. Cancellation of approved invoices requires a reversal ledger entry ('adjustment' type) to neutralize financial effect.
-4. Reconciliation Auditability: Automated reconciliation entries (e.g., from Phase 6 historical cleanup) are prefixed with 'Phase 6 Reconciliation:' in ledger descriptions to ensure transparency for data corrections.
+Invitations follow a 'Configure Post-Acceptance' model to minimize onboarding friction. At invite-time, the system captures only a single identifier—either Email or Phone (at least one is required)—and an optional role hint. Detailed configurations, including horse assignments, internal/external classification, and granular permission overrides, are deferred until after the invitee has accepted the invitation and joined the organization.
 ```
-Type: finance rule; current implementation claim; historical implementation claim (item 4). Initial classification: possible Skill-only rule with a Project Knowledge core (ledger activation on approval). Internal references: constraint `invoices_status_check` (corroborated in `docs/aml_1_b_1/stage_j5_1/preflight/02_invoices_schema.txt`); `src/lib/finance/approveInvoice.ts`. Stage B verification required: No.
+Type: module-specific mechanic; UX rule. Initial classification: possible Skill-only rule. Internal references: `invitations` table; `src/pages/InviteLandingPage.tsx` (present). Overlap: MEM-055. Stage B verification required: No.
 
-**MEM-026** — URI: `mem://architecture/horses/unified-profile-architecture` · Title: Unified Profile Architecture · Group: architecture/horses
+**MEM-052** — URI: `mem://security/connections/partnership-integrity` · Title: Partnership Integrity · Group: security/connections
 ```
-The 'Unified Horse Profile' is implemented as a UI composition ('src/pages/HorseProfile.tsx') that aggregates data from multiple underlying tables. The hero section utilizes the canonical '<BilingualName />' component for language-aware identity display. Incompleteness (missing birth date, microchip, or passport) is surfaced via an 'Incomplete' badge and checklist CTA. This architecture enables a modular, multi-source record while respecting tenant-scoped data ownership.
+The system enforces financial and operational integrity in B2B relationships by preventing duplicate active connections between the same two organizations. This is implemented via a unique partial index on the 'connections' table that restricts active (accepted) pairs to a single record using 'LEAST' and 'GREATEST' on tenant IDs to ensure uniqueness regardless of which party initiated the request. This constraint preserves historical records (revoked, rejected) while ensuring a single active channel for data sharing and requests.
 ```
-Type: module-specific mechanic; UX rule. Initial classification: possible Skill-only rule. Internal references: `src/pages/HorseProfile.tsx`; `<BilingualName />`. Overlap: MEM-005, MEM-022. Stage B verification required: No.
+Type: technical architecture fact; permission/RLS-adjacent integrity rule. Initial classification: possible Skill-only rule. Internal references: table `connections`. Overlap: MEM-015, MEM-054. Stage B verification required: No.
 
-**MEM-027** — URI: `mem://architecture/finance/event-driven-invoicing-pattern` · Title: Event-Driven Invoicing Pattern · Group: architecture/finance
+**MEM-053** — URI: `mem://features/team/team-partners-hub` · Title: Team & Partners Hub · Group: features/team
 ```
-The platform implements a standardized 'Generate Invoice from Event' architectural pattern across multiple modules (Stable Boarding, Independent Doctor, Breeding). Operational detail views (e.g., AdmissionDetailSheet, ConsultationDetail, BreedingRecordDetailSheet) provide a manual action to trigger a dedicated invoicing dialog (e.g., CreateInvoiceFromBreedingEvent.tsx). This dialog creates a draft invoice and a 'billing_link' using a domain-specific 'source_type' (e.g., 'breeding_attempt', 'doctor_consultation'). This ensures billing remains opt-in and operator-controlled while maintaining a traceable link to the operational or clinical evidence.
+The 'Team & Partners' hub (/dashboard/team) is the centralized surface for relationship management.
+1. Unified List: Merges 'tenant_members', 'hr_employees', and pending invitations using the 'useUnifiedTeam' hook, deduplicating by 'user_id'.
+2. Management Interface: 'PersonDetailSheet.tsx' is the primary hub for configuring roles, horse assignments, and HR links. It supports an inline 'Internal/External' employment classification toggle with immediate updates and event logging.
+3. HR Integration: Includes an 'Invite to Platform' action for HR-only records that prefills invitation details to bridge personnel records with platform accounts.
+4. Status Tracking: Dynamic counters distinguish between members with platform access, HR-only personnel, and internal/external employment kinds.
 ```
-Type: technical architecture fact. Initial classification: possible Project Knowledge rule (operations link to invoices, never duplicate them). Internal references: `billing_links`; component names listed above. Overlap: MEM-019. Stage B verification required: No.
+Type: module-specific mechanic; UX rule. Initial classification: possible Skill-only rule. Internal references: route `/dashboard/team`; `useUnifiedTeam`; `PersonDetailSheet.tsx`. Overlap: MEM-050. Stage B verification required: No.
 
-**MEM-028** — URI: `mem://security/client-tenant-isolation` · Title: Client Tenant Isolation · Group: security
+**MEM-054** — URI: `mem://architecture/connections/operational-partner-scoping` · Title: Operational Partner Scoping · Group: architecture/connections
 ```
-Clients are strictly tenant-scoped entities. The 'clients' table uses RLS policies (`is_tenant_member(auth.uid(), tenant_id)`) to ensure that one tenant's clients are not visible or selectable by another. This isolation must be maintained even when operational records (like Breeding Contracts) reference clients, to prevent cross-tenant data contamination.
+The platform distinguishes between Service Partners (transactional, e.g., labs/pharmacies) and Operational Partners (e.g., independent doctors/trainers).
+1. Scoping: Operational partners utilize the 'connection_horse_access' table to manage granular horse-level visibility.
+2. Access Levels: Supports 'read' and 'readwrite' permissions per horse.
+3. Management: The inviting organization's managers assign horse-level scope post-acceptance. While the configuration UI and persistence in 'connection_horse_access' are implemented, the corresponding RLS enforcement across domain tables (e.g., 'horses', 'vet_treatments') to actually gate cross-tenant data access is a known gap deferred for future implementation.
 ```
-Type: permission/RLS rule. Initial classification: possible Project Knowledge rule. Internal references: function `is_tenant_member()` (corroborated in the invoices/invoice_items policy evidence). Stage B verification required: No.
+Type: technical architecture fact; permission/RLS rule; **known debt** (item 3). Initial classification: possible Project Knowledge rule for the partner-type distinction; the debt statement is a known-debt record whose Project Knowledge suitability is limited because it is mutable state. Internal references: table `connection_horse_access`; tables `horses`, `vet_treatments`. Contradiction relevance: directly contradicts any universal "all cross-tenant access is enforced" claim — material to Correction 7. Overlap: MEM-015, MEM-056. Stage B verification required: **Yes** — confirm whether the gap still exists in current RLS before any statement about cross-tenant enforcement is written.
 
-**MEM-029** — URI: `mem://localization/bilingual-naming-architecture` · Title: Bilingual Naming Architecture · Group: localization
+**MEM-055** — URI: `mem://security/invitations/identity-verification-rules` · Title: Identity Verification Rules · Group: security/invitations
 ```
-The platform implements a unified bilingual naming strategy using the '<BilingualName />' component.
-1. Display: Identity surfaces like grids, tables, and list cards must use a stacked layout (primary bold top, secondary lighter in parentheses below). Inline rendering is restricted to compact contexts.
-2. Data Entry: Inputs for English-only fields must maintain English-language placeholders even when the UI is in Arabic mode to provide correct linguistic context.
-3. Label Symmetry: Identity labels for symmetric bilingual fields (e.g. in creation forms) must follow a parallel structure (e.g. 'Field Name (English)' and 'Field Name (Arabic)') rather than asymmetric variants to maintain semantic balance.
+The 'finalize_invitation_acceptance' RPC enforces strict identity matching before granting tenant membership. For email-based invitations, the authenticated user's email must match the 'invitee_email'. For phone-based invitations, the system normalizes both the user's profile phone and the stored 'invitee_phone' (stripping all characters except digits and '+') and requires an exact match. Additionally, this RPC atomically creates or links an 'hr_employees' record (defaulting to 'external') to maintain personnel registry integrity upon joining.
 ```
-Type: language/terminology rule; UX rule. Initial classification: possible Project Knowledge rule. Internal references: `<BilingualName />`. Overlap: MEM-005. Note for Stage C: this entry states primary/secondary-in-parentheses display, which is directionally consistent with the owner's Correction 6 but does not by itself state the language-primacy rule per UI language. Stage B verification required: **Yes** — check current bilingual display implementation against Correction 6.
+Type: permission/RLS rule; technical architecture fact. Initial classification: possible Project Knowledge rule (membership is granted only through a verified server-side RPC). Internal references: RPC `finalize_invitation_acceptance`; tables `invitations`, `hr_employees`. Overlap: MEM-050, MEM-051. Stage B verification required: No.
 
-**MEM-030** — URI: `mem://domain/stable/housing-facility-taxonomy` · Title: Housing Facility Taxonomy · Group: domain/stable
+**MEM-056** — URI: `mem://architecture/connections/unified-partner-management` · Title: Unified Partner Management · Group: architecture/connections
 ```
-The platform enforces a strict 8-type facility taxonomy: Housing (barn, isolation), Open-area (paddock, pasture), Activity (arena, round_pen, wash_area), and Storage (storage). The 'Other / أخرى' type is explicitly removed from the system to ensure data classification integrity and drive specific type-aware behaviors in the UI and data model.
+Consolidated all B2B relationship controls—including connection acceptance, consent grant CRUD, sharing audit logs, and inbound shared-data visibility—into a single mobile-first detail sheet ('PartnerConfigSheet'). This eliminates the legacy tab-based management surface and its 'invisible state' dependency (where selecting a partner on one tab was required for others to function), ensuring all partner context is always visible during configuration. Backend RLS enforcement for data sharing is currently active only for 'lab_results'; grants for 'vet_records', 'breeding_records', and 'lab_requests' are present in the UI and database but do not yet gate actual cross-tenant data access.
 ```
-Type: module-specific mechanic; domain taxonomy. Initial classification: possible Skill-only rule. Internal references: facility type values listed. Stage B verification required: No.
+Type: module-specific mechanic; UX rule; **known debt** (final sentence). Initial classification: possible Skill-only rule plus a known-debt record. Internal references: `PartnerConfigSheet`; tables `lab_results`, `vet_records`, `breeding_records`, `lab_requests`. Contradiction relevance: same as MEM-054 — material to Correction 7 and to MEM-015's "domain tables implement shared access policies" wording, which this entry qualifies. Potential contradiction IDs: MEM-015, MEM-054. Stage B verification required: **Yes**.
 
-**MEM-031** — URI: `mem://localization/stable/account-aware-housing-terminology` · Title: Account-Aware Housing Terminology · Group: localization/stable
+**MEM-057** — URI: `mem://security/workspace-authorization-and-guards` · Title: Workspace Authorization & Guards · Group: security
 ```
-Housing terminology adapts to the tenant type: Stable accounts use 'Stall Block' (جناح) and 'Stall' (بوكس), while Clinic accounts use 'Ward' (عنبر) and 'Patient Room' (غرفة مريض). This account-awareness is applied consistently across creation wizards, headers, and individual unit labels.
+Organization-level access is protected by 'WorkspaceRouteGuard.tsx', which enforces 'requiredMode' and 'requiredPermission' across all primary routes (including Finance, Doctor, Team, and Settings). The navigation sidebar utilizes 'hasPermission()' checks for item visibility, replacing legacy hardcoded role checks (e.g., owner/manager) to ensure the UI truthfully reflects the user's granular authorization. Permission resolution follows the priority: Owner > Role Direct > Role Bundle > Member Bundle > Member Override.
 ```
-Type: language/terminology rule; module-specific mechanic. Initial classification: possible Skill-only rule; the general principle (terminology adapts to account type) is a possible Project Knowledge rule. Internal references: tenant types `stable`, `clinic`. Stage B verification required: No.
+Type: permission rule; technical architecture fact. Initial classification: possible Project Knowledge rule (permission-based UI gating and the resolution order). Internal references: `WorkspaceRouteGuard.tsx`; `hasPermission()`. Overlap: MEM-007, MEM-058, MEM-059. Note: current code still contains legacy role checks in some hooks (for example `const canManage = activeRole === "owner" || activeRole === "manager"` in `src/hooks/vet/useVetMedications.ts`, `useVetFollowups.ts`, and `useHorseVaccinations.ts`), so the "replacing legacy hardcoded role checks" wording is not universally true in current code. Potential contradiction ID: MEM-007. Stage B verification required: **Yes** — material to Correction 7.
 
-**MEM-032** — URI: `mem://architecture/stable/housing-type-aware-surfaces` · Title: Housing Type-Aware Surfaces · Group: architecture/stable
+**MEM-058** — URI: `mem://security/permission-system-vocabulary` · Title: Permission System Vocabulary · Group: security
 ```
-The Facilities tab serves as an inline operational surface utilizing type-aware content routing:
-1. Housing (Barn, Isolation): Renders a color-coded unit grid with occupant names and specific vacancy counts in the section header.
-2. Open-area (Paddock, Pasture): Displays advisory capacity ('X / ~Y' horses present), real-time horse rosters, and environmental attributes (area_size, shade, has_water) persisted in typed columns.
-3. Activity/Service (Arena, Round Pen, Wash Area): Spec-driven surface rendering physical attributes (dimensions, diameter, footing type, covered status, wash points) persisted via a JSONB metadata column.
-Creation and editing are managed through a 2-phase dynamic dialog that adapts field logic based on this 8-type taxonomy.
+The platform's permission vocabulary consists of 104 granular keys. This includes additions such as 'breeding.manage', 'services.manage', 'team.manage', 'vet.manage', 'movement.manage', 'finance.payables.manage', and 'orders.manage'. This vocabulary provides a unified source of truth for both UI-level action gating and backend RLS enforcement across all core operational domains.
 ```
-Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `OpenAreaContent`; facility columns listed. Overlap: MEM-030. Stage B verification required: No.
+Type: permission rule; current implementation claim (the count 104). Initial classification: possible Project Knowledge rule with the numeric count requiring verification (mutable). Internal references: permission definitions table; `docs/aml_1_b_1/stage_01_preflight/permission_definitions_shape.txt`. Overlap: MEM-007. Stage B verification required: **Yes** — verify the live count before restating it; a fixed number is mutable state and may be unsuitable for static Project Knowledge.
 
-**MEM-033** — URI: `mem://features/stable/housing-unit-and-numbering-setup` · Title: Housing Unit Numbering Setup · Group: features/stable
+**MEM-059** — URI: `mem://security/granular-backend-enforcement` · Title: Granular Backend Enforcement · Group: security
 ```
-Room-based facility setup supports batch unit creation using counts, prefixes, and starting numbers (e.g., 101). It features a live preview grid with a layout toggle between 'single' and 'two-sided' (center-aisle) arrangements and Side A/B labels with a 'startSide' numbering control. Internal roles (storage, isolation_room) are assigned via popover pickers. Facilities can be extended post-creation using the same batch logic to preserve numbering and spatial coherence.
+Core operational domains—including Horses, Movement, Breeding, Vet, Doctor, HR, Clients, Services, and Finance—utilize a granular enforcement model via the 'has_permission()' RLS function. This ensures that backend data access for INSERT, UPDATE, and DELETE operations is strictly aligned with the granular permission keys defined in the UI and Roles settings. This model fully replaces the legacy 'can_manage_orders' role-based helper, which has been retired. Legacy helpers are retained only for the Laboratory and Academy modules and specific reference tables.
 ```
-Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `RoomLayoutSetup`. Stage B verification required: No.
-
-**MEM-034** — URI: `mem://architecture/stable/housing-paddock-occupancy-model` · Title: Housing Paddock Occupancy Model · Group: architecture/stable
-```
-Paddock and pasture occupancy utilizes a separate architectural path from room-based housing units. While housing units (Barns, Isolation) use the 'housing_unit_occupants' table, open-area occupancy is derived directly from 'horses.current_area_id'. This dual model ensures that open-area turnout is tracked as a facility-level physical presence rather than a specific stall assignment, and is reflected in 'OpenAreaContent' via a real-time horse roster.
-```
-Type: technical architecture fact; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: table `housing_unit_occupants`; column `horses.current_area_id`; `OpenAreaContent`. Stage B verification required: No.
+Type: permission/RLS rule; current implementation claim with a stated exception. Initial classification: possible Project Knowledge rule (backend enforcement contract), with the scope exception (Laboratory, Academy, reference tables) preserved so no universal-compliance claim is made. Internal references: function `has_permission()`; retired helper `can_manage_orders`. Overlap: MEM-007, MEM-057, MEM-058. Stage B verification required: **Yes** — material to Correction 7.
 
 ---
 
-### BATCH A1 INTERIM STATUS (not the Stage A verdict)
+### BATCH A2 INTERIM STATUS (not the Stage A verdict)
 
-- Directly read in this output: 34 (9 Core rules + 25 memory files).
-- Cumulative directly read: 34.
-- Expected final: 103 (to be reconciled at the end of Stage A).
+- Directly read in this output: 25 memory files.
+- Cumulative directly read: 59 (34 from A1 + 25 from A2).
+- Expected final: 103.
 - Unreadable so far: 0.
-- Duplicates/aliases so far: 0 (overlaps noted are content overlaps, not duplicate URIs).
-- Entries flagged for Stage B verification so far: MEM-007, MEM-008, MEM-013, MEM-015, MEM-024, MEM-029.
-- Interim initial category tallies for the 34 delivered items: possible Project Knowledge 14; possible Skill-only 18; repository governance 0; Current-Prompt-only 0; possible stale 0 (MEM-024 flagged as possibly partially superseded, pending Stage B); possible contradiction 0; private 0; not material 0; pending Stage B 6 (counted within the categories above).
+- Duplicate or alias URIs so far: 0 (all recorded overlaps are content overlaps between distinct URIs).
+- Batch A2 initial category tallies (sums to 25): possible Project Knowledge 10 (MEM-038, MEM-042, MEM-044, MEM-046, MEM-047, MEM-049, MEM-050, MEM-055, MEM-057, MEM-058); possible Skill-only 13 (MEM-035, MEM-036, MEM-037, MEM-039, MEM-040, MEM-041, MEM-043, MEM-045, MEM-048, MEM-051, MEM-052, MEM-053, MEM-056); possible Project Knowledge with known-debt qualification 1 (MEM-054); possible Project Knowledge with scope exception 1 (MEM-059); repository governance 0; Current-Prompt-only 0; possible stale 0; private 0; not material 0.
+- Cumulative tallies after A1 correction + A2 (sums to 59): possible Project Knowledge 28; possible Skill-only 30; requires Stage B verification as primary classification 1 (MEM-013).
+- Entries newly flagged for Stage B verification in A2: MEM-037, MEM-044, MEM-048, MEM-054, MEM-056, MEM-057, MEM-058, MEM-059. Cumulative Stage-B-flagged: 14.
+- New contradiction candidates recorded: MEM-054 and MEM-056 qualify MEM-015; MEM-057 is contradicted in part by current code (legacy `activeRole` checks in `src/hooks/vet/*`); MEM-048 versus the not-yet-delivered "Doctor Billing Mismatch" entry.
 
-Full reconciliation (Sections A–E of the Stage A contract: count reconciliation equation, coverage proof, final category counts, gaps, and the Stage A Completeness Verdict) is deliberately deferred to the end of the final Stage A batch, as required by the batching rule.
+Full Stage A reconciliation (Sections A–E: count reconciliation equation, coverage proof, final category counts, gaps, and the Stage A Completeness Verdict) remains deferred to the end of the final Stage A batch.
 
 ### WORKSTREAM PERSISTENCE
 
@@ -314,35 +248,35 @@ RM-DH-003 remains Active. RM-DH-003 / Phase 2 remains CLOSED. WS-DH-2026-0002 re
 2. Operation: Staged read-only Project Memory completeness extraction (Stage A).
 3. Received Official Prompt ID: PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-REAUDIT-03.
 4. Current Stage: Stage A.
-5. Current Stage batch: BATCH A1.
+5. Current Stage batch: BATCH A2.
 6. Prompt Preparation Date: 01-08-2026 — August.
 7. Prompt Preparation Time: 02:50.
 8. Prompt Preparation Timezone: Asia/Riyadh — UTC+03:00.
-9. Lovable Run Start Date and Time: 01-08-2026, 02:58:00 (+03:00) = 2026-07-31 23:58:00 UTC (approximate to the minute; evidence: sandbox `date -u` returned 2026-07-31 23:59:29 UTC at the first repository-state command of this run).
+9. Lovable Run Start Date and Time (this batch): Exact time not recorded. First timestamp evidence in this batch: 2026-08-01 00:31:46 UTC = 01-08-2026, 03:31:46 (+03:00), from sandbox `date -u`. No earlier time is evidenced and none is asserted.
 10. Lovable Run End Date and Time: Exact time not recorded.
-11. Final Report Generated Date and Time: 01-08-2026 — exact time not recorded.
-12. Timezone and evidence source: Asia/Riyadh (UTC+03:00) presentation of UTC values returned by sandbox `date -u`; Latin digits used throughout.
-13. Branch: `edit/edt-b53bf8d4-6ca5-4b15-aea7-afaff5bd8442`.
-14. HEAD before: `aec75cad014932dcb1af0298eb3d1efb2afb640a`. HEAD after: unchanged apart from any platform-generated planning commit disclosed in item 33.
+11. Final Report Generated Date and Time: Exact time not recorded. The last evidenced timestamp of this batch is 2026-08-01 00:31:46 UTC.
+12. Timezone and evidence source: all timestamps originate from sandbox `date -u` (UTC) and are presented additionally in Asia/Riyadh (UTC+03:00). Latin digits used throughout.
+13. Branch: `edit/edt-8d0317bb-abb4-471e-aad2-76803cb918bd` (verified by `git rev-parse --abbrev-ref HEAD` at 2026-08-01 00:34:26 UTC).
+14. HEAD before this batch: `0e4af63381dff14fc8e1b155f2ee7f17276c2a25` (verified by `git rev-parse HEAD` at 2026-08-01 00:31:46 UTC). HEAD after the A2 extraction reads and the first plan write: `51433abfd573a4e05ea80bc3e3ad835488fc9a39` (verified at 2026-08-01 00:34:26 UTC); the advance is the platform-managed `.lovable/plan.md` commit. A further platform commit for this metadata correction will follow the production of this report; its hash is not yet evidenced and is not asserted. Correction to Batch A1: the A1 report recorded HEAD before as `aec75cad014932dcb1af0298eb3d1efb2afb640a` and described HEAD after as "unchanged apart from any platform-generated commit"; the verified subsequent HEAD is `0e4af63381dff14fc8e1b155f2ee7f17276c2a25`, that is, the A1 planning-artifact commit did advance HEAD.
 15. Working Tree before: clean (`git status --porcelain` returned no output). Working Tree after: clean apart from the platform planning artifact.
 16. Staged paths before: none. After: none.
 17. Unstaged paths before: none. After: none.
 18. Untracked non-ignored paths before: none. After: none.
-19. Memory URIs directly opened in this output: `mem://index.md` (Core block, MEM-001 – MEM-009), `mem://security/community-workspace-rls-logic`, `mem://features/finance/credit-limit-enforcement`, `mem://features/finance/client-statement-system`, `mem://architecture/party-horse-relationship-model`, `mem://features/horse-unification-strategy`, `mem://architecture/platform-sharing-reference-pattern`, `mem://architecture/notification-system-standard`, `mem://domain/horse-owner-tenant-isolation`, `mem://architecture/shared-client-registry-and-identity`, `mem://architecture/finance/billing-linkage-pattern`, `mem://architecture/stable/housing-and-facility-management`, `mem://architecture/stable/boarding-stay-and-care-lifecycle`, `mem://architecture/stable/horse-registry-and-onboarding-logic`, `mem://features/stable/movement-and-logistics`, `mem://finance/payment-status-integrity-rule`, `mem://finance/invoice-accounting-lifecycle`, `mem://architecture/horses/unified-profile-architecture`, `mem://architecture/finance/event-driven-invoicing-pattern`, `mem://security/client-tenant-isolation`, `mem://localization/bilingual-naming-architecture`, `mem://domain/stable/housing-facility-taxonomy`, `mem://localization/stable/account-aware-housing-terminology`, `mem://architecture/stable/housing-type-aware-surfaces`, `mem://features/stable/housing-unit-and-numbering-setup`, `mem://architecture/stable/housing-paddock-occupancy-model`.
-20. Number directly read in this output: 34 materially distinct entries (9 Core rules + 25 memory files).
-21. Cumulative number directly read: 34.
+19. Memory URIs directly opened in this output: `mem://architecture/stable/vet-medical-records-system`, `mem://features/stable/vet-treatment-and-medication-logic`, `mem://features/stable/vaccination-and-health-management`, `mem://architecture/stable/unified-commercial-model`, `mem://architecture/stable/provider-cost-integration`, `mem://features/stable/provider-markup-logic`, `mem://features/stable/financial-traceability-system`, `mem://architecture/finance/invoice-item-attribution`, `mem://architecture/stable/boarding-period-tracking`, `mem://finance/tax-configuration-standard`, `mem://architecture/stable/boarding-proration-engine`, `mem://architecture/finance/tenant-currency-model`, `mem://architecture/stable/commercial-truth-hierarchy`, `mem://features/finance/consultation-and-lab-grounding`, `mem://ux/mobile-first-design-standard`, `mem://architecture/identity/unified-people-model`, `mem://architecture/invitations/invitation-scoping-standard`, `mem://security/connections/partnership-integrity`, `mem://features/team/team-partners-hub`, `mem://architecture/connections/operational-partner-scoping`, `mem://security/invitations/identity-verification-rules`, `mem://architecture/connections/unified-partner-management`, `mem://security/workspace-authorization-and-guards`, `mem://security/permission-system-vocabulary`, `mem://security/granular-backend-enforcement`.
+20. Number directly read in this output: 25.
+21. Cumulative number directly read: 59.
 22. Expected final number: 103.
 23. Unreadable number: 0.
 24. Duplicate or alias count: 0.
-25. Repository changes: None, except separately disclosed platform-generated behaviour.
-26. Database changes: None. No database query was issued in this output.
+25. Repository changes: None, except the separately disclosed platform-generated planning artifact.
+26. Database changes: None. No database query was issued in this batch.
 27. Project Memory changes: None.
 28. Project Knowledge changes: None.
 29. Workspace Knowledge changes: None.
 30. Skill changes: None.
 31. Settings changes: None.
 32. Roadmap or Workstream changes: None.
-33. Platform-generated `.lovable/plan.md` activity: this report is written to `.lovable/plan.md` by the platform's Plan Mode mechanism. Governed by `docs/CONVENTIONS.md` §11.10 and DEC-RM-DH-003-004. It is not implementation, not Acceptance evidence, and not proof that other paths were unchanged. No other `.lovable/` path exists or changed.
-34. Current Stage batch status: STAGE A — BATCH A1 COMPLETE. Stage A remains incomplete. No Stage A Completeness Verdict is issued yet.
-35. Exact stopping point: Stage A Batch A1 completed (MEM-001 – MEM-034); Stage A remains incomplete with 69 entries outstanding beginning at `mem://architecture/stable/vet-medical-records-system`; Stage B not started; no Project Knowledge text rebuilt or installed; no repository, database, Project Memory, Knowledge, Skill, settings, Roadmap, or Workstream change occurred.
+33. Platform-generated `.lovable/plan.md` activity: this report is written to `.lovable/plan.md` by the platform's Plan Mode mechanism and is committed by the platform, which advances HEAD (evidenced by the A1 HEAD advance from `aec75cad014932dcb1af0298eb3d1efb2afb640a` to `0e4af63381dff14fc8e1b155f2ee7f17276c2a25`). Governed by `docs/CONVENTIONS.md` §11.10 and DEC-RM-DH-003-004. It is not implementation and not Acceptance evidence. No other `.lovable/` path exists or changed.
+34. Current Stage batch status: STAGE A — BATCH A2 COMPLETE. Stage A remains incomplete. No Stage A Completeness Verdict is issued.
+35. Exact stopping point: Stage A Batch A2 completed (MEM-035 – MEM-059; cumulative MEM-001 – MEM-059); Stage A remains incomplete with 44 entries outstanding beginning at `mem://security/roles/manager-role-baseline`; Stage B not started; no Project Knowledge text rebuilt or installed; no repository, database, Project Memory, Knowledge, Skill, settings, Roadmap, or Workstream change occurred.
 36. Exact next permitted owner command: `CONTINUE STAGE A — NEXT BATCH`.
