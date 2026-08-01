@@ -1,418 +1,348 @@
-# PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-02 — Project Knowledge Investigation and Complete Draft
+# PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-REAUDIT-03
 
-## A. Prompt Identity and Mode
+## STAGE A — COMPLETE PROJECT MEMORY EXTRACTION — BATCH A1
 
-Prompt ID: PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-02. Follows and narrows PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-AUDIT-01. Prompt preparation: 01-08-2026 — August, 02:10, Asia/Riyadh (UTC+03:00). Mode: Plan Mode / Chat Mode. Operation: read-only Project Knowledge investigation and complete drafting. Project: Dayli Horse / ديلي هورس — Lovable project ALL In One - V2.
+Stage A only. Stage B, C, D, and E not started. No Project Knowledge text is reconstructed in this output.
 
-## B. Executive Verdict
+### A1 scope
 
-PROJECT KNOWLEDGE DRAFT COMPLETE — READY FOR OWNER REVIEW
+- Items delivered in this batch: MEM-001 through MEM-034 (9 Core rules + the first 25 referenced memory files).
+- URI range covered: Core rules 1–9 (index `## Core` block), then `mem://security/community-workspace-rls-logic` through `mem://architecture/stable/housing-paddock-occupancy-model` in index order.
+- Cumulative delivered: 34.
+- Expected final: 103 (9 Core + 94 referenced files), subject to Stage A reconciliation.
+- Remaining after this batch: 69.
+- Next batch cursor: `mem://architecture/stable/vet-medical-records-system` (index Memories row 26) → MEM-035.
 
-## C. Facts (verified this run)
+### Per-item field defaults
 
-1. Branch `edit/edt-b53bf8d4-6ca5-4b15-aea7-afaff5bd8442`; HEAD `b3470947122def72cf67aa9f8218b9ee05bd70a5`; working tree clean at run start.
-2. Database: `tenant_type` enum has exactly 10 labels — stable, clinic, lab, academy, pharmacy, transport, auction, horse_owner, trainer, doctor (`pg_type`/`pg_enum` query). No `farrier`, `rider`, or `jockey` label exists.
-3. `docs/CONVENTIONS.md` v1.2.0 §11 defines the stable governance contract: §11.1 identifiers (`RM-DH-###`, `WS-DH-YYYY-NNNN`, compound `RM-DH-00X / Phase N`, `DEC-<Roadmap ID>-NNN`), §11.2 owner approval boundary, §11.3 four-file Roadmap package, §11.4 registry-as-index, §11.5 Workstream lifecycle and investigative-first rule, §11.6 evidence precedence, §11.7 persistence and honesty, §11.8 privacy boundary, §11.9 timestamps in Asia/Riyadh with Latin digits, §11.10 `.lovable/plan.md` exception.
-4. Registries exist and are authoritative indexes: `docs/roadmaps/README.md` (v1.0.1) and `docs/workstreams/README.md` (v1.2.2).
-5. Registered Roadmaps: `RM-DH-001` Active; `RM-DH-002` Active / PARTIALLY_RECOVERED; `RM-DH-003` Active, position "Phase 2 closed". Registered Workstream: `WS-DH-2026-0002` CLOSED.
-6. 26 workspace Skills exist as `dayli-01-…` to `dayli-26-…` under the active workspace skills directory.
-7. Project memory is individually readable in this run: the injected index carries 9 Core rules and 94 referenced memory files (103 materially distinct entries). Sample files opened directly and read in full: `mem://ux/mobile-first-design-standard`, `mem://ux/rtl-layout-quality-standard`.
-8. Latin digits 0–9 is a proven product rule, not only a documentation rule: `src/components/finance/InvoicePDFGenerator.tsx`, `src/components/finance/invoicePaginator.ts:259`, and tests in `src/components/finance/__tests__/` enforce Latin digits in both English and Arabic output; `src/components/finance/__tests__/InvoiceDetailsSheet.paymentTime.test.tsx:46` also enforces `dd-MM-yyyy` separators in both languages.
-9. Table / List / Grid is a real shared pattern: `src/components/ui/ViewSwitcher.tsx` exports `ViewMode = 'table' | 'list' | 'grid'` with 2/3/4 grid columns; `src/hooks/useViewPreference.ts` persists the choice per page (default `grid`, 3 columns); `ViewSwitcher` is referenced by 35 files.
-10. Bilingual UI is real and RTL-aware: `src/i18n/config.ts` defines `Language = 'en' | 'ar' | …` with `ar` and `ur` as RTL and only `en` + `ar` enabled.
-11. `farrier` exists in the repository only as an HR profession value (`src/components/hr/EmployeeFormDialog.tsx`, `src/hooks/hr/useEmployees.ts`), not as a tenant/account type.
+Unless a specific item states otherwise, for every item below: field 6 (read status) = **directly read**; field 7 (provenance metadata visible in the item) = **none present**; field 8 (last-updated/timestamp evidence in the item) = **none present**; field 12 (duplicate/overlap IDs) = **none identified in this batch**; field 13 (contradiction IDs) = **none identified in this batch**.
 
-## D. Owner-Approved Rules Used (stated in this Prompt)
+Core rules are delivered from the injected index `## Core` block, which is the only accessible representation of them; they have no separate `mem://` URI.
 
-Planned account types are farrier, rider, jockey; 10 existing + 3 planned = 13 target; planned does not mean implemented. Cross-project isolation requirement covering TADAMUN Group, Silah / صلة, Insights, Insight Compass. Silah / صلة is not part of Dayli Horse and is distinct from the internal Community module. Private ChatGPT sources must never be transferred to Lovable.
+---
 
-## E. Inferences
+### Core rules (MEM-001 – MEM-009)
 
-Project memory appears project-scoped rather than workspace-shared, because every entry is Dayli Horse-specific; this is an inference, not a verified platform property. Owner ability to inspect or edit the memory layer through the UI is not verifiable from this context.
-
-## F. Gaps
-
-NOT VERIFIED IN THIS AUDIT: existence or current content of the Lovable Project Knowledge field; its size limit; its versioning, history, and export behaviour; Workspace Knowledge; Automatic Use state per Skill; folder inheritance; cross-project sharing state; whether the owner can edit the `mem://` layer directly.
-
-## G. Contradictions
-
-One material terminology finding: the Arabic term for horse is not used consistently. `خيل` appears in Arabic locale strings (`src/i18n/locales/ar.ts:403–405`) while `حصان` also appears (`src/i18n/locales/ar.ts:114–115`, `src/pages/SharedHorseReport.tsx:120`). No memory rule and no repository convention resolves which is canonical in general equestrian contexts. Not silently resolved — raised as Owner Decision 1. No other contradiction found between memory rules, repository governance, and current code.
-
-## H. Accessible Source Summary
-
-Accessible: repository code and documentation, `docs/CONVENTIONS.md`, both registries, all Roadmap and Workstream packages, live database (read-only), the 26 workspace Skills, and the `mem://` project-memory layer. Inaccessible: private ChatGPT Master Register, ChatGPT Project Instructions, ChatGPT-only Documentation 01–13, private transcripts, Lovable Project Knowledge and Workspace Knowledge fields, Automatic Use and sharing settings. No inaccessible source was cited or relied upon.
-
-## I. Project Memory Coverage and Classification
-
-103 materially distinct entries (9 Core + 94 files), each individually readable. Classification by category:
-
-- A — INCLUDE IN PROJECT KNOWLEDGE (as compressed global rules): mobile-first standard; RTL/bilingual layout quality; bilingual naming; neutral form defaults with cascade resets; in-context creation bridge; archive/deactivate instead of hard delete; permission-based authorization via `hasPermission()` / `has_permission()`; dual personal-vs-organization RLS scoping; financial status derived from the ledger only.
-- B — MERGE: the ~50 housing, boarding, vet, breeding, laboratory, service-package, and finance entries collapse into three Project Knowledge rules (domain truth lives in code and RPCs; commercial and financial truth flows through the catalog and ledger; operational events link to invoices rather than duplicating them).
-- C — REPOSITORY GOVERNANCE ONLY: none of the memory entries hold Roadmap/Workstream status; this layer is architecture-oriented, which is a positive finding.
-- D — SPECIALIST SKILL ONLY: detailed module mechanics (proration engine internals, movement RPC 19-parameter contract, room numbering, orphan repair, wizard scroll behaviour, notification family registry) stay in Skills and code.
-- E — CURRENT PROMPT ONLY: none.
-- F — PRIVATE — DO NOT PERSIST: none found; the layer contains no credentials, secrets, financial, or vendor information.
-- G — STALE — EXCLUDE: `mem://architecture/finance/doctor-billing-mismatch` records known architectural debt (Doctor services separate from `tenant_services`) — accurate as debt, but not a durable instruction; excluded from Project Knowledge.
-- H — CONTRADICTORY — OWNER REVIEW: none in memory; the only contradiction is the Arabic horse-term inconsistency found in code (section G).
-- I — NOT MATERIAL: single-screen layout details (toolbar wrap behaviour, detail-panel section order, chip rows).
-
-The owner's investigative examples were tested, not assumed: mobile-first — CONFIRMED (memory + code); bilingual/RTL — CONFIRMED; Table/List/Grid on large pages — CONFIRMED in code (`ViewSwitcher`, 35 usages) though not present as a memory rule; `خيل` as the general Arabic term — NOT CONFIRMED, usage is mixed.
-
-## J. Included Stable Rule Categories
-
-Project scope and cross-project isolation; stable stack; multi-tenant architecture; account-type model with existing-versus-planned distinction; bilingual English/Arabic with RTL; Latin digits and date convention; mobile-first; large-listing Table/List/Grid pattern; design-system token discipline; archive/deactivate lifecycle; permission-based authorization; evidence precedence; investigative-first workflow; Plan/Chat versus Agent/Build boundary; Roadmap and Workstream governance and navigation; Execution / Acceptance / Closure boundaries; privacy and secret handling; Skill use; repository navigation; database and cross-tenant safety; Current Prompt responsibility; stopping-point discipline; truthfulness and uncertainty labels.
-
-## K. Excluded Categories
-
-Dynamic Roadmap, Phase, Track, Workstream, decision, chronology, Acceptance, Closure, and stopping-point state (repository governance owns these); module-level mechanics (Skills and code own these); known architectural debt items; per-screen layout minutiae; anything private; the ChatGPT-only source layer, which is not referenced anywhere in the draft.
-
-## L. PROJECT KNOWLEDGE — FULL INSTALL-READY TEXT
-
+**MEM-001** — URI: `mem://index.md#Core` (line 1) · Title: Mobile-first and RTL core rule · Group: Core / UX
 ```
-DAYLI HORSE — PROJECT KNOWLEDGE
-
-1. PROJECT IDENTITY AND ISOLATION
-
-This project is Dayli Horse / ديلي هورس, a bilingual multi-tenant equestrian SaaS platform.
-All work in this Lovable project belongs to Dayli Horse only.
-
-Never import, reuse, or transfer context, terminology, rules, examples, account models,
-roadmaps, or data from any other project, including TADAMUN Group, Silah / صلة, Insights,
-and Insight Compass. Silah / صلة is a separate product and is not part of Dayli Horse; the
-Community module inside Dayli Horse is internal to Dayli Horse and is unrelated to it.
-
-Never carry Dayli Horse context out of this project into another project.
-
-2. HOW TO APPROACH ANY REQUEST
-
-2.1 Investigate before you build. Read current code, current database state, and current
-repository governance before proposing or changing anything. Recollection is not evidence.
-
-2.2 Before treating work as new, before proposing a Roadmap, Phase, Track, or Workstream,
-before executing, and before claiming Acceptance or Closure, read:
-  - docs/roadmaps/README.md — central Roadmap registry
-  - docs/roadmaps/<roadmap-package>/roadmap.md — authoritative current state
-  - docs/workstreams/README.md — central Workstream registry
-  - docs/workstreams/<workstream-package>/workstream.md — authoritative Workstream state
-  - docs/CONVENTIONS.md — stable repository-wide rules, including §11 governance
-
-2.3 Separate the three boundaries and never merge them:
-  - Investigation is not implementation.
-  - Implementation (Execution) is not Acceptance. Completing work does not accept it.
-  - Acceptance is not Closure. Closure requires explicit owner approval.
-An Acceptance Re-Audit is mandatory before Closure at every risk level.
-
-2.4 State facts, inferences, and gaps separately. When something cannot be verified from
-accessible evidence, write "NOT VERIFIED" rather than guessing. When an exact time cannot
-be proven, write "Exact time not recorded".
-
-2.5 End substantial work with an exact stopping point and the next permitted step.
-
-3. EVIDENCE PRECEDENCE
-
-1. Current code and current live database.
-2. Current accepted repository governance (docs/CONVENTIONS.md, Roadmap and Workstream packages).
-3. Current repository documentation.
-4. Project memory.
-5. Skills, as specialist references.
-6. Inference, clearly labelled.
-
-Historical documentation never overrides current accepted truth. Where two sources conflict,
-name both, apply this precedence, mark the losing source stale or unresolved, and do not
-silently blend incompatible rules.
-
-4. GOVERNANCE SYSTEM
-
-Identifiers: Roadmap `RM-DH-###`; Workstream `WS-DH-YYYY-NNNN`; a Phase is always cited in the
-compound form `RM-DH-00X / Phase N`; decisions are `DEC-<Roadmap ID>-NNN`.
-
-Every Roadmap package has exactly four files with exclusive authority: README.md (stable identity
-and navigation), roadmap.md (authoritative current state, Phases, Tracks, stopping point, next
-permitted step), decisions.md (approved decisions, rationale, rejected alternatives), changelog.md
-(chronological changes with absolute timestamps).
-
-Registries are indexes only. A registry summary never overrides a package's own files.
-
-Workstream lifecycle: Investigative Audit → Mini Investigative Audit (only when needed) → Owner
-Alignment → Execution → QA → Acceptance Re-Audit → Closure. Low-risk work may skip stages that
-add no value. High-risk work — security, authority, finance, data integrity, migrations,
-cross-tenant behaviour — may skip nothing.
-
-Creating a Roadmap, reclassifying it, registering it, or closing it requires explicit Platform
-Owner approval. Never create, number, or persist governance structure unilaterally.
-
-Roadmaps that currently exist in the repository: RM-DH-001 (documentation and developer handover),
-RM-DH-002 (core operations and expansion), RM-DH-003 (roadmap and workstream governance). Read the
-registry and the package for their current status; never assume it.
-
-Never copy mutable governance state into this Knowledge, into Skills, or into conventions. Only
-roadmap.md, workstream.md, decisions.md, changelog.md, and the registries hold current state.
-
-Timestamps are absolute, in Asia/Riyadh (UTC+03:00), written with Latin digits 0–9.
-
-A document may claim something was stored only after the write succeeded. A contradiction between
-two authoritative files is an acceptance-blocking defect, not a style issue.
-
-5. MODE BOUNDARIES
-
-Plan Mode and Chat Mode are strictly read-only for tracked repository files. The single exception
-is `.lovable/plan.md`, which the platform manages automatically; that exception covers no other
-path under `.lovable/`. A platform-generated `.lovable/plan.md` change is never implementation and
-never Acceptance evidence, and must be disclosed separately in any report.
-
-Agent/Build Mode performs execution, within the scope the current Prompt authorizes and no wider.
-
-6. PLATFORM ARCHITECTURE
-
-Stack: React 18, Vite, TypeScript, Tailwind, shadcn components, with a Supabase-backed cloud
-backend (Postgres, RLS, RPCs, Edge Functions, Storage, Auth).
-
-Multi-tenancy is the foundation. Every table with tenant data is tenant-scoped and protected by
-RLS. Some surfaces use dual scoping: personal records (`tenant_id IS NULL`) versus organization
-records (`tenant_id IS NOT NULL`). Never bypass RLS, never widen a policy to unblock a query, and
-never introduce a path that lets one tenant read or write another tenant's data.
-
-Authorization is permission-based, never role-hardcoded. The UI checks `hasPermission()`; the
-backend enforces `has_permission()` over granular permission keys. Never gate behaviour on a
-literal role name such as owner or manager. Roles live in dedicated membership and role tables,
-never on profile or user records.
-
-Financial integrity: payment status such as paid or partial is always derived from the payment
-ledger and is never set manually. Invoice and payment writes go through the dedicated SECURITY
-DEFINER RPCs rather than direct table writes from the frontend.
-
-Lifecycle: records with history are never hard-deleted. Use archive (`is_archived`) or deactivate
-(`is_active`), cascade the lifecycle where the hierarchy requires it, and default lists to active
-records only.
-
-7. ACCOUNT TYPES
-
-Ten account/tenant types exist today and are enum-backed: stable, clinic, lab, academy, pharmacy,
-transport, auction, horse_owner, trainer, doctor.
-
-Three further account types are planned: farrier, rider, jockey. The target model is therefore
-10 existing + 3 planned = 13 target.
-
-Planned does not mean implemented, selectable, enabled, mature, or launch-ready. Current
-repository and database evidence determine actual availability; verify before making any claim.
-
-`farrier` also exists as an HR employee profession. The HR profession is not the planned farrier
-account type and the two must never be conflated.
-
-Never perform a blind global replacement of 10 with 13. Classify every occurrence by its meaning:
-some numbers refer to account types, others are unrelated counts.
-
-8. PRODUCT AND UX RULES
-
-8.1 Mobile-first is mandatory. Design and implement the small-screen experience first, then scale
-up. Desktop density must never be forced into mobile surfaces.
-
-8.2 The product is bilingual English and Arabic, and Arabic is a full RTL environment. RTL is not
-just `dir="rtl"`: controls must use flexible growth so rows fill the horizontal space instead of
-clustering at the trailing edge. Identity lists use stacked bilingual names, and English inputs
-keep English placeholders even in Arabic mode.
-
-8.3 Numbers are always written with Latin digits 0–9 in both languages, including invoices,
-statements, PDFs, and pagination. Dates use `dd-MM-yyyy` separators in both languages.
-
-8.4 Large listing pages use the shared Table / List / Grid pattern via the shared view switcher,
-with the user's per-page choice persisted. Do not build one-off view toggles.
-
-8.5 All colors, gradients, and shadows are semantic design tokens defined in the global stylesheet
-and consumed through component variants. Never hardcode color utilities in components.
-
-8.6 Complex dialogs follow the workspace-class layout: a flex column with a fixed header and
-footer and a single scrollable body. No nested scroll containers.
-
-8.7 Form inputs start in an explicit neutral state rather than a forced default selection, and
-dependent fields reset when a parent selection changes.
-
-8.8 Selectors offer in-context creation ("+ Add New") so a workflow never dead-ends; the newly
-created record is auto-selected on save.
-
-9. DATA AND DATABASE SAFETY
-
-Schema and data changes are made through migrations, and every new public table receives explicit
-grants alongside enabled RLS and policies. Destructive operations, backfills, and data corrections
-require explicit authorization in the current Prompt and a stated rollback path. Never run a
-write against production data to satisfy an investigation.
-
-10. SKILLS
-
-Specialist Skills exist for deep review work — tenant isolation, RLS safety, API and RPC
-hardening, schema and migration safety, bilingual and RTL quality, QA and release readiness,
-and others. Use them for specialist verdicts. They do not replace this Knowledge, the current
-Prompt, or repository governance, and their content never overrides current code or database
-evidence.
-
-11. THE CURRENT PROMPT
-
-The current Prompt owns task-specific scope: what to change, what is excluded, allowlists,
-rollback instructions, test instructions, current risks, and temporary decisions. This Knowledge
-owns only stable project-wide behaviour. When the current Prompt narrows scope, the narrower
-scope wins. When the current Prompt conflicts with a stable rule here, say so explicitly rather
-than silently overriding either one.
-
-12. PRIVACY
-
-Never place any of the following in code, documentation, Knowledge, Skills, planning artifacts,
-or any other shared Lovable location: credentials, secrets, API keys, private owner information,
-private financial information, private vendor information, confidential negotiations, private
-transcripts, hidden reasoning, or any information implementers do not need.
+Mobile-first UI. RTL (Arabic) mode uses flex-1/flex-grow for horizontal layout balance.
 ```
+Type: UX rule (stable global). Initial classification: possible Project Knowledge rule. Internal references: none. Stage B verification required: No.
 
-## M. PROJECT KNOWLEDGE — COMPRESSED FALLBACK TEXT
-
+**MEM-002** — URI: `mem://index.md#Core` (line 2) · Title: Workspace-class dialog layout · Group: Core / UX
 ```
-DAYLI HORSE — PROJECT KNOWLEDGE (COMPACT)
-
-IDENTITY AND ISOLATION
-Dayli Horse / ديلي هورس — bilingual multi-tenant equestrian SaaS. Work here belongs to Dayli Horse
-only. Never import context from or export context to TADAMUN Group, Silah / صلة, Insights,
-Insight Compass, or any other project. Silah / صلة is not Dayli Horse; the internal Community
-module is unrelated to it.
-
-WORKFLOW
-Investigate before building. Before treating work as new, proposing a Roadmap/Phase/Track/
-Workstream, executing, or claiming Acceptance or Closure, read docs/roadmaps/README.md, the
-relevant roadmap.md, docs/workstreams/README.md, the relevant workstream.md, and
-docs/CONVENTIONS.md (§11). Investigation is not implementation; Execution is not Acceptance;
-Acceptance is not Closure. An Acceptance Re-Audit is mandatory before Closure. Separate facts,
-inferences, and gaps; write "NOT VERIFIED" instead of guessing and "Exact time not recorded"
-when a time is unproven. End substantial work with an exact stopping point and next permitted step.
-
-EVIDENCE PRECEDENCE
-Current code and live database > accepted repository governance > repository documentation >
-project memory > Skills > labelled inference. History never overrides current truth. On conflict,
-name both sources, apply precedence, mark the loser stale; never blend incompatible rules.
-
-GOVERNANCE
-IDs: RM-DH-###, WS-DH-YYYY-NNNN, compound "RM-DH-00X / Phase N", DEC-<Roadmap ID>-NNN. Roadmap
-packages hold four files: README.md, roadmap.md, decisions.md, changelog.md. Registries are indexes
-and never override packages. Lifecycle: Investigative Audit → Mini Audit (if needed) → Owner
-Alignment → Execution → QA → Acceptance Re-Audit → Closure; high-risk work skips nothing. Creating,
-reclassifying, or closing a Roadmap requires Platform Owner approval. Never copy mutable state into
-this Knowledge. Timestamps: absolute, Asia/Riyadh (UTC+03:00), Latin digits.
-
-MODES
-Plan/Chat are read-only for tracked files; `.lovable/plan.md` is the only platform-managed
-exception and is never implementation or Acceptance evidence. Agent/Build executes only the scope
-the current Prompt authorizes.
-
-ARCHITECTURE
-React 18 + Vite + TypeScript + Tailwind + shadcn, Supabase-backed cloud backend. Multi-tenant with
-RLS on all tenant data; some surfaces use personal (tenant_id IS NULL) vs organization scoping.
-Authorization is permission-based: hasPermission() in UI, has_permission() in the backend; never
-hardcode role names; roles live in dedicated tables. Payment status is derived from the ledger,
-never set manually; invoice and payment writes go through the dedicated RPCs. Records with history
-are archived or deactivated, never hard-deleted; lists default to active only.
-
-ACCOUNT TYPES
-10 existing enum-backed types: stable, clinic, lab, academy, pharmacy, transport, auction,
-horse_owner, trainer, doctor. 3 planned: farrier, rider, jockey. Target 13. Planned ≠ implemented,
-selectable, enabled, or launch-ready — verify against code and database. `farrier` also exists as an
-HR profession and must not be confused with the planned account type. Never blindly replace 10 with 13.
-
-PRODUCT RULES
-Mobile-first is mandatory. Bilingual EN/AR with true RTL quality (flexible growth, no trailing-edge
-clustering; stacked bilingual names). Latin digits 0–9 in both languages everywhere, dates dd-MM-yyyy.
-Large listings use the shared Table/List/Grid switcher with persisted per-page preference. Colors and
-shadows are semantic design tokens only. Complex dialogs: fixed header/footer, one scrollable body, no
-nested scroll. Inputs start neutral and cascade-reset dependents. Selectors offer in-context "+ Add New".
-
-DATA SAFETY
-Changes go through migrations; every new public table gets grants plus RLS and policies. Destructive
-work, backfills, and corrections need explicit authorization and a rollback path. Never write to
-production data for an investigation.
-
-SKILLS AND PROMPT
-Specialist Skills give deep review verdicts; they never override current code, database, governance,
-or the current Prompt. The current Prompt owns task scope, exclusions, allowlists, rollback, and tests;
-this Knowledge owns stable project-wide behaviour. Narrower Prompt scope wins; state conflicts openly.
-
-PRIVACY
-Never place credentials, secrets, API keys, private owner, financial, vendor, or negotiation
-information, private transcripts, or hidden reasoning in any shared Lovable artifact.
+Workspace-class dialogs: flex-col, fixed header/footer (shrink-0), single scrollable body max-h-[85vh]. No nested scroll containers.
 ```
+Type: UX rule. Initial classification: possible Project Knowledge rule (component-level detail may reduce to Skill-only). Stage B verification required: No.
 
-## N. Manual Installation Instructions
+**MEM-003** — URI: `mem://index.md#Core` (line 3) · Title: Neutral form defaults and cascade resets · Group: Core / UX
+```
+Form inputs default to neutral states (e.g. `_none`, `__neutral__`). Forced default selections are prohibited. Cascade resets on changes (e.g. Gender).
+```
+Type: UX rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-098 (reproduction form logic), MEM-096 (wizard selection standards). Stage B verification required: No.
 
-1. Open the Lovable project ALL In One - V2 and go to the project settings area that holds persistent project instructions / Knowledge. UI LABEL OR PATH MUST BE CONFIRMED BY THE OWNER — the field is not visible from the agent context.
-2. Copy the entire block in section L (full install-ready text) and paste it into the Project Knowledge field. Do not include the surrounding report headings.
-3. Save.
-4. If saving fails or the content is truncated because of a size limit, clear the field and paste the section M compressed fallback instead. Use the fallback only in that case.
-5. Start a fresh Lovable Chat in this project (new conversation, no prior context).
-6. Run the smoke tests in section O and keep the answers as installation evidence.
+**MEM-004** — URI: `mem://index.md#Core` (line 4) · Title: In-Context Creation Bridge · Group: Core / UX
+```
+Use In-Context Creation Bridge (+ Add New) for selectors to prevent dead ends. Auto-select and remount UI on save.
+```
+Type: UX rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-083 (creation bridge pattern), MEM-100 (quick create bridge). Stage B verification required: No.
 
-## O. Post-Installation Smoke Tests
+**MEM-005** — URI: `mem://index.md#Core` (line 5) · Title: Bilingual identity display · Group: Core / Localization
+```
+Stacked `<BilingualName />` for identity lists. English inputs use English placeholders in AR mode.
+```
+Type: language/terminology rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-029 (bilingual naming architecture), component `<BilingualName />`. Stage B verification required: No.
 
-For each test, the expected characteristics are listed first and the failure indicators second.
+**MEM-006** — URI: `mem://index.md#Core` (line 6) · Title: Archive/Deactivate over hard delete · Group: Core / Lifecycle
+```
+Hard delete forbidden if history exists; cascade Archive (`is_archived`) or Deactivate (`is_active`). Lists default to Active-only.
+```
+Type: technical architecture fact + stable global rule. Initial classification: possible Project Knowledge rule. Internal references: columns `is_archived`, `is_active`. Stage B verification required: No.
 
-1. "Is this request new work or already governed?" — Expect: the answer says it must first read `docs/roadmaps/README.md`, the relevant `roadmap.md`, `docs/workstreams/README.md`, and the relevant `workstream.md`. Fail: it starts planning implementation, or claims the work is new without reading.
-2. "Where is current Roadmap state authoritative?" — Expect: `roadmap.md` inside the Roadmap package, with the registry named as an index only. Fail: names the registry as authoritative, or invents a path.
-3. "Where is current Workstream state authoritative?" — Expect: `workstream.md` inside the Workstream package. Fail: names the registry or a chat summary.
-4. "If the build succeeds, is the work accepted?" — Expect: no; Execution is not Acceptance, and an Acceptance Re-Audit is required. Fail: says yes or treats a green build as acceptance.
-5. "Does Acceptance mean the Workstream is closed?" — Expect: no; Closure requires explicit owner approval. Fail: conflates the two.
-6. "A memory rule contradicts current code — which wins?" — Expect: current code and live database win; the memory rule is named as stale, both sources are named, nothing is blended. Fail: follows memory, or merges the two rules silently.
-7. "How many account types exist and how many are planned?" — Expect: 10 existing enum-backed types listed correctly, 3 planned (farrier, rider, jockey), target 13, with planned explicitly not implemented, and the HR farrier profession distinguished. Fail: says 13 exist, or conflates the HR profession.
-8. "Can you reuse a pattern from TADAMUN Group or Silah / صلة here?" — Expect: refusal, with isolation stated in both directions. Fail: any willingness to import or export context.
-9. "Where should the production database password be stored for the team?" — Expect: refusal; secrets never go into any shared artifact. Fail: proposes any file, doc, Knowledge, or Skill location.
-10. "How should a long horse listing page and its Arabic numbers be presented?" — Expect: shared Table / List / Grid switcher with persisted preference, mobile-first, RTL-correct, Latin digits 0–9, `dd-MM-yyyy` dates. Fail: proposes a bespoke toggle, Arabic-Indic digits, or a desktop-first layout.
+**MEM-007** — URI: `mem://index.md#Core` (line 7) · Title: Permission-based authorization · Group: Core / Security
+```
+Authorization: Use `hasPermission()` in UI; Backend uses `has_permission()` for 104 granular keys. No hardcoded roles like owner/manager.
+```
+Type: permission/RLS rule + current implementation claim (the count "104"). Initial classification: possible Project Knowledge rule; the numeric count requires verification. Internal references: `hasPermission()`, `has_permission()`. Stage B verification required: **Yes** — verify current permission-key count against the live permission registry before any count is restated in Project Knowledge.
 
-Smoke tests are verification of installation only. They are not Acceptance.
+**MEM-008** — URI: `mem://index.md#Core` (line 8) · Title: Dual RLS scoping model · Group: Core / Security
+```
+RLS Models: Dual scoping (personal `tenant_id IS NULL` vs organization `tenant_id IS NOT NULL`). Paid accounts act as organizations.
+```
+Type: permission/RLS rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-010, MEM-017. Stage B verification required: **Yes** — confirm the scoping model is current and whether it is community-scoped or platform-wide.
 
-## P. Owner Decisions Required
+**MEM-009** — URI: `mem://index.md#Core` (line 9) · Title: Financial status integrity · Group: Core / Finance
+```
+Financial Status Integrity: Never manually set 'paid'/'partial' status on invoices; they are strictly derived from the payment ledger.
+```
+Type: finance rule. Initial classification: possible Project Knowledge rule. Internal references: MEM-024, MEM-025. Stage B verification required: No.
 
-1. Arabic horse terminology: the codebase uses both `خيل` and `حصان` (evidence in section G). Decide the canonical general term and whether a terminology rule should be added to Project Knowledge in a later approved pass. The current draft deliberately contains no rule on this.
-2. Confirm whether the full text (section L) or the compressed fallback (section M) was installed, so future runs know which contract is in force.
+---
 
-No other decision is requested; every remaining rule is resolved by current code, database, or accepted repository governance.
+### Referenced memory files (MEM-010 – MEM-034)
 
-## Q. WORKSTREAM PERSISTENCE
+**MEM-010** — URI: `mem://security/community-workspace-rls-logic` · Title: Community Workspace RLS · Group: security
+```
+Community module RLS supports dual scoping:
+1. Personal Scope (tenant_id IS NULL): Existing behavior for public/followers/own posts.
+2. Organization Scope (tenant_id IS NOT NULL): Access is gated by tenant membership and permissions.
+'can_view_community' and 'can_manage_community' helper functions handle authorization. SELECT access requires 'community.view' permission. INSERT (posts) and moderation (UPDATE/DELETE) require 'community.manage'. Comments and likes automatically inherit the tenant_id of their parent post to prevent cross-tenant leakage.
+```
+Type: permission/RLS rule; module-specific mechanic. Initial classification: possible Skill-only rule (module mechanic); the dual-scoping principle overlaps MEM-008. Internal references: functions `can_view_community()`, `can_manage_community()`; permissions `community.view`, `community.manage`. Overlap: MEM-008. Stage B verification: No (Stage D may cite it as the source of MEM-008's scope).
+
+**MEM-011** — URI: `mem://features/finance/credit-limit-enforcement` · Title: Credit Limit Enforcement · Group: features/finance
+```
+The credit limit system tracks client utilization by comparing their outstanding balance against their credit_limit. Consumption is calculated as 'used = max(ledger_balance, 0)', meaning only positive "owes" (debt) consume the limit, while negative balances (credits) do not. During billing, a Credit Info Card displays the Limit, Current Outstanding (used), and Available Credit. Warnings or blocks are triggered at 80% and 100% utilization respectively. Overriding a block requires the 'clients.creditLimit.override' permission.
+```
+Type: finance rule; module-specific mechanic; business formula. Initial classification: possible Skill-only rule. Internal references: column `credit_limit`; permission `clients.creditLimit.override`. Stage B verification required: No.
+
+**MEM-012** — URI: `mem://features/finance/client-statement-system` · Title: Client Statement System · Group: features/finance
+```
+The Client Statement (كشف حساب) provides a unified cross-module financial history driven by ledger entries.
+1. Scoped View Model: Summary cards are derived from filtered ledger entries, while running balances are recomputed row-by-row from the visible exploded rows to ensure chronological consistency within the active horse/category filter.
+2. Card Labels:
+   - Scoped: 'إجمالي الفواتير ضمن النطاق المحدد' (Total Invoices), 'إجمالي المبلغ المسدد ضمن النطاق المحدد' (Total Paid), 'إجمالي المبلغ المستحق ضمن النطاق المحدد' (Total Outstanding).
+   - Global: 'إجمالي جميع الفواتير التي تخص العميل' (Total All Client Invoices).
+3. Value Sourcing: The 4th card sums all 'invoice' type ledger entries for the account, providing global context outside the active filter.
+4. Ordering: User-toggled chronological sort (Oldest-to-Newest default).
+5. Boarding Row Semantics: Rows use the 'Period End' date (accounting due date logic) and "From/To" (من/إلى) range wording.
+6. Multi-Domain Attribution: Prioritizes direct 'invoice_items' metadata (horse_id, domain, service_id).
+7. Tax Basis: Statement rows are unified on a post-tax basis to align with summary cards. For multi-segment boarding invoices, tax is distributed proportionally across segments based on the invoice snapshot.
+8. Stability: Loading guards (skeletons and disabled exports) prevent rendering stale or incomplete data during enrichment/filter transitions.
+9. Reconciliation: Discrepancies between the ledger debit and the sum of boarding segments (e.g. from non-boarding items on the same invoice) are injected as an 'Other charges' (رسوم أخرى) row to ensure the running balance matches summary cards.
+10. Multi-Horse Invoices: Summary cards prioritize ledger truth over proportional line-item allocation. If an invoice contains line items for multiple horses, the full post-tax ledger debit is included in the scoped summary totals if any of the horses associated with that invoice match the current filter. This ensures totals align with real ledger obligations even when row views are filtered.
+```
+Type: finance rule; module-specific mechanic; UX rule (labels). Initial classification: possible Skill-only rule. Internal references: table `invoice_items` (horse_id, domain, service_id); ledger entries. Stage B verification required: No.
+
+**MEM-013** — URI: `mem://architecture/party-horse-relationship-model` · Title: Party/Horse Relationships · Group: architecture
+```
+The platform uses a junction table 'party_horse_links' to manage many-to-many relationships between business entities (Parties/Clients) and horses across all segments (Stables, Labs, etc.). This model supports multiple relationship types such as 'owner', 'stable', 'trainer', 'payer', and 'lab_customer', allowing a single horse profile to be shared and accessed across different modules while maintaining granular permission scoping and segment-specific metadata.
+```
+Type: technical architecture fact; current implementation claim. Initial classification: requires Stage B verification (table existence and current use). Internal references: table `party_horse_links`. Stage B verification required: **Yes** — confirm `party_horse_links` exists and is current.
+
+**MEM-014** — URI: `mem://features/horse-unification-strategy` · Title: Horse Unification Strategy · Group: features
+```
+Horse records are managed through a dual-registry system: 'horses' (rich facility records with pedigree, lineages, and housing) and 'lab_horses' (lightweight records for external/walk-in lab intake). These records are unified via the 'linked_horse_id' column in the 'lab_horses' table.
+
+Cross-Tenant Unification:
+- When sharing is granted via connections, Lab records can bridge back to canonical facility 'horses' using the 'linked_horse_id'.
+- Deterministic matching based on microchip, passport, or UELN numbers is used to establish and verify canonical horse identities across different tenant boundaries.
+- This allows for a unified history (tests, results, treatments) for a single horse across the platform while respecting tenant data ownership.
+```
+Type: technical architecture fact. Initial classification: possible Skill-only rule; the dual-registry fact may qualify as Project Knowledge context. Internal references: tables `horses`, `lab_horses`; column `linked_horse_id` (corroborated by `invoice_items.lab_horse_id` FK to `lab_horses`). Stage B verification required: No.
+
+**MEM-015** — URI: `mem://architecture/platform-sharing-reference-pattern` · Title: Platform Sharing Reference Pattern · Group: architecture
+```
+The platform uses a 3-layer reference architecture for all cross-tenant data sharing:
+1. Connection: Establish the relationship (tenant-to-tenant or tenant-to-profile).
+2. Grant: Define the sharing scope (resource_type, access_level).
+3. RLS: Domain tables (lab_results, horses, vet_records, etc.) implement shared access policies using the 'can_access_shared_resource()' helper.
+This pattern ensures a single source of truth for relationships, prevents data duplication across tenants, and provides a scalable way to plug new modules (Lab, Stable, Clinic, Pharmacy) into the sharing ecosystem without breaking security boundaries.
+```
+Type: technical architecture fact; permission/RLS rule. Initial classification: possible Project Knowledge rule (cross-tenant sharing contract). Internal references: function `can_access_shared_resource()`. Stage B verification required: **Yes** — confirm the helper and 3-layer model are current.
+
+**MEM-016** — URI: `mem://architecture/notification-system-standard` · Title: Notification System Standard · Group: architecture
+```
+The notification system uses a metadata-driven architecture for expressive, source-aware alerts.
+1. Data Model: A 'metadata' JSONB column stores snapshots of context (e.g., 'actor_tenant_name', 'horse_name', 'entity_label', 'status') at creation time to ensure historical clarity and avoid RLS data loss.
+2. Backend Infrastructure: The internal notification helper includes a 10-second deduplication window to prevent identical alerts within a short interval and logs warnings for high-volume fan-outs exceeding 50 recipients.
+3. Rendering: Titles and bodies are rendered at display-time using i18n interpolation (e.g., 't("notifications.events.type.body", metadata)').
+4. i18n Key Normalization: To prevent lookup failures in the dot-notation resolver, notification event types are normalized by replacing dots with underscores (e.g., 'lab_request.status_changed' becomes 'lab_request_status_changed') before building the translation lookup keys.
+5. Localization: Status enums map to labels via 'tStatus()'. Relative time uses the active 'date-fns' locale.
+6. UI: The notification drawer is responsive: mobile (w-[95vw]), tablet (sm:w-[480px]), and desktop (lg:w-[520px]).
+7. Navigation: Event-specific routes (e.g., 'movement.*' -> '/dashboard/housing?tab=arrivalsAndDepartures') ensure deep-linking to the correct module surfaces. Routes must utilize the actual canonical tab keys defined in the destination components to avoid falling back to default tabs.
+8. Legacy Compatibility: The system maintains readability for older notifications lacking metadata by falling back to the stored database 'title' and 'body' strings if the i18n lookup fails or interpolation results in incomplete content.
+```
+Type: technical architecture fact; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `src/lib/notifications/*`, route `/dashboard/housing?tab=arrivalsAndDepartures`. Stage B verification required: No.
+
+**MEM-017** — URI: `mem://domain/horse-owner-tenant-isolation` · Title: Horse Owner Tenant Isolation · Group: domain
+```
+The 'Horse Owner' account is implemented as a paid industry tenant package, not as part of the personal/free user layer. This distinction ensures that ownership records, financial interactions, and pedigree data are managed within an organization workspace, separate from the user's personal community activity and bookings.
+```
+Type: technical architecture fact; account-model rule. Initial classification: possible Project Knowledge rule (supports the account-type model). Internal references: `tenant_type` value `horse_owner` (present in the live enum). Stage B verification required: No — corroborated by the live enum evidence.
+
+**MEM-018** — URI: `mem://architecture/shared-client-registry-and-identity` · Title: Shared Client Registry · Group: architecture
+```
+The platform utilizes a shared 'clients' table for all billing parties, but auto-registration mechanics differ by module to prevent unpopulated registries.
+1. Laboratory: Clients (via 'linked_tenant_id') and horses (via 'linked_horse_id') are automatically registered when a Lab operator opens the 'Create Sample' dialog for an incoming B2B request. This ensures they appear in the registry only at the start of a meaningful operational transaction.
+2. Stable: Client registration remains manual. Operators select from the shared registry during admission or intake, with 'intake_draft' status used for new horses until arrival is confirmed.
+3. Partnerships: B2B partnership or connection acceptance alone does NOT trigger client creation; registration is deferred until the first operational interaction (e.g., stay, service request, or sample intake).
+```
+Type: technical architecture fact; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: table `clients`; columns `linked_tenant_id`, `linked_horse_id`; status `intake_draft`. Overlap: MEM-022 (intake_draft). Stage B verification required: No.
+
+**MEM-019** — URI: `mem://architecture/finance/billing-linkage-pattern` · Title: Billing Linkage Pattern · Group: architecture/finance
+```
+The 'billing_links' table serves as the standard junction for associating domain-specific operational records (e.g., doctor consultations, future service bookings) with financial records (invoices). Each link record stores 'source_type', 'source_id', 'invoice_id', 'amount', and 'tenant_id'. This architectural pattern allows the finance module to track the revenue source and provides a standardized way for operational modules to trigger billing workflows and track linked financial status without direct coupling to the invoices table schema.
+```
+Type: technical architecture fact. Initial classification: possible Project Knowledge rule (operational-to-financial linkage principle), detail to Skill. Internal references: table `billing_links` (corroborated: FK `billing_links_invoice_id_fkey` in `docs/aml_1_b_1/stage_j5_1/preflight/02_invoices_schema.txt`). Stage B verification required: No.
+
+**MEM-020** — URI: `mem://architecture/stable/housing-and-facility-management` · Title: Housing & Facility Management · Group: architecture/stable
+```
+Stable housing operations are strictly separated between Physical Facilities and Commercial Stays (Admissions). The module utilizes a standardized 4-tab Information Architecture (IA): (1) Branches (الفروع) - the primary operational command center and location index. (2) Facilities (المرافق) - physical infrastructure and unit management. (3) Admissions (الإيواء) - commercial stay contracts and billing. (4) Arrivals & Departures (الوصول والمغادرة) - logistics and movements. Sidebar navigation sub-items are aligned to exactly mirror these four tabs, ensuring a consistent mental model across the platform. Admissions acts as the transaction layer that consumes the physical resources defined in the Facilities layer.
+```
+Type: module-specific mechanic; UX rule. Initial classification: possible Skill-only rule. Internal references: `src/pages/DashboardHousing.tsx`; navigation config. Stage B verification required: No.
+
+**MEM-021** — URI: `mem://architecture/stable/boarding-stay-and-care-lifecycle` · Title: Boarding Stay Lifecycle · Group: architecture/stable
+```
+The 'boarding_admissions' lifecycle (draft -> active -> checkout_pending -> checked_out) is integrated with the financial system.
+1. Invoicing: Staff manually trigger invoice generation from the stay detail, which creates an invoice starting in 'draft' status.
+2. Line Items: Invoices include 'boarding' entity type items with standardized descriptions: '{Horse} | {Branch} | {Date Range} | {Rate}'.
+3. Accounting: Financial impact (ledger posting) occurs only when the invoice is transitioned to 'approved' via a unified approval utility.
+4. Financial Gate: Checkout and physical dispatch are blocked for staff if an outstanding balance exists. The balance calculation uses a 'Financial Truth' model that considers both financially active invoices and unbilled accruals. Overriding a block requires a recorded manager override.
+5. Domain Components: The domain includes 'boarding_status_history' for lifecycle tracking and 'horse_care_notes' for recording specific care instructions or observations linked to an admission.
+6. Creation Integrity: New admissions follow a specific three-step commit sequence: (a) create draft admission, (b) execute the movement RPC, (c) update admission with the resulting movement ID and set status to 'active'. To prevent un-admitted placements or un-housed commercial records, the system implements programmatic rollback (deleting the draft admission) if the movement RPC or ID extraction fails.
+```
+Type: module-specific mechanic; finance rule. Initial classification: possible Skill-only rule. Internal references: tables `boarding_admissions`, `boarding_status_history`, `horse_care_notes`; movement RPC. Stage B verification required: No.
+
+**MEM-022** — URI: `mem://architecture/stable/horse-registry-and-onboarding-logic` · Title: Horse Registry Onboarding · Group: architecture/stable
+```
+The 'Manual Arrival' flow supports immediate operational intake by allowing lightweight horse registration (name, sex, intake notes) directly within the movement wizard.
+1. Transitional Status: New horses are initialized with an 'intake_draft' status and do not count toward 'Inside Stable' totals or occupy housing until the arrival movement is confirmed.
+2. Profile Completeness: These records are flagged as 'Incomplete'. The Horse Profile surfaces an 'Incomplete' badge and a checklist of missing critical data (birth date, microchip, passport) with a CTA to finish the record via the full registration wizard.
+3. Historical Onboarding: The system supports accurate legacy record entry by allowing custom 'admitted_at' and 'movement_at' timestamps, which override the default current-time behavior for admissions, movements, and housing occupancy.
+```
+Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: status `intake_draft`; `src/pages/HorseProfile.tsx`. Overlap: MEM-026, MEM-018. Stage B verification required: No.
+
+**MEM-023** — URI: `mem://features/stable/movement-and-logistics` · Title: Movement & Logistics · Group: features/stable
+```
+Horse movements are managed through a unified 'Arrivals & Departures' interface tracking inbound, outbound, and internal logistics. (1) Eligibility: Selection lists are filtered by movement type. (2) Source Branching: Arrivals support 'Existing Horse Lookup' and 'Manual External Arrival'. (3) Unified View: Sub-tabs for Arrivals, Departures, Incoming, Pending, Completed, and Cancelled. (4) Auto-resolution: Wizard auto-resolves 'From' location for OUT and TRANSFER movements. (5) Housing Clearance: Occupancy is released only upon 'dispatched' status. (6) Connected Movements: Confirming a connected incoming movement requires an explicit receiving branch selection; no silent fallback to the first branch is allowed. (7) Recipient Integration: Confirmation automatically creates an arrival movement and a boarding admission at the destination. (8) Lifecycle: Follows scheduled -> dispatched -> completed transition. (9) Destinations: Supports connected platform partners (filtered by 'stable' or 'clinic' types) and off-platform 'external_locations'.
+```
+Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: table `external_locations`; tenant types `stable`, `clinic` (both present in the live enum); `src/pages/DashboardMovement.tsx`. Stage B verification required: No.
+
+**MEM-024** — URI: `mem://finance/payment-status-integrity-rule` · Title: Payment Status Integrity · Group: finance
+```
+To maintain accounting integrity, the system forbids manual status updates to 'paid' or 'partial' via simple column toggles or dropdowns. These statuses are strictly derived from formal payment records processed through 'postLedgerForPayments'. This enforcement prevents 'Paid' invoices from existing without corresponding negative ledger entries, ensuring that the visual status always remains synchronized with the client's actual financial balance.
+```
+Type: finance rule. Initial classification: possible Project Knowledge rule. Internal references: `src/lib/finance/postLedgerForPayments.ts` (present in the repository). Overlap: MEM-009, MEM-025. Note: later memory entries and current code describe payment-session RPC posting (`post_payment_session`), so the named utility may be partially superseded. Stage B verification required: **Yes** — confirm the current authoritative payment-posting path before restating this rule.
+
+**MEM-025** — URI: `mem://finance/invoice-accounting-lifecycle` · Title: Invoice Accounting Lifecycle · Group: finance
+```
+Invoices follow a strict accounting lifecycle: 'draft' or 'reviewed' (financially invisible) -> 'approved' (accounting activation) -> 'shared' (external visibility) -> 'paid'/'overdue'/'cancelled'.
+1. Database Integrity: The 'invoices' table enforces this lifecycle via the 'invoices_status_check' constraint.
+2. Activation: Transitioning to 'approved' via the 'approveInvoice' utility triggers idempotent ledger posting and balance updates.
+3. Reversal and Adjustment: Statuses 'paid' or 'partial' are derived from payments. Cancellation of approved invoices requires a reversal ledger entry ('adjustment' type) to neutralize financial effect.
+4. Reconciliation Auditability: Automated reconciliation entries (e.g., from Phase 6 historical cleanup) are prefixed with 'Phase 6 Reconciliation:' in ledger descriptions to ensure transparency for data corrections.
+```
+Type: finance rule; current implementation claim; historical implementation claim (item 4). Initial classification: possible Skill-only rule with a Project Knowledge core (ledger activation on approval). Internal references: constraint `invoices_status_check` (corroborated in `docs/aml_1_b_1/stage_j5_1/preflight/02_invoices_schema.txt`); `src/lib/finance/approveInvoice.ts`. Stage B verification required: No.
+
+**MEM-026** — URI: `mem://architecture/horses/unified-profile-architecture` · Title: Unified Profile Architecture · Group: architecture/horses
+```
+The 'Unified Horse Profile' is implemented as a UI composition ('src/pages/HorseProfile.tsx') that aggregates data from multiple underlying tables. The hero section utilizes the canonical '<BilingualName />' component for language-aware identity display. Incompleteness (missing birth date, microchip, or passport) is surfaced via an 'Incomplete' badge and checklist CTA. This architecture enables a modular, multi-source record while respecting tenant-scoped data ownership.
+```
+Type: module-specific mechanic; UX rule. Initial classification: possible Skill-only rule. Internal references: `src/pages/HorseProfile.tsx`; `<BilingualName />`. Overlap: MEM-005, MEM-022. Stage B verification required: No.
+
+**MEM-027** — URI: `mem://architecture/finance/event-driven-invoicing-pattern` · Title: Event-Driven Invoicing Pattern · Group: architecture/finance
+```
+The platform implements a standardized 'Generate Invoice from Event' architectural pattern across multiple modules (Stable Boarding, Independent Doctor, Breeding). Operational detail views (e.g., AdmissionDetailSheet, ConsultationDetail, BreedingRecordDetailSheet) provide a manual action to trigger a dedicated invoicing dialog (e.g., CreateInvoiceFromBreedingEvent.tsx). This dialog creates a draft invoice and a 'billing_link' using a domain-specific 'source_type' (e.g., 'breeding_attempt', 'doctor_consultation'). This ensures billing remains opt-in and operator-controlled while maintaining a traceable link to the operational or clinical evidence.
+```
+Type: technical architecture fact. Initial classification: possible Project Knowledge rule (operations link to invoices, never duplicate them). Internal references: `billing_links`; component names listed above. Overlap: MEM-019. Stage B verification required: No.
+
+**MEM-028** — URI: `mem://security/client-tenant-isolation` · Title: Client Tenant Isolation · Group: security
+```
+Clients are strictly tenant-scoped entities. The 'clients' table uses RLS policies (`is_tenant_member(auth.uid(), tenant_id)`) to ensure that one tenant's clients are not visible or selectable by another. This isolation must be maintained even when operational records (like Breeding Contracts) reference clients, to prevent cross-tenant data contamination.
+```
+Type: permission/RLS rule. Initial classification: possible Project Knowledge rule. Internal references: function `is_tenant_member()` (corroborated in the invoices/invoice_items policy evidence). Stage B verification required: No.
+
+**MEM-029** — URI: `mem://localization/bilingual-naming-architecture` · Title: Bilingual Naming Architecture · Group: localization
+```
+The platform implements a unified bilingual naming strategy using the '<BilingualName />' component.
+1. Display: Identity surfaces like grids, tables, and list cards must use a stacked layout (primary bold top, secondary lighter in parentheses below). Inline rendering is restricted to compact contexts.
+2. Data Entry: Inputs for English-only fields must maintain English-language placeholders even when the UI is in Arabic mode to provide correct linguistic context.
+3. Label Symmetry: Identity labels for symmetric bilingual fields (e.g. in creation forms) must follow a parallel structure (e.g. 'Field Name (English)' and 'Field Name (Arabic)') rather than asymmetric variants to maintain semantic balance.
+```
+Type: language/terminology rule; UX rule. Initial classification: possible Project Knowledge rule. Internal references: `<BilingualName />`. Overlap: MEM-005. Note for Stage C: this entry states primary/secondary-in-parentheses display, which is directionally consistent with the owner's Correction 6 but does not by itself state the language-primacy rule per UI language. Stage B verification required: **Yes** — check current bilingual display implementation against Correction 6.
+
+**MEM-030** — URI: `mem://domain/stable/housing-facility-taxonomy` · Title: Housing Facility Taxonomy · Group: domain/stable
+```
+The platform enforces a strict 8-type facility taxonomy: Housing (barn, isolation), Open-area (paddock, pasture), Activity (arena, round_pen, wash_area), and Storage (storage). The 'Other / أخرى' type is explicitly removed from the system to ensure data classification integrity and drive specific type-aware behaviors in the UI and data model.
+```
+Type: module-specific mechanic; domain taxonomy. Initial classification: possible Skill-only rule. Internal references: facility type values listed. Stage B verification required: No.
+
+**MEM-031** — URI: `mem://localization/stable/account-aware-housing-terminology` · Title: Account-Aware Housing Terminology · Group: localization/stable
+```
+Housing terminology adapts to the tenant type: Stable accounts use 'Stall Block' (جناح) and 'Stall' (بوكس), while Clinic accounts use 'Ward' (عنبر) and 'Patient Room' (غرفة مريض). This account-awareness is applied consistently across creation wizards, headers, and individual unit labels.
+```
+Type: language/terminology rule; module-specific mechanic. Initial classification: possible Skill-only rule; the general principle (terminology adapts to account type) is a possible Project Knowledge rule. Internal references: tenant types `stable`, `clinic`. Stage B verification required: No.
+
+**MEM-032** — URI: `mem://architecture/stable/housing-type-aware-surfaces` · Title: Housing Type-Aware Surfaces · Group: architecture/stable
+```
+The Facilities tab serves as an inline operational surface utilizing type-aware content routing:
+1. Housing (Barn, Isolation): Renders a color-coded unit grid with occupant names and specific vacancy counts in the section header.
+2. Open-area (Paddock, Pasture): Displays advisory capacity ('X / ~Y' horses present), real-time horse rosters, and environmental attributes (area_size, shade, has_water) persisted in typed columns.
+3. Activity/Service (Arena, Round Pen, Wash Area): Spec-driven surface rendering physical attributes (dimensions, diameter, footing type, covered status, wash points) persisted via a JSONB metadata column.
+Creation and editing are managed through a 2-phase dynamic dialog that adapts field logic based on this 8-type taxonomy.
+```
+Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `OpenAreaContent`; facility columns listed. Overlap: MEM-030. Stage B verification required: No.
+
+**MEM-033** — URI: `mem://features/stable/housing-unit-and-numbering-setup` · Title: Housing Unit Numbering Setup · Group: features/stable
+```
+Room-based facility setup supports batch unit creation using counts, prefixes, and starting numbers (e.g., 101). It features a live preview grid with a layout toggle between 'single' and 'two-sided' (center-aisle) arrangements and Side A/B labels with a 'startSide' numbering control. Internal roles (storage, isolation_room) are assigned via popover pickers. Facilities can be extended post-creation using the same batch logic to preserve numbering and spatial coherence.
+```
+Type: module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: `RoomLayoutSetup`. Stage B verification required: No.
+
+**MEM-034** — URI: `mem://architecture/stable/housing-paddock-occupancy-model` · Title: Housing Paddock Occupancy Model · Group: architecture/stable
+```
+Paddock and pasture occupancy utilizes a separate architectural path from room-based housing units. While housing units (Barns, Isolation) use the 'housing_unit_occupants' table, open-area occupancy is derived directly from 'horses.current_area_id'. This dual model ensures that open-area turnout is tracked as a facility-level physical presence rather than a specific stall assignment, and is reflected in 'OpenAreaContent' via a real-time horse roster.
+```
+Type: technical architecture fact; module-specific mechanic. Initial classification: possible Skill-only rule. Internal references: table `housing_unit_occupants`; column `horses.current_area_id`; `OpenAreaContent`. Stage B verification required: No.
+
+---
+
+### BATCH A1 INTERIM STATUS (not the Stage A verdict)
+
+- Directly read in this output: 34 (9 Core rules + 25 memory files).
+- Cumulative directly read: 34.
+- Expected final: 103 (to be reconciled at the end of Stage A).
+- Unreadable so far: 0.
+- Duplicates/aliases so far: 0 (overlaps noted are content overlaps, not duplicate URIs).
+- Entries flagged for Stage B verification so far: MEM-007, MEM-008, MEM-013, MEM-015, MEM-024, MEM-029.
+- Interim initial category tallies for the 34 delivered items: possible Project Knowledge 14; possible Skill-only 18; repository governance 0; Current-Prompt-only 0; possible stale 0 (MEM-024 flagged as possibly partially superseded, pending Stage B); possible contradiction 0; private 0; not material 0; pending Stage B 6 (counted within the categories above).
+
+Full reconciliation (Sections A–E of the Stage A contract: count reconciliation equation, coverage proof, final category counts, gaps, and the Stage A Completeness Verdict) is deliberately deferred to the end of the final Stage A batch, as required by the batching rule.
+
+### WORKSTREAM PERSISTENCE
 
 No Workstream was created. No Workstream ID was assigned. No Workstream file was modified. No persistence occurred.
 
-## R. ROADMAP IMPACT
+### ROADMAP IMPACT
 
-RM-DH-003 remains Active. RM-DH-003 / Phase 2 remains CLOSED. WS-DH-2026-0002 remains CLOSED. No new Phase was created. No Track was created. No Workstream was created. No Roadmap or registry file was modified. This run drafted Project Knowledge only.
+RM-DH-003 remains Active. RM-DH-003 / Phase 2 remains CLOSED. WS-DH-2026-0002 remains CLOSED. No new Phase was created. No Phase was advanced. No Sub-phase was created. No Track was created. No Workstream was created. No Roadmap or registry file was modified. This staged re-audit does not itself approve governance classification.
 
-## S. NO-CHANGE ATTESTATION
-
-Zero intended changes were made to: Project Knowledge; Workspace Knowledge; Skills; Automatic Use; AGENTS.md; repository files; application code; database schema; database data; migrations; RLS; RPCs; Edge Functions; project settings; workspace settings; cross-project sharing; Roadmap files; Workstream files; decisions; changelogs; registries. Branch: `edit/edt-b53bf8d4-6ca5-4b15-aea7-afaff5bd8442`. HEAD before: `b3470947122def72cf67aa9f8218b9ee05bd70a5`. HEAD after: unchanged apart from any platform-generated planning commit disclosed in section T. Working tree before: clean. Working tree after: clean apart from the platform planning artifact. Staged paths: none. Unstaged paths: none. Untracked non-ignored paths: none. Only read operations and one read-only database query (`pg_type`/`pg_enum`) were issued.
-
-## T. Platform-Generated Planning Artifact Disclosure
-
-`.lovable/plan.md` existed before this run and changed during it because Plan Mode writes its output there. The change is platform-mandated, governed by `docs/CONVENTIONS.md` §11.10 and DEC-RM-DH-003-004, and is not implementation, not Acceptance evidence, and not proof that other paths were unchanged. No other `.lovable/` path exists or changed.
-
-## U. RUN METADATA AND EXACT STOPPING POINT
+### RUN METADATA AND EXACT STOPPING POINT
 
 1. Mode: Plan Mode / Chat Mode.
-2. Operation: read-only Project Knowledge investigation and complete drafting.
-3. Received Official Prompt ID: PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-02.
-4. Relationship: follows and narrows PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-AUDIT-01.
-5. Prompt Preparation Date: 01-08-2026 — August.
-6. Prompt Preparation Time: 02:10.
-7. Prompt Preparation Timezone: Asia/Riyadh — UTC+03:00.
-8. Lovable Run Start: 01-08-2026, 02:17:41 (+03:00) = 2026-07-31 23:17:41 UTC.
-9. Lovable Run End: Exact time not recorded.
-10. Final Report Generated: 01-08-2026 — Exact time not recorded.
-11. Timestamp evidence source: sandbox `date -u` at the first run command.
-12. Branch: `edit/edt-b53bf8d4-6ca5-4b15-aea7-afaff5bd8442`.
-13. HEAD before / after: `b3470947122def72cf67aa9f8218b9ee05bd70a5` / unchanged apart from platform planning commits.
-14. Working Tree before / after: clean / clean apart from the platform planning artifact.
-15. Repository paths inspected: `docs/CONVENTIONS.md`, `docs/roadmaps/README.md`, `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/` (README, decisions), `docs/workstreams/README.md`, `src/i18n/config.ts`, `src/i18n/locales/ar.ts`, `src/i18n/locales/en.ts`, `src/components/ui/ViewSwitcher.tsx`, `src/hooks/useViewPreference.ts`, `src/components/finance/InvoicePDFGenerator.tsx`, `src/components/finance/invoicePaginator.ts`, `src/components/finance/__tests__/`, `src/pages/SharedHorseReport.tsx`, `.workspace/skills/` listing, `.gitignore`.
-16. Database evidence inspected: one read-only `pg_type`/`pg_enum` query confirming the 10 `tenant_type` labels.
-17. Project-memory layer inspected: `mem://` index plus direct reads of `mem://ux/mobile-first-design-standard` and `mem://ux/rtl-layout-quality-standard`.
-18. Accessible materially distinct memory rules: 103 (9 Core rules + 94 referenced memory files).
-19. Inaccessible sources: private ChatGPT Master Register, ChatGPT Project Instructions, ChatGPT-only Documentation 01–13, private transcripts, Lovable Project Knowledge and Workspace Knowledge fields, Automatic Use and sharing settings.
-20. Project Knowledge changes: None.
-21. Workspace Knowledge changes: None.
-22. Skill changes: None.
-23. AGENTS.md changes: None.
-24. Repository changes: None, except the separately disclosed platform-generated planning artifact.
-25. Database changes: None.
-26. Settings changes: None.
-27. Roadmap or Workstream changes: None.
-28. Verdict: PROJECT KNOWLEDGE DRAFT COMPLETE — READY FOR OWNER REVIEW.
-29. Exact stopping point: a complete proposed Dayli Horse Project Knowledge text and compressed fallback have been delivered for owner and ChatGPT review. No Project Knowledge, Workspace Knowledge, Skill, AGENTS.md, repository, application, database, setting, Roadmap, or Workstream change has been intentionally performed.
-30. Next permitted step: the owner returns this complete output to ChatGPT for review and reissue of the final approved Project Knowledge text, then installs the approved text manually in Lovable and returns installation and smoke-test evidence.
+2. Operation: Staged read-only Project Memory completeness extraction (Stage A).
+3. Received Official Prompt ID: PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-REAUDIT-03.
+4. Current Stage: Stage A.
+5. Current Stage batch: BATCH A1.
+6. Prompt Preparation Date: 01-08-2026 — August.
+7. Prompt Preparation Time: 02:50.
+8. Prompt Preparation Timezone: Asia/Riyadh — UTC+03:00.
+9. Lovable Run Start Date and Time: 01-08-2026, 02:58:00 (+03:00) = 2026-07-31 23:58:00 UTC (approximate to the minute; evidence: sandbox `date -u` returned 2026-07-31 23:59:29 UTC at the first repository-state command of this run).
+10. Lovable Run End Date and Time: Exact time not recorded.
+11. Final Report Generated Date and Time: 01-08-2026 — exact time not recorded.
+12. Timezone and evidence source: Asia/Riyadh (UTC+03:00) presentation of UTC values returned by sandbox `date -u`; Latin digits used throughout.
+13. Branch: `edit/edt-b53bf8d4-6ca5-4b15-aea7-afaff5bd8442`.
+14. HEAD before: `aec75cad014932dcb1af0298eb3d1efb2afb640a`. HEAD after: unchanged apart from any platform-generated planning commit disclosed in item 33.
+15. Working Tree before: clean (`git status --porcelain` returned no output). Working Tree after: clean apart from the platform planning artifact.
+16. Staged paths before: none. After: none.
+17. Unstaged paths before: none. After: none.
+18. Untracked non-ignored paths before: none. After: none.
+19. Memory URIs directly opened in this output: `mem://index.md` (Core block, MEM-001 – MEM-009), `mem://security/community-workspace-rls-logic`, `mem://features/finance/credit-limit-enforcement`, `mem://features/finance/client-statement-system`, `mem://architecture/party-horse-relationship-model`, `mem://features/horse-unification-strategy`, `mem://architecture/platform-sharing-reference-pattern`, `mem://architecture/notification-system-standard`, `mem://domain/horse-owner-tenant-isolation`, `mem://architecture/shared-client-registry-and-identity`, `mem://architecture/finance/billing-linkage-pattern`, `mem://architecture/stable/housing-and-facility-management`, `mem://architecture/stable/boarding-stay-and-care-lifecycle`, `mem://architecture/stable/horse-registry-and-onboarding-logic`, `mem://features/stable/movement-and-logistics`, `mem://finance/payment-status-integrity-rule`, `mem://finance/invoice-accounting-lifecycle`, `mem://architecture/horses/unified-profile-architecture`, `mem://architecture/finance/event-driven-invoicing-pattern`, `mem://security/client-tenant-isolation`, `mem://localization/bilingual-naming-architecture`, `mem://domain/stable/housing-facility-taxonomy`, `mem://localization/stable/account-aware-housing-terminology`, `mem://architecture/stable/housing-type-aware-surfaces`, `mem://features/stable/housing-unit-and-numbering-setup`, `mem://architecture/stable/housing-paddock-occupancy-model`.
+20. Number directly read in this output: 34 materially distinct entries (9 Core rules + 25 memory files).
+21. Cumulative number directly read: 34.
+22. Expected final number: 103.
+23. Unreadable number: 0.
+24. Duplicate or alias count: 0.
+25. Repository changes: None, except separately disclosed platform-generated behaviour.
+26. Database changes: None. No database query was issued in this output.
+27. Project Memory changes: None.
+28. Project Knowledge changes: None.
+29. Workspace Knowledge changes: None.
+30. Skill changes: None.
+31. Settings changes: None.
+32. Roadmap or Workstream changes: None.
+33. Platform-generated `.lovable/plan.md` activity: this report is written to `.lovable/plan.md` by the platform's Plan Mode mechanism. Governed by `docs/CONVENTIONS.md` §11.10 and DEC-RM-DH-003-004. It is not implementation, not Acceptance evidence, and not proof that other paths were unchanged. No other `.lovable/` path exists or changed.
+34. Current Stage batch status: STAGE A — BATCH A1 COMPLETE. Stage A remains incomplete. No Stage A Completeness Verdict is issued yet.
+35. Exact stopping point: Stage A Batch A1 completed (MEM-001 – MEM-034); Stage A remains incomplete with 69 entries outstanding beginning at `mem://architecture/stable/vet-medical-records-system`; Stage B not started; no Project Knowledge text rebuilt or installed; no repository, database, Project Memory, Knowledge, Skill, settings, Roadmap, or Workstream change occurred.
+36. Exact next permitted owner command: `CONTINUE STAGE A — NEXT BATCH`.
