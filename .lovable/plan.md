@@ -1,65 +1,66 @@
-# STAGE A — FINAL ID-LINEAGE AUDIT, CROSS-REFERENCE CORRECTION, AND COMPLETE RECONCILIATION REISSUE
+# STAGE A — MEM-104 ASSIGNMENT, EXTRACTION, AND FINAL 104-OBJECT RECONCILIATION
 
 Official Prompt ID: PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-REAUDIT-03 (same prompt, continuation)
-Mode: Plan Mode / Chat Mode — read-only. Stage B NOT started. No verification of Memory claims performed.
+Mode: Plan Mode / Chat Mode — read-only. Stage B NOT started. No Memory claim was verified against code or database.
 
-## 1. ID-LINEAGE INVESTIGATION — EVIDENCE AND FINDING
+## 1. OWNER DECISION RECORDED — OFFICIAL MEM-104 ASSIGNMENT
 
-Evidence read this run:
-- Current `mem://index.md` in full: 109 lines. `## Core` block = lines 4–12 → **9 Core bullets** (bullet 9 = "Financial Status Integrity: Never manually set 'paid'/'partial' status on invoices…"). `## Memories` block = lines 15–109 → **95 indexed memory rows**.
-- Batch A1 report (`.lovable/plan.md` @ commit `de4a40c8`, 2026-08-01 00:01:59 +0000): line 9 "MEM-001 through MEM-034 (9 Core rules + the first 25 referenced memory files)"; line 24 "### Core rules (MEM-001 – MEM-009)"; line 74 "**MEM-009** — URI: `mem://index.md#Core` (line 9) · Title: Financial status integrity"; line 82 "### Referenced memory files (MEM-010 – MEM-034)"; line 84 "**MEM-010** — `mem://security/community-workspace-rls-logic`".
-- Batch A2 report (@ `51433abf`): MEM-035 = `mem://architecture/stable/vet-medical-records-system` … MEM-059 = `mem://security/granular-backend-enforcement` (25 IDs, full URI list extracted).
-- Batch A3 report (@ `10fb023f`): line 11 "MEM-060 through MEM-084 (25 index rows 51–75)"; MEM-060 = `mem://security/roles/manager-role-baseline`; MEM-084 = `mem://architecture/finance/doctor-billing-mismatch`.
-- Batch A4 report (@ `dc924110`): MEM-085 = `mem://breeding/domain-architecture-standard` … MEM-103 = `mem://features/horses/quick-create-minimal-mode`.
+- Official Audit ID **MEM-104** is permanently assigned to `mem://architecture/invitations/unified-invitation-entry` ("Unified Invitation Entry"), current index row 48.
+- Reason for late assignment: the row was omitted during Batch A2 and therefore never received an Official Audit ID.
+- The temporary label `MEM-TEMP-A5-001` is retired and replaced by MEM-104 in all Stage A reporting.
+- MEM-001 … MEM-103 are unchanged: no renumbering, shifting, replacement, merging, or reinterpretation.
+- Permanent Official Audit sequence: **MEM-001 … MEM-104**.
 
-Findings, with evidence:
+## 2. AUTHORITATIVE OBJECT MODEL
 
-1. **Did the index change between A1 and A4?** No evidence of change. The index is not repository-resident (project root contains no `mem/` or `.memory/` directory; `.lovable/` holds only `plan.md`), so no diff is available; however every URI cited in A1–A3 still resolves to the same index row order in the current index, and the index header still reads "Updated: 15w ago". Conclusion: no observed change; not provable by diff.
+Core rules 9 · indexed referenced memory rows 95 · total Project Memory objects **104** · permanent Official Audit IDs MEM-001 … MEM-104 · unassigned index rows **0** · temporary Audit IDs **0**. The earlier 103-object state is superseded.
 
-2. **Did Batch A1 miscount the Core block?** No. A1's 9 Core rules match the current index Core block exactly (9 bullets, lines 4–12).
+## 3. MEM-104 — COMPLETE EXTRACTION
 
-3. **Did Batch A4 miscount the Core block?** **Yes — this is the defect.** A4 asserted "MEM-001–008 = 8 Core bullets" and folded Financial Status Integrity into MEM-008. That assertion is wrong and is hereby withdrawn. The authoritative Core count is 9 (MEM-001 … MEM-009).
+1. Official Audit ID: **MEM-104**
+2. Current index position: **Row 48** (`## Memories` block, `mem://index.md` line 62)
+3. Exact URI: `mem://architecture/invitations/unified-invitation-entry`
+4. Exact title: **Unified Invitation Entry**
+5. Memory group / category: `architecture/invitations`
+6. Complete accessible content (verbatim, single-line body; no frontmatter was rendered by the reader):
 
-4. **Is Financial Status Integrity a distinct ninth Core rule?** Yes — index line 12, delivered as MEM-009 in A1.
+```
+The platform utilizes a unified UI entry point for invitations, allowing users to choose between 'Invite a Person' (for members/staff) and 'Add a Partner' (for organizations). This unifies the previously separate 'invitations' and 'connections' flows into a single mental model for relationship initiation, while maintaining their distinct backend architectures and post-acceptance setup paths.
+```
 
-5. **Was any referenced memory row shifted?** Yes — a **one-row omission**, not a renumbering. Offset from index row to Official Audit ID is **+9** for index rows 1–47 (MEM-010 … MEM-056) and **+8** for index rows 49–95 (MEM-057 … MEM-103). The change of offset is caused by **index row 48 — `mem://architecture/invitations/unified-invitation-entry` ("Unified Invitation Entry") — never receiving an Official Audit ID in Batch A2**. A2's URI list jumps from `…/unified-partner-management` (row 47, MEM-056) to `mem://security/workspace-authorization-and-guards` (row 49, MEM-057).
+7. Read status: **directly read** (first attempt, exact URI; no variant needed).
+8. Visible provenance metadata: none rendered (no `name`/`description`/`type` frontmatter surfaced). Index description text (index text only, not memory content): "Unified 'Invite Person' and 'Add Partner' action within a single interface".
+9. Visible timestamp / last-updated evidence: none in the entry. The only timestamp evidence available is the index header "Updated: 15w ago".
+10. Content type(s): UX rule; technical architecture fact (explicit statement that the two backends remain distinct).
+11. Initial non-final primary classification: **possible Skill-only rule** — it is a surface-level entry-point mechanic for one interface; the durable part ("unified entry point must not merge the two backend architectures or their post-acceptance setup paths") is a possible Project Knowledge candidate for Stage C, recorded but not counted as primary.
+12. Internal references: UI concepts "Invite a Person", "Add a Partner"; flow families `invitations` and `connections`. No table, function, file path, or MEM number is cited in the body.
+13. Duplicate or overlap IDs: MEM-050, MEM-051, MEM-053, MEM-055, MEM-056, MEM-052. No duplicate or alias.
+14. Contradiction IDs: **none**. The entry explicitly preserves distinct backends, so it does not conflict with MEM-051 (invitation scoping) or MEM-056 (partner management consolidation).
+15. Known-debt qualification: **No**.
+16. Owner-correction relevance: **No**.
+17. Stage B verification required: **No**. (The claim is a UI-composition statement with no numeric, universality, security, or compliance assertion.)
+18. Exact Stage B verification target: not applicable.
+19. Relationship to existing invitation and identity memories:
+    - **MEM-050 — Unified People Model**: complementary. MEM-050 unifies *people records* (`tenant_members` ↔ `hr_employees`); MEM-104 unifies the *initiation action*. Overlap in the word "unified" only; no conflict.
+    - **MEM-051 — Invitation Scoping Standard**: complementary and sequential. MEM-104 governs entry; MEM-051 governs what is asked at invite time (minimal identifiers, deferred setup). MEM-104's "post-acceptance setup paths" phrase corroborates MEM-051.
+    - **MEM-055 — Identity Verification Rules**: complementary, downstream. MEM-104 says nothing about acceptance verification; MEM-055's `finalize_invitation_acceptance` email/phone verification remains the authority. No conflict.
+    - **MEM-053 — Team & Partners Hub**: complementary, same surface. MEM-053 describes the merged hub and context panels; MEM-104 describes the single action within it. Consolidation candidate for Stage C, not a contradiction.
+    - **MEM-056 — Unified Partner Management**: complementary. MEM-056 consolidates partner *configuration* post-relationship; MEM-104 consolidates relationship *initiation*.
 
-6. **Were IDs reassigned between batches?** No. Every Official Audit ID delivered in A1, A2, A3 and A4 maps to exactly one URI, and no URI holds two IDs. The A4 *narrative* about the Core block was wrong; the A4 *ID assignments* (MEM-085–103) are correct and are preserved.
+Bounded recovery rule (§4 of the prompt): not triggered — MEM-104 was directly readable at its exact URI.
 
-Consequence for totals: 9 Core + 95 index rows = **104 memory objects**, but only **103 Official Audit IDs** have been issued. The 103-ID expectation stated in A1 was based on an undercount of the index rows (94 assumed, 95 actual) that coincidentally cancelled against the omitted row 48. The reconciliation therefore closes at 103 issued IDs **plus one unassigned index row**, reported separately below without renumbering.
+## 4. CORRECTED ID-LINEAGE REGISTER
 
-## 2. OFFICIAL AUDIT-ID STABILITY — LINEAGE / ALIAS MAP
-
-No renumbering implemented. All previously delivered IDs preserved.
-
-| Official Audit ID | Current index position | Exact URI | Exact title | Prior batch ID | Reconciled ID recommendation | Reason |
-| --- | --- | --- | --- | --- | --- | --- |
-| MEM-001 … MEM-009 | Core bullets 1–9 (`mem://index.md` lines 4–12) | `mem://index.md#Core` | 9 Core rules (MEM-009 = Financial Status Integrity) | A1 | **Keep as-is (9 Core rules)** | A1 is correct; A4's 8-bullet statement is withdrawn |
-| MEM-008 | Core bullet 8 | `mem://index.md#Core` | Dual RLS scoping model | A1 | Keep; **do not merge MEM-009 into MEM-008** | A4 merge was an error, not an owner-approved remap |
-| MEM-010 … MEM-056 | index rows 1–47 | as registered in §4 | as registered in §4 | A1 / A2 | Keep (offset +9) | stable |
-| — (unassigned) | index row 48 | `mem://architecture/invitations/unified-invitation-entry` | Unified Invitation Entry | none | **Temporary ID `MEM-TEMP-A5-001`; owner approval required before any permanent ID** | omitted in A2; assigning a permanent ID would renumber MEM-057+ |
-| MEM-057 … MEM-103 | index rows 49–95 | as registered in §4 | as registered in §4 | A2 / A3 / A4 | Keep (offset +8) | stable; renumbering would break owner-reviewed IDs |
-
-## 3. CROSS-REFERENCE INTEGRITY CORRECTION TABLE
-
-| Source MEM ID (report) | Incorrect referenced ID | Referenced title as claimed | Actual ID and title | Cause | Corrected reference |
+| Official Audit ID | Current index position | Exact URI / source | Exact title | Source batch or late assignment | Lineage note |
 | --- | --- | --- | --- | --- | --- |
-| A4 §2 MEM-086 | MEM-013 | "Horse Unification / lab_horses" | MEM-014 — Horse Unification Strategy (MEM-013 = Party/Horse Relationships) | off-by-one within A1 range | MEM-014 |
-| A4 §8 overlap "Laboratory family" | MEM-013 | Horse unification | MEM-014 — Horse Unification Strategy | same | MEM-014 |
-| A4 §2 MEM-100 | MEM-081 | "creation bridge pattern" | MEM-083 — Creation Bridge Pattern (MEM-081 = Services & Packages Truthfulness) | title mismatch / batch-numbering mismatch | MEM-083 |
-| A4 §8 overlap "Creation-bridge family" | MEM-081 | Creation bridge | MEM-083 — Creation Bridge Pattern | same | MEM-083 |
-| A4 §5 register line | MEM-048 | "unified commercial model" | MEM-038 — Unified Commercial Model (MEM-048 = Consultation & Lab Grounding) | title mismatch | MEM-038 for the catalog claim; MEM-048 remains correct for the Doctor-billing contradiction pairing recorded in A2/A3 |
-| A4 §5 register line | MEM-056 | "identity verification" | MEM-055 — Identity Verification Rules (MEM-056 = Unified Partner Management) | off-by-one | MEM-055 |
-| A4 §8 overlap "Localization family" | MEM-030 | bilingual naming | MEM-029 — Bilingual Naming Architecture (MEM-030 = Housing Facility Taxonomy) | off-by-one | MEM-029 |
-| A4 §5 Core register | MEM-007/MEM-008 collapse | "Financial Status Integrity carried within 008's family" | MEM-009 — Financial Status Integrity is a distinct Core rule | Core miscount | MEM-009 restored |
-| A4 §6 counts | "Possible repository-governance rule — 1" | implied a MEM ID | no MEM ID; the item was `.lovable/plan.md` / DEC-RM-DH-003-004 | category misuse | category removed (count 0) |
-| A4 §6 counts | contradiction "9 … → 10" | two conflicting figures | single figure, see §6 | arithmetic inconsistency | 11 (exact list in §6) |
+| MEM-001 … MEM-009 | Core bullets 1–9 (`mem://index.md` lines 4–12) | `mem://index.md#Core` | 9 Core rules; MEM-009 = Financial Status Integrity | A1 | Core count is 9; the A4 "8 bullets" statement and the MEM-008/MEM-009 merge remain withdrawn |
+| MEM-010 … MEM-056 | index rows 1–47 | see §6 | see §6 | A1 (010–034), A2 (035–056) | offset +9 from index row |
+| **MEM-104** | **index row 48** | `mem://architecture/invitations/unified-invitation-entry` | Unified Invitation Entry | **late assignment (owner-approved, this continuation)** | Assigned **after** MEM-103 solely to preserve the stability of all previously owner-reviewed IDs. This is **not** natural index-order numbering: the ID number does not follow the index position |
+| MEM-057 … MEM-103 | index rows 49–95 | see §6 | see §6 | A2 (057–059), A3 (060–084), A4 (085–103) | offset +8 from index row, caused by the A2 omission of row 48; offsets are frozen, not repaired by renumbering |
 
-References verified correct (no defect): MEM-085→MEM-019 (Billing Linkage Pattern) and MEM-039 (Provider Cost Integration); MEM-086→MEM-099; MEM-089→MEM-067, MEM-062; MEM-093→MEM-057, MEM-072, MEM-096; MEM-098→MEM-003; MEM-100→MEM-004; MEM-091/092/094 intra-family references. All A1–A3 internal references were re-checked against the URI maps extracted from commits `de4a40c8`, `51433abf`, `10fb023f`; no further ID/title mismatches were found.
+## 5. COMPLETE COVERAGE REGISTER — 104 ROWS
 
-## 4. COMPLETE COVERAGE REGISTER — 103 ROWS
-
-Legend — Read: DR = directly read, INA = referenced but inaccessible. Class (primary, mutually exclusive): PK = possible Project Knowledge, SK = possible Skill-only, SBP = requires Stage B verification as primary classification, UNC = unclassifiable (inaccessible). Flags: SB = Stage B, CD = contradiction, KD = known debt, SE = scope exception, DUP = duplicate/alias, INAF = inaccessible, OC = owner correction. XRef = cross-reference integrity status (OK / CORRECTED per §3).
+Legend — Read: DR = directly read, INA = referenced but inaccessible. Class (mutually exclusive primary): PK = possible Project Knowledge, SK = possible Skill-only, SBP = Stage B verification as primary classification, UNC = unclassifiable (inaccessible). Flags: SB Stage B · CD contradiction · KD known implementation/architecture debt · SE scope exception · DUP duplicate/alias · INAF inaccessible · OC owner correction. XRef = cross-reference integrity status.
 
 | ID | Row | URI / Core source | Title | Read | Class | SB | CD | KD | SE | DUP | INAF | OC | Batch | XRef |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -71,7 +72,7 @@ Legend — Read: DR = directly read, INA = referenced but inaccessible. Class (p
 | MEM-006 | Core 6 | `mem://index.md#Core` | Archive/Deactivate over hard delete | DR | PK | No | No | No | No | No | No | No | A1 | OK |
 | MEM-007 | Core 7 | `mem://index.md#Core` | Permission-based authorization (104 keys) | DR | PK | Yes | Yes | No | No | No | No | No | A1 | OK |
 | MEM-008 | Core 8 | `mem://index.md#Core` | Dual RLS scoping model | DR | PK | Yes | No | No | No | No | No | No | A1 | CORRECTED (A4 merge withdrawn) |
-| MEM-009 | Core 9 | `mem://index.md#Core` | Financial status integrity | DR | PK | No | No | No | No | No | No | No | A1 | CORRECTED (restored) |
+| MEM-009 | Core 9 | `mem://index.md#Core` | Financial status integrity | DR | PK | No | No | No | No | No | No | No | A1 | CORRECTED (restored as distinct Core rule) |
 | MEM-010 | 1 | `mem://security/community-workspace-rls-logic` | Community Workspace RLS | DR | SK | No | No | No | No | No | No | No | A1 | OK |
 | MEM-011 | 2 | `mem://features/finance/credit-limit-enforcement` | Credit Limit Enforcement | DR | SK | No | No | No | No | No | No | No | A1 | OK |
 | MEM-012 | 3 | `mem://features/finance/client-statement-system` | Client Statement System | DR | SK | No | No | No | No | No | No | No | A1 | OK |
@@ -119,11 +120,12 @@ Legend — Read: DR = directly read, INA = referenced but inaccessible. Class (p
 | MEM-054 | 45 | `mem://architecture/connections/operational-partner-scoping` | Operational Partner Scoping | DR | PK | Yes | Yes | Yes | No | No | No | No | A2 | OK |
 | MEM-055 | 46 | `mem://security/invitations/identity-verification-rules` | Identity Verification Rules | DR | PK | No | No | No | No | No | No | No | A2 | CORRECTED (A4 cited as MEM-056) |
 | MEM-056 | 47 | `mem://architecture/connections/unified-partner-management` | Unified Partner Management | DR | SK | Yes | Yes | Yes | No | No | No | No | A2 | OK |
+| **MEM-104** | **48** | `mem://architecture/invitations/unified-invitation-entry` | Unified Invitation Entry | DR | SK | No | No | No | No | No | No | No | **late assignment** | OK (no MEM references in body; no defect) |
 | MEM-057 | 49 | `mem://security/workspace-authorization-and-guards` | Workspace Authorization & Guards | DR | PK | Yes | Yes | No | No | No | No | Yes | A2 | OK |
 | MEM-058 | 50 | `mem://security/permission-system-vocabulary` | Permission System Vocabulary | DR | PK | Yes | Yes | No | No | No | No | No | A2 | OK |
 | MEM-059 | 51 | `mem://security/granular-backend-enforcement` | Granular Backend Enforcement | DR | PK | Yes | No | No | Yes | No | No | No | A2 | OK |
 | MEM-060 | 52 | `mem://security/roles/manager-role-baseline` | Manager Role Baseline | DR | PK | Yes | Yes | No | No | No | No | No | A3 | OK |
-| MEM-061 | 53 | `mem://features/stable/internal-cost-management` | Internal Cost Management | DR | SK | Yes | No | Yes | No | No | No | Yes | A3 | OK |
+| MEM-061 | 53 | `mem://features/stable/internal-cost-management` | Internal Cost Management | DR | SK | Yes | No | No | No | No | No | Yes | A3 | OK (defect register B, not contradiction) |
 | MEM-062 | 54 | `mem://architecture/stable/housing-lifecycle-model` | Housing Lifecycle Model | DR | PK | Yes | No | No | No | No | No | No | A3 | OK |
 | MEM-063 | 55 | `mem://features/stable/housing-visibility-and-filtering` | Housing Visibility & Filtering | DR | SK | No | No | No | No | No | No | No | A3 | OK |
 | MEM-064 | 56 | `mem://features/stable/housing-unit-integrity-and-refresh` | Housing Unit Integrity & Refresh | DR | SK | No | No | No | No | No | No | No | A3 | OK |
@@ -141,197 +143,221 @@ Legend — Read: DR = directly read, INA = referenced but inaccessible. Class (p
 | MEM-076 | 68 | `mem://architecture/stable/service-package-model` | Service Package Model | DR | PK | No | No | No | No | No | No | No | A3 | OK |
 | MEM-077 | 69 | `mem://architecture/stable/service-package-organization` | Service Package Organization | DR | PK | Yes | No | No | No | No | No | No | A3 | OK |
 | MEM-078 | 70 | `mem://domain/stable/service-taxonomy` | Service Taxonomy | DR | PK | No | No | No | No | No | No | No | A3 | OK |
-| MEM-079 | 71 | `mem://domain/stable/package-billing-cycles` | Package Billing Cycles | INA | UNC | Yes | No | Yes | No | No | Yes | No | A3 | OK |
+| MEM-079 | 71 | `mem://domain/stable/package-billing-cycles` | Package Billing Cycles | INA | UNC | Yes | No | No | No | No | Yes | No | A3 | OK |
 | MEM-080 | 72 | `mem://features/finance/invoice-package-consumption` | Invoice Package Consumption | DR | SK | No | No | No | No | No | No | No | A3 | OK |
 | MEM-081 | 73 | `mem://ux/stable/services-packages-truthfulness-standard` | Services & Packages Truthfulness | DR | PK | No | No | No | No | No | No | No | A3 | CORRECTED (A4 cited it as Creation Bridge) |
 | MEM-082 | 74 | `mem://domain/stable/package-types` | Package Types | DR | PK | No | No | No | No | No | No | No | A3 | OK |
-| MEM-083 | 75 | `mem://ux/stable/creation-bridge-pattern` | Creation Bridge Pattern | DR | PK | No | No | No | No | No | No | No | A3 | CORRECTED (restored as the creation-bridge reference) |
+| MEM-083 | 75 | `mem://ux/stable/creation-bridge-pattern` | Creation Bridge Pattern | DR | PK | No | No | No | No | No | No | No | A3 | CORRECTED (restored as creation-bridge reference) |
 | MEM-084 | 76 | `mem://architecture/finance/doctor-billing-mismatch` | Doctor Billing Mismatch | INA | UNC | Yes | Yes | Yes | No | No | Yes | No | A3 | OK |
 | MEM-085 | 77 | `mem://breeding/domain-architecture-standard` | Breeding Domain Architecture | DR | PK | Yes | No | No | No | No | No | No | A4 | OK |
 | MEM-086 | 78 | `mem://laboratory/domain-architecture-standard` | Laboratory Domain Architecture | DR | PK | Yes | No | No | No | No | No | No | A4 | CORRECTED (ref MEM-013 → MEM-014) |
 | MEM-087 | 79 | `mem://laboratory/submission-architecture` | Lab Submission Parent-Child Architecture | DR | PK | Yes | No | No | No | No | No | No | A4 | OK |
-| MEM-088 | 80 | `mem://features/stable/room-function-reclassification` | Room Function Reclassification | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added per §7 review flag) |
+| MEM-088 | 80 | `mem://features/stable/room-function-reclassification` | Room Function Reclassification | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added by A4 review) |
 | MEM-089 | 81 | `mem://ux/stable/room-detail-panel-standard` | Room Detail Panel Standard | DR | PK | No | No | No | No | No | No | No | A4 | OK |
-| MEM-090 | 82 | `mem://features/stable/room-event-history-strategy` | Room Event History Strategy | INA | UNC | Yes | No | Yes | No | No | Yes | No | A4 | OK |
+| MEM-090 | 82 | `mem://features/stable/room-event-history-strategy` | Room Event History Strategy | INA | UNC | Yes | No | No | No | No | Yes | No | A4 | OK |
 | MEM-091 | 83 | `mem://domain/horses/classification-model` | Horse Classification Model | DR | PK | No | No | No | No | No | No | No | A4 | OK |
 | MEM-092 | 84 | `mem://domain/horses/breeding-eligibility-rules` | Breeding Eligibility Rules | DR | PK | No | No | No | No | No | No | No | A4 | OK |
 | MEM-093 | 85 | `mem://security/horses/classification-governance` | Horse Classification Governance | DR | PK | Yes | Yes | No | No | No | No | No | A4 | OK |
-| MEM-094 | 86 | `mem://ux/horses/registration-classification-step` | Registration Classification Step | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added per §7 pony question) |
-| MEM-095 | 87 | `mem://domain/horses/pony-classification-logic` | Pony Classification Logic | INA | UNC | Yes | No | Yes | No | No | Yes | No | A4 | OK |
+| MEM-094 | 86 | `mem://ux/horses/registration-classification-step` | Registration Classification Step | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added by A4 review) |
+| MEM-095 | 87 | `mem://domain/horses/pony-classification-logic` | Pony Classification Logic | INA | UNC | Yes | No | No | No | No | Yes | No | A4 | OK |
 | MEM-096 | 88 | `mem://security/horses/classification-audit-log` | Classification Audit Log | DR | PK | Yes | No | No | No | No | No | No | A4 | OK |
 | MEM-097 | 89 | `mem://ux/horses/wizard-scroll-behavior` | Wizard Scroll Behavior | DR | SK | No | No | No | No | No | No | No | A4 | OK |
-| MEM-098 | 90 | `mem://ux/horses/wizard-selection-standards` | Wizard Selection Standards | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added per §7 pony question) |
+| MEM-098 | 90 | `mem://ux/horses/wizard-selection-standards` | Wizard Selection Standards | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added by A4 review) |
 | MEM-099 | 91 | `mem://laboratory/ui-isolation-boundary` | Laboratory UI Isolation | DR | PK | Yes | No | No | No | No | No | No | A4 | OK |
-| MEM-100 | 92 | `mem://features/horses/quick-create-bridge-pattern` | Quick Create Bridge Pattern | DR | PK | Yes | No | No | No | No | No | No | A4 | CORRECTED (ref MEM-081 → MEM-083); SB added per §7 disclosure flag |
+| MEM-100 | 92 | `mem://features/horses/quick-create-bridge-pattern` | Quick Create Bridge Pattern | DR | PK | Yes | No | No | No | No | No | No | A4 | CORRECTED (ref MEM-081 → MEM-083); SB added by A4 review |
 | MEM-101 | 93 | `mem://domain/breeding/terminology-standard` | Breeding Terminology Standard | DR | PK | No | No | No | No | No | No | No | A4 | OK |
 | MEM-102 | 94 | `mem://features/breeding/reproduction-form-logic` | Reproduction Form Logic | DR | PK | No | No | No | No | No | No | No | A4 | OK |
-| MEM-103 | 95 | `mem://features/horses/quick-create-minimal-mode` | Quick Create Minimal Mode | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added per §7 disclosure flag) |
+| MEM-103 | 95 | `mem://features/horses/quick-create-minimal-mode` | Quick Create Minimal Mode | DR | PK | Yes | No | No | No | No | No | No | A4 | OK (SB added by A4 review) |
 
-Row count: **103**. Separately, one index row carries no Official Audit ID:
+Row count: **104**.
 
-| Temporary ID | Current index position | URI | Title | Read | Status |
-| --- | --- | --- | --- | --- | --- |
-| MEM-TEMP-A5-001 | 48 | `mem://architecture/invitations/unified-invitation-entry` | Unified Invitation Entry | not yet read in Stage A | Omitted from Batch A2; no permanent ID assigned pending owner approval |
-
-## 5. COUNT RECONCILIATION (CORRECTED)
+## 6. FINAL COUNT RECONCILIATION
 
 ```
-Official Audit IDs issued                 = 103
-  directly read                           =  99
+Total permanent Official Audit IDs        = 104
+  directly read                           = 100
 + partially readable                      =   0
 + referenced but inaccessible             =   4   (MEM-079, MEM-084, MEM-090, MEM-095)
-+ empty / malformed / duplicate / alias   =   0
++ empty                                   =   0
++ malformed                               =   0
++ duplicate or alias representations      =   0
++ other explicitly explained statuses     =   0
                                           -------
-                                             103
-
-Current index objects                     = 104   (9 Core bullets + 95 memory rows)
-  covered by Official Audit IDs           = 103
-+ unassigned (MEM-TEMP-A5-001, row 48)    =   1
+                                            104
 ```
 
-## 6. PRIMARY CLASSIFICATION COUNTS (RECALCULATED — SUM = 103)
+Core count 9 · indexed referenced memory rows 95 · total Project Memory objects 104 · unassigned index rows **0** · temporary Audit IDs **0** · new unindexed objects **0** (every Official Audit ID maps to a Core bullet or an index row; no memory object was found outside the index).
+
+MEM-104 was directly read, so the reconciliation lands on the "directly read = 100 / inaccessible = 4" branch on evidence, not by assumption.
+
+## 7. FINAL PRIMARY CLASSIFICATION COUNTS (SUM = 104)
 
 - **Possible Project Knowledge — 55**: MEM-001, 002, 003, 004, 005, 006, 007, 008, 009, 015, 017, 019, 024, 027, 028, 029, 038, 042, 044, 046, 047, 049, 050, 054, 055, 057, 058, 059, 060, 062, 067, 069, 074, 076, 077, 078, 081, 082, 083, 085, 086, 087, 088, 089, 091, 092, 093, 094, 096, 098, 099, 100, 101, 102, 103.
-- **Possible Skill-only — 43**: MEM-010, 011, 012, 014, 016, 018, 020, 021, 022, 023, 025, 026, 030, 031, 032, 033, 034, 035, 036, 037, 039, 040, 041, 043, 045, 048, 051, 052, 053, 056, 061, 063, 064, 065, 066, 068, 070, 071, 072, 073, 075, 080, 097.
+- **Possible Skill-only — 44**: MEM-010, 011, 012, 014, 016, 018, 020, 021, 022, 023, 025, 026, 030, 031, 032, 033, 034, 035, 036, 037, 039, 040, 041, 043, 045, 048, 051, 052, 053, 056, 061, 063, 064, 065, 066, 068, 070, 071, 072, 073, 075, 080, 097, **104**.
 - **Requires Stage B verification as primary classification — 1**: MEM-013.
 - **Unclassifiable due to inaccessible content — 4**: MEM-079, MEM-084, MEM-090, MEM-095.
-- **Possible repository-governance rule — 0.** The A4 count of 1 was an error: the governance item was `.lovable/plan.md` / DEC-RM-DH-003-004, which is not a Memory ID and is excluded.
-- Possible Current-Prompt-only — 0. Possible stale rule — 0. Private exclusion — 0. Not material — 0.
+- **Possible repository-governance rule — 0** (the governance item is `.lovable/plan.md` / DEC-RM-DH-003-004, which is not a Memory ID).
+- **Possible Current-Prompt-only rule — 0** · **Possible stale rule — 0** · **Private exclusion — 0** · **Not material — 0**.
 
-55 + 43 + 1 + 4 = **103**.
+55 + 44 + 1 + 4 = **104**.
 
-## 7. SECONDARY FLAG COUNTS (RECALCULATED — EXACT LISTS)
+## 8. FINAL SECONDARY FLAG COUNTS
 
-- **Contradiction candidates — 11**: MEM-007, MEM-015, MEM-038, MEM-048, MEM-054, MEM-056, MEM-057, MEM-058, MEM-060, MEM-072, MEM-084, MEM-093. *(Count restated: the list holds 12 IDs — MEM-038 is added by the §3 correction that the unified-commercial-model claim belongs to MEM-038, not MEM-048; both sides of that pairing are retained, so the exact final contradiction count is **12**, superseding both the "9" and the "10" figures in A4.)*
-- **Known-debt qualification — 6**: MEM-054, MEM-056, MEM-061, MEM-079, MEM-084, MEM-090, MEM-095 → exact count **7**.
-- **Scope-exception qualification — 1**: MEM-059 (Laboratory / Academy / reference-table exception recorded in A2). `.lovable/plan.md` and DEC-RM-DH-003-004 are not counted.
-- **Stage B verification — 30**: MEM-007, 008, 013, 015, 024, 029 (A1); MEM-037, 044, 048, 054, 056, 057, 058, 059 (A2); MEM-060, 061, 062, 072, 073, 077, 079, 084 (A3); MEM-085, 086, 087, 090, 093, 095, 096, 099 (A4). Plus **4 added by the §10 review flags carried forward**: MEM-088, MEM-094, MEM-098, MEM-100, MEM-103 → exact final Stage B count **35**.
-- **Owner correction — 2**: MEM-057, MEM-061.
-- **Inaccessible — 4**: MEM-079, MEM-084, MEM-090, MEM-095.
-- **Duplicate / alias — 0**.
+- **Stage B verification — 35**: MEM-007, 008, 013, 015, 024, 029 (A1: 6); MEM-037, 044, 048, 054, 056, 057, 058, 059 (A2: 8); MEM-060, 061, 062, 072, 073, 077, 079, 084 (A3: 8); MEM-085, 086, 087, 090, 093, 095, 096, 099 (A4: 8); MEM-088, 094, 098, 100, 103 (**five** flags added by the A4 item-level review — the earlier "four" wording is corrected). MEM-104 adds none.
+- **Memory-to-Memory / Architecture contradiction candidates — 12**: MEM-007, 015, 038, 048, 054, 056, 057, 058, 060, 072, 084, 093. (MEM-061 is deliberately excluded — see register B.)
+- **Known implementation / architecture debt — 4**: MEM-054, MEM-056, MEM-084, MEM-061-adjacent items excluded; exact list: MEM-054, MEM-056, MEM-084 and the debt statement inside MEM-061's owner correction is tracked in register B, not here → exact known-debt count **3**: MEM-054, MEM-056, MEM-084.
+- **Scope-exception qualification — 1**: MEM-059.
+- **Owner corrections — 2**: MEM-057, MEM-061.
+- **Inaccessible entries (memory-access debt) — 4**: MEM-079, MEM-084, MEM-090, MEM-095.
+- **Duplicate or alias entries — 0**.
+- **Cross-reference corrections — 10** (all preserved from the previous reconciliation; see §10). No new cross-reference defect was introduced by MEM-104: its body cites no MEM number, table, or file path.
 
-## 8. COMPLETE STAGE B VERIFICATION REGISTER (35 rows; no verification performed)
+## 9. FINAL STAGE B VERIFICATION REGISTER (35 rows; no verification performed)
 
-| ID | URI / Title | Exact claim to verify | Category | Evidence source | Targets | Risk | Owner corr. | Contradiction | Recovery | Stage B stopping question |
+| ID | URI / Title | Exact claim to verify | Category | Evidence source | Targets (paths, DB objects, functions, policies, UI) | Risk | OC | CD | Recovery | Exact Stage B stopping question |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| MEM-007 | Core 7 — Permission-based authorization | "104 granular keys; no hardcoded roles" | numeric + universality | live DB + repo | `permission_definitions`, `has_permission()`, `hasPermission()` | High | No | Yes | No | What is the live key count and where do hardcoded role checks survive? |
-| MEM-008 | Core 8 — Dual RLS scoping | personal vs organization scoping is current | mutable current-state | live RLS | policies on community/domain tables | High | No | No | No | Is dual scoping still the enforced model everywhere it is claimed? |
-| MEM-013 | Party/Horse Relationships | junction-table M:N role model is current | primary Stage B | live schema | party/horse junction table | Medium | No | No | No | Does the junction model still hold, and is it authoritative for ownership? |
-| MEM-015 | Platform Sharing Reference Pattern | "domain tables implement shared access policies" | universality | live RLS | connections, grants, domain RLS | High | No | Yes | No | Which domain tables actually implement the 3-layer pattern? |
-| MEM-024 | Payment Status Integrity | status derived only from ledger | implementation-compliance | repo + DB | invoice status writers, `post_payment_session` | High | No | No | No | Can any code path set 'paid'/'partial' directly? |
-| MEM-029 | Bilingual Naming Architecture | display standard matches Correction 6 | implementation-compliance | repo | `<BilingualName />` | Low | No | No | No | Does current display honour language primacy? |
-| MEM-037 | Vaccination & Health Management | Arabic-first localization parity | implementation-compliance | repo | `scripts/audit-i18n.ts` | Low | No | No | No | Is localization parity enforced by audit? |
-| MEM-044 | Tax Configuration Standard | "all financial flows" universality | universality | repo + DB | `src/lib/taxUtils.ts`, tax columns | Medium | No | No | No | Which flows actually apply layered tax? |
-| MEM-048 | Consultation & Lab Grounding | consultations/lab use `tenant_services` + shared `computeTax` | implementation-compliance | repo + DB | `computeTax`, doctor services tables | Medium | No | Yes | No | Do Doctor/Lab invoices ground in the shared catalog? |
-| MEM-054 | Operational Partner Scoping | cross-tenant horse access gap (known debt) | known debt | live RLS | `connection_horse_access`, `horses`, `vet_treatments` | High | No | Yes | No | Does the RLS gap still exist? |
-| MEM-056 | Unified Partner Management | residual sharing debt in domain tables | known debt | live RLS | `lab_results`, `vet_records`, `breeding_records`, `lab_requests` | High | No | Yes | No | Which domain tables still lack partner-scoped policies? |
-| MEM-057 | Workspace Authorization & Guards | "replaces legacy role checks" universality | owner correction + compliance | repo | `WorkspaceRouteGuard.tsx`, `src/hooks/vet/*` | High | Yes | Yes | No | Are surviving role checks authorization, presentation, fallback, or dead code? |
-| MEM-058 | Permission System Vocabulary | 104 keys | numeric | live DB | `permission_definitions` | High | No | Yes | No | What is the live count? |
-| MEM-059 | Granular Backend Enforcement | `has_permission()` in operational RLS, with exceptions | scope exception | live RLS | policy bodies | High | No | No | No | Which tables remain outside the enforcement contract? |
-| MEM-060 | Manager Role Baseline | manager = all except `admin.permissions.delegate` (102) | numeric + contradiction | live DB | role/bundle tables | High | No | Yes | No | Which exact keys does manager hold? |
-| MEM-061 | Internal Cost Management | cross-account labeling + zero-amount integrity | owner correction | repo + live data | `financial_entries`, cost UI labels | High | Yes | No | No | What is the authoritative cost source, and why are amounts 0? |
-| MEM-062 | Housing Lifecycle Model | delete eligibility enforced server-side | implementation-compliance | live DB | constraints/triggers | Medium | No | No | No | Is delete eligibility server-enforced? |
-| MEM-072 | Housing Orphan Repair Logic | owner/manager gate | contradiction | repo | orphan repair UI/RPC | Medium | No | Yes | No | Is the gate role-based or permission-based? |
-| MEM-073 | Movement RPC Contract Standard | exactly one 19-parameter signature | numeric | live DB | `record_horse_movement_with_housing` | Medium | No | No | No | How many signatures exist? |
-| MEM-077 | Service Package Organization | packages centralized in `src/services` | implementation-compliance | repo | `src/services` | Low | No | No | No | Is the centralization still true? |
-| MEM-079 | Package Billing Cycles | memory body missing | recovery | platform memory store | index row 71 | Medium | No | No | Yes | Was the body deleted, renamed, or never persisted? |
-| MEM-084 | Doctor Billing Mismatch | memory body missing; debt vs MEM-038/048 | recovery + contradiction | platform memory store, then DB | doctor services vs `tenant_services` | Medium | No | Yes | Yes | Is the debt current, and can the body be recovered? |
-| MEM-085 | Breeding Domain Architecture | six tables, `source_mode`, `breeding_contracts` | mutable current-state | live schema | breeding tables | Low | No | No | No | Does the schema match? |
-| MEM-086 | Laboratory Domain Architecture | SECURITY DEFINER snapshot triggers | security compliance | live DB | `fn_populate_lab_request_snapshots`, `fn_populate_lrs_service_snapshots` | High | No | No | No | Do the triggers exist and are they safe? |
-| MEM-087 | Lab Submission Architecture | 1 parent + N children created **atomically**; Phase 1 complete | implementation-compliance | repo + DB | `useLabRequests.createSubmission()`, any RPC/transaction | Medium | No | No | No | Is atomicity backed by an RPC/transaction or only sequential client inserts? |
-| MEM-088 | Room Function Reclassification | occupancy guardrails enforced | implementation-compliance | repo + DB | unit update path, constraints/triggers | Medium | No | No | No | Are guardrails server-side or only AlertDialog/UI? |
-| MEM-090 | Room Event History Strategy | memory body missing; history from `housing_unit_occupants` | recovery | platform memory store, then repo | history query | Low | No | No | Yes | Can the body be recovered; is the source table correct? |
-| MEM-093 | Horse Classification Governance | Tier 3/5 "Owner-only"; "any operator" for Tier 1; irreversibility | contradiction + governance | repo + DB | `update_horse_identity`, wizard UI | High | No | Yes | No | Is authority permission-based, does "any operator" mean authorized operator, and does a controlled correction path exist for irreversible fields? |
-| MEM-094 | Registration Classification Step | pony/status toggle visibility gated by age stage | domain question | repo | Step 2 wizard | Medium | No | No | No | Is Pony correctly independent of age stage? |
-| MEM-095 | Pony Classification Logic | memory body missing | recovery | platform memory store | index row 87 | Medium | No | No | Yes | Can the body be recovered? |
-| MEM-096 | Classification Audit Log | table, columns, RLS/grants | mutable current-state | live schema | `horse_classification_changes` | Medium | No | No | No | Does the audit table exist and is it protected? |
-| MEM-098 | Wizard Selection Standards | age-stage reset clears pony status | domain question | repo | wizard reset logic | Medium | No | No | No | Should Pony survive an age-stage reset? |
-| MEM-099 | Laboratory UI Isolation | route guard/redirect active | implementation-compliance | repo | routing + nav config | Medium | No | No | No | Is the guard still present? |
-| MEM-100 | Quick Create Bridge Pattern | locked injected gender/role | UX disclosure | repo | `QuickCreateHorseDialog` | Medium | No | No | No | Is injected metadata visibly disclosed when locked? |
-| MEM-103 | Quick Create Minimal Mode | minimal mode hides domain-significant metadata | UX disclosure | repo | `QuickCreateHorseDialog` minimal mode | Medium | No | No | No | Is locked gender/role disclosed in minimal mode? |
+| MEM-007 | `mem://index.md#Core` — Permission-based authorization | "104 granular keys; no hardcoded roles like owner/manager" | numeric + universality | live DB + repo | `permission_definitions`, `has_permission()`, `hasPermission()`, `src/hooks/**` | High | No | Yes | No | What is the live key count, and which surfaces still hardcode roles? |
+| MEM-008 | `mem://index.md#Core` — Dual RLS scoping | personal (`tenant_id IS NULL`) vs organization scoping is current | mutable current-state | live RLS | policies on community and domain tables | High | No | No | No | Is dual scoping still enforced wherever it is claimed? |
+| MEM-013 | `mem://architecture/party-horse-relationship-model` — Party/Horse Relationships | junction table for M:N roles is the current model | primary Stage B | live schema | party/horse junction table, `horses` | Medium | No | No | No | Is the junction model current and authoritative for ownership? |
+| MEM-015 | `mem://architecture/platform-sharing-reference-pattern` — Platform Sharing | 3-layer cross-tenant access implemented across domain tables | universality | live RLS | `connections`, grants tables, domain RLS | High | No | Yes | No | Which domain tables actually implement all three layers? |
+| MEM-024 | `mem://finance/payment-status-integrity-rule` — Payment Status Integrity | status derived only from the ledger | implementation-compliance | repo + DB | `post_payment_session`, invoice status writers, `src/lib/finance/**` | High | No | No | No | Can any path set 'paid'/'partial' directly? |
+| MEM-029 | `mem://localization/bilingual-naming-architecture` — Bilingual Naming | stacked display and localized placeholders per Correction 6 | implementation-compliance | repo | `<BilingualName />` | Low | No | No | No | Does display honour language primacy per UI language? |
+| MEM-037 | `mem://features/stable/vaccination-and-health-management` — Vaccination & Health | Arabic-first localization parity | implementation-compliance | repo | `scripts/audit-i18n.ts`, `src/hooks/vet/useHorseVaccinations.ts` | Low | No | No | No | Is localization parity actually enforced? |
+| MEM-044 | `mem://finance/tax-configuration-standard` — Tax Configuration | "all financial flows" apply layered tax | universality | repo + DB | `src/lib/taxUtils.ts`, `default_tax_rate`, `prices_tax_inclusive`, `is_taxable` | Medium | No | No | No | Which flows actually apply the layered inheritance? |
+| MEM-048 | `mem://features/finance/consultation-and-lab-grounding` — Consultation & Lab Grounding | consultations and lab invoices ground in `tenant_services` + shared `computeTax` | implementation-compliance | repo + DB | `computeTax`, doctor service tables, `useLabInvoiceDraft.ts` | Medium | No | Yes | No | Do Doctor and Lab invoices ground in the shared catalog? |
+| MEM-054 | `mem://architecture/connections/operational-partner-scoping` — Operational Partner Scoping | stated cross-tenant access gap (known debt) | known debt | live RLS | `connection_horse_access`, `horses`, `vet_treatments` | High | No | Yes | No | Does the RLS gap still exist? |
+| MEM-056 | `mem://architecture/connections/unified-partner-management` — Unified Partner Management | residual sharing debt on domain tables | known debt | live RLS | `lab_results`, `vet_records`, `breeding_records`, `lab_requests`, `PartnerConfigSheet` | High | No | Yes | No | Which domain tables still lack partner-scoped policies? |
+| MEM-057 | `mem://security/workspace-authorization-and-guards` — Workspace Authorization & Guards | `hasPermission()` "replaces legacy role checks" | owner correction + compliance | repo | `WorkspaceRouteGuard.tsx`, `src/hooks/vet/useVetMedications.ts`, `useVetFollowups.ts`, `useHorseVaccinations.ts` | High | Yes | Yes | No | Are surviving role checks authorization, presentation, account-context, fallback, or dead code? |
+| MEM-058 | `mem://security/permission-system-vocabulary` — Permission System Vocabulary | 104 granular keys | numeric | live DB | `permission_definitions`, `docs/aml_1_b_1/stage_01_preflight/permission_definitions_shape.txt` | High | No | Yes | No | What is the live key count? |
+| MEM-059 | `mem://security/granular-backend-enforcement` — Granular Backend Enforcement | `has_permission()` in operational RLS with stated exceptions | scope exception | live RLS | policy bodies, retired `can_manage_orders` | High | No | No | No | Which tables remain outside the enforcement contract? |
+| MEM-060 | `mem://security/roles/manager-role-baseline` — Manager Role Baseline | manager holds all permissions except `admin.permissions.delegate` (102) | numeric + contradiction | live DB | role/bundle tables, `tenant_roles` | High | No | Yes | No | Which exact keys does manager hold, and is 102 or 104 correct? |
+| MEM-061 | `mem://features/stable/internal-cost-management` — Internal Cost Management | cross-account cost model; terminology; zero-value cost records | owner-evidenced defect | repo + live data | `financial_entries` (`is_income=false`), `src/lib/finance/recordAsStableCost.ts`, cost UI labels | High | Yes | No | No | What is the authoritative cost source, and why do cost records carry zero amounts? |
+| MEM-062 | `mem://architecture/stable/housing-lifecycle-model` — Housing Lifecycle Model | delete eligibility enforced beyond the client | implementation-compliance | live DB | constraints/triggers on housing tables | Medium | No | No | No | Is delete eligibility enforced server-side? |
+| MEM-072 | `mem://features/stable/housing-orphan-repair-logic` — Housing Orphan Repair | "authorized roles (owner/manager)" gate | contradiction | repo | orphan repair UI and RPC | Medium | No | Yes | No | Is the gate role-based or permission-based? |
+| MEM-073 | `mem://architecture/stable/movement-rpc-contract-standard` — Movement RPC Contract | exactly one 19-parameter signature | numeric | live DB | `record_horse_movement_with_housing` | Medium | No | No | No | How many signatures exist in the live database? |
+| MEM-077 | `mem://architecture/stable/service-package-organization` — Service Package Organization | packages centralized under `src/services` | implementation-compliance | repo | `src/services/**` | Low | No | No | No | Is the centralization still true? |
+| MEM-079 | `mem://domain/stable/package-billing-cycles` — Package Billing Cycles | memory body not retrievable | recovery | platform memory store | index row 71 | Medium | No | No | Yes | Was the body deleted, renamed, or never persisted? |
+| MEM-084 | `mem://architecture/finance/doctor-billing-mismatch` — Doctor Billing Mismatch | memory body not retrievable; debt versus MEM-038/MEM-048 | recovery + contradiction | platform memory store, then DB | doctor services tables vs `tenant_services` | Medium | No | Yes | Yes | Can the body be recovered, and is the debt current? |
+| MEM-085 | `mem://breeding/domain-architecture-standard` — Breeding Domain Architecture | named breeding tables, `source_mode`, foaling lineage links | mutable current-state | live schema | breeding tables, `breeding_contracts` | Low | No | No | No | Does the live schema match the stated model? |
+| MEM-086 | `mem://laboratory/domain-architecture-standard` — Laboratory Domain Architecture | SECURITY DEFINER snapshot triggers and B2B contract snapshots | security compliance | live DB | `fn_populate_lab_request_snapshots`, `fn_populate_lrs_service_snapshots` | High | No | No | No | Do the triggers exist, and are their definer privileges safe? |
+| MEM-087 | `mem://laboratory/submission-architecture` — Lab Submission Architecture | one parent + N children created **atomically** | implementation-compliance | repo + DB | `useLabRequests.createSubmission()`, any submission RPC/transaction | Medium | No | No | No | Is atomicity backed by an RPC or DB transaction, or only sequential client inserts? |
+| MEM-088 | `mem://features/stable/room-function-reclassification` — Room Function Reclassification | reclassification blocked while occupied | implementation-compliance | repo + DB | unit update path, AlertDialog guard, constraints/triggers | Medium | No | No | No | Is the guardrail enforced server-side or only in the UI? |
+| MEM-090 | `mem://features/stable/room-event-history-strategy` — Room Event History | memory body not retrievable; history from `housing_unit_occupants` | recovery | platform memory store, then repo | history query surfaces | Low | No | No | Yes | Can the body be recovered, and is the stated source table correct? |
+| MEM-093 | `mem://security/horses/classification-governance` — Classification Governance | tiered authority "Owner-only"; "any operator"; irreversible fields | contradiction + governance | repo + DB | `update_horse_identity`, `horse_classification_changes`, wizard UI | High | No | Yes | No | Is authority permission-based, does "any operator" mean an authorized operator, and does a controlled correction path exist for irreversible fields? |
+| MEM-094 | `mem://ux/horses/registration-classification-step` — Registration Classification Step | pony/status controls gated by age stage | domain question | repo | wizard Step 2 (`StepBasicInfo.tsx`, classification step) | Medium | No | No | No | Is Pony correctly independent of age stage in the registration step? |
+| MEM-095 | `mem://domain/horses/pony-classification-logic` — Pony Classification Logic | memory body not retrievable | recovery | platform memory store | index row 87 | Medium | No | No | Yes | Can the body be recovered? |
+| MEM-096 | `mem://security/horses/classification-audit-log` — Classification Audit Log | audit table, columns, RLS and grants | mutable current-state | live schema | `horse_classification_changes` | Medium | No | No | No | Does the audit table exist and is it protected? |
+| MEM-098 | `mem://ux/horses/wizard-selection-standards` — Wizard Selection Standards | age-stage change cascades a reset that clears pony status | domain question | repo | wizard reset logic | Medium | No | No | No | Should Pony survive an age-stage reset? |
+| MEM-099 | `mem://laboratory/ui-isolation-boundary` — Laboratory UI Isolation | lab-mode isolation via URL redirects | implementation-compliance | repo | `src/navigation/labNavConfig.ts`, route guards | Medium | No | No | No | Is the isolation guard still present and complete? |
+| MEM-100 | `mem://features/horses/quick-create-bridge-pattern` — Quick Create Bridge | pre-filled locked context fields | UX disclosure | repo | quick-create dialog components | Medium | No | No | No | Is injected Gender or Breeding Role visibly disclosed when locked? |
+| MEM-103 | `mem://features/horses/quick-create-minimal-mode` — Quick Create Minimal Mode | truncated context-first field set | UX disclosure | repo | quick-create minimal mode | Medium | No | No | No | Is domain-significant locked metadata disclosed in minimal mode? |
 
-Row count: **35** — matches the corrected Stage B count in §7.
+Row count: **35** — equals the Stage B count in §8.
 
-## 9. INACCESSIBLE MEMORY STATUS (PRESERVED)
+## 10. FINAL CONTRADICTION AND DEBT REGISTERS
 
-| ID | Index row | URI | Index description (index text only) | Recovery evidence | Stage B recovery target |
-| --- | --- | --- | --- | --- | --- |
-| MEM-079 | 71 | `mem://domain/stable/package-billing-cycles` | "Cycle vocabulary (Daily, Weekly, etc) dictates recurring vs one-time billing logic" | Direct URI + `.md` variant attempted in A3 and again in A4: "does not exist". Index row present, well-formed, no alias | Platform memory store: deleted, renamed, or never persisted? |
-| MEM-084 | 76 | `mem://architecture/finance/doctor-billing-mismatch` | "Known architectural debt where Doctor services are separate from main tenant_services" | Same attempts and result | Same, then reconcile with MEM-038/MEM-048 |
-| MEM-090 | 82 | `mem://features/stable/room-event-history-strategy` | "History populated entirely from past housing_unit_occupants records" | Direct URI + `.md` variant attempted in A4: "does not exist" | Same |
-| MEM-095 | 87 | `mem://domain/horses/pony-classification-logic` | "'is_pony' user declaration overrides physical height derived rules" | Direct URI + `.md` variant attempted in A4: "does not exist" | Same |
+**A. Memory-to-Memory / Architecture contradiction candidates (12 IDs):**
+- MEM-015 versus MEM-054 and MEM-056 — universal sharing claim versus recorded cross-tenant gaps.
+- MEM-038 and MEM-048 versus MEM-084 — single shared commercial catalog versus Doctor-services separation.
+- MEM-057 versus MEM-072 and surviving role checks — permission-based claim versus role-named gates.
+- MEM-058 versus MEM-060 — 104 keys versus a 102-key manager baseline.
+- MEM-093 versus MEM-007 and MEM-057 — role-named "Owner-only" tiers versus permission-based architecture.
+- Core MEM-007 participates as the architectural anchor of the last two pairs.
 
-No content reconstructed from code or from index descriptions.
+**B. Owner-evidenced implementation defects (1 ID):**
+- MEM-061 — hardcoded "Stable Costs" terminology (must be Internal Costs / التكاليف الداخلية) and zero-value cost records as a possible financial-integrity defect. This is a defect, not a Memory-to-Memory contradiction, and is excluded from register A.
 
-## 10. CARRIED-FORWARD REVIEW FLAGS (recorded, not verified, not implemented)
+**C. Known implementation / architecture debts (3 IDs):**
+- MEM-054 (cross-tenant RLS gap), MEM-056 (domain-table sharing debt), MEM-084 (Doctor billing separation recorded as architectural debt).
 
-1. **MEM-087** — "createSubmission() creates 1 parent + N children atomically" requires confirmation of a transactional RPC or backend transaction; a frontend hook alone cannot guarantee atomicity.
-2. **MEM-088** — reclassification guardrails require backend/server-side enforcement evidence, not only AlertDialog/UI checks.
-3. **MEM-093** — "Owner-only" must be reconciled with Permission-based Architecture; "freely editable by any operator" must mean an appropriately authorized operator; irreversible classification fields require a controlled correction path for registration errors.
-4. **MEM-094 / MEM-095 / MEM-098** — pony visibility and age-stage reset behaviour may conflict with Pony being a classification independent of age stage. Preserved as an **unresolved domain question** until MEM-095 is recovered or Stage B evidence is reviewed.
-5. **MEM-100 / MEM-103** — context-injected Gender or Breeding Role must be visibly disclosed to the operator even when locked; domain-significant metadata must not be silently hidden.
+**D. Memory-access debts (4 IDs):**
+- MEM-079, MEM-084, MEM-090, MEM-095. MEM-084 appears in both C and D for explicitly different reasons (architecture debt; body not retrievable). MEM-104 is **not** in this register — it was directly read.
 
-Previously registered owner corrections (MEM-057, MEM-061) remain in force unchanged, including the full 13-point MEM-061 correction recorded in the Batch A4 report.
+## 11. CROSS-REFERENCE INTEGRITY (PRESERVED + MEM-104 AUDIT)
 
-## 11. CONTRADICTION AND OVERLAP REGISTER (unresolved by design)
+Preserved corrections: MEM-086 references **MEM-014** (Horse Unification Strategy), not MEM-013 · MEM-100 references **MEM-083** (Creation Bridge Pattern), not MEM-081 · Unified Commercial Model is **MEM-038** · Identity Verification Rules is **MEM-055** · Bilingual Naming Architecture is **MEM-029** · Financial Status Integrity is the distinct Core rule **MEM-009** · the A4 8-Core-bullet statement and MEM-008/MEM-009 merge remain withdrawn · the A4 "possible repository-governance rule = 1" category is withdrawn (0) · the A4 contradiction figures "9" then "10" are superseded by 12 · the A4 "four review Stage B flags" wording is corrected to **five** (MEM-088, MEM-094, MEM-098, MEM-100, MEM-103).
 
-Contradiction candidates (12): MEM-007, MEM-015, MEM-038, MEM-048, MEM-054, MEM-056, MEM-057, MEM-058, MEM-060, MEM-072, MEM-084, MEM-093.
-Pairings: MEM-015 vs MEM-054/MEM-056; MEM-038/MEM-048 vs MEM-084; MEM-057 vs surviving role checks and MEM-072; MEM-058 vs MEM-060; MEM-093 vs MEM-007/MEM-057; MEM-061 owner correction vs hardcoded "Stable Costs" labeling.
+MEM-104 audit: its body contains no MEM number, table, function, or file-path reference, so no reference could be mis-resolved. Its relationship set (MEM-050, MEM-051, MEM-053, MEM-055, MEM-056) is overlap, not contradiction. **No new cross-reference defect identified.**
 
-Overlap families (consolidation candidates, nothing deleted): creation bridge — MEM-004, MEM-083, MEM-100, MEM-102, MEM-103; neutral defaults — MEM-003, MEM-081, MEM-098, MEM-102; horse classification — MEM-091 … MEM-096; housing rooms — MEM-062 … MEM-075, MEM-088, MEM-089, MEM-090; laboratory — MEM-014, MEM-086, MEM-087, MEM-099; localization — MEM-005, MEM-029, MEM-031, MEM-101; permissions — MEM-007, MEM-057, MEM-058, MEM-059, MEM-060.
+## 12. PRESERVED OWNER CORRECTIONS AND A4 REVIEW FLAGS
 
-Thematic reorganization NOT performed.
+Owner corrections in force, unchanged:
+- **MEM-057** — Permission-based Architecture is the accepted authorization model; surviving role checks require contextual analysis and must not be deleted blindly.
+- **MEM-061** — Internal Cost Management is cross-account; shared terminology must be Internal Costs / التكاليف الداخلية; zero-value cost records are a possible financial-integrity defect; a missing amount must not be treated as a confirmed zero; the authoritative cost source requires Stage B verification.
 
-## 12. BOUNDARY, WORKSTREAM, ROADMAP
+A4 review flags carried forward, unimplemented: **MEM-087** (atomicity requires a transactional RPC or backend transaction); **MEM-088** (guardrails require server-side enforcement evidence); **MEM-093** ("Owner-only" must reconcile with permission architecture, "any operator" means an appropriately authorized operator, irreversible fields need a controlled correction path); **MEM-094 / MEM-095 / MEM-098** (pony visibility and reset behaviour preserved as an unresolved domain question until MEM-095 is recovered or Stage B evidence is reviewed); **MEM-100 / MEM-103** (context-injected Gender or Breeding Role must be visibly disclosed even when locked).
 
-Read-only boundary honoured: Stage B not started; no repository or live-database verification of Memory claims; no code, schema, data, Project Memory, Project Knowledge, Workspace Knowledge, Skill, setting, Roadmap, or Workstream modified; no thematic reorganization, Knowledge installation, Acceptance, or Closure.
+## 13. THEMATIC CONSOLIDATION — NOT PERFORMED
 
-`.lovable/plan.md` disclosure: platform-generated Plan Mode behaviour; the only file written this run, under the standing scope exception DEC-RM-DH-003-004 (docs/CONVENTIONS.md §11.10). It is not counted as a Memory ID.
+No domain regrouping of the 104 Memories was produced in this run, per the owner's instruction to defer consolidation until ChatGPT review of this final Stage A output.
+
+## 14. BOUNDARY, WORKSTREAM, ROADMAP
+
+Read-only boundary honoured: Stage B not started; no repository implementation verification; no live-database verification; no code, repository application file, schema, data, migration, Project Memory, Project Knowledge, Workspace Knowledge, Skill, setting, Roadmap, or Workstream modified; no thematic reorganization, Knowledge installation, Acceptance, or Closure.
+
+`.lovable/plan.md` disclosure: platform-generated Plan Mode behaviour; the only file written this run, under the standing scope exception DEC-RM-DH-003-004 (docs/CONVENTIONS.md §11.10). It is not a Memory ID.
 
 Workstream persistence: no Workstream was created; no Workstream ID was assigned; no Workstream file was modified; no persistence occurred.
 
-Roadmap impact: RM-DH-003 remains Active; RM-DH-003 / Phase 2 remains CLOSED; WS-DH-2026-0002 remains CLOSED; no new Phase, Sub-phase, Track, or Workstream created; no Roadmap or registry file intentionally modified.
+Roadmap impact: RM-DH-003 remains Active; RM-DH-003 / Phase 2 remains CLOSED; WS-DH-2026-0002 remains CLOSED; no new Phase, Sub-phase, Track, or Workstream created; no Roadmap or Registry file intentionally modified.
 
-## 13. VERDICT
+## 15. FINAL STAGE A VERDICT
 
-STAGE A RECONCILIATION PARTIALLY CORRECTED — SPECIFIED ID OR REGISTER GAPS REMAIN
+STAGE A SUBSTANTIVELY COMPLETE — ALL 104 OFFICIAL AUDIT IDS RECONCILED WITH SPECIFIED INACCESSIBLE MEMORY BODIES
 
-(ID lineage is now determined and evidenced, all registers are complete and internally consistent, but two gaps remain owner-dependent: index row 48 `unified-invitation-entry` holds no Official Audit ID pending owner approval, and four memory bodies remain inaccessible.)
+(MEM-104 is assigned and directly extracted; all 104 objects hold permanent Official Audit IDs; four memory bodies — MEM-079, MEM-084, MEM-090, MEM-095 — remain referenced but inaccessible. This is an Acceptance-readiness statement for Stage A reporting only; Acceptance is not claimed.)
 
 ## RUN METADATA AND EXACT STOPPING POINT
 
 1. Mode: Plan Mode / Chat Mode (read-only).
-2. Operation: Stage A — Final ID-Lineage Audit, Cross-Reference Correction, and Complete Reconciliation Reissue.
+2. Operation: Stage A — Official MEM-104 Assignment, Complete Extraction, and Final 104-Object Stage A Reconciliation.
 3. Received Official Prompt ID: PROMPT-DH-PERSISTENT-KNOWLEDGE-ARCHITECTURE-PROJECT-KNOWLEDGE-REAUDIT-03.
-4. Current Stage: Stage A (post-A4 correction pass).
-5. Continuation Preparation Date and Time: 01-08-2026, 06:15, Asia/Riyadh (UTC+03:00).
-6. Run Start: Exact time not recorded; first tool activity 2026-08-01 ≈03:1x UTC / 06:1x Asia/Riyadh.
-7. First evidenced activity: `git log` of `.lovable/plan.md` in this run (commit list read, latest entry `dc924110` 2026-08-01 03:08:04 +0000).
-8. Run End: Exact time not recorded.
-9. Last evidenced activity: extraction of A2/A3 classification lines from commits `51433abf` and `10fb023f`.
-10. Final Report time: Exact time not recorded.
-11. Timezone and evidence: git timestamps in +0000; sandbox clock verified earlier this session as `Sat Aug 1 03:05:30 UTC 2026`.
-12. Branch: `edit/edt-472d99ae-a217-4bc8-8246-22cd89f8e313`.
-13. HEAD before: `dc924110` (".lovable/plan.md — Changes", 2026-08-01 03:08:04 +0000, the Batch A4 commit). HEAD after: unchanged at authoring time; a platform plan commit may follow.
-14. Continuity evidence from Batch A4: `dc924110` is the immediate successor of `10fb023f` (A3, 02:18:13) which succeeds `10b2f76b`/`51433abf` (A3/A2, 00:34) and `de4a40c8` (A1, 00:01:59) — linear, unbroken lineage; all four batch reports read directly from their commits this run.
-15. Working Tree: before — clean; after — `.lovable/plan.md` modified only.
-16. Staged paths: none before, none after. Unstaged: none before, `.lovable/plan.md` after. Untracked non-ignored: none before, none after.
-17. `.lovable/plan.md` activity: overwritten with this corrected Stage A reconciliation (previous content: the Batch A4 report, committed at `dc924110`, still retrievable from git history).
-18. Official Audit-ID count: 103.
-19. Current index row count: 104 objects (9 Core bullets + 95 memory rows); 1 row unassigned (`MEM-TEMP-A5-001`, row 48).
-20. Directly read count: 99.
-21. Inaccessible count: 4.
-22. Corrected primary classification totals: PK 55, Skill-only 43, Stage-B-primary 1, Unclassifiable 4 = 103; repository-governance 0.
-23. Corrected Stage B count: 35.
-24. Corrected contradiction count: 12.
-25. Cross-reference defects found and corrected in the report: 10 (listed in §3), plus the Core-block miscount and the withdrawn MEM-008/MEM-009 merge.
-26. Project Memory changes: None.
-27. Project Knowledge changes: None.
-28. Code changes: None.
-29. Database changes: None.
-30. Roadmap/Workstream changes: None.
-31. Exact verdict: STAGE A RECONCILIATION PARTIALLY CORRECTED — SPECIFIED ID OR REGISTER GAPS REMAIN.
-32. Exact stopping point: The Stage A extraction content has reached the end of the indexed Memory set. Final Stage A acceptance remains dependent on the corrected Official Audit-ID lineage, complete 103-row Coverage Register, complete Stage B Verification Register, and corrected classification and secondary-flag counts. Stage B has not started. No thematic consolidation or Project Knowledge reconstruction was performed.
-33. Exact next permitted owner action: Return the corrected Stage A reconciliation output to ChatGPT for acceptance review and owner-directed thematic consolidation planning.
+4. Current Stage: Stage A.
+5. Current continuation: MEM-104 assignment, extraction, and final 104-object reconciliation.
+6. Continuation Preparation Date and Time: 01-08-2026, 06:45, Asia/Riyadh (UTC+03:00).
+7. Lovable Run Start: Exact time not recorded.
+8. First evidenced activity: direct read of `mem://architecture/invitations/unified-invitation-entry`, 2026-08-01 ≈03:3x UTC / ≈06:3x Asia/Riyadh.
+9. Lovable Run End: Exact time not recorded.
+10. Last evidenced activity: authoring of this reconciliation into `.lovable/plan.md`.
+11. Final Report Date and Time: Exact time not recorded.
+12. Timezone and evidence source: git commit timestamps recorded in +0000; sandbox clock observed this session as `Sat Aug 1 2026 03:xx UTC`.
+13. Branch: `edit/edt-472d99ae-a217-4bc8-8246-22cd89f8e313`.
+14. HEAD before: the previous Stage A reconciliation-correction plan commit (successor of `dc924110`, the Batch A4 commit); HEAD after: unchanged at authoring time; a platform plan commit may follow.
+15. Continuity evidence from the previous Stage A reconciliation: linear lineage `de4a40c8` (A1) → `51433abf`/`10b2f76b` (A2/A3) → `10fb023f` (A3) → `dc924110` (A4) → reconciliation-correction commit → this run; no rebase, reset, or branch divergence observed.
+16. Working Tree: before — clean apart from platform plan handling; after — `.lovable/plan.md` modified only.
+17. Staged paths: none before, none after.
+18. Unstaged paths: none before; `.lovable/plan.md` after.
+19. Untracked non-ignored paths: none before, none after.
+20. `.lovable/plan.md` activity: overwritten with this final 104-object Stage A reconciliation; all prior batch reports remain retrievable from git history (`de4a40c8`, `51433abf`, `10b2f76b`, `10fb023f`, `dc924110`).
+21. Permanent Official Audit-ID count: 104.
+22. Core-rule count: 9.
+23. Indexed referenced-memory-row count: 95.
+24. Total Project Memory object count: 104.
+25. Directly read count: 100.
+26. Partially readable count: 0.
+27. Inaccessible count: 4.
+28. Empty count: 0.
+29. Malformed count: 0.
+30. Duplicate or alias count: 0.
+31. Unassigned index-row count: 0.
+32. Temporary Audit-ID count: 0.
+33. Primary classification totals: Project Knowledge 55, Skill-only 44, Stage-B-primary 1, Unclassifiable 4 = 104; repository-governance 0; current-prompt-only 0; stale 0; private exclusion 0; not material 0.
+34. Final Stage B-flagged count: 35.
+35. Final contradiction count (Memory/Architecture): 12.
+36. Owner-evidenced implementation-defect count: 1 (MEM-061).
+37. Known implementation-debt count: 3 (MEM-054, MEM-056, MEM-084).
+38. Memory-access-debt count: 4 (MEM-079, MEM-084, MEM-090, MEM-095).
+39. Cross-reference corrections: 10 preserved; 0 newly added (MEM-104 introduced none).
+40. Project Memory changes: None.
+41. Project Knowledge changes: None.
+42. Workspace Knowledge changes: None.
+43. Skill changes: None.
+44. Code changes: None.
+45. Database changes: None.
+46. Settings changes: None.
+47. Roadmap or Workstream changes: None.
+48. Exact verdict: STAGE A SUBSTANTIVELY COMPLETE — ALL 104 OFFICIAL AUDIT IDS RECONCILED WITH SPECIFIED INACCESSIBLE MEMORY BODIES.
+49. Exact stopping point: MEM-104 has been permanently assigned to the previously omitted Unified Invitation Entry and has been directly extracted or explicitly reconciled as inaccessible. All 104 Project Memory objects now have permanent Official Audit IDs. Stage A reporting has reached its final reconciliation state. Stage B has not started. No thematic consolidation or Project Knowledge reconstruction was performed.
+50. Exact next permitted owner action: Return the complete MEM-104 and final 104-object Stage A reconciliation output to ChatGPT for acceptance review and owner-directed thematic consolidation planning.
 
 STOP.
