@@ -338,7 +338,7 @@ A1-R1 contract-verification claim:             10/322 — not accepted pending c
 | Working tree before | clean (`git status --porcelain` empty) |
 | Working tree after | modified: `.lovable/plan.md` only |
 | `.lovable/plan.md` disclosure | Before: contained the A1-R1 report. After: contains this A1-R1-C1 report. Platform-generated planning artifact, written automatically by the planning tool; not a source-code change. |
-| Complete source filenames read | `supabase/migrations/20251217045741_3c096c3e-fb65-4eb3-ac8c-bf0ef95977ee.sql`, `supabase/migrations/20251219010235_a98f269c-9bcf…` *(see note)*, `supabase/migrations/20251220044032_8ee723b8-81c7-…` *(see note)* |
+| Complete source filenames read | `supabase/migrations/20251217045741_3c096c3e-fb65-4eb3-ac8c-bf0ef95977ee.sql`, `supabase/migrations/20251219010235_a98f269c-7bcf-4f66-b9a9-998bce3a3dff.sql`, `supabase/migrations/20251220044032_8ee723b8-bcf8-41a8-81c7-f5f3d3252917.sql` |
 | Complete later migration filenames read | the 22 listed at the head of Section B plus its trailing out-of-scope list |
 | Repository paths inspected | `supabase/migrations/` only |
 | Live objects inspected | `pg_policies` (schema `public`, four tables), `pg_class.relrowsecurity`/`relforcerowsecurity`, `pg_proc` for `enforce_invitation_update_rules` and `has_permission`, `pg_get_functiondef` for the invitation trigger function |
