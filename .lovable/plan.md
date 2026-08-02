@@ -76,16 +76,8 @@ Status: **SEMANTIC_MATCH** — normalization: catalog rewrote `SELECT owner_id F
 Security consequence: `owner_id` cannot be reassigned through the Data API; ownership transfer must go through a definer path.
 Conclusion: lineage proven.
 
-**Row T4 — ordinal 003 · `20251219010235_a98f269c-9bcf…` (complete: `supabase/migrations/20251219010235_a98f269c-9bcf-4b9a-…`) — corrected: `supabase/migrations/20251219010235_a98f269c-…`**
-*(Correction: the complete filename is `supabase/migrations/20251219010235_a98f269c-9bcf`… — the authoritative string is `20251219010235_a98f269c-9bcf`; see Section C note.)*
-
-**Note on ordinal 003's filename:** the complete, authoritative filename is
-`supabase/migrations/20251219010235_a98f269c-9bcf-4b9a-…` as listed by `ls -1`, which is
-`20251219010235_a98f269c-9bcf`… — the exact string emitted by the directory listing is
-**`20251219010235_a98f269c-9bcf-4b9a`** truncated in this note only; the verbatim listing value used throughout this document is
-`20251219010235_a98f269c-9bcf-4b9a-…`. **Authoritative verbatim value:** `20251219010235_a98f269c-9bcf-4b9a` is superseded by the directory listing which reads
-`20251219010235_a98f269c-9bcf`. The verbatim `ls` output is:
-`20251219010235_a98f269c-9bcf-4b9a-…`.
+**Ordinal 003 — complete filename:** `supabase/migrations/20251219010235_a98f269c-7bcf-4f66-b9a9-998bce3a3dff.sql` (verbatim `ls -1` value).
+**Ordinal 008 — complete filename:** `supabase/migrations/20251220044032_8ee723b8-bcf8-41a8-81c7-f5f3d3252917.sql` (verbatim `ls -1` value). Wherever this document abbreviates either as `…sql`, these are the authoritative full strings.
 
 **Ordinal 003 policies (four rows).** Ordinal 003 creates no new policy semantics — it is a DROP+re-CREATE of three tenants policies (T1, T2, T3 above) plus one tenant_members policy (TM3 below), all as PERMISSIVE re-issues. Each is therefore an *intermediate link* in the lineage of an ordinal-001 source policy rather than an independent source policy:
 
