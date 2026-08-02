@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-REGISTRY
 title: Dayli Horse — Central Roadmap Registry
-version: 1.0.1
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-07-31
+last-verified: 2026-08-03
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.0.1 — RM-DH-003 / Phase 2 — Final Closure Persistence: the `RM-DH-003` Current position cell is synchronized to `Phase 2 closed — next Phase not owner-approved`. The `RM-DH-003` Status remains `Active`; RM-DH-003 itself is not closed. No column was added, no new Roadmap or Phase was created, and the `RM-DH-001` and `RM-DH-002` rows are unchanged.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.0.1 — RM-DH-003 / Phase 2 — Final Closure Persistence: the `RM-DH-003` Current position cell is synchronized to `Phase 2 closed — next Phase not owner-approved`. The `RM-DH-003` Status remains `Active`; RM-DH-003 itself is not closed. No column was added, no new Roadmap or Phase was created, and the `RM-DH-001` and `RM-DH-002` rows are unchanged.; v1.1.0 — RM-DH-004 / Phase 0 — Governance Persistence, executed 2026-08-03T02:52:00+03:00 (Asia/Riyadh — UTC+03:00) under Decision DEC-RM-DH-004-001 and execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02: registers exactly one new Roadmap row for `RM-DH-004` — Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap, status ACTIVE — PHASE 0, current position Phase 0 with current Workstream WS-DH-2026-0003. The eight-column schema is unchanged, no column was added, and the `RM-DH-001`, `RM-DH-002` and `RM-DH-003` rows are byte-identical. No Acceptance and no Closure are recorded for RM-DH-004.
 source-sha256: n/a
 -->
 
