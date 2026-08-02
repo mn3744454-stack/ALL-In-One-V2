@@ -1,337 +1,407 @@
-# PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-REMAINING-CRITICAL-EVIDENCE-COMPLETION-INVESTIGATIVE-AUDIT-03
+# PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04
 
-Mode: Plan/Chat — Read-Only. Operation: Remaining Critical Evidence Completion Investigative Audit.
-Lineage: Shared Tenant Operational Finance + Historical Migration. Local Prompt Number: 03 (now proven submitted and run).
+Mode: Plan/Chat — Read-Only. Local Prompt Number: 04 (now proven submitted and run).
 
 ---
 
 ## A. Executive Verdict
 
-**OWNER ALIGNMENT BLOCKED — CRITICAL EVIDENCE GAPS REMAIN**
+**OWNER ALIGNMENT BLOCKED — SPECIFIC EVIDENCE GAPS REMAIN**
 
-Prompt 03 closed the single most important gap and **overturned one prior conclusion**:
+Blocked for exactly two reasons, both named honestly below:
 
-- **Corrected (F-4):** the 25 payment-credit rows with NULL `effective_date` are **not** dependent on `invoice.issue_date`. Every one of them (25/25) carries a `payment_session_id`, and `payment_sessions.payment_date` is `date NOT NULL` — a proven, source-specific economic date. `payment_date` disagrees with `invoice.issue_date` on **11 of 25** rows, so the Prompt 02 candidate would have mis-dated 44% of payment credits.
-- **New fact:** live invoice status census contains **zero** rows with status `issued`, although POS still writes it. OA-02 changes shape.
-- **New fact:** `pos_sales` has RLS enabled with **zero policies** (fail-closed) while `ledger_entries` / `customer_balances` remain directly client-writable under `finance.invoice.edit`.
+1. **WP2 (complete 322-row migration coverage ledger) was not produced.** A per-file ledger with 20+ evidence columns for 322 files is ~10,000 populated cells requiring 322 file reads plus per-object live comparison. It cannot be produced truthfully in one run and I will not emit a fabricated or sampled ledger labelled "complete". Section E states the exact coverage achieved (0/322 file-level rows; object-level live inventory complete).
+2. **WP3.1 source evidence is absent.** No historical financial source file, sample, or specification exists anywhere in the repository or the database. Import Mode selection (Full History vs Opening Obligation) is source-dependent and therefore cannot be resolved.
 
-Gates still unmet: full repository-vs-live drift comparison across 322 migrations (WP3), the complete per-item 15-row C1 attribution matrix with resolved bridge values (WP10 partial), and full downstream consumer trace for every export surface (WP9 partial). These are Prompt 04 work.
+Everything else asked for is answered, and three findings materially change the picture:
+
+- **There is no historical-import landing model at all.** Zero import batch / source row / provenance / quarantine / opening-obligation / unapplied-credit objects exist. Historical import today would have to masquerade as operational invoices — the single largest import risk on the platform.
+- **Platform SaaS Billing collision: NONE.** `payment_intents` has **0 rows**, `payment_splits` has **0 rows**, and all **9** `payment_accounts` are `owner_type='tenant'`. No platform-owned account, no platform money, no shared ledger. The Owner-approved separation is currently intact by fact, not just by intent.
+- **Lab-credit side-effect risk is currently zero-state, not zero-design.** `lab_credit_wallets` = **0 rows**, `lab_credit_transactions` = **0 rows**. The consuming writer exists and is unsafe (client-side, non-atomic), but nothing can be consumed today.
 
 ---
 
 ## B. Prompt Identity and Lineage Integrity
 
-- Prompt 01: submitted, run, consumed. Prompt 02: submitted, run, consumed. Prompt 02 Continuation A: recovery only, no number consumed.
-- Prompt 03: next eligible local number; this run consumes it.
-- Branch `edit/edt-3e2a7549-de79-4c86-8e31-0c52bb1fa7c1`; HEAD before `31a101fe`; working tree clean at run start.
-- `.lovable/plan.md` **is git-tracked** and is rewritten by the platform on plan runs. Its change in this run is platform-generated planning output, not implementation.
+Prompts 01, 02, 02-Continuation-A (no number consumed), 03: consumed. Prompt 04: this run consumes it. No identity collision.
+Branch `edit/edt-f9494b37-5fb3-4930-b426-c912cb1b5e28`; HEAD before **`f2ccf973`**; working tree **clean** before the run.
 
 ---
 
-## C. Evidence Sources and Coverage
+## C. Read-Only Compliance and Evidence Coverage
 
-Live database (catalog + bounded SELECT): `pg_proc`, `pg_policy`, `pg_class.relacl`, `information_schema.columns`, `ledger_entries`, `invoices`, `invoice_items`, `customer_balances`, `payment_sessions`.
-Repository: `src/hooks/pos/usePOSCore.ts`, `src/lib/finance/*`, `src/hooks/finance/*`, `docs/aml_1_b_1/**` preflight artefacts.
-Not covered this run: 322 migration files diffed against live definitions; PDF/CSV export bodies re-verified.
+Inspected: `supabase/migrations/` (directory listing and count only, not per-file contents), `src/hooks/laboratory/useLabCredits.ts`, `src/hooks/clients/useClientStatement.ts`, `src/hooks/clients/useClientFirstActivity.ts`, `src/hooks/pos/usePOSCore.ts`, `src/hooks/finance/*`, `src/lib/finance/*`, `src/integrations/supabase/types.ts`, and the schema artefacts `invoices.schema.txt`, `invoice_items.schema.txt`, `customer_balances.schema.txt`.
+Live: bounded aggregate SELECTs over the 15 finance tables, `invoice_items` joined to `lab_horses`, plus catalog reads (`pg_class.relacl`, `pg_policy`, `pg_proc`) carried forward from Prompt 03 and spot-reverified.
+Not inspected: 322 migration file bodies; export component bodies; storage objects; cron/extensions.
+Writes: zero. DDL/DML/RPC-mutations/migrations/backfills/cleanup/deploy: zero. `.lovable/plan.md` is rewritten by the platform as a planning artefact — disclosed, not an intended repository write.
 
 ---
 
-## D. Verified Facts / Prior Claims / Inferences / Gaps / Contradictions
+## D. Verified Facts / Reverified / Overturned / Inferences / Gaps
 
 | ID | Class | Statement |
 |---|---|---|
-| VF-1 | Verified Fact | `ledger_entries`: 88 rows total, 28 with NULL `effective_date`. Unchanged from Prompt 02. |
-| VF-2 | Verified Fact | NULL-date composition: 25 `payment`/`invoice`, 2 `adjustment`/`invoice`, 1 `adjustment`/`invoice_cancellation`. |
-| VF-3 | Verified Fact | All 25 payment rows have a non-null `payment_session_id`; all sessions are `status='posted'` with non-null `payment_date`. |
-| VF-4 | Verified Fact | `payment_date <> invoice.issue_date` on 11/25 rows; `payment_date <> created_at(Riyadh)` on 4/25. |
-| VF-5 | Verified Fact | `relacl` grants `arwdDxtm` (ALL) to **anon and authenticated** on `ledger_entries`, `customer_balances`, `invoices`, `payment_sessions`. RLS is the only gate. |
-| VF-6 | Verified Fact | `ledger_entries` INSERT policy = `has_permission(..., 'finance.invoice.edit')`; no UPDATE/DELETE policy (fail-closed). `customer_balances` has INSERT/UPDATE/DELETE all under `finance.invoice.edit`. |
-| VF-7 | Verified Fact | `pos_sales`: RLS enabled, **0 policies**, and `relacl` grants nothing to anon/authenticated — reachable only via `service_role`/SECURITY DEFINER RPC. |
-| VF-8 | Verified Fact | `get_client_first_financial_activity` is SECURITY DEFINER, checks auth + tenant membership + `clients.statement.view`, excludes draft/cancelled invoice references and `invoice_cancellation` adjustments — but still anchors on `MIN(le.created_at)`. |
-| VF-9 | Verified Fact | Live invoice status census: approved 20 / paid 18 / draft 16 / cancelled 4 / partial 3 / shared 3 / overdue 1. **`issued` = 0 rows.** |
-| VF-10 | Verified Fact | C1 reproduces exactly: 12 invoices, 6 drafts @ 3,234.50, 6 posted debits @ 3,330.00, 9 credits @ −560.00, balance 2,770.00, 15 items, 7 NULL-date credits. |
-| VF-11 | Verified Fact | POS writes four sequential client-side operations with no transaction and no idempotency key (`usePOSCore.ts` L96–170). |
-| PC-1 | Prior Claim — **overturned** | "All NULL rows deterministically backfillable from `invoice.issue_date`." False for payment credits. |
-| PC-2 | Prior Claim — refined | "`issued` may be lifecycle drift." No live row carries it; POS sales in production either failed or predate. Needs Prompt 04 confirmation of POS live residue. |
-| CI-1 | Current Inference | The three adjustment rows are void/reversal events whose economic date is the void event date, evidenced by descriptions ("Phase 6 Reconciliation: Voided duplicate…", "Void \| Invoice …") and `invoices.updated_at` matching `created_at` day. Not yet Owner-confirmed as policy. |
-| EG-1 | Evidence Gap | Migration-vs-live drift not performed. |
-| EG-2 | Evidence Gap | Per-item C1 attribution values (horse_id/lab_horse_id/linked_horse_id per row) not extracted. |
-| CX-1 | Contradiction | Canonical RPCs exist for every mutation, yet legacy direct-write paths (`postLedgerForInvoice.ts`, `usePOSCore.ts`) remain wired and permitted by RLS. "Single source of truth" claims from earlier phases are contradicted by current code. |
+| VF-01 | Verified Fact | Migration count is **exactly 322**. First `20251217045741_3c096c3e…sql`, last `20260727015047_f4c8b4e1…sql`. No drift in the number. |
+| VF-02 | Verified Fact | **No import infrastructure exists.** Repo-wide search for `import_batch`, `opening_balance`, `opening_obligation`, `unapplied`, `historical_import` matches only i18n strings and two unrelated UI components. No such table exists in the live schema. |
+| VF-03 | Verified Fact | Live finance row counts: invoices **65** (4 tenants), invoice_items **148**, ledger_entries **88**, customer_balances **8**, payment_sessions **29**, payment_allocations **38**, payment_horse_allocations **15**, expenses **3**, billing_links **18**, **pos_sales 0**, **lab_credit_wallets 0**, **lab_credit_transactions 0**. |
+| VF-04 | Verified Fact | `payment_accounts` = **9 rows, all `owner_type='tenant'`**; `payment_intents` = **0 rows**; `payment_splits` = **0 rows**. |
+| VF-05 | Verified Fact | Invoice status census: approved 20, paid 18, draft 16, cancelled 4, partial 3, shared 3, overdue 1. **`issued` = 0** although the CHECK constraint permits it (and also permits `sent`, which no code writes). |
+| VF-06 | Verified Fact | Item attribution census (148): `horse_id` **102**, `lab_horse_id` **9**, neither **37**. |
+| VF-07 | Verified Fact | Ledger composition: invoice 47, payment 38, adjustment 3. |
+| RC-01 | Reverified | ledger_entries **88 total / 28 NULL `effective_date`**, of which **25 carry `payment_session_id`**. Prompt 03 numbers hold exactly; no new NULLs created. |
+| RC-02 | Reverified | `invoices_status_check` accepts `draft, reviewed, approved, shared, paid, partial, overdue, cancelled, issued, sent` — ten values; frontend `Invoice` type in `src/hooks/finance/useInvoices.ts:12` lists nine (omits `sent`). |
+| RC-03 | Reverified | `useClientStatement.ts:52` orders and filters on **`created_at`**, and `:101` maps `date: e.created_at`. The statement read path does not use `effective_date` at all. This is a **new** and more serious framing than Prompt 03's first-activity-only finding. |
+| OC-01 | **Overturned** | Prompt 03 implied lab-credit consumption during import was a live risk. With **0 wallets and 0 transactions**, no credit can be consumed today. The risk is design-forward only. |
+| OC-02 | **Overturned** | Prompt 02/03 treated the platform-billing bridge as "identity reference, needs proof". Proven stronger: there is not even a platform-owned payment account. **NO_COLLISION**. |
+| CI-01 | Current Inference | The 16 draft invoices and the 10,000 SAR adjustment are Demo artefacts consistent with Owner classification. Not provable as Demo from data alone — no provenance column exists (see Q). |
+| EG-01 | Evidence Gap | 322-file migration ledger not produced (see A). |
+| EG-02 | Evidence Gap | No historical source file or specification exists to inspect. |
+| EG-03 | Evidence Gap | Export component bodies (PDF/CSV) not re-read this run. |
+| CX-01 | Contradiction | `effective_date` exists, is backfilled for 60/88 rows, and is used by RPC writers — yet **no read consumer uses it**. The column is written-but-unread; the statement and first-activity both run on `created_at`. |
 
 ---
 
-## E. Tenant Operational Finance vs Platform SaaS Finance Boundary
+## E. Complete Migration Coverage Summary
 
-Domain A objects (`invoices`, `invoice_items`, `ledger_entries`, `customer_balances`, `payment_sessions/allocations/horse_allocations`, `expenses`, `supplier_payables`, `billing_links`, `pos_*`, `financial_entries`) are all tenant-scoped by `tenant_id`.
-Domain B objects (`payment_intents`, `payment_accounts`, `payment_splits`) are platform-owned with `owner_type` platform/tenant. **One shared touchpoint:** `payment_sessions.payment_account_id` references `payment_accounts`, and `_finance_provision_tenant_payment_account` provisions tenant accounts. This is an identity reference only — no SaaS money flows into `ledger_entries`. Separation holds; no collision.
+Actual file count: **322** (VF-01). Coverage achieved this run:
+- File-level ledger rows produced: **0 / 322 (0%)**.
+- Live-object inventory coverage of finance-relevant objects: **complete** (all 15 tables, all policies, all grants, all finance functions).
+- Directional comparison performed: **live → expected only**. Repository → live was not performed.
 
----
+Honest consequence: **no drift status may be asserted** for any migration in this run. Prompt 03's `EG-1` stands unresolved. This gap alone keeps the verdict at BLOCKED.
 
-## F. Complete Live Finance Object Inventory (condensed)
-
-All 13 core tables: RLS **enabled**. Policy counts — invoices 4, invoice_items 4, ledger_entries 3, customer_balances 4, expenses 4, financial_entries 4, supplier_payables 4, billing_links 2, pos_sessions 3, payment_sessions 1, payment_allocations 1, payment_horse_allocations 1, **pos_sales 0**.
-
-Functions inspected (33 finance-relevant): all mutating RPCs are `SECURITY DEFINER` with `search_path=""`, and all take `p_tenant_id` + `p_idempotency_key`: `create_invoice_with_items`, `update_invoice_with_items`, `delete_draft_invoice`, `approve_invoice`, `cancel_invoice`, `post_payment`, `post_invoice_payments`, `post_payment_session`, `post_manual_ledger_adjustment`, `post_expense_with_ledger`, `create_expense`, `update_expense`, `delete_expense`, `reverse_expense`, `record_salary_payment`, `create_pos_sale`, `create_source_checkout_invoice`. Private helpers `_finance_ledger_insert`, `_finance_invoice_approve_inline`, `_finance_invoice_number_next`, `_finance_idempotency_*` are DEFINER and not granted to `authenticated`.
-Read RPCs: `get_payment_session` (DEFINER), `get_client_first_financial_activity` (DEFINER, `search_path=public,pg_temp`).
-
-Source-of-truth classification: `invoices`/`invoice_items`/`payment_sessions` = source; `ledger_entries` = derived posting record; `customer_balances` = fully derived (recomputed by `_finance_ledger_insert`).
+Feasibility note for the next run: a truthful ledger needs to be batched — roughly 30–40 migrations per report part, 8–11 parts, with normalized definition hashes compared per object rather than per file. That is the correct shape for Prompt 05.
 
 ---
 
-## G. Repository Migration vs Live DB Drift — **GAP**
+## F. Complete Migration Coverage Ledger
 
-Not performed. 322 migration files exist under `supabase/migrations`; no file-to-live comparison was run for function bodies, policies, constraints, enums or grants. This is a blocking gate and the first Prompt 04 workpackage. Known suspicious drift signal: `docs/aml_1_b_1/stage_j5_1/preflight/12_baseline.txt` references a column `pretax_amount_snapshot` that the live query rejected as non-existent.
-
----
-
-## H. Complete Financial Write-Authority Matrix
-
-| Operation | Caller | Backend entry | Txn | Idem | Permission | Ledger | Balance | Risk |
-|---|---|---|---|---|---|---|---|---|
-| Invoice create | InvoiceFormDialog | `create_invoice_with_items` | Yes | Yes | invoice.create | none | none | Low |
-| Invoice update | InvoiceFormDialog | `update_invoice_with_items` | Yes | Yes | invoice.edit | none | none | Low |
-| Approve | approveInvoice.ts | `approve_invoice` | Yes | Yes | invoice.approve | insert | recompute | Low |
-| Cancel | InvoiceDetailsSheet | `cancel_invoice` | Yes | Yes | invoice.cancel | insert | recompute | Low |
-| Payment | RecordPaymentDialog | `post_payment_session` | Yes | Yes | payment.create | insert | recompute | Low |
-| Manual adjustment | — | `post_manual_ledger_adjustment` | Yes | Yes | adjustment.create | insert | recompute | **No UI caller found** |
-| **Ledger insert (legacy)** | `postLedgerForInvoice.ts` | direct client INSERT | **No** | **No** | invoice.edit | insert | client-side upsert | **HIGH** |
-| **POS sale** | `usePOSCore.ts` | 4 direct client ops | **No** | **No** | invoice.create/edit | conditional | conditional | **HIGH** |
-| Balance mutate | any client with invoice.edit | direct INSERT/UPDATE/DELETE | No | No | invoice.edit | — | arbitrary | **HIGH** |
-
-Answers: (1) yes, a browser client can insert ledger rows; (2) yes, it can insert/update/delete balances; (3) yes — `finance.invoice.edit` authorizes derived-finance mutation; (4) `finance.ledger.view` and `finance.adjustment.create` exist in `permission_definitions` but no UI/RPC caller was found for `adjustment.create`; (5) yes, canonical approval can be bypassed by direct writes; (6) yes — POS and `postLedgerForInvoice` can leave ledger and balance divergent on partial failure; (7) canonical path is the RPC set in the table above; (8) CX-1 records the contradiction.
-
-Minimum scoped recommendation (not platform-wide redesign): revoke `INSERT/UPDATE/DELETE` on `ledger_entries` and `customer_balances` from `anon`/`authenticated`, drop the three mutating policies, and route POS through the existing `create_pos_sale` RPC. No new permission architecture required.
+**NOT PRODUCED — see E.** No partial ledger is emitted, because a partial ledger presented under a "complete" heading would itself be a truth defect.
 
 ---
 
-## I. Current Scoped Permission / RLS / Workflow / Audit / Notification Map
+## G. Repository-to-Live Drift Register
 
-draft → approved (`approve_invoice`, posts debit) → shared → partial/paid (payment sessions) → cancelled (`cancel_invoice`, posts reversal adjustment). POS bypasses this and writes `issued` directly.
-Audit: `finance_request_idempotency` records operation/actor/hash/response for RPC paths only; direct client writes leave **no audit record**. Notifications: none on finance events. Classification — audit for direct writes is *directly required by current financial safety*; finance notifications are *deferred enhancement*.
-
----
-
-## J. Full C1 Reconciliation
-
-Fingerprint recovered unchanged (VF-10). Equations:
-
-- Posted invoices 3,330.00 = ledger debits 3,330.00 ✔
-- Payments received 560.00 = ledger credits 560.00 ✔
-- Ledger net 3,330.00 − 560.00 = 2,770.00 = `customer_balances.balance` ✔
-- Drafts 3,234.50 excluded from posted balance ✔ (correct, but invisible on statement — OA-01)
-- Allocated vs payment total: **not proven** — `payment_allocations` rows for C1 not enumerated this run.
-- Applied + unapplied: no unapplied-advance or customer-credit object exists in schema (see K), so unapplied ≡ 0 by construction, not by control.
-- Horse-attributed + unattributed vs scoped total: **gap** (EG-2).
-
-Not fully reconciled: layers 8, 9, 10, 11, 13, 14.
+**UNVERIFIABLE_WITH_CURRENT_ACCESS** for all 322 files. One standing drift signal carried forward and re-confirmed as unresolved: `docs/aml_1_b_1/stage_j5_1/preflight/12_baseline.txt` references `pretax_amount_snapshot`, a column the live `invoice_items` schema does not contain (`invoice_items.schema.txt` lines 4–33). Classification: **UNVERIFIED**, likely `REPOSITORY_MISSING` or superseded-doc residue. Impact class if confirmed: SMALL_BOUNDED_CORRECTION.
 
 ---
 
-## K. Payment / Allocation / Credit / Opening Obligation Contract
+## H. Current Finance Object and Writer Inventory
 
-| Concept | Exists | Object | Writer | Economic date | Level |
-|---|---|---|---|---|---|
-| Payment receipt | Yes | `payment_sessions` | `post_payment_session` | `payment_date` (NOT NULL) | client |
-| Invoice allocation | Yes | `payment_allocations` | same RPC | inherits session | invoice |
-| Horse allocation | Yes | `payment_horse_allocations` | same RPC | inherits session | horse |
-| Split tender | Yes | multiple allocation rows per session | same | inherits | invoice |
-| Unapplied advance | **No** | — | — | — | — |
-| Customer credit | **No** | — | — | — | — |
-| Refund / reversal | Partial | `adjustment` ledger rows only | manual | none stored | client |
-| Opening balance / obligation | **No** | — | — | — | — |
-| Historical invoice/payment import | **No** | no `import_batches` or provenance column found | — | — | — |
+Source-of-truth classification (unchanged and reverified):
+- **Source**: `invoices`, `invoice_items`, `payment_sessions`, `payment_allocations`, `payment_horse_allocations`, `expenses`.
+- **Derived posting record**: `ledger_entries`.
+- **Fully derived**: `customer_balances` (recomputed inside `_finance_ledger_insert`).
+- **Link/trace**: `billing_links`, `finance_request_idempotency`.
+- **Dormant**: `pos_sales` (0 rows, RLS on, 0 policies, no anon/authenticated grant — fail-closed), `payment_intents`/`payment_splits` (0 rows), `lab_credit_*` (0 rows).
 
-Absence proven by absence from `information_schema.columns` / table list, not inferred from naming. Consequence: historical migration currently has **no landing object**; any import today would masquerade as operational invoices. Lab-credit consumption risk (imported lab invoice consuming a live `lab_credit_wallet`) is real because `useLabCredits.ts` writes wallets directly.
+Canonical writers (all SECURITY DEFINER, `search_path=''`, tenant-checked, idempotency-keyed): `create_invoice_with_items`, `update_invoice_with_items`, `delete_draft_invoice`, `approve_invoice`, `cancel_invoice`, `post_payment_session`, `post_payment`, `post_invoice_payments`, `post_manual_ledger_adjustment`, `post_expense_with_ledger`, `create_pos_sale`, `create_source_checkout_invoice`.
+Legacy direct-write paths still wired: `src/lib/finance/postLedgerForInvoice.ts`, `src/hooks/pos/usePOSCore.ts` (POS_DEFERRED), `src/hooks/finance/useLedger.ts:104-150` (`createEntry` inserts `ledger_entries` and upserts `customer_balances` client-side, computing `balance_after` in the browser).
 
 ---
 
-## L. Row-by-Row NULL `effective_date` Classification
+## I. Historical Financial Import Contract
 
-Count re-queried: **28** — unchanged from Prompt 02; no new NULL rows created since.
+**Current platform capability: NONE.** There is no safe landing model (VF-02). Operational invoices are not a safe import object: they trigger `_invoice_items_fill_snapshots` and `_invoice_items_validate_source` on insert, they carry no provenance, they participate in live numbering via `_finance_invoice_number_next`, and once approved they post to the live ledger — an import that mis-fires cannot be distinguished from operational truth afterwards.
 
-Classification by proven source:
+**Source Intake Contract** (required before any real import, since EG-02 blocks source analysis):
+Per file — filename, SHA-256, row count, encoding, tenant, source system name/version, statement period start/end, currency, decimal + thousands separator, digit form (Latin/Arabic-Indic), date format and timezone assumption, declared control totals (invoice total, payment total, closing balance).
+Per row — source invoice number, source payment number, source line identity, customer identifier and/or name, horse identifier and/or name, issue date, due date, payment date, gross/net/VAT/discount, status, allocation target, notes. Any field absent must be declared absent, not defaulted.
 
-| Class | Rows | Source | Rule |
+**Import modes** (all three required; C is Owner-mandated):
+- **A. Full Historical Transaction Import** — only where headers, lines, dates, payments and allocations are all present.
+- **B. Opening Obligation** — a first-class object, never a synthetic invoice. Must carry cutover date and must be mutually exclusive with Mode A over the same period for the same customer.
+- **C. Unapplied Opening Customer Credit** — a first-class credit object. Never a negative invoice, never a forced allocation, never silently netted. If an unallocated amount is proven but not safely representable, quarantine it.
+
+**Recommended control objects** (all new; none exist): `import_batches`, `import_source_files`, `import_source_rows` (raw immutable payload + normalized projection), `import_row_results`, `import_quarantine`, plus provenance columns (`import_batch_id`, `source_system`, `source_document_number`, `imported_at`) on every landed financial object, and two new financial objects `opening_obligations` and `customer_credits`.
+Alternative considered and rejected: reusing `finance_request_idempotency` as the batch registry — it is TTL-expiring (`expires_at`) and purged by `_finance_idempotency_purge_expired`, so it cannot hold permanent provenance.
+
+**Idempotency**: file-level = SHA-256 of raw bytes, unique per tenant (defeats re-upload; a corrected file with the same filename gets a different hash and is correctly treated as new); row-level = deterministic fingerprint over (tenant, source_system, document_type, source_document_number, economic_date, amount, customer_key) — unique per tenant, which is what makes duplicate invoice numbers across different tenants safe and duplicate numbers across different customers within one tenant detectable rather than silently merged. Retry resumes on unlanded rows only. Concurrency guarded by an advisory lock on (tenant, batch), reusing the existing `_finance_advisory_lock_key` pattern.
+
+**Atomicity — recommendation: staged validation, then per-document commit inside one batch transaction envelope.** Whole-batch atomicity fails a 5,000-row file on one bad row; per-row atomicity can land an invoice header without its lines. Per-document (invoice + its items + its allocations as one unit) is the only boundary that matches the accounting object. Valid documents land, invalid documents quarantine with their raw payload preserved, and the batch is only marked `reconciled` when the equations in T balance.
+
+---
+
+## J. Schema Capability and Gap Matrix
+
+| Capability | Exists | Object | Gap |
 |---|---|---|---|
-| DETERMINISTIC_SOURCE_DATE | **25** | `payment_sessions.payment_date` via `payment_session_id` | Payment credit takes the session payment date, never `invoice.issue_date`. |
-| POLICY_DEPENDENT | **3** | 2 void adjustments (2026-04-03) + 1 `invoice_cancellation` (2026-03-28) | Candidate = void event date. Requires Owner rule: does a void take the void date or the original invoice date? |
+| Invoice header/lines | Yes | `invoices`, `invoice_items` | No provenance; insert triggers fire |
+| Payment receipt | Yes | `payment_sessions` (`payment_date` NOT NULL) | No provenance |
+| Invoice allocation | Yes | `payment_allocations` | — |
+| Horse allocation | Yes | `payment_horse_allocations` | — |
+| Economic date | Partial | `ledger_entries.effective_date` | Nullable; 28 NULL; **no read consumer** |
+| Split tender | Partial | multiple tender rows per session | Needs verification per WP5 definition |
+| Unapplied credit | **No** | — | New object required |
+| Opening obligation | **No** | — | New object required |
+| Import batch/source/quarantine/provenance | **No** | — | Entire layer required |
+| Idempotency (permanent) | **No** | `finance_request_idempotency` is TTL | New durable registry required |
+| Cutover date | **No** | — | Required |
+
+---
+
+## K. Effective-Date and Chronology Contract
+
+Reverified: 88 total, **28 NULL**, **25 with `payment_session_id`** (RC-01).
+
+Classification (unchanged in shape, re-proven in count):
+
+| Class | Rows | Proven source | Rule |
+|---|---|---|---|
+| DETERMINISTIC_SOURCE_DATE | **25** | `payment_sessions.payment_date` (date NOT NULL) | Payment credit takes the session payment date. Never `invoice.issue_date` — they disagreed on 11/25. |
+| OWNER_POLICY_REQUIRED | **3** | 2 void adjustments + 1 `invoice_cancellation` | Candidate = void event date; needs OA-01. |
 | UNRESOLVED_QUARANTINE | 0 | — | — |
 
-Representative rows (Riyadh-local):
+Required date semantics going forward — keep six fields strictly distinct: `effective_date` (economic), `created_at` (platform write), `imported_at`, source document date, source payment date, cutover date. Operational invoice → `issue_date`; imported invoice → source document date; payment → `payment_date`; allocation → inherits its session; unapplied credit → source receipt date; opening obligation → cutover date; cancellation/void → per OA-01; manual adjustment → explicit, never defaulted.
 
-| # | Ledger id (prefix) | Type | Amount | created (Riyadh) | invoice.issue_date | session payment_date | Candidate | Class |
+**Correction order (WP4.4), and it matters:** (1) classify and repair the 28 legacy rows; (2) **make the statement read path consume `effective_date`** — currently it does not (RC-03), so repairing dates today changes nothing a user can see; (3) enforce NOT NULL on new writes; (4) change `get_client_first_financial_activity` from `MIN(created_at)`; (5) add the supporting index; (6) re-verify export parity. Doing (4) before (1) would regress. A blanket `COALESCE(effective_date, created_at)` is rejected — it permanently hides unrepaired rows.
+
+---
+
+## L. Payment / Allocation / Credit / Opening Obligation Contract
+
+Terminology corrected per WP5: one 1,000 SAR bank transfer split across Invoice A 600 / Invoice B 400 is **one payment with two invoice allocations**, not Split Tender. Split Tender requires multiple tender components (cash 400 + card 600) under one settlement. Prompt 03 used the term loosely; that usage is withdrawn.
+
+Supported today: payment receipt, invoice allocation, horse allocation, one-payment-to-many-invoices (38 allocations across 29 sessions proves it is exercised), partial payment. All flow through `post_payment_session` — transactional, idempotent, tenant-checked, permission-gated, ledger-posting, balance-recomputing.
+Unsupported today: overpayment as a durable object, unapplied credit, refund as a first-class object (only a manual `adjustment` ledger row, with no stored reason code), reversal provenance, opening obligation, imported payment, imported credit.
+
+---
+
+## M. Finance-Specific Write-Authority Matrix
+
+Direct answers:
+
+1. **Can `anon` write financial truth?** Table grants say yes (`relacl` grants ALL to `anon` on `invoices`, `ledger_entries`, `customer_balances`, `payment_sessions`); RLS says no (every policy resolves `auth.uid()` through `has_permission`/`is_tenant_member`, which fails for anon). Net: **blocked by RLS only** — grants are broader than policies (answer to Q5: **yes**).
+2. **Can `authenticated` write `ledger_entries` directly?** **Yes** — INSERT policy is `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit')`. No UPDATE/DELETE policy, so those are fail-closed.
+3. **Can `authenticated` insert/update/delete `customer_balances` directly?** **Yes, all three** (`customer_balances.schema.txt` lines 18–24). This is the single worst finance authority defect: the derived balance is directly writable.
+4. **Can a `finance.invoice.edit` holder bypass canonical logic?** **Yes** — `useLedger.ts:104-150` does exactly that in shipped code, computing `balance_after` in the browser.
+5. **Grants broader than RLS?** Yes (see 1).
+6. **Unsafe SECURITY DEFINER functions?** None found. All finance definers pin `search_path=''`, take `p_tenant_id`, and the private `_finance_*` helpers are not granted to `authenticated`.
+7. **Can import be safely invoked from the browser?** **No.** File hashing, batch atomicity, quarantine and provenance must be server-side.
+8. **Required import boundary:** an edge function (service-role) performing validation + staging, with per-document commits through new SECURITY DEFINER RPCs. The browser uploads and polls; it never writes financial rows.
+9. **Writers to migrate before direct DML can be revoked:** `useLedger.ts` `createEntry`, `postLedgerForInvoice.ts`, and `usePOSCore.ts` (POS_DEFERRED — so POS must be disabled or exempted rather than migrated).
+10. **Safest ordering:** prove the canonical replacement for each legacy writer → cut the caller over → verify no remaining direct-write call sites → then revoke grants and drop the three mutating policies. Never revoke first.
+
+No platform-wide permission redesign is proposed. Scope stays on two tables.
+
+---
+
+## N. Draft Invoice Disclosure Contract
+
+Current state, proven: `useClientStatement.ts` reads **only** `ledger_entries`. Draft invoices never post to the ledger, so draft value is **entirely invisible** — not partially visible, not incorrectly included. Posted Balance is therefore already correct; the gap is disclosure only.
+
+Target: `Posted Balance` / `Draft Invoices [count]` / `Draft Value [amount]` / disclosure line stating draft value is excluded.
+
+Calculation contract — a separate query against `invoices`, never merged into the ledger stream:
+
+| Status | Posted Balance | Draft Disclosure |
+|---|---|---|
+| draft | exclude | **include** |
+| reviewed | exclude | include (as unposted) |
+| approved, shared, partial, paid, overdue | include | exclude |
+| cancelled | exclude | exclude |
+| issued, sent | exclude | POS_DEFERRED / unused |
+
+Date rule: filter drafts on `issue_date` within the selected range (the ledger stream has no row to filter on). Horse-filter rule: when a horse filter is active, disclose only drafts having at least one item for that horse, and label client-level lines rather than attributing them. Parity: computed once in the hook, consumed identically by screen/print/PDF/CSV.
+Bilingual: EN "Draft invoices (not included in balance)" / AR "فواتير مسودة (غير مدرجة في الرصيد)". Mobile-first: a single disclosure row beneath the balance, not a fourth KPI card.
+**Bounded read-path correction — no schema change.** Likely files in a later Execution stage: `src/hooks/clients/useClientStatement.ts`, `src/components/clients/ClientStatementTab.tsx`, the statement PDF/CSV builders, `src/i18n/locales/{en,ar}.ts`.
+Not coupled to POS status. Does **not** block Horse Attribution.
+
+---
+
+## O. Non-POS Horse Identity and Attribution — C1 Item-Level Matrix
+
+15 items, complete:
+
+| # | Invoice | Status | Description | Amount | horse_id | lab_horse_id | entity_type | linked_horse_id | Resolved identity | Current key | Expected key |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | INV-9916 | draft | تجربة | 30.00 | — | — | — | — | none | client-level | client-level |
+| 2 | INV-9919 | draft | متابعة حمل | 1,500.00 | — | c99e7d4e | — | **12a9c7da** | horse 12a9c7da | **unresolved** | horse 12a9c7da |
+| 3 | INV-9920 | paid | تجربة | 230.00 | — | c99e7d4e | — | **12a9c7da** | horse 12a9c7da | **unresolved** | horse 12a9c7da |
+| 4 | INV-9923 | approved | متابعة حمل | 1,500.00 | — | e43d03ef | — | **8e5cbcbd** | horse 8e5cbcbd | **unresolved** | horse 8e5cbcbd |
+| 5 | INV-9923 | approved | تطعيمات | 1,200.00 | — | e43d03ef | — | **8e5cbcbd** | horse 8e5cbcbd | **unresolved** | horse 8e5cbcbd |
+| 6 | INV-LAB-…MY4D | approved | Basic Urine Analysis | 80.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
+| 7 | INV-LAB-…MY4D | approved | CBC | 25.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
+| 8 | INV-LAB-…JF7R | paid | Basic Urine Analysis | 80.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
+| 9 | INV-LAB-…JF7R | paid | CBC | 150.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
+| 10–15 | الم-202607-* | approved/draft ×5 | مبلغ الفاتورة / tr | 50–100 each | — | — | — | — | none | client-level | client-level |
+
+**Decisive finding: not one of the 15 C1 items carries `horse_id`.** Four resolve only through `lab_horses.linked_horse_id` — a bridge the read path ignores — and four more resolve only indirectly through `entity_id → lab_samples`. So C1's horse-scoped statement view can attribute **0.00 of 4,995.00** correctly today, while 4,430.00 is in fact horse-attributable. This confirms and sharpens Prompt 02's F-7/F-8 from "plausible" to **proven for C1**.
+
+Cross-tenant census (148 items): `horse_id` **102** (69%), `lab_horse_id` **9** (6%), neither **37** (25%). The `invoice_items_horse_source_exclusive_chk` constraint guarantees the two are never both set, so a single normalized resolution — `COALESCE(horse_id, lab_horses.linked_horse_id)` — is structurally safe. C1 is therefore an unusually bad case, not the platform norm.
+
+Import mapping rules: source horse **ID** → verify same tenant, else quarantine (never cross-tenant). Source horse **name only** → exact normalized match within tenant; one match maps, zero or multiple matches quarantine. Lab horse with `linked_horse_id` → map to the linked operational horse. Intentionally customer-level rows → land unattributed and labelled, never guessed.
+
+---
+
+## P. Lab-Credit Side-Effect Analysis
+
+Consumer proven: `src/hooks/laboratory/useLabCredits.ts:189` `debitCredits(sampleId, samplesCount)` — client-side, inserts a `lab_credit_transactions` row with `txn_type:'debit'` then separately updates `lab_samples.debit_txn_id` (:225-228). **Non-atomic, non-idempotent, browser-driven.** Refund path at :272-275 clears `debit_txn_id`. Gate `is_lab_credits_enabled(_tenant_id)`.
+Lifecycle point: sample creation, not result approval — so importing a historical **result** cannot consume a credit. Importing a historical **sample or lab invoice** could only consume one if it were routed through this hook, which a server-side import would not be.
+**Live risk today: zero** (0 wallets, 0 transactions — OC-01).
+Required guard regardless: import must never call `debitCredits`; landed lab rows must carry `import_batch_id`; the future server-side sample writer must skip credit debit when provenance is present. Proof test: assert wallet balance and transaction count unchanged before/after a lab-history import (test IM-22 below).
+
+---
+
+## Q. Demo Data Census and Cleanup Alternatives
+
+Census (all classifications are **UNCERTAIN by construction** — no provenance column exists on any finance table, so no row can be *proven* Demo from data alone; the Owner classification is the only evidence):
+
+| Object | Rows | Classification | Dependency |
+|---|---|---|---|
+| invoices | 65 (4 tenants) | LIKELY_DEMO | parents of items, ledger, billing_links |
+| invoice_items | 148 | DERIVED_FROM_DEMO | CASCADE from invoices |
+| ledger_entries | 88 | DERIVED_FROM_DEMO | drives balances |
+| customer_balances | 8 | DERIVED_FROM_DEMO | fully recomputable |
+| payment_sessions / allocations / horse_allocations | 29 / 38 / 15 | DERIVED_FROM_DEMO | — |
+| expenses | 3 | LIKELY_DEMO | — |
+| billing_links | 18 | DERIVED_FROM_DEMO | ties to boarding/service events |
+| finance_request_idempotency | TTL rows | SYSTEM_SEED | self-purging |
+| pos_sales, lab_credit_* , payment_intents, payment_splits | 0 | n/a | nothing to clean |
+| horses / clients referenced | — | SHARED_DEPENDENCY | **must not be deleted** — operational records |
+| the 10,000 SAR adjustment | 1 | **OWNED_TEST_CASE** | Owner-classified early Demo test. **Not fraud, not a real debt, not a security incident.** |
+
+Alternatives: (1) tenant-level clean reset — cleanest, but destroys the boarding/service history the billing_links point at; (2) relationship-ordered selective deletion — feasible because CASCADE already covers items, but leaves orphaned billing_links unless ordered correctly; (3) cancellation/compensation preserving audit — safest for accounting integrity, worst for a clean import baseline; (4) snapshot-then-reset; (5) quarantine/archive; (6) reseed to a known Demo baseline.
+**Recommended: (4) then (2), staged** — export a full snapshot of the 15 finance tables first (recoverability), then delete in dependency order strictly within the identified Demo tenants, never touching `horses`, `clients`, or non-finance operational tables. Prerequisite: Owner confirms the exact tenant set. Rollback = restore from the snapshot. **Not executed.**
+
+---
+
+## R. Platform SaaS Billing Collision Check
+
+| Touchpoint | Evidence | Classification |
+|---|---|---|
+| `payment_accounts` | 9 rows, **all `owner_type='tenant'`**; zero platform-owned | **NO_COLLISION** |
+| `payment_intents` | **0 rows** | **NO_COLLISION** |
+| `payment_splits` | **0 rows** | **NO_COLLISION** |
+| `payment_sessions.payment_account_id → payment_accounts` | FK to a tenant-owned account only | **IDENTITY_REFERENCE_ONLY** |
+| `_finance_provision_tenant_payment_account` | provisions tenant accounts only | **CONFIGURATION_SHARED** |
+| Shared ledger / balance | none — no platform row posts to `ledger_entries` | **NO_COLLISION** |
+| Subscription / plan / entitlement / store-purchase objects | do not exist | n/a |
+
+**No collision exists. Work Package 11 stops here**, per the Prompt's own instruction. Minimum boundary to preserve when Platform SaaS Billing is eventually built: platform revenue must never post to `ledger_entries`; tenant customer payments must never satisfy a Dayli Horse subscription; platform refunds must never reverse tenant invoices; platform reporting must consume platform billing truth, not tenant operational ledger truth. Nothing about the platform-owner Dashboard is designed here.
+
+---
+
+## S. Account-Type Applicability Matrix
+
+Live `tenant_type` enum reverified — **10 values**: stable, clinic, lab, academy, pharmacy, transport, auction, horse_owner, trainer, doctor. The three planned types (farrier, rider, jockey) are **not** in the live enum and cannot be evidenced from current code.
+
+| Type | Live | Op-finance exposure | Invoice | Payment | Horse attribution | Import relevance | Lab credit | Import risk |
 |---|---|---|---|---|---|---|---|---|
-| 1 | aac917e5 | payment | −150.00 | 2026-02-05 | 2026-02-01 | 2026-02-05 | 2026-02-05 | DETERMINISTIC |
-| 2 | 432b5a3f | payment | −10.00 | 2026-02-05 | 2026-02-01 | 2026-02-05 | 2026-02-05 | DETERMINISTIC |
-| 3 | 938b39ea | payment | −120.00 | 2026-02-06 | 2026-02-05 | 2026-02-05 | 2026-02-05 | DETERMINISTIC (differs from created_at) |
-| 7 | 449d1078 | payment | −120.00 | 2026-02-06 | 2026-01-31 | 2026-02-06 | 2026-02-06 | DETERMINISTIC (issue_date wrong by 6 days) |
-| 20 | 774175c3 | payment | −700.00 | 2026-05-10 | 2026-05-10 | 2026-05-09 | 2026-05-09 | DETERMINISTIC (differs from both created_at and issue_date) |
-| 23 | 46104539 | payment | −80.00 | 2026-07-18 | 2026-03-03 | 2026-07-18 | 2026-07-18 | DETERMINISTIC (issue_date wrong by 137 days) |
-| 26 | b3e6f31e | adjustment | −10,000.00 | 2026-04-03 | 2026-03-14 | — | 2026-04-03 (void date) | POLICY_DEPENDENT |
-| 27 | 92c69b2c | adjustment | −5,750.00 | 2026-04-03 | 2026-03-28 | — | 2026-04-03 | POLICY_DEPENDENT |
-| 28 | b2dabb21 | adjustment | −1,725.00 | 2026-03-28 | 2026-03-28 | — | 2026-03-28 | POLICY_DEPENDENT |
+| stable | yes | high | RPC + legacy | yes | high | **high** | no | horse mapping |
+| clinic | yes | high | RPC | yes | high | high | no | horse mapping |
+| lab | yes | high | RPC (lab draft) | yes | via bridge | **high** | **yes** | bridge + credit guard |
+| academy | yes | medium | RPC | yes | low | medium | no | client-level |
+| pharmacy | yes | medium | legacy POS | yes | low | low (POS_DEFERRED) | no | POS deferred |
+| transport | yes | medium | RPC | yes | medium | medium | no | horse mapping |
+| auction | yes | low | RPC | yes | high | low | no | horse mapping |
+| horse_owner | yes | payer side | none | n/a | high | high | no | statement truth |
+| trainer | yes | medium | RPC | yes | high | medium | no | horse mapping |
+| doctor | yes | medium | separate doctor services | yes | medium | medium | no | catalog mismatch |
+| farrier / rider / jockey | **no** | — | — | — | — | — | — | future only |
 
-Full 28-row extract is reproducible from the two queries recorded in Y. **No migration authored, no backfill executed.** Dry-run package = `UPDATE … SET effective_date = ps.payment_date` for the 25, held pending Owner rule for the 3.
-
----
-
-## M. First-Financial-Activity and Chronology
-
-Live body confirmed (VF-8). Still `MIN(created_at)`. Impact: any row whose `effective_date` precedes its `created_at` is mis-anchored. C1's earliest posted row is an invoice debit whose `effective_date` is populated, so C1's anchor is currently stable; but rows 20 and 23 above prove `created_at` and the true economic date diverge by up to 137 days elsewhere. Quantified per-client counts across all tenants were **not** computed this run — partial gap. Grants/permission on the function are safe (`clients.statement.view` enforced). Presentation trace: screen/print/PDF/CSV all consume one prepared date field from `useClientStatement`, so the defect is upstream and export components must not be patched.
+The import contract is schema-uniform (everything is `tenant_id`-scoped) but **not writer-uniform** — lab and doctor have distinct catalogs, so per-type source mapping is required.
 
 ---
 
-## N. C1 Horse-Attribution Matrix — **PARTIAL GAP**
+## T. Reconciliation Contract
 
-Confirmed: 15 invoice items for C1. Per-item `horse_id` / `lab_horse_id` / `entity_type` / `linked_horse_id` values were not extracted this run, so the required 15-row matrix cannot be presented honestly. F-7 (lab bridge unused in read path) and F-8 (grouping-key inconsistency: bare horse id vs composed `domain_horseId`) remain **unverified-but-plausible** leads from Prompt 02, not facts. Prompt 04 must produce this matrix and the cross-tenant census before OA-03 is decided.
+Mandatory equations at file, batch, customer, invoice, payment, allocation, horse, tenant, ledger, balance and statement level:
 
----
+```text
+source invoice value = imported + quarantined + rejected
+source payments      = allocated + unapplied credit + refunded/reversed + quarantined
+posted debits - posted credits = ledger net movement
+ledger net movement  = derived customer balance
+horse-attributed + intentionally client-level + quarantined = applicable scoped value
+draft/unposted value stays outside Posted Balance
+imported lab history -> live lab-credit delta = 0
+opening obligation and full-history invoices never both cover the same period
+```
 
-## O. POS End-to-End Forensic Trace
-
-Sequence confirmed verbatim at `src/hooks/pos/usePOSCore.ts` L96–170: (1) `count` invoices for session index; (2) direct `invoices` insert with `status: "issued"`; (3) direct `invoice_items` insert with `entity_type: "pos_sale"`, `entity_id: pos_session_id`, no horse field; (4) `postLedgerForInvoice` only when `client_id` present. No transaction, no idempotency key, no retry guard. Meanwhile `create_pos_sale(p_tenant_id, p_idempotency_key, p_payload)` **exists** as a DEFINER RPC and `pos_sales` carries `cart_hash` + `sale_number` — an idempotency substrate that the UI does not use.
-
-Failure matrix:
-
-| Failure point | Durable rows | Missing | User sees | Retry | Duplicate risk | Recovery |
-|---|---|---|---|---|---|---|
-| After invoice insert | invoice header | items, ledger | error toast | new header | **Yes** | manual delete |
-| After items insert | header+items | ledger | error toast | full duplicate sale | **Yes** | manual ledger post |
-| Ledger insert fails | header+items | ledger+balance | "failed" but sale exists | duplicate | **Yes** | manual |
-| Double tap | 2 full sales | — | success ×2 | — | **Yes** | manual void |
-
-Status `issued`: accepted by live schema (no CHECK rejects it — the column is free text) but **0 live rows** carry it, and it is consumed inconsistently — included in `useEligibleClientInvoices`, housing FINANCIALLY_ACTIVE lists and `CANCELLABLE_STATUSES`, absent from the canonical RPC vocabulary. It has no defined transition out.
+Conventions: NUMERIC(12,2) throughout (matches live columns); debits positive, credits negative (matches `ledger_entries`); currency defaults to the tenant currency, and any source row in another currency quarantines rather than converting; VAT recomputed from source gross/net and quarantined on mismatch beyond 0.01; **tolerance 0.00 at batch level** — any residual, however small, is reported as an unexplained difference and never rounded to zero.
 
 ---
 
-## P. Screen / Print / PDF / CSV Parity
+## U. Import-Specific Test and Acceptance Matrix (proposed; **none executed**)
 
-Single upstream prepared model shared by all surfaces; parity therefore holds *by construction* for both dates and amounts, which means the chronology defect is propagated identically rather than surfacing as a mismatch. Full re-enumeration of every export consumer was not repeated this run (Prompt 02 reported five functions); treat as carried-forward claim, not re-verified fact.
+IM-01 same file twice → second batch rejected on file hash, zero new rows. IM-02 repeated row in one file → one landed, one flagged duplicate. IM-03 same transaction across overlapping files → row fingerprint blocks the second. IM-04 partial batch failure → valid documents landed, invalid quarantined with raw payload, batch = `partially_reconciled`. IM-05 invalid customer mapping → quarantine. IM-06 ambiguous horse name → quarantine, never guessed. IM-07 cross-tenant horse ID → rejected. IM-08 historical invoice earlier than current first activity → first-activity anchor moves. IM-09 payment date ≠ issue date → ledger stores payment date. IM-10 one payment to many invoices → one session, N allocations, no Split Tender labelling. IM-11 true Split Tender (cash+card) → one settlement, multiple tender components. IM-12 unapplied credit → credit object created, not netted. IM-13 opening obligation → obligation object, no synthetic invoice. IM-14 opening credit → credit object at cutover. IM-15 obligation overlapping imported invoices → overlap detected and blocked. IM-16 imported cancelled invoice → lands cancelled, no ledger debit. IM-17 void date rule → per OA-01. IM-18 invalid VAT/rounding → quarantine, no silent correction. IM-19 negative/zero values → explicit rule, no silent skip. IM-20 imported draft → lands unposted. IM-21 imported draft disclosure → excluded from Posted Balance, shown in disclosure. **IM-22 imported lab invoice → wallet balance and transaction count unchanged.** IM-23 browser direct financial write → rejected in target state. IM-24 retry after timeout → resumes, no duplicates. IM-25 concurrent imports → advisory lock serializes. IM-26 corrected file, same filename → new hash, treated as new batch, prior batch superseded not silently merged. IM-27 screen/print/PDF/CSV parity. IM-28 client-level item under horse filter → labelled, not attributed. IM-29 multi-horse invoice under one-horse filter → only that horse's lines. IM-30 unresolved row quarantined with raw provenance intact.
 
----
-
-## Q. 13-Account-Type Applicability
-
-| # | Type | Status | In live enum | Op-finance exposure | Invoice writer | POS | Horse attribution | Migration relevance | Findings |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | stable | existing | yes | high | RPC + legacy | yes | high | high | all |
-| 2 | clinic | existing | yes | high | RPC | yes | high | high | all |
-| 3 | lab | existing | yes | high | RPC (lab draft) | no | via lab_horses bridge | high | F-7,F-8 |
-| 4 | academy | existing | yes | medium | RPC | yes | low | medium | F-1..F-6 |
-| 5 | pharmacy | existing | yes | medium | legacy POS | yes | low | medium | F-10..F-12 |
-| 6 | transport | existing | yes | medium | RPC | no | medium | medium | F-1..F-9 |
-| 7 | auction | existing | yes | low | RPC | no | high | low | F-7,F-8 |
-| 8 | horse_owner | existing | yes | payer side | none | no | high | high | F-3,F-5,F-9 |
-| 9 | trainer | existing | yes | medium | RPC | no | high | medium | F-1..F-9 |
-| 10 | doctor | existing | yes | medium | separate doctor services | no | medium | medium | doctor billing mismatch |
-| 11 | farrier | planned | **no** | n/a | n/a | n/a | n/a | n/a | future only |
-| 12 | rider | planned | **no** | n/a | n/a | n/a | n/a | n/a | future only |
-| 13 | jockey | planned | **no** | n/a | n/a | n/a | n/a | n/a | future only |
-
-Schema is uniformly `tenant_id`-scoped, so **schema applicability is universal**, but writer/UI exposure is not — POS exposure is real only for stable/clinic/academy/pharmacy.
+Mapped from Prompt 03: NT-19→IM-09, NT-21→IM-08, NT-24→IM-28, NT-25→IM-29, NT-32→IM-27, NT-33→IM-22. POS tests NT-28/29/30/31 → **POS_DEFERRED**, not expanded.
 
 ---
 
-## R. Narrow Remediation Alternatives (summary)
+## V. Proposed Staged Remediation Sequence (recommendation only)
 
-1. **Derived-finance write authority** — (a) revoke table DML + drop mutating policies (recommended: smallest, reversible, no new architecture); (b) keep policies but tighten permission key (insufficient — same bypass); (c) full permission redesign (out of scope).
-2. **Canonical mutations** — route remaining legacy writers to existing RPCs; no new RPC needed.
-3. **POS** — adopt existing `create_pos_sale` with `cart_hash` idempotency (recommended) vs write a new RPC (unnecessary duplication).
-4. **Effective-date semantics** — make `effective_date NOT NULL` with source-specific derivation (payment→`payment_date`, invoice→`issue_date`, void→void date).
-5. **Legacy NULL recovery** — deterministic update for 25, Owner rule for 3; dry-run first.
-6. **First-activity** — change anchor to `MIN(COALESCE(effective_date, created_at::date))` only *after* step 5, else it regresses.
-7. **Horse attribution** — read-path bridge through `lab_horses.linked_horse_id` + one normalized grouping key; no Canonical Horse File needed.
-8. **Draft disclosure** — OA-01.
-9. **POS lifecycle status** — OA-02.
-10. **POS horse attribution** — OA-03.
+1. **Complete the 322-migration comparison** — clears EG-01. Blocks import: **yes** (unknown drift could invalidate any import design). Read-only.
+2. **Finance write-authority containment** — cut over `useLedger.ts` and `postLedgerForInvoice.ts` to canonical RPCs, then revoke DML and drop the three mutating policies on `ledger_entries`/`customer_balances`. Blocks import: **yes**. Rollback: re-grant.
+3. **Legacy economic-date classification and repair** — 25 deterministic + 3 policy-dependent. Blocks import: yes (reconciliation depends on it).
+4. **Statement read path onto `effective_date`** — resolves CX-01. Blocks import: yes.
+5. **NOT NULL enforcement on new economic dates** — after 3 and 4.
+6. **First-activity anchor correction** — after 5.
+7. **Draft disclosure** — Small Bounded Correction, read-path only. Blocks import: **no**; can run in parallel.
+8. **Horse-identity read-path normalization** (`COALESCE(horse_id, linked_horse_id)` + one grouping key). Blocks import: yes for horse-scoped reconciliation.
+9. **Demo census sign-off and snapshot-then-reset** — after Owner approves the tenant set.
+10. **Import control layer** — batches, source files, source rows, quarantine, provenance columns.
+11. **New financial objects** — `opening_obligations`, `customer_credits`.
+12. **Server-side import edge function + per-document RPCs**, then dry-run, then reconciliation gate.
 
----
-
-## S. Proposed 12-Stage Remediation Blueprint (PROPOSED ONLY — NOT OWNER-APPROVED)
-
-1. **Authority containment** — revoke DML grants + drop mutating policies on `ledger_entries`/`customer_balances`. Gate: none. Rollback: re-grant.
-2. **Legacy writer cutover** — retire `postLedgerForInvoice` direct writes.
-3. **POS canonical RPC + idempotency** — adopt `create_pos_sale`/`cart_hash`.
-4. **POS lifecycle status correction** — depends on OA-02.
-5. **Effective-date semantics** — derivation rules in every writer.
-6. **Historical dry-run repair** — 25 deterministic rows; report-only first.
-7. **Void/adjustment date policy application** — 3 rows; depends on Owner rule.
-8. **First-activity correction** — anchor swap + index support.
-9. **Horse-attribution read-path correction** — bridge + key normalization (needs WP10 matrix).
-10. **Payment/credit/opening-obligation coherence** — introduce unapplied-advance and opening-obligation objects.
-11. **Cross-account regression + migration rehearsal.**
-12. **Acceptance and release evidence.**
-
-Sequenced by risk/dependency. No stage approved, started, executed, accepted or closed.
+POS: deferred throughout. Platform permission redesign: deferred. Platform SaaS Billing: separate future Workstream. No stage is approved, started, accepted, or closed.
 
 ---
 
-## T. 33 Future Negative Tests (newly generated by Prompt 03 — not recovered)
+## W. Owner Alignment Decision Package
 
-Isolation: **NT-01** cross-tenant ledger read denied; **NT-02** cross-tenant invoice update denied; **NT-03** cross-tenant payment session read denied.
-Direct writes: **NT-04** direct `ledger_entries` INSERT by `finance.invoice.edit` holder rejected; **NT-05** direct `customer_balances` UPDATE rejected; **NT-06** direct `customer_balances` DELETE rejected; **NT-07** anon INSERT on any finance table rejected.
-Atomicity: **NT-08** invoice create with one bad item leaves zero rows; **NT-09** approval with zero items rejected; **NT-10** approval with mismatched totals rejected.
-Idempotency: **NT-11** duplicate idempotency key returns first response, no second ledger row; **NT-12** concurrent approvals produce one debit.
-Payments: **NT-13** allocation sum ≠ session total rejected; **NT-14** allocation to another tenant's invoice rejected; **NT-15** over-allocation beyond invoice balance rejected; **NT-16** unapplied advance stored as advance, not silently allocated.
-Opening obligations: **NT-17** opening obligation cannot be created without provenance batch; **NT-18** opening obligation not double-counted with an imported invoice.
-Chronology: **NT-19** payment credit stores `payment_date`, never `issue_date`; **NT-20** NULL `effective_date` insert rejected after stage 5; **NT-21 (named #1)** backdated invoice earlier than the current first-movement anchor moves the anchor correctly.
-Cancellation/adjustment: **NT-22** void posts a reversal with the void date; **NT-23** manual adjustment without explicit effective date rejected.
-Attribution: **NT-24 (named #2)** client-level invoice under a horse filter is excluded/labelled, never mis-attributed; **NT-25 (named #3)** multi-horse invoice under a one-horse filter shows only that horse's lines; **NT-26** `lab_horse_id` resolves through `linked_horse_id` to the canonical horse; **NT-27** grouping-key normalization does not merge two distinct horses.
-POS: **NT-28 (named #5)** invoice header created while item creation fails leaves no durable header; **NT-29** duplicate tap creates exactly one sale; **NT-30** POS status outside the approved vocabulary rejected; **NT-31** POS sale with optional horse attribution stores it on items.
-Parity & import: **NT-32** screen/print/PDF/CSV report identical dates and totals; **NT-33 (named #4)** imported lab invoice does not consume a live lab credit.
+**OA-01 Void / reversal economic date.** Affects 3 legacy rows and every future cancellation. Example: a Stable voids a 5,750 SAR boarding invoice on 03-04 that was issued 28-03. Options: (a) void date — the statement shows the correction when it happened, matching most accounting practice; (b) original date — the period reprints clean but history silently changes; (c) differentiated (operational cancellation → void date; historical correction → original date). **Recommend (c)**, defaulting to void date. Postponing leaves 3 rows unrepairable and blocks stage 3.
 
-Each test carries actor/account-type, expected durable state, expected ledger and balance effect, statement/export effect, audit evidence, owning Skill (04/05/06/08/19/25) and remediation stage per section S.
+**OA-02 Full History vs Opening Obligation when source detail is incomplete.** Example: an old system exports only "Client X owes 12,400 SAR at 31-12-2025". Options: (a) always Opening Obligation when line detail is absent — recommended; (b) synthesize one summary invoice — rejected, creates fake operational truth; (c) per-customer Owner choice. Blocks stage 11.
 
----
+**OA-03 Unexplained source differences.** Options: (a) zero tolerance, quarantine the batch — recommended; (b) tolerance band; (c) post a balancing adjustment. Blocks the reconciliation gate.
 
-## U. Owner Alignment Decision Package
+**OA-04 Demo cleanup strategy and audit preservation.** Snapshot-then-reset (recommended) vs cancellation-preserving. Needs the exact Demo tenant set. Blocks stage 9.
 
-**OA-01 Draft disclosure.** C1: posted 2,770.00, 6 drafts worth 3,234.50 invisible. Options: (a) non-balance advisory line with count and value — recommended, reversible, no schema change; (b) count-only badge; (c) no disclosure. Drafts must never enter the posted balance. Blocks only stage 9.
+**OA-05 Cutover date and overlap policy.** What date separates history from operations, and what happens to a source row after it. Blocks stages 10–12.
 
-**OA-02 POS status.** New evidence: zero live rows use `issued`, yet six frontend consumers reference it. Options: (a) retire `issued` and use the canonical approved/paid lifecycle — now low-risk given zero live rows; (b) formalize `issued` with a defined transition and add it to the RPC vocabulary; (c) leave as-is (not recommended — undefined lifecycle). Blocks stage 4 only.
+**OA-06 Imported draft invoices.** Remain `draft`, or land in a distinct historical-unposted state? Recommend a distinct state so imported drafts are never edited as if operational. Blocks stage 10.
 
-**OA-03 POS horse attribution.** Options: (a) permanently client-level; (b) optional sale-level horse; (c) item-level horse. Item-level matches statement grouping and needs no schema change (`invoice_items.horse_id` exists) but adds till friction. Decision blocked behind the WP10 matrix; blocks stage 9 only.
+**OA-07 May imported history ever consume migrated lab credits?** Recommend **never** without an explicit source-evidenced rule. Blocks the IM-22 gate.
 
-**OA-04 (new) Void economic date.** Does a void/reversal post at the void date or the original invoice date? Affects 3 legacy rows and all future cancellations. Blocks stage 7.
+Not asked of the Owner: anything the evidence already settles (platform-billing collision, draft visibility, write authority, C1 attribution).
 
 ---
 
-## V. Consolidated Findings, Contradictions, Risks, Deferred
+## X. Risks, Counterarguments, Dependencies, Deferred Register
 
-Blocking: unrestricted client DML on derived finance (F-1), POS non-atomicity (F-10), missing drift analysis (EG-1), missing attribution matrix (EG-2).
-Resolved this run: F-4 (corrected), F-6 (7 C1 credits confirmed), F-11 (reframed by zero live `issued` rows).
-Deferred / outside scope: platform-wide permission architecture, notification/SLA architecture, Canonical Horse File, doctor-billing catalog mismatch, SaaS billing.
-
----
-
-## W. Twelve Skill Verdicts
-
-01 Launch Controller — **not-launch-ready**, read-only audit cannot confer readiness.
-04 Tenant Isolation — **conditionally-safe**: all policies tenant-scoped; no cross-tenant leak found; `pos_sales` fail-closed.
-05 RLS Policy Safety — **rls-policy-unsafe** (Tier 1 block): Level 1 permissive mutating policies on the derived-finance tables `ledger_entries`/`customer_balances` under `finance.invoice.edit`; `pos_sales` Level 0 (fail-closed, so contained but undocumented).
-06 API/RPC Hardening — **conditionally-safe**: canonical RPCs are DEFINER, tenant-checked, idempotent; legacy client writers bypass them.
-07 TS/React — **unsafe for POS path** (`usePOSCore.ts` multi-step non-transactional mutation).
-08 Schema/Migration — **blocked**: drift analysis absent; `effective_date` nullable.
-16 Customer Management — conditionally safe; no unapplied-advance object.
-19 Billing/SaaS Finance — Domain A/B separation **verified**; Domain B out of scope.
-22 Internal Permissions — narrow finding only: `finance.adjustment.create` defined but unwired; no platform redesign proposed.
-23 Performance/Reliability — `_finance_ledger_insert` rewrites the whole client ledger per insert (O(n) per payment); acceptable at 88 rows, a scaling risk later.
-25 QA/Release — **blocked**: 33 negative tests are proposed, none executed.
-26 Skill Network Governance — no Skill artifact read, modified, or renamed.
+IMPORT_BLOCKING: EG-01 unresolved drift; absent import layer; direct DML on derived finance; NULL economic dates; statement reading `created_at`.
+SHARED_FINANCE_COLLISION: none proven.
+SMALL_BOUNDED_CORRECTION: draft disclosure; horse-identity read normalization; `pretax_amount_snapshot` doc residue; `sent` status in CHECK but absent from the TS union.
+POS_DEFERRED: POS atomicity, POS `issued` status, POS horse attribution.
+PLATFORM_PERMISSION_DEFERRED: platform-wide permission redesign.
+PLATFORM_SAAS_BILLING_SEPARATE: entire domain.
+Counterargument worth recording: with only 88 ledger rows and 65 invoices, one could argue for wiping everything and starting clean rather than repairing 28 dates. That is genuinely defensible — but it does not remove the need for the import layer, the write-authority fix, or the drift comparison, and it destroys the only real-shaped test data available. Recommended path keeps the repair.
 
 ---
 
-## X. Workstream and Roadmap Impact
+## Y. Workstream Persistence
 
-Workstream: NOT ASSIGNED — Owner approval required. Nothing persisted, no changelog, no Acceptance, no Closure. Proposed relationship to RM-DH-002 only; no Phase declared, no Roadmap file touched.
+No Workstream ID assigned. No Workstream file created or modified. No Acceptance. No Closure.
+
+## Z. Roadmap Impact
+
+Relationship to RM-DH-002 proposed only. No Phase, Track, priority, advancement, or closure approved. No Roadmap file created or modified.
 
 ---
 
-## Y. Run Metadata and Exact Stopping Point
+## AA. Run Metadata and Exact Stopping Point
 
-Mode Plan/Chat read-only. Prompt 03 now proven submitted, run and consumed. Prepared 02-08-2026 03:42 Asia/Riyadh; run 02-08-2026 ~10:27 Asia/Riyadh (UTC+03).
-Branch `edit/edt-3e2a7549-…`; HEAD before `31a101fe`; working tree clean before. Repository writes: none intended. Platform-generated path: `.lovable/plan.md` (plan artefact only). Database writes: none. DDL/DML: none. Mutating RPC calls: none. Knowledge/Skills/settings changes: none.
-Read-only SQL executed: ledger NULL census; NULL rows joined to invoices; NULL rows joined to `payment_sessions`; adjustment-row detail; finance function catalog; RLS policy dump; `relacl` dump; invoice status census; C1 fingerprint aggregate; `payment_*`/`pos_*` column introspection.
-Evidence unavailable: migration-vs-live drift, per-item C1 attribution values, per-client chronology counts, export-consumer re-enumeration.
-Final verdict: **OWNER ALIGNMENT BLOCKED — CRITICAL EVIDENCE GAPS REMAIN**.
-Last completed subsection: Y. Stopping point: investigation only — no implementation, no migration, no backfill, no data repair, no permission redesign, no persistence, no Acceptance, no Closure, no Owner decision recorded, Prompt 04 not prepared or consumed. Stop for ChatGPT review of the complete Prompt 03 report.
+Mode: Plan/Chat — Read-Only. Operation: Historical Import Contract + Drift Audit. Prompt ID: `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04`. Status: submitted, run, **consumed**.
+Prompt Preparation: 02-08-2026 12:02 Asia/Riyadh (from the Prompt). Run Start: 02-08-2026 ~12:14 Asia/Riyadh (UTC 09:14, from the message timestamp). Run End / Final Report: 02-08-2026 ~12:20 Asia/Riyadh. Timezone UTC+03. Evidence for times: message send timestamp; per-call wall clock not recorded — **exact time not recorded** for Run End.
+Branch `edit/edt-f9494b37-5fb3-4930-b426-c912cb1b5e28`. HEAD before **f2ccf973**; HEAD after **f2ccf973** (unchanged). Working tree clean before; after, only the platform-generated `.lovable/plan.md`.
+Repository paths inspected: `supabase/migrations/` (listing), `src/hooks/laboratory/useLabCredits.ts`, `src/hooks/clients/useClientStatement.ts`, `src/hooks/clients/useClientFirstActivity.ts`, `src/hooks/finance/*`, `src/hooks/pos/usePOSCore.ts`, `src/lib/finance/*`, `src/integrations/supabase/types.ts`, `*.schema.txt`.
+Database objects inspected: `public` schema — 15 finance tables, `invoice_items ⋈ lab_horses`, `payment_accounts`, `payment_intents`, `payment_splits`, `lab_credit_*`, `pos_sales`, plus `pg_class`, `pg_policy`, `pg_proc`.
+Read-only queries by purpose: finance row-count census; NULL `effective_date` reverification; C1 item-level attribution join; status/attribution/ledger-type/payment-account census.
+Intended repository writes 0. Actual repository writes 0 (except the disclosed `.lovable/plan.md`). Database writes 0. DDL 0. DML 0. Mutating RPCs 0. Migrations 0. Backfills 0. Cleanup 0. Deployment 0. Project Knowledge 0. Skill changes 0. Settings 0. Roadmap persistence 0. Workstream persistence 0. Acceptance none. Closure none.
+Last fully completed Work Package: **WP15** (all except WP2, which is explicitly incomplete). Report continuation point: **WP2 / Section F — migration coverage ledger, row 1 of 322 not yet produced.**
+Unresolved evidence gaps: EG-01 (322-file ledger), EG-02 (no source files), EG-03 (export bodies).
+Stopping point: investigation only — no implementation, no migration, no backfill, no cleanup, no permission change, no persistence, no Acceptance, no Closure, Prompt 05 not prepared or consumed.
+Recommended next step and Mode: ChatGPT review of this report, then **Prompt 05 in Plan/Chat Read-Only** dedicated solely to the 322-migration coverage ledger, delivered in numbered report parts of 30–40 migrations each.
