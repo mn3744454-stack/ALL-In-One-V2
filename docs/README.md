@@ -159,8 +159,10 @@ Category-scope placeholder READMEs (files whose only content is folder-purpose/s
   - `RM-DH-001` — [README](./roadmaps/rm-dh-001-documentation-and-developer-handover/README.md) · [roadmap](./roadmaps/rm-dh-001-documentation-and-developer-handover/roadmap.md) · [decisions](./roadmaps/rm-dh-001-documentation-and-developer-handover/decisions.md) · [changelog](./roadmaps/rm-dh-001-documentation-and-developer-handover/changelog.md)
   - `RM-DH-002` — [README](./roadmaps/rm-dh-002-core-operations-and-expansion/README.md) · [roadmap](./roadmaps/rm-dh-002-core-operations-and-expansion/roadmap.md) · [decisions](./roadmaps/rm-dh-002-core-operations-and-expansion/decisions.md) · [changelog](./roadmaps/rm-dh-002-core-operations-and-expansion/changelog.md)
   - `RM-DH-003` — [README](./roadmaps/rm-dh-003-roadmap-and-workstream-governance/README.md) · [roadmap](./roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md) · [decisions](./roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md) · [changelog](./roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md)
+  - `RM-DH-004` — [README](./roadmaps/rm-dh-004-financial-truth-historical-data-migration/README.md) · [roadmap](./roadmaps/rm-dh-004-financial-truth-historical-data-migration/roadmap.md) · [decisions](./roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md) · [changelog](./roadmaps/rm-dh-004-financial-truth-historical-data-migration/changelog.md)
 - [`workstreams/README.md`](./workstreams/README.md) — central Workstream registry.
   - `WS-DH-2026-0002` — [workstream record](./workstreams/ws-dh-2026-0002-governance-foundation/workstream.md)
+  - `WS-DH-2026-0003` — [workstream record](./workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md)
 
 Stable Roadmap and Workstream rules live in [`CONVENTIONS.md`](./CONVENTIONS.md) §11. Dynamic state lives only in the files above.
 
