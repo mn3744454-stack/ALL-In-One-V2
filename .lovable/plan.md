@@ -353,6 +353,7 @@ A1-R1 contract-verification claim:             10/322 — not accepted pending c
 | Exact stopping point | All four table policy lineages complete. Ordinal-009 GRANT/ACL correction NOT performed. Ordinal-005 backfill narrowing NOT performed. Ordinals 011–020 NOT opened as independent coverage. No Prompt 05 preparation. |
 | Recommended next continuation identity | **Prompt 04 — Continuation A1-R1-C2** (ordinal 009 Grant/ACL evidence + ordinal 005 backfill-claim narrowing) — no new Prompt number consumed |
 
-**Filename note (full transparency):** the three source filenames are reproduced verbatim from `ls -1 supabase/migrations` as:
-`20251217045741_3c096c3e-fb65-4eb3-ac8c-bf0ef95977ee.sql`,
-`20251219010235_a98f269c-9bcf-4b9a-…` — the directory listing value is `20251219010235_a98f269c-9bcf`… **Authoritative listing values:** `20251219010235_a98f269c-9bcf-4b9a` could not be re-verified character-for-character in this run beyond the listing already captured in A1-R1, which reads `20251219010235_a98f269c-9bcf`. Use the A1-R1 Section C list as the authoritative filename register for ordinals 001–010; it was produced by direct `ls -1` output and contains the full UUIDs.
+**Filename note:** the three C1 source migrations, verbatim from `ls -1 supabase/migrations`, are
+`20251217045741_3c096c3e-fb65-4eb3-ac8c-bf0ef95977ee.sql` (ordinal 001),
+`20251219010235_a98f269c-7bcf-4f66-b9a9-998bce3a3dff.sql` (ordinal 003), and
+`20251220044032_8ee723b8-bcf8-41a8-81c7-f5f3d3252917.sql` (ordinal 008).
