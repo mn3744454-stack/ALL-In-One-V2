@@ -1,407 +1,292 @@
-# PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04
+# PROMPT 04 — CONTINUATION A1-R1
 
-Mode: Plan/Chat — Read-Only. Local Prompt Number: 04 (now proven submitted and run).
+## Batch 01 Verification Correction — Ordinals 001–010 Only
 
----
-
-## A. Executive Verdict
-
-**OWNER ALIGNMENT BLOCKED — SPECIFIC EVIDENCE GAPS REMAIN**
-
-Blocked for exactly two reasons, both named honestly below:
-
-1. **WP2 (complete 322-row migration coverage ledger) was not produced.** A per-file ledger with 20+ evidence columns for 322 files is ~10,000 populated cells requiring 322 file reads plus per-object live comparison. It cannot be produced truthfully in one run and I will not emit a fabricated or sampled ledger labelled "complete". Section E states the exact coverage achieved (0/322 file-level rows; object-level live inventory complete).
-2. **WP3.1 source evidence is absent.** No historical financial source file, sample, or specification exists anywhere in the repository or the database. Import Mode selection (Full History vs Opening Obligation) is source-dependent and therefore cannot be resolved.
-
-Everything else asked for is answered, and three findings materially change the picture:
-
-- **There is no historical-import landing model at all.** Zero import batch / source row / provenance / quarantine / opening-obligation / unapplied-credit objects exist. Historical import today would have to masquerade as operational invoices — the single largest import risk on the platform.
-- **Platform SaaS Billing collision: NONE.** `payment_intents` has **0 rows**, `payment_splits` has **0 rows**, and all **9** `payment_accounts` are `owner_type='tenant'`. No platform-owned account, no platform money, no shared ledger. The Owner-approved separation is currently intact by fact, not just by intent.
-- **Lab-credit side-effect risk is currently zero-state, not zero-design.** `lab_credit_wallets` = **0 rows**, `lab_credit_transactions` = **0 rows**. The consuming writer exists and is unsafe (client-side, non-atomic), but nothing can be consumed today.
+Mode: Plan/Chat — Read-Only. No repository writes other than this planning artifact. No database writes.
 
 ---
 
-## B. Prompt Identity and Lineage Integrity
+## A. Correction Verdict
 
-Prompts 01, 02, 02-Continuation-A (no number consumed), 03: consumed. Prompt 04: this run consumes it. No identity collision.
-Branch `edit/edt-f9494b37-5fb3-4930-b426-c912cb1b5e28`; HEAD before **`f2ccf973`**; working tree **clean** before the run.
+**A1-R1 COMPLETE — 10/10 CONTRACT-VERIFIED**
 
----
+All ten scoped migration bodies were read in full, hashed, traced through every later migration that touches their objects, resolved to a final repository-expected definition at HEAD, and compared against the live catalog using normalized definitions (`pg_get_functiondef`, `pg_policies` USING/WITH CHECK text, `pg_get_constraintdef`, `pg_get_triggerdef`, `pg_enum` ordering, `relacl`/`proacl`).
 
-## C. Read-Only Compliance and Evidence Coverage
-
-Inspected: `supabase/migrations/` (directory listing and count only, not per-file contents), `src/hooks/laboratory/useLabCredits.ts`, `src/hooks/clients/useClientStatement.ts`, `src/hooks/clients/useClientFirstActivity.ts`, `src/hooks/pos/usePOSCore.ts`, `src/hooks/finance/*`, `src/lib/finance/*`, `src/integrations/supabase/types.ts`, and the schema artefacts `invoices.schema.txt`, `invoice_items.schema.txt`, `customer_balances.schema.txt`.
-Live: bounded aggregate SELECTs over the 15 finance tables, `invoice_items` joined to `lab_horses`, plus catalog reads (`pg_class.relacl`, `pg_policy`, `pg_proc`) carried forward from Prompt 03 and spot-reverified.
-Not inspected: 322 migration file bodies; export component bodies; storage objects; cron/extensions.
-Writes: zero. DDL/DML/RPC-mutations/migrations/backfills/cleanup/deploy: zero. `.lovable/plan.md` is rewritten by the platform as a planning artefact — disclosed, not an intended repository write.
+One qualification stated up front, not buried: for ordinal 001 the `horses` table's *added-since* column surface (57 live columns vs 13 original) was compared only for the 13 originally created columns. Columns added by migrations 011–322 are out of A1-R1 scope and are neither claimed verified nor claimed drifted.
 
 ---
 
-## D. Verified Facts / Reverified / Overturned / Inferences / Gaps
+## B. Prior-Claim Correction Register
 
-| ID | Class | Statement |
-|---|---|---|
-| VF-01 | Verified Fact | Migration count is **exactly 322**. First `20251217045741_3c096c3e…sql`, last `20260727015047_f4c8b4e1…sql`. No drift in the number. |
-| VF-02 | Verified Fact | **No import infrastructure exists.** Repo-wide search for `import_batch`, `opening_balance`, `opening_obligation`, `unapplied`, `historical_import` matches only i18n strings and two unrelated UI components. No such table exists in the live schema. |
-| VF-03 | Verified Fact | Live finance row counts: invoices **65** (4 tenants), invoice_items **148**, ledger_entries **88**, customer_balances **8**, payment_sessions **29**, payment_allocations **38**, payment_horse_allocations **15**, expenses **3**, billing_links **18**, **pos_sales 0**, **lab_credit_wallets 0**, **lab_credit_transactions 0**. |
-| VF-04 | Verified Fact | `payment_accounts` = **9 rows, all `owner_type='tenant'`**; `payment_intents` = **0 rows**; `payment_splits` = **0 rows**. |
-| VF-05 | Verified Fact | Invoice status census: approved 20, paid 18, draft 16, cancelled 4, partial 3, shared 3, overdue 1. **`issued` = 0** although the CHECK constraint permits it (and also permits `sent`, which no code writes). |
-| VF-06 | Verified Fact | Item attribution census (148): `horse_id` **102**, `lab_horse_id` **9**, neither **37**. |
-| VF-07 | Verified Fact | Ledger composition: invoice 47, payment 38, adjustment 3. |
-| RC-01 | Reverified | ledger_entries **88 total / 28 NULL `effective_date`**, of which **25 carry `payment_session_id`**. Prompt 03 numbers hold exactly; no new NULLs created. |
-| RC-02 | Reverified | `invoices_status_check` accepts `draft, reviewed, approved, shared, paid, partial, overdue, cancelled, issued, sent` — ten values; frontend `Invoice` type in `src/hooks/finance/useInvoices.ts:12` lists nine (omits `sent`). |
-| RC-03 | Reverified | `useClientStatement.ts:52` orders and filters on **`created_at`**, and `:101` maps `date: e.created_at`. The statement read path does not use `effective_date` at all. This is a **new** and more serious framing than Prompt 03's first-activity-only finding. |
-| OC-01 | **Overturned** | Prompt 03 implied lab-credit consumption during import was a live risk. With **0 wallets and 0 transactions**, no credit can be consumed today. The risk is design-forward only. |
-| OC-02 | **Overturned** | Prompt 02/03 treated the platform-billing bridge as "identity reference, needs proof". Proven stronger: there is not even a platform-owned payment account. **NO_COLLISION**. |
-| CI-01 | Current Inference | The 16 draft invoices and the 10,000 SAR adjustment are Demo artefacts consistent with Owner classification. Not provable as Demo from data alone — no provenance column exists (see Q). |
-| EG-01 | Evidence Gap | 322-file migration ledger not produced (see A). |
-| EG-02 | Evidence Gap | No historical source file or specification exists to inspect. |
-| EG-03 | Evidence Gap | Export component bodies (PDF/CSV) not re-read this run. |
-| CX-01 | Contradiction | `effective_date` exists, is backfilled for 60/88 rows, and is used by RPC writers — yet **no read consumer uses it**. The column is written-but-unread; the statement and first-activity both run on `created_at`. |
-
----
-
-## E. Complete Migration Coverage Summary
-
-Actual file count: **322** (VF-01). Coverage achieved this run:
-- File-level ledger rows produced: **0 / 322 (0%)**.
-- Live-object inventory coverage of finance-relevant objects: **complete** (all 15 tables, all policies, all grants, all finance functions).
-- Directional comparison performed: **live → expected only**. Repository → live was not performed.
-
-Honest consequence: **no drift status may be asserted** for any migration in this run. Prompt 03's `EG-1` stands unresolved. This gap alone keeps the verdict at BLOCKED.
-
-Feasibility note for the next run: a truthful ledger needs to be batched — roughly 30–40 migrations per report part, 8–11 parts, with normalized definition hashes compared per object rather than per file. That is the correct shape for Prompt 05.
-
----
-
-## F. Complete Migration Coverage Ledger
-
-**NOT PRODUCED — see E.** No partial ledger is emitted, because a partial ledger presented under a "complete" heading would itself be a truth defect.
-
----
-
-## G. Repository-to-Live Drift Register
-
-**UNVERIFIABLE_WITH_CURRENT_ACCESS** for all 322 files. One standing drift signal carried forward and re-confirmed as unresolved: `docs/aml_1_b_1/stage_j5_1/preflight/12_baseline.txt` references `pretax_amount_snapshot`, a column the live `invoice_items` schema does not contain (`invoice_items.schema.txt` lines 4–33). Classification: **UNVERIFIED**, likely `REPOSITORY_MISSING` or superseded-doc residue. Impact class if confirmed: SMALL_BOUNDED_CORRECTION.
-
----
-
-## H. Current Finance Object and Writer Inventory
-
-Source-of-truth classification (unchanged and reverified):
-- **Source**: `invoices`, `invoice_items`, `payment_sessions`, `payment_allocations`, `payment_horse_allocations`, `expenses`.
-- **Derived posting record**: `ledger_entries`.
-- **Fully derived**: `customer_balances` (recomputed inside `_finance_ledger_insert`).
-- **Link/trace**: `billing_links`, `finance_request_idempotency`.
-- **Dormant**: `pos_sales` (0 rows, RLS on, 0 policies, no anon/authenticated grant — fail-closed), `payment_intents`/`payment_splits` (0 rows), `lab_credit_*` (0 rows).
-
-Canonical writers (all SECURITY DEFINER, `search_path=''`, tenant-checked, idempotency-keyed): `create_invoice_with_items`, `update_invoice_with_items`, `delete_draft_invoice`, `approve_invoice`, `cancel_invoice`, `post_payment_session`, `post_payment`, `post_invoice_payments`, `post_manual_ledger_adjustment`, `post_expense_with_ledger`, `create_pos_sale`, `create_source_checkout_invoice`.
-Legacy direct-write paths still wired: `src/lib/finance/postLedgerForInvoice.ts`, `src/hooks/pos/usePOSCore.ts` (POS_DEFERRED), `src/hooks/finance/useLedger.ts:104-150` (`createEntry` inserts `ledger_entries` and upserts `customer_balances` client-side, computing `balance_after` in the browser).
-
----
-
-## I. Historical Financial Import Contract
-
-**Current platform capability: NONE.** There is no safe landing model (VF-02). Operational invoices are not a safe import object: they trigger `_invoice_items_fill_snapshots` and `_invoice_items_validate_source` on insert, they carry no provenance, they participate in live numbering via `_finance_invoice_number_next`, and once approved they post to the live ledger — an import that mis-fires cannot be distinguished from operational truth afterwards.
-
-**Source Intake Contract** (required before any real import, since EG-02 blocks source analysis):
-Per file — filename, SHA-256, row count, encoding, tenant, source system name/version, statement period start/end, currency, decimal + thousands separator, digit form (Latin/Arabic-Indic), date format and timezone assumption, declared control totals (invoice total, payment total, closing balance).
-Per row — source invoice number, source payment number, source line identity, customer identifier and/or name, horse identifier and/or name, issue date, due date, payment date, gross/net/VAT/discount, status, allocation target, notes. Any field absent must be declared absent, not defaulted.
-
-**Import modes** (all three required; C is Owner-mandated):
-- **A. Full Historical Transaction Import** — only where headers, lines, dates, payments and allocations are all present.
-- **B. Opening Obligation** — a first-class object, never a synthetic invoice. Must carry cutover date and must be mutually exclusive with Mode A over the same period for the same customer.
-- **C. Unapplied Opening Customer Credit** — a first-class credit object. Never a negative invoice, never a forced allocation, never silently netted. If an unallocated amount is proven but not safely representable, quarantine it.
-
-**Recommended control objects** (all new; none exist): `import_batches`, `import_source_files`, `import_source_rows` (raw immutable payload + normalized projection), `import_row_results`, `import_quarantine`, plus provenance columns (`import_batch_id`, `source_system`, `source_document_number`, `imported_at`) on every landed financial object, and two new financial objects `opening_obligations` and `customer_credits`.
-Alternative considered and rejected: reusing `finance_request_idempotency` as the batch registry — it is TTL-expiring (`expires_at`) and purged by `_finance_idempotency_purge_expired`, so it cannot hold permanent provenance.
-
-**Idempotency**: file-level = SHA-256 of raw bytes, unique per tenant (defeats re-upload; a corrected file with the same filename gets a different hash and is correctly treated as new); row-level = deterministic fingerprint over (tenant, source_system, document_type, source_document_number, economic_date, amount, customer_key) — unique per tenant, which is what makes duplicate invoice numbers across different tenants safe and duplicate numbers across different customers within one tenant detectable rather than silently merged. Retry resumes on unlanded rows only. Concurrency guarded by an advisory lock on (tenant, batch), reusing the existing `_finance_advisory_lock_key` pattern.
-
-**Atomicity — recommendation: staged validation, then per-document commit inside one batch transaction envelope.** Whole-batch atomicity fails a 5,000-row file on one bad row; per-row atomicity can land an invoice header without its lines. Per-document (invoice + its items + its allocations as one unit) is the only boundary that matches the accounting object. Valid documents land, invalid documents quarantine with their raw payload preserved, and the batch is only marked `reconciled` when the equations in T balance.
-
----
-
-## J. Schema Capability and Gap Matrix
-
-| Capability | Exists | Object | Gap |
+| # | A1 claim | Verdict | Correction |
 |---|---|---|---|
-| Invoice header/lines | Yes | `invoices`, `invoice_items` | No provenance; insert triggers fire |
-| Payment receipt | Yes | `payment_sessions` (`payment_date` NOT NULL) | No provenance |
-| Invoice allocation | Yes | `payment_allocations` | — |
-| Horse allocation | Yes | `payment_horse_allocations` | — |
-| Economic date | Partial | `ledger_entries.effective_date` | Nullable; 28 NULL; **no read consumer** |
-| Split tender | Partial | multiple tender rows per session | Needs verification per WP5 definition |
-| Unapplied credit | **No** | — | New object required |
-| Opening obligation | **No** | — | New object required |
-| Import batch/source/quarantine/provenance | **No** | — | Entire layer required |
-| Idempotency (permanent) | **No** | `finance_request_idempotency` is TTL | New durable registry required |
-| Cutover date | **No** | — | Required |
+| 1 | "BATCH 01 COMPLETE — 40/40 MIGRATIONS VERIFIED" | **OVERTURNED** | 40 bodies were read; 0 were contract-verified. After A1-R1, contract-verified = 10. |
+| 2 | Scoped filename list with ellipses | **OVERTURNED** | Complete filenames listed in Section C. |
+| 3 | Existence / RLS-enabled / policy-count treated as verification | **OVERTURNED** | Replaced with expression-level and body-level comparison. |
+| 4 | "All 39 functions are `CREATE OR REPLACE`d by at least one later migration" | **OVERTURNED** | For the five functions in ordinals 001–010, only `handle_new_user` is redefined later (exactly once, by `20260328051924_1def4f56-8f5a-41c2-94c7-79bdc3ef9a1a.sql`). `is_tenant_member`, `has_tenant_role`, `can_invite_in_tenant`, and `update_updated_at_column` have **zero** later `CREATE OR REPLACE`. Evidence: `grep -l -E "FUNCTION public\.<name>"` over ordinals 011–322 returns no files for those four. This resolves the internal contradiction in A1 — the per-entry statements were right and the aggregate claim was wrong. |
+| 5 | Only one index inspected | **CONFIRMED as a gap** — ordinals 001–010 create no explicit `CREATE INDEX`; only implicit PK/UNIQUE indexes, which were verified via `pg_get_constraintdef`. |
+| 6 | Omitted work described as access limitation | **OVERTURNED** | No access limitation exists for ordinals 001–010. `psql` catalog reads succeeded for every object. |
+| 7 | Approximate Run Start | **OVERTURNED** | See Section G — Exact time not recorded for A1; A1-R1 times are exact. |
+| 8 | "`horses` has RLS enabled but `relforcerowsecurity` is false" | **CONFIRMED** | `relrowsecurity=true`, `relforcerowsecurity=false` for all five core tables. |
+| 9 | Methodology question directed at Owner | **OVERTURNED** | Depth is now fixed by this contract; no question is asked. |
+| 10 | Live/repo status for enums | **NARROWED** | Enum membership verified with full ordering; drift is additive-only (Section D). |
 
 ---
 
-## K. Effective-Date and Chronology Contract
+## C. Exact Scope Proof — Complete Filenames, Ordinals 001–010
 
-Reverified: 88 total, **28 NULL**, **25 with `payment_session_id`** (RC-01).
-
-Classification (unchanged in shape, re-proven in count):
-
-| Class | Rows | Proven source | Rule |
-|---|---|---|---|
-| DETERMINISTIC_SOURCE_DATE | **25** | `payment_sessions.payment_date` (date NOT NULL) | Payment credit takes the session payment date. Never `invoice.issue_date` — they disagreed on 11/25. |
-| OWNER_POLICY_REQUIRED | **3** | 2 void adjustments + 1 `invoice_cancellation` | Candidate = void event date; needs OA-01. |
-| UNRESOLVED_QUARANTINE | 0 | — | — |
-
-Required date semantics going forward — keep six fields strictly distinct: `effective_date` (economic), `created_at` (platform write), `imported_at`, source document date, source payment date, cutover date. Operational invoice → `issue_date`; imported invoice → source document date; payment → `payment_date`; allocation → inherits its session; unapplied credit → source receipt date; opening obligation → cutover date; cancellation/void → per OA-01; manual adjustment → explicit, never defaulted.
-
-**Correction order (WP4.4), and it matters:** (1) classify and repair the 28 legacy rows; (2) **make the statement read path consume `effective_date`** — currently it does not (RC-03), so repairing dates today changes nothing a user can see; (3) enforce NOT NULL on new writes; (4) change `get_client_first_financial_activity` from `MIN(created_at)`; (5) add the supporting index; (6) re-verify export parity. Doing (4) before (1) would regress. A blanket `COALESCE(effective_date, created_at)` is rejected — it permanently hides unrepaired rows.
-
----
-
-## L. Payment / Allocation / Credit / Opening Obligation Contract
-
-Terminology corrected per WP5: one 1,000 SAR bank transfer split across Invoice A 600 / Invoice B 400 is **one payment with two invoice allocations**, not Split Tender. Split Tender requires multiple tender components (cash 400 + card 600) under one settlement. Prompt 03 used the term loosely; that usage is withdrawn.
-
-Supported today: payment receipt, invoice allocation, horse allocation, one-payment-to-many-invoices (38 allocations across 29 sessions proves it is exercised), partial payment. All flow through `post_payment_session` — transactional, idempotent, tenant-checked, permission-gated, ledger-posting, balance-recomputing.
-Unsupported today: overpayment as a durable object, unapplied credit, refund as a first-class object (only a manual `adjustment` ledger row, with no stored reason code), reversal provenance, opening obligation, imported payment, imported credit.
-
----
-
-## M. Finance-Specific Write-Authority Matrix
-
-Direct answers:
-
-1. **Can `anon` write financial truth?** Table grants say yes (`relacl` grants ALL to `anon` on `invoices`, `ledger_entries`, `customer_balances`, `payment_sessions`); RLS says no (every policy resolves `auth.uid()` through `has_permission`/`is_tenant_member`, which fails for anon). Net: **blocked by RLS only** — grants are broader than policies (answer to Q5: **yes**).
-2. **Can `authenticated` write `ledger_entries` directly?** **Yes** — INSERT policy is `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit')`. No UPDATE/DELETE policy, so those are fail-closed.
-3. **Can `authenticated` insert/update/delete `customer_balances` directly?** **Yes, all three** (`customer_balances.schema.txt` lines 18–24). This is the single worst finance authority defect: the derived balance is directly writable.
-4. **Can a `finance.invoice.edit` holder bypass canonical logic?** **Yes** — `useLedger.ts:104-150` does exactly that in shipped code, computing `balance_after` in the browser.
-5. **Grants broader than RLS?** Yes (see 1).
-6. **Unsafe SECURITY DEFINER functions?** None found. All finance definers pin `search_path=''`, take `p_tenant_id`, and the private `_finance_*` helpers are not granted to `authenticated`.
-7. **Can import be safely invoked from the browser?** **No.** File hashing, batch atomicity, quarantine and provenance must be server-side.
-8. **Required import boundary:** an edge function (service-role) performing validation + staging, with per-document commits through new SECURITY DEFINER RPCs. The browser uploads and polls; it never writes financial rows.
-9. **Writers to migrate before direct DML can be revoked:** `useLedger.ts` `createEntry`, `postLedgerForInvoice.ts`, and `usePOSCore.ts` (POS_DEFERRED — so POS must be disabled or exempted rather than migrated).
-10. **Safest ordering:** prove the canonical replacement for each legacy writer → cut the caller over → verify no remaining direct-write call sites → then revoke grants and drop the three mutating policies. Never revoke first.
-
-No platform-wide permission redesign is proposed. Scope stays on two tables.
-
----
-
-## N. Draft Invoice Disclosure Contract
-
-Current state, proven: `useClientStatement.ts` reads **only** `ledger_entries`. Draft invoices never post to the ledger, so draft value is **entirely invisible** — not partially visible, not incorrectly included. Posted Balance is therefore already correct; the gap is disclosure only.
-
-Target: `Posted Balance` / `Draft Invoices [count]` / `Draft Value [amount]` / disclosure line stating draft value is excluded.
-
-Calculation contract — a separate query against `invoices`, never merged into the ledger stream:
-
-| Status | Posted Balance | Draft Disclosure |
-|---|---|---|
-| draft | exclude | **include** |
-| reviewed | exclude | include (as unposted) |
-| approved, shared, partial, paid, overdue | include | exclude |
-| cancelled | exclude | exclude |
-| issued, sent | exclude | POS_DEFERRED / unused |
-
-Date rule: filter drafts on `issue_date` within the selected range (the ledger stream has no row to filter on). Horse-filter rule: when a horse filter is active, disclose only drafts having at least one item for that horse, and label client-level lines rather than attributing them. Parity: computed once in the hook, consumed identically by screen/print/PDF/CSV.
-Bilingual: EN "Draft invoices (not included in balance)" / AR "فواتير مسودة (غير مدرجة في الرصيد)". Mobile-first: a single disclosure row beneath the balance, not a fourth KPI card.
-**Bounded read-path correction — no schema change.** Likely files in a later Execution stage: `src/hooks/clients/useClientStatement.ts`, `src/components/clients/ClientStatementTab.tsx`, the statement PDF/CSV builders, `src/i18n/locales/{en,ar}.ts`.
-Not coupled to POS status. Does **not** block Horse Attribution.
-
----
-
-## O. Non-POS Horse Identity and Attribution — C1 Item-Level Matrix
-
-15 items, complete:
-
-| # | Invoice | Status | Description | Amount | horse_id | lab_horse_id | entity_type | linked_horse_id | Resolved identity | Current key | Expected key |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | INV-9916 | draft | تجربة | 30.00 | — | — | — | — | none | client-level | client-level |
-| 2 | INV-9919 | draft | متابعة حمل | 1,500.00 | — | c99e7d4e | — | **12a9c7da** | horse 12a9c7da | **unresolved** | horse 12a9c7da |
-| 3 | INV-9920 | paid | تجربة | 230.00 | — | c99e7d4e | — | **12a9c7da** | horse 12a9c7da | **unresolved** | horse 12a9c7da |
-| 4 | INV-9923 | approved | متابعة حمل | 1,500.00 | — | e43d03ef | — | **8e5cbcbd** | horse 8e5cbcbd | **unresolved** | horse 8e5cbcbd |
-| 5 | INV-9923 | approved | تطعيمات | 1,200.00 | — | e43d03ef | — | **8e5cbcbd** | horse 8e5cbcbd | **unresolved** | horse 8e5cbcbd |
-| 6 | INV-LAB-…MY4D | approved | Basic Urine Analysis | 80.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
-| 7 | INV-LAB-…MY4D | approved | CBC | 25.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
-| 8 | INV-LAB-…JF7R | paid | Basic Urine Analysis | 80.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
-| 9 | INV-LAB-…JF7R | paid | CBC | 150.00 | — | — | lab_sample | — | via sample only | `lab` domain | horse via sample |
-| 10–15 | الم-202607-* | approved/draft ×5 | مبلغ الفاتورة / tr | 50–100 each | — | — | — | — | none | client-level | client-level |
-
-**Decisive finding: not one of the 15 C1 items carries `horse_id`.** Four resolve only through `lab_horses.linked_horse_id` — a bridge the read path ignores — and four more resolve only indirectly through `entity_id → lab_samples`. So C1's horse-scoped statement view can attribute **0.00 of 4,995.00** correctly today, while 4,430.00 is in fact horse-attributable. This confirms and sharpens Prompt 02's F-7/F-8 from "plausible" to **proven for C1**.
-
-Cross-tenant census (148 items): `horse_id` **102** (69%), `lab_horse_id` **9** (6%), neither **37** (25%). The `invoice_items_horse_source_exclusive_chk` constraint guarantees the two are never both set, so a single normalized resolution — `COALESCE(horse_id, lab_horses.linked_horse_id)` — is structurally safe. C1 is therefore an unusually bad case, not the platform norm.
-
-Import mapping rules: source horse **ID** → verify same tenant, else quarantine (never cross-tenant). Source horse **name only** → exact normalized match within tenant; one match maps, zero or multiple matches quarantine. Lab horse with `linked_horse_id` → map to the linked operational horse. Intentionally customer-level rows → land unattributed and labelled, never guessed.
-
----
-
-## P. Lab-Credit Side-Effect Analysis
-
-Consumer proven: `src/hooks/laboratory/useLabCredits.ts:189` `debitCredits(sampleId, samplesCount)` — client-side, inserts a `lab_credit_transactions` row with `txn_type:'debit'` then separately updates `lab_samples.debit_txn_id` (:225-228). **Non-atomic, non-idempotent, browser-driven.** Refund path at :272-275 clears `debit_txn_id`. Gate `is_lab_credits_enabled(_tenant_id)`.
-Lifecycle point: sample creation, not result approval — so importing a historical **result** cannot consume a credit. Importing a historical **sample or lab invoice** could only consume one if it were routed through this hook, which a server-side import would not be.
-**Live risk today: zero** (0 wallets, 0 transactions — OC-01).
-Required guard regardless: import must never call `debitCredits`; landed lab rows must carry `import_batch_id`; the future server-side sample writer must skip credit debit when provenance is present. Proof test: assert wallet balance and transaction count unchanged before/after a lab-history import (test IM-22 below).
-
----
-
-## Q. Demo Data Census and Cleanup Alternatives
-
-Census (all classifications are **UNCERTAIN by construction** — no provenance column exists on any finance table, so no row can be *proven* Demo from data alone; the Owner classification is the only evidence):
-
-| Object | Rows | Classification | Dependency |
-|---|---|---|---|
-| invoices | 65 (4 tenants) | LIKELY_DEMO | parents of items, ledger, billing_links |
-| invoice_items | 148 | DERIVED_FROM_DEMO | CASCADE from invoices |
-| ledger_entries | 88 | DERIVED_FROM_DEMO | drives balances |
-| customer_balances | 8 | DERIVED_FROM_DEMO | fully recomputable |
-| payment_sessions / allocations / horse_allocations | 29 / 38 / 15 | DERIVED_FROM_DEMO | — |
-| expenses | 3 | LIKELY_DEMO | — |
-| billing_links | 18 | DERIVED_FROM_DEMO | ties to boarding/service events |
-| finance_request_idempotency | TTL rows | SYSTEM_SEED | self-purging |
-| pos_sales, lab_credit_* , payment_intents, payment_splits | 0 | n/a | nothing to clean |
-| horses / clients referenced | — | SHARED_DEPENDENCY | **must not be deleted** — operational records |
-| the 10,000 SAR adjustment | 1 | **OWNED_TEST_CASE** | Owner-classified early Demo test. **Not fraud, not a real debt, not a security incident.** |
-
-Alternatives: (1) tenant-level clean reset — cleanest, but destroys the boarding/service history the billing_links point at; (2) relationship-ordered selective deletion — feasible because CASCADE already covers items, but leaves orphaned billing_links unless ordered correctly; (3) cancellation/compensation preserving audit — safest for accounting integrity, worst for a clean import baseline; (4) snapshot-then-reset; (5) quarantine/archive; (6) reseed to a known Demo baseline.
-**Recommended: (4) then (2), staged** — export a full snapshot of the 15 finance tables first (recoverability), then delete in dependency order strictly within the identified Demo tenants, never touching `horses`, `clients`, or non-finance operational tables. Prerequisite: Owner confirms the exact tenant set. Rollback = restore from the snapshot. **Not executed.**
-
----
-
-## R. Platform SaaS Billing Collision Check
-
-| Touchpoint | Evidence | Classification |
-|---|---|---|
-| `payment_accounts` | 9 rows, **all `owner_type='tenant'`**; zero platform-owned | **NO_COLLISION** |
-| `payment_intents` | **0 rows** | **NO_COLLISION** |
-| `payment_splits` | **0 rows** | **NO_COLLISION** |
-| `payment_sessions.payment_account_id → payment_accounts` | FK to a tenant-owned account only | **IDENTITY_REFERENCE_ONLY** |
-| `_finance_provision_tenant_payment_account` | provisions tenant accounts only | **CONFIGURATION_SHARED** |
-| Shared ledger / balance | none — no platform row posts to `ledger_entries` | **NO_COLLISION** |
-| Subscription / plan / entitlement / store-purchase objects | do not exist | n/a |
-
-**No collision exists. Work Package 11 stops here**, per the Prompt's own instruction. Minimum boundary to preserve when Platform SaaS Billing is eventually built: platform revenue must never post to `ledger_entries`; tenant customer payments must never satisfy a Dayli Horse subscription; platform refunds must never reverse tenant invoices; platform reporting must consume platform billing truth, not tenant operational ledger truth. Nothing about the platform-owner Dashboard is designed here.
-
----
-
-## S. Account-Type Applicability Matrix
-
-Live `tenant_type` enum reverified — **10 values**: stable, clinic, lab, academy, pharmacy, transport, auction, horse_owner, trainer, doctor. The three planned types (farrier, rider, jockey) are **not** in the live enum and cannot be evidenced from current code.
-
-| Type | Live | Op-finance exposure | Invoice | Payment | Horse attribution | Import relevance | Lab credit | Import risk |
-|---|---|---|---|---|---|---|---|---|
-| stable | yes | high | RPC + legacy | yes | high | **high** | no | horse mapping |
-| clinic | yes | high | RPC | yes | high | high | no | horse mapping |
-| lab | yes | high | RPC (lab draft) | yes | via bridge | **high** | **yes** | bridge + credit guard |
-| academy | yes | medium | RPC | yes | low | medium | no | client-level |
-| pharmacy | yes | medium | legacy POS | yes | low | low (POS_DEFERRED) | no | POS deferred |
-| transport | yes | medium | RPC | yes | medium | medium | no | horse mapping |
-| auction | yes | low | RPC | yes | high | low | no | horse mapping |
-| horse_owner | yes | payer side | none | n/a | high | high | no | statement truth |
-| trainer | yes | medium | RPC | yes | high | medium | no | horse mapping |
-| doctor | yes | medium | separate doctor services | yes | medium | medium | no | catalog mismatch |
-| farrier / rider / jockey | **no** | — | — | — | — | — | — | future only |
-
-The import contract is schema-uniform (everything is `tenant_id`-scoped) but **not writer-uniform** — lab and doctor have distinct catalogs, so per-type source mapping is required.
-
----
-
-## T. Reconciliation Contract
-
-Mandatory equations at file, batch, customer, invoice, payment, allocation, horse, tenant, ledger, balance and statement level:
-
-```text
-source invoice value = imported + quarantined + rejected
-source payments      = allocated + unapplied credit + refunded/reversed + quarantined
-posted debits - posted credits = ledger net movement
-ledger net movement  = derived customer balance
-horse-attributed + intentionally client-level + quarantined = applicable scoped value
-draft/unposted value stays outside Posted Balance
-imported lab history -> live lab-credit delta = 0
-opening obligation and full-history invoices never both cover the same period
+```
+001  supabase/migrations/20251217045741_3c096c3e-fb65-4eb3-ac8c-bf0ef95977ee.sql
+002  supabase/migrations/20251217045847_e069af52-109e-4b18-8c5e-2f272eda94bd.sql
+003  supabase/migrations/20251219010235_a98f269c-7bcf-4f66-b9a9-998bce3a3dff.sql
+004  supabase/migrations/20251219012001_41618063-8587-4e32-8b47-8f1ca31375d3.sql
+005  supabase/migrations/20251219235806_751634a9-a440-4068-a28d-79c91316e3ef.sql
+006  supabase/migrations/20251220002555_310f4d0c-eea7-4677-8f62-9ad4585d55e9.sql
+007  supabase/migrations/20251220022433_a78c85a1-e442-4cba-8e01-961073fc710f.sql
+008  supabase/migrations/20251220044032_8ee723b8-bcf8-41a8-81c7-f5f3d3252917.sql
+009  supabase/migrations/20251220052339_6ec9fe5e-6b5b-4905-a0d6-bf3576e8b7eb.sql
+010  supabase/migrations/20251220054441_784dd1e3-dfb1-4f43-a3fa-4dc1a3a9eb08.sql
 ```
 
-Conventions: NUMERIC(12,2) throughout (matches live columns); debits positive, credits negative (matches `ledger_entries`); currency defaults to the tenant currency, and any source row in another currency quarantines rather than converting; VAT recomputed from source gross/net and quarantined on mismatch beyond 0.01; **tolerance 0.00 at batch level** — any residual, however small, is reported as an unexplained difference and never rounded to zero.
+SHA-256 and byte size:
+
+| Ord | SHA-256 | Bytes |
+|---|---|---|
+| 001 | `2d3272fec9ff6f6e9c35d4a62934ee589b0219834f19288df49e5821b7d0e18c` | 8925 |
+| 002 | `57f66af30e80abf08b5f58ed367cb8be6e8f3c894fda05ebfa2c7c63f1e64b14` | 236 |
+| 003 | `2f996c8f33e3020b6ad5704ee78427f584cca1462ef6dbfe435a54d428ebf3de` | 1081 |
+| 004 | `2a2903e0c42595874267c3782246b3697b56d492461ee90d22826e7c65911309` | 665 |
+| 005 | `35a758b2e038054a76b5d03eafc2c6b625330aa222be69968969bcc73a9f87fd` | 760 |
+| 006 | `fa10c739bbae8ff46969218b072e46b08e42fa30b807689caf9602f6fcb96cae` | 606 |
+| 007 | `37fc4b2a276230f486094ca57b70cb330584816f5fae475bcda510a5495cb1a8` | 306 |
+| 008 | `4a071e735b8fef8d45de9082c18fcf7d7590cccad72ca1a644874d00a305ee68` | 6428 |
+| 009 | `959ad5a68e2de13802d42d0616cf39f2361ee2fa3979c8e4e323d3a9a2fe7a40` | 1014 |
+| 010 | `75050a8b4759161781d1d1b02a3750d9c2588f03259ce7fe63fc391fe22ae5e6` | 164 |
 
 ---
 
-## U. Import-Specific Test and Acceptance Matrix (proposed; **none executed**)
+## D. Contract-Complete Migration Ledger — 001–010
 
-IM-01 same file twice → second batch rejected on file hash, zero new rows. IM-02 repeated row in one file → one landed, one flagged duplicate. IM-03 same transaction across overlapping files → row fingerprint blocks the second. IM-04 partial batch failure → valid documents landed, invalid quarantined with raw payload, batch = `partially_reconciled`. IM-05 invalid customer mapping → quarantine. IM-06 ambiguous horse name → quarantine, never guessed. IM-07 cross-tenant horse ID → rejected. IM-08 historical invoice earlier than current first activity → first-activity anchor moves. IM-09 payment date ≠ issue date → ledger stores payment date. IM-10 one payment to many invoices → one session, N allocations, no Split Tender labelling. IM-11 true Split Tender (cash+card) → one settlement, multiple tender components. IM-12 unapplied credit → credit object created, not netted. IM-13 opening obligation → obligation object, no synthetic invoice. IM-14 opening credit → credit object at cutover. IM-15 obligation overlapping imported invoices → overlap detected and blocked. IM-16 imported cancelled invoice → lands cancelled, no ledger debit. IM-17 void date rule → per OA-01. IM-18 invalid VAT/rounding → quarantine, no silent correction. IM-19 negative/zero values → explicit rule, no silent skip. IM-20 imported draft → lands unposted. IM-21 imported draft disclosure → excluded from Posted Balance, shown in disclosure. **IM-22 imported lab invoice → wallet balance and transaction count unchanged.** IM-23 browser direct financial write → rejected in target state. IM-24 retry after timeout → resumes, no duplicates. IM-25 concurrent imports → advisory lock serializes. IM-26 corrected file, same filename → new hash, treated as new batch, prior batch superseded not silently merged. IM-27 screen/print/PDF/CSV parity. IM-28 client-level item under horse filter → labelled, not attributed. IM-29 multi-horse invoice under one-horse filter → only that horse's lines. IM-30 unresolved row quarantined with raw provenance intact.
+### Ordinal 001 — `20251217045741_3c096c3e-fb65-4eb3-ac8c-bf0ef95977ee.sql`
+Timestamp 2025-12-17 04:57:41 · SHA-256 `2d3272fec9ff…e18c` · Earlier dependencies: none (genesis) · Classification: **MIXED — see object sub-records**
 
-Mapped from Prompt 03: NT-19→IM-09, NT-21→IM-08, NT-24→IM-28, NT-25→IM-29, NT-32→IM-27, NT-33→IM-22. POS tests NT-28/29/30/31 → **POS_DEFERRED**, not expanded.
+**Objects touched:** 3 enums, 5 tables, 5 functions, 6 triggers, 17 policies.
 
----
+| Object | Original operation | Supersession chain (complete filenames) | Final repo-expected | Live | Status |
+|---|---|---|---|---|---|
+| `TYPE public.tenant_type` | CREATE ENUM (7 labels: stable, clinic, lab, academy, pharmacy, transport, auction) | `20260225023857_3348d854-05a2-4fab-a33a-e402f99584ac.sql` adds `horse_owner`, `trainer`, `doctor` | 10 labels in that order | `pg_enum` order 1–10: stable, clinic, lab, academy, pharmacy, transport, auction, horse_owner, trainer, doctor | **SEMANTIC_MATCH** (membership + ordering identical) |
+| `TYPE public.tenant_role` | CREATE ENUM (6 labels) | `20251221115224_1466aea9-40e6-407b-8c99-18a7c4844ff9.sql` adds `manager` | 7 labels | order 1–7: owner, admin, foreman, vet, trainer, employee, manager | **SEMANTIC_MATCH** |
+| `TYPE public.invitation_status` | CREATE ENUM (pending, accepted, rejected) | `20260116014518_94209a46-cca4-4048-8955-452c61963680.sql`, re-asserted idempotently by `20260116021754_d5659ab7-e453-446d-9091-d9039bda996d.sql` | 6 labels | order 1–6: pending, accepted, rejected, preaccepted, expired, revoked | **SEMANTIC_MATCH** |
+| `TABLE public.profiles` | CREATE (7 cols, PK→auth.users ON DELETE CASCADE) | later additive columns (bio, location, website, social_links, full_name_ar) | 7 original cols unchanged | positions 1–7 identical: id uuid NOT NULL, email text NOT NULL, full_name, phone, avatar_url, created_at NOT NULL now(), updated_at NOT NULL now(); `profiles_pkey`, `profiles_id_fkey → auth.users(id) ON DELETE CASCADE` | **EXACT_MATCH** (original surface); live extra columns out of A1-R1 scope |
+| `TABLE public.tenants` | CREATE (10 cols) | ordinal 005 adds `owner_id`; later additive (slug…currency) | 10 original cols unchanged | positions 1–10 identical incl. `type tenant_type NOT NULL`; `tenants_pkey` | **EXACT_MATCH** (original surface) |
+| `TABLE public.tenant_members` | CREATE (9 cols + UNIQUE(tenant_id,user_id)) | none in 011–322 that alter these columns | 9 cols | 9 cols exactly, identical types/defaults/nullability; `tenant_members_tenant_id_user_id_key UNIQUE (tenant_id, user_id)`, both FKs ON DELETE CASCADE | **EXACT_MATCH** |
+| `TABLE public.invitations` | CREATE (14 cols; `invitee_email TEXT NOT NULL`) | `20260116021754_d5659ab7…sql` / `20260117021239_1335b94a…sql` / `20260121183504_2f7d073f…sql` family: email made optional, `invitee_phone` added, CHECK `invitee_email OR invitee_phone` added, `token`/`expires_at`/`sender_display_name` added | `invitee_email` nullable, guarded by CHECK | live: `invitee_email` `is_nullable=YES`; `invitations_email_or_phone_required CHECK ((invitee_email IS NOT NULL) OR (invitee_phone IS NOT NULL))`; `invitations_token_key UNIQUE (token)` | **SUPERSEDED_BY_LATER_MIGRATION** → final repo definition equals live: **SEMANTIC_MATCH** |
+| `TABLE public.horses` | CREATE (13 cols, gender CHECK) | many later additive migrations | 13 original cols unchanged; `gender IN ('male','female')` | positions 1–13 identical; `horses_gender_check CHECK (gender = ANY (ARRAY['male','female']))`; `horses_pkey`; `horses_tenant_id_fkey → tenants(id) ON DELETE CASCADE` | **EXACT_MATCH** (original surface) |
+| `FUNCTION public.is_tenant_member(uuid,uuid)` | CREATE, sql/STABLE/SECURITY DEFINER/search_path=public | **none** — zero later `CREATE OR REPLACE` | as originally written | `pg_get_functiondef` body byte-equivalent to the migration body; `LANGUAGE sql`, `STABLE SECURITY DEFINER`, `SET search_path TO 'public'`, owner `postgres`, `proacl` includes `authenticated=X/postgres` | **EXACT_MATCH** |
+| `FUNCTION public.has_tenant_role(uuid,uuid,tenant_role)` | CREATE, sql/STABLE/SECDEF | **none** | as written | identical normalized body, attributes, owner, EXECUTE grants to anon/authenticated/service_role | **EXACT_MATCH** |
+| `FUNCTION public.can_invite_in_tenant(uuid,uuid)` | CREATE, sql/STABLE/SECDEF | **none** | as written | identical normalized body and attributes | **EXACT_MATCH** |
+| `FUNCTION public.handle_new_user()` | CREATE, plpgsql/SECDEF; inserts (id,email,full_name) | `20260328051924_1def4f56-8f5a-41c2-94c7-79bdc3ef9a1a.sql` (adds `phone` from `raw_user_meta_data`) | 4-column insert incl. phone | live body matches the 2026-03-28 body exactly (`INSERT … (id, email, full_name, phone)`), SECDEF, `search_path=public`, owner postgres | **SUPERSEDED_BY_LATER_MIGRATION** → final repo vs live: **EXACT_MATCH** |
+| `FUNCTION public.update_updated_at_column()` | CREATE without `search_path` | ordinal 002 only; **no** later redefinition in 011–322 | plpgsql, `SET search_path = public`, SECURITY INVOKER | live: `SET search_path TO 'public'`, `prosecdef=false`, owner postgres | **SUPERSEDED_BY_LATER_MIGRATION (by 002)** → **EXACT_MATCH** |
+| `TRIGGER on_auth_user_created` on `auth.users` | CREATE AFTER INSERT | none | as written | `CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user()` | **EXACT_MATCH** |
+| Triggers `update_{profiles,tenants,tenant_members,invitations,horses}_updated_at` | CREATE BEFORE UPDATE … EXECUTE update_updated_at_column() | none | 5 triggers | all five present with identical `pg_get_triggerdef` | **EXACT_MATCH** |
+| 17 policies (profiles ×4, tenants ×3, tenant_members ×3, invitations ×4, horses ×2) | CREATE POLICY | ordinals 003, 004, 005, 006, 007, 008 within batch; then `20251220055109_8cb34a67-a9ad-442c-ad88-2efba8a621ad.sql` and the later permission-model rebuilds (`…_00b02fa6…`, `has_permission` era) | see per-table rows below | see per-table rows below | **SUPERSEDED_BY_LATER_MIGRATION** |
 
-## V. Proposed Staged Remediation Sequence (recommendation only)
-
-1. **Complete the 322-migration comparison** — clears EG-01. Blocks import: **yes** (unknown drift could invalidate any import design). Read-only.
-2. **Finance write-authority containment** — cut over `useLedger.ts` and `postLedgerForInvoice.ts` to canonical RPCs, then revoke DML and drop the three mutating policies on `ledger_entries`/`customer_balances`. Blocks import: **yes**. Rollback: re-grant.
-3. **Legacy economic-date classification and repair** — 25 deterministic + 3 policy-dependent. Blocks import: yes (reconciliation depends on it).
-4. **Statement read path onto `effective_date`** — resolves CX-01. Blocks import: yes.
-5. **NOT NULL enforcement on new economic dates** — after 3 and 4.
-6. **First-activity anchor correction** — after 5.
-7. **Draft disclosure** — Small Bounded Correction, read-path only. Blocks import: **no**; can run in parallel.
-8. **Horse-identity read-path normalization** (`COALESCE(horse_id, linked_horse_id)` + one grouping key). Blocks import: yes for horse-scoped reconciliation.
-9. **Demo census sign-off and snapshot-then-reset** — after Owner approves the tenant set.
-10. **Import control layer** — batches, source files, source rows, quarantine, provenance columns.
-11. **New financial objects** — `opening_obligations`, `customer_credits`.
-12. **Server-side import edge function + per-document RPCs**, then dry-run, then reconciliation gate.
-
-POS: deferred throughout. Platform permission redesign: deferred. Platform SaaS Billing: separate future Workstream. No stage is approved, started, accepted, or closed.
-
----
-
-## W. Owner Alignment Decision Package
-
-**OA-01 Void / reversal economic date.** Affects 3 legacy rows and every future cancellation. Example: a Stable voids a 5,750 SAR boarding invoice on 03-04 that was issued 28-03. Options: (a) void date — the statement shows the correction when it happened, matching most accounting practice; (b) original date — the period reprints clean but history silently changes; (c) differentiated (operational cancellation → void date; historical correction → original date). **Recommend (c)**, defaulting to void date. Postponing leaves 3 rows unrepairable and blocks stage 3.
-
-**OA-02 Full History vs Opening Obligation when source detail is incomplete.** Example: an old system exports only "Client X owes 12,400 SAR at 31-12-2025". Options: (a) always Opening Obligation when line detail is absent — recommended; (b) synthesize one summary invoice — rejected, creates fake operational truth; (c) per-customer Owner choice. Blocks stage 11.
-
-**OA-03 Unexplained source differences.** Options: (a) zero tolerance, quarantine the batch — recommended; (b) tolerance band; (c) post a balancing adjustment. Blocks the reconciliation gate.
-
-**OA-04 Demo cleanup strategy and audit preservation.** Snapshot-then-reset (recommended) vs cancellation-preserving. Needs the exact Demo tenant set. Blocks stage 9.
-
-**OA-05 Cutover date and overlap policy.** What date separates history from operations, and what happens to a source row after it. Blocks stages 10–12.
-
-**OA-06 Imported draft invoices.** Remain `draft`, or land in a distinct historical-unposted state? Recommend a distinct state so imported drafts are never edited as if operational. Blocks stage 10.
-
-**OA-07 May imported history ever consume migrated lab credits?** Recommend **never** without an explicit source-evidenced rule. Blocks the IM-22 gate.
-
-Not asked of the Owner: anything the evidence already settles (platform-billing collision, draft visibility, write authority, C1 attribution).
+Impact classification: **UNRELATED_DEFERRED** (identity/tenancy foundation; no shared-finance or import-blocking surface).
+Severity: low · Likelihood: low.
+Risk/consequence: none identified for historical financial import.
+Verification conclusion: contract-verified; genesis objects are intact or cleanly superseded with live agreement.
 
 ---
 
-## X. Risks, Counterarguments, Dependencies, Deferred Register
+### Ordinal 002 — `20251217045847_e069af52-109e-4b18-8c5e-2f272eda94bd.sql`
+Timestamp 2025-12-17 04:58:47 · SHA-256 `57f66af3…6b14` · Depends on 001 · **Classification: EXACT_MATCH**
 
-IMPORT_BLOCKING: EG-01 unresolved drift; absent import layer; direct DML on derived finance; NULL economic dates; statement reading `created_at`.
-SHARED_FINANCE_COLLISION: none proven.
-SMALL_BOUNDED_CORRECTION: draft disclosure; horse-identity read normalization; `pretax_amount_snapshot` doc residue; `sent` status in CHECK but absent from the TS union.
-POS_DEFERRED: POS atomicity, POS `issued` status, POS horse attribution.
-PLATFORM_PERMISSION_DEFERRED: platform-wide permission redesign.
-PLATFORM_SAAS_BILLING_SEPARATE: entire domain.
-Counterargument worth recording: with only 88 ledger rows and 65 invoices, one could argue for wiping everything and starting clean rather than repairing 28 dates. That is genuinely defensible — but it does not remove the need for the import layer, the write-authority fix, or the drift comparison, and it destroys the only real-shaped test data available. Recommended path keeps the repair.
-
----
-
-## Y. Workstream Persistence
-
-No Workstream ID assigned. No Workstream file created or modified. No Acceptance. No Closure.
-
-## Z. Roadmap Impact
-
-Relationship to RM-DH-002 proposed only. No Phase, Track, priority, advancement, or closure approved. No Roadmap file created or modified.
+Object: `FUNCTION public.update_updated_at_column()` — `CREATE OR REPLACE` adding `SET search_path = public`.
+Supersession chain: **none** in 011–322 (verified by grep for `CREATE OR REPLACE FUNCTION … update_updated_at_column` over ordinals 011–322 → no matches).
+Final repo-expected: plpgsql, returns trigger, SECURITY INVOKER, `search_path=public`, body `NEW.updated_at = now(); RETURN NEW;`.
+Live: `prosecdef=false`, `proconfig={search_path=public}`, owner `postgres`, `proacl` grants EXECUTE to postgres/anon/authenticated/service_role, body identical.
+Repo evidence: file body lines 2–10. Live evidence: `pg_get_functiondef` output.
+Impact: **UNRELATED_DEFERRED** · Severity low · Likelihood low · Risk: none.
+Conclusion: contract-verified, exact.
 
 ---
 
-## AA. Run Metadata and Exact Stopping Point
+### Ordinal 003 — `20251219010235_a98f269c-7bcf-4f66-b9a9-998bce3a3dff.sql`
+Timestamp 2025-12-19 01:02:35 · SHA-256 `2f996c8f…f3de` · Depends on 001 · **Classification: SUPERSEDED_BY_LATER_MIGRATION**
 
-Mode: Plan/Chat — Read-Only. Operation: Historical Import Contract + Drift Audit. Prompt ID: `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04`. Status: submitted, run, **consumed**.
-Prompt Preparation: 02-08-2026 12:02 Asia/Riyadh (from the Prompt). Run Start: 02-08-2026 ~12:14 Asia/Riyadh (UTC 09:14, from the message timestamp). Run End / Final Report: 02-08-2026 ~12:20 Asia/Riyadh. Timezone UTC+03. Evidence for times: message send timestamp; per-call wall clock not recorded — **exact time not recorded** for Run End.
-Branch `edit/edt-f9494b37-5fb3-4930-b426-c912cb1b5e28`. HEAD before **f2ccf973**; HEAD after **f2ccf973** (unchanged). Working tree clean before; after, only the platform-generated `.lovable/plan.md`.
-Repository paths inspected: `supabase/migrations/` (listing), `src/hooks/laboratory/useLabCredits.ts`, `src/hooks/clients/useClientStatement.ts`, `src/hooks/clients/useClientFirstActivity.ts`, `src/hooks/finance/*`, `src/hooks/pos/usePOSCore.ts`, `src/lib/finance/*`, `src/integrations/supabase/types.ts`, `*.schema.txt`.
-Database objects inspected: `public` schema — 15 finance tables, `invoice_items ⋈ lab_horses`, `payment_accounts`, `payment_intents`, `payment_splits`, `lab_credit_*`, `pos_sales`, plus `pg_class`, `pg_policy`, `pg_proc`.
-Read-only queries by purpose: finance row-count census; NULL `effective_date` reverification; C1 item-level attribution join; status/attribution/ledger-type/payment-account census.
-Intended repository writes 0. Actual repository writes 0 (except the disclosed `.lovable/plan.md`). Database writes 0. DDL 0. DML 0. Mutating RPCs 0. Migrations 0. Backfills 0. Cleanup 0. Deployment 0. Project Knowledge 0. Skill changes 0. Settings 0. Roadmap persistence 0. Workstream persistence 0. Acceptance none. Closure none.
-Last fully completed Work Package: **WP15** (all except WP2, which is explicitly incomplete). Report continuation point: **WP2 / Section F — migration coverage ledger, row 1 of 322 not yet produced.**
-Unresolved evidence gaps: EG-01 (322-file ledger), EG-02 (no source files), EG-03 (export bodies).
-Stopping point: investigation only — no implementation, no migration, no backfill, no cleanup, no permission change, no persistence, no Acceptance, no Closure, Prompt 05 not prepared or consumed.
-Recommended next step and Mode: ChatGPT review of this report, then **Prompt 05 in Plan/Chat Read-Only** dedicated solely to the 322-migration coverage ledger, delivered in numbered report parts of 30–40 migrations each.
+Objects: DROP+CREATE 3 `tenants` policies and 1 `tenant_members` INSERT policy (permissive re-issue).
+Supersession chain: ordinals 004, 005, 006, 007, 008 (all within batch), then `20260716174522_00b02fa6-1eef-4468-b34b-3b73e29c7368.sql` for the tenant_members owner-self-insert hardening.
+Final repo-expected `tenants` policies: `Authenticated users can create tenants` (INSERT/authenticated/WITH CHECK true), `Members can view their tenants` (SELECT/USING is_tenant_member), `Owners can update their tenants` (UPDATE) plus later-added owner_id-freeze WITH CHECK and `Owners can view their own tenants`.
+Live: exactly those four policies, all PERMISSIVE, `Owners can update their tenants` carries `WITH CHECK (has_tenant_role(...) AND owner_id = (SELECT t.owner_id FROM tenants t WHERE t.id = tenants.id))` — the later owner-freeze addition, not present in ordinal 003.
+`Users can insert themselves as owner` on `tenant_members` **no longer exists**; live equivalent is `Owners can add themselves as owner member` requiring `tenants.owner_id = auth.uid()`.
+Impact: **UNRELATED_DEFERRED** · Severity low · Likelihood low.
+Risk: none — supersession is intentional hardening, verified end-state.
+Conclusion: contract-verified as superseded; final repo definition agrees with live.
+
+---
+
+### Ordinal 004 — `20251219012001_41618063-8587-4e32-8b47-8f1ca31375d3.sql`
+Timestamp 2025-12-19 01:20:01 · SHA-256 `2a2903e0…1309` · Depends on 003 · **Classification: SUPERSEDED_BY_LATER_MIGRATION**
+
+Objects: replaces `tenants` INSERT policy with `Users with a session can create tenants` (role `public`, `auth.uid() IS NOT NULL`); replaces `tenant_members` INSERT policy to role `public`.
+Supersession chain: ordinal 005 drops `Users with a session can create tenants`; ordinal 006, 007, 008 rewrite the tenants INSERT policy; `20260716174522_00b02fa6…sql` rewrites the tenant_members self-insert.
+Final repo-expected: neither policy name survives.
+Live: `pg_policies` for `tenants` contains no `Users with a session can create tenants`; `tenant_members` contains no `Users can insert themselves as owner`. The `TO public` widening is fully reverted — live `tenants` INSERT is `TO authenticated`.
+Impact: **UNRELATED_DEFERRED** · Severity low · Likelihood low.
+Risk: none. The transient `TO public` grant is not present live.
+Conclusion: contract-verified as superseded and removed.
+
+---
+
+### Ordinal 005 — `20251219235806_751634a9-a440-4068-a28d-79c91316e3ef.sql`
+Timestamp 2025-12-19 23:58:06 · SHA-256 `35a758b2…f87d` · Depends on 001, 004 · **Classification: MIXED**
+
+| Object | Operation | Chain | Final repo | Live | Status |
+|---|---|---|---|---|---|
+| `tenants.owner_id` column | ADD uuid REFERENCES auth.users ON DELETE RESTRICT, then SET NOT NULL | none altering it | ordinal position 11, uuid, NOT NULL, no default, FK ON DELETE RESTRICT | position 11, `uuid`, `is_nullable=NO`, default `-`; `tenants_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE RESTRICT` | **EXACT_MATCH** |
+| Backfill `UPDATE tenants SET owner_id = …` | DML | n/a | n/a | n/a | **DATA_MIGRATION_NOT_STRUCTURALLY_COMPARABLE** |
+| Policy `Users can create tenants as owner` | CREATE | dropped by ordinal 006 (recreate) then ordinal 007 (drop) then ordinal 008 rebuild | not present | absent from `pg_policies` | **SUPERSEDED_BY_LATER_MIGRATION** |
+
+Impact: **UNRELATED_DEFERRED** · Severity low · Likelihood low.
+Risk: the backfill's row-level outcome is unverifiable structurally; `owner_id` is NOT NULL live, which proves the backfill completed for all rows that existed at the time.
+Conclusion: contract-verified.
+
+---
+
+### Ordinal 006 — `20251220002555_310f4d0c-eea7-4677-8f62-9ad4585d55e9.sql`
+Timestamp 2025-12-20 00:25:55 · SHA-256 `fa10c739…6cae` · Depends on 005 · **Classification: SUPERSEDED_BY_LATER_MIGRATION**
+
+Objects: re-issues `tenant_members` `Users can insert themselves as owner` (TO authenticated) and `tenants` `Users can create tenants as owner`.
+Chain: ordinal 007 drops the tenants policy; ordinal 008 drops+rebuilds both; `20260716174522_00b02fa6…sql` replaces the tenant_members self-insert with the owner_id-bound variant.
+Final repo-expected: neither policy name survives.
+Live: confirmed absent; live equivalents are `Authenticated users can create tenants` and `Owners can add themselves as owner member`.
+Impact: **UNRELATED_DEFERRED** · Severity low · Likelihood low · Risk: none.
+Conclusion: contract-verified as superseded.
+
+---
+
+### Ordinal 007 — `20251220022433_a78c85a1-e442-4cba-8e01-961073fc710f.sql`
+Timestamp 2025-12-20 02:24:33 · SHA-256 `37fc4b2a…cb38` · Depends on 006 · **Classification: SEMANTIC_MATCH**
+
+Object: `tenants` INSERT policy → `Authenticated users can create tenants` / `TO authenticated` / `WITH CHECK (true)`.
+Chain: ordinal 008 drops and recreates the identical policy; no later migration changes it.
+Final repo-expected: `Authenticated users can create tenants`, PERMISSIVE, INSERT, roles `{authenticated}`, `qual = NULL`, `with_check = true`.
+Live: `tenants | Authenticated users can create tenants | PERMISSIVE | authenticated | INSERT | qual '-' | with_check 'true'` — exact.
+Note carried forward for later batches: this policy permits any authenticated user to insert a tenant row without binding `owner_id` to `auth.uid()`; `check_tenant_limit` (trigger `enforce_tenant_limit`) is the only INSERT-time gate. Not in A1-R1 remediation scope.
+Impact: **PLATFORM_PERMISSION_DEFERRED** · Severity medium · Likelihood low.
+Conclusion: contract-verified, semantically exact.
+
+---
+
+### Ordinal 008 — `20251220044032_8ee723b8-bcf8-41a8-81c7-f5f3d3252917.sql`
+Timestamp 2025-12-20 04:40:32 · SHA-256 `4a071e73…ee68` · Depends on 001–007 · **Classification: MIXED**
+
+Full RLS policy rebuild across five tables (14 DROPs, 14 CREATEs).
+
+| Table | Ordinal-008 policy set | Chain | Live | Status |
+|---|---|---|---|---|
+| `profiles` | 4 policies (own SELECT/UPDATE/INSERT + tenant-member SELECT) | none replacing them | 4 policies, all PERMISSIVE, roles `{authenticated}`, USING/WITH CHECK expressions byte-equivalent to the migration text (incl. the `tm1 JOIN tm2` EXISTS clause) | **EXACT_MATCH** |
+| `tenants` | 3 policies | later owner-freeze WITH CHECK + `Owners can view their own tenants` | 4 policies; `Owners can update their tenants` gained a WITH CHECK | **SUPERSEDED_BY_LATER_MIGRATION** → final repo = live |
+| `tenant_members` | 3 policies (self-insert owner; member SELECT; owners FOR ALL) | `20260716174522_00b02fa6…sql` and the invitation-join work | live 5 policies: `Members can view tenant members` (USING `is_tenant_member(auth.uid(), tenant_id)` — **EXACT_MATCH** to ordinal 008), `Owners can update…`, `Owners can delete…` (the `FOR ALL` policy was split into UPDATE + DELETE), `Owners can add themselves as owner member`, `Users can join via invitation` | **POLICY_DRIFT vs ordinal 008, SEMANTIC_MATCH vs final repo HEAD** |
+| `horses` | 2 policies (member SELECT; can_manage_horses FOR ALL) | replaced wholesale by the `has_permission` era and connection-sharing era | live 8 policies: 3 `Permission-based …` using `has_permission(auth.uid(), tenant_id, 'horses.create'/'edit'/'delete')`, `Members can view tenant horses (scoped)`, `Connected tenant members can view granted horses`, 3 owner-tenant policies | **SUPERSEDED_BY_LATER_MIGRATION** |
+| `invitations` | 4 policies | `20260716174522_00b02fa6…sql` era rename to `invitations_insert` / `invitations_select_sent` / `invitations_select_received` | live 3 policies with those names; the ordinal-008 names are absent; the UPDATE policy is now enforced by trigger `trg_enforce_invitation_update_rules` | **SUPERSEDED_BY_LATER_MIGRATION** |
+
+RLS state: all five tables live `relrowsecurity=true`, `relforcerowsecurity=false`. Table owner `postgres` for all five.
+Impact: **PLATFORM_PERMISSION_DEFERRED** · Severity low · Likelihood low.
+Conclusion: contract-verified. Only `profiles` retains the ordinal-008 policy set verbatim.
+
+---
+
+### Ordinal 009 — `20251220052339_6ec9fe5e-6b5b-4905-a0d6-bf3576e8b7eb.sql`
+Timestamp 2025-12-20 05:23:39 · SHA-256 `959ad5a6…9a40` · Depends on 001 · **Classification: MIXED**
+
+| Grant | Final repo-expected | Live (`relacl` / `proacl`) | Status |
+|---|---|---|---|
+| `USAGE ON SCHEMA public TO authenticated` | present | present (schema usable; all five tables reachable) | **EXACT_MATCH** |
+| `SELECT,INSERT,UPDATE,DELETE` on `tenants`, `tenant_members`, `horses`, `invitations`, `profiles` TO authenticated | `arwd` minimum for authenticated | all five: `authenticated=arwdDxtm/postgres` | **EXACT_MATCH** (live is a superset: also `D`,`x`,`t`,`m`) |
+| anon grants — **not** granted by this migration | not specified | `horses`, `invitations`, `profiles`, `tenant_members`: `anon=arwdDxtm/postgres`; `tenants`: `anon=awdDxtm/postgres` (**no `r`/SELECT**) | **LIVE_EXTRA** |
+| `EXECUTE` on `update_updated_at_column()`, `is_tenant_member(uuid,uuid)`, `has_tenant_role(uuid,uuid,tenant_role)`, `can_invite_in_tenant(uuid,uuid)` TO authenticated | present | all four `proacl` contain `authenticated=X/postgres` (plus `anon`, `service_role`) | **EXACT_MATCH** (superset) |
+
+Two findings worth carrying forward: (a) `anon` holds table-level DML privileges on all five core tables — RLS is the only barrier, so any future policy addressed `TO public` or `TO anon` becomes immediately exploitable; (b) `tenants` is the sole table where `anon` lacks SELECT, an asymmetry with no migration in 001–010 as its origin.
+Impact: **PLATFORM_PERMISSION_DEFERRED** · Severity medium · Likelihood low (no anon-addressed policy exists on these tables today; `horses` has three `TO public` policies, all gated by `has_permission(auth.uid(), …)` which is null-safe for anon).
+Conclusion: contract-verified.
+
+---
+
+### Ordinal 010 — `20251220054441_784dd1e3-dfb1-4f43-a3fa-4dc1a3a9eb08.sql`
+Timestamp 2025-12-20 05:44:41 · SHA-256 `75050a8b…e5e6` · Depends on 001 · **Classification: SUPERSEDED_BY_LATER_MIGRATION**
+
+Object/operation: `ALTER TABLE public.tenants DISABLE ROW LEVEL SECURITY;` and `ALTER TABLE public.tenant_members DISABLE ROW LEVEL SECURITY;` — an explicitly temporary test change ("تعطيل RLS مؤقتاً للاختبار").
+Supersession chain: `20251220055109_8cb34a67-a9ad-442c-ad88-2efba8a621ad.sql` (ordinal 011, 6m28s later) re-enables RLS on both tables. No later migration disables it again (grep for `DISABLE ROW LEVEL SECURITY` on these tables over 011–322 → no matches).
+Final repo-expected: RLS enabled on both.
+Live: `pg_class.relrowsecurity = true` for `tenants` and `tenant_members`; `relforcerowsecurity = false`.
+Impact: **UNRELATED_DEFERRED** · Severity high-if-live, **not live** · Likelihood zero.
+Risk: none currently. Historical note: between these two migrations the tenancy tables were unprotected.
+Conclusion: contract-verified as superseded and reverted.
+
+---
+
+## E. Exact Evidence Gaps
+
+**Proven access limitation:** none. Every catalog read attempted for ordinals 001–010 succeeded via `psql` against the managed database.
+
+**Work still not performed (omitted, not blocked):**
+1. Columns added to `horses`, `tenants`, `profiles`, and `invitations` by migrations 011–322 were not compared — out of A1-R1 scope by design.
+2. `pg_get_indexdef` was not run: ordinals 001–010 create no explicit indexes; the implicit PK/UNIQUE indexes were verified through `pg_get_constraintdef` rather than `pg_get_indexdef`.
+3. Column-level (`GRANT … (col)`) privileges were not enumerated; only relation-level `relacl` was read.
+4. Default privileges (`pg_default_acl`) were not read, so the origin of the `anon` table grants in Ordinal 009's LIVE_EXTRA row is unattributed.
+5. Parallel-safety (`proparallel`) was read only implicitly via `pg_get_functiondef`, which omits it when default.
+
+**Repository ambiguity:** the ordinal-008 `tenant_members` `FOR ALL` policy has no single superseding migration; live shows it split into separate UPDATE and DELETE policies. The exact migration performing that split was not isolated in this run.
+
+**Live-state ambiguity:** `tenants` `anon` privilege set lacks `r` while its four peers have it; no migration in 001–010 explains the asymmetry, and the responsible later migration was not identified.
+
+---
+
+## F. Reconciliation
+
+```
+File bodies previously reported read (A1):        40 / 322
+Primary entries previously returned (A1):         40 / 322
+Contract-verified migrations after A1-R1:         10 / 322
+A1-R1 expected rows:                              10
+A1-R1 complete rows:                              10
+Missing ordinals:                                 none
+Duplicate ordinals:                               none
+```
+
+The 40 A1 summaries are **not** converted into verified migrations. Ordinals 011–040 remain read-but-unverified. Ordinals 041–322 remain unread and unverified.
+
+---
+
+## G. Run Metadata and Exact Stopping Point
+
+| Field | Value |
+|---|---|
+| Mode / operation | Plan/Chat — Read-Only; Batch 01 verification correction, ordinals 001–010 |
+| Parent Prompt ID | PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04 |
+| Continuation identity | Prompt 04 — Continuation A1-R1 |
+| Prompt Preparation Date/Time | 2026-08-02 13:03 Asia/Riyadh (UTC+03:00) |
+| Actual Run Start | 2026-08-02T10:11:10Z (UTC) — from `date -u` at first tool call |
+| Actual Run End | 2026-08-02T10:19Z (UTC) |
+| Final Report time | 2026-08-02T10:19Z (UTC) |
+| Timezone / timestamp evidence | Sandbox `date -u +%Y-%m-%dT%H:%M:%SZ`; A1 run start: **Exact time not recorded** |
+| Branch | `edit/edt-da35f96a-75d1-4576-bc5a-ed9d5e48401c` |
+| HEAD before | `2fb16f9c51fbd0246b002466cdd2f9ef6ecb0450` |
+| HEAD after | `2fb16f9c51fbd0246b002466cdd2f9ef6ecb0450` |
+| Working tree before | clean (`git status --porcelain` empty) |
+| Working tree after | modified: `.lovable/plan.md` only (platform-managed planning artifact, DEC-RM-DH-003-004) |
+| Scoped filenames read | the 10 listed in Section C, complete bodies |
+| Later migration files inspected for lineage | `20251220055109_8cb34a67-a9ad-442c-ad88-2efba8a621ad.sql`, `20251221115224_1466aea9-40e6-407b-8c99-18a7c4844ff9.sql`, `20260116014518_94209a46-cca4-4048-8955-452c61963680.sql`, `20260116021754_d5659ab7-e453-446d-9091-d9039bda996d.sql`, `20260225023857_3348d854-05a2-4fab-a33a-e402f99584ac.sql`, `20260328051924_1def4f56-8f5a-41c2-94c7-79bdc3ef9a1a.sql`, `20260716174522_00b02fa6-1eef-4468-b34b-3b73e29c7368.sql`; plus name-level grep sweeps across all 312 files at ordinals 011–322 |
+| Repository paths inspected | `supabase/migrations/` |
+| Live schemas/objects inspected | `public` (5 tables, 5 functions, 3 enums, 17 triggers, 24 policies, relation ACLs) and `auth.users` trigger `on_auth_user_created` |
+| Read-only queries (by purpose) | function definitions + attributes + ACL; policy roles/cmd/permissive/USING/WITH CHECK; `relrowsecurity`/`relforcerowsecurity`/owner/`relacl`; `information_schema.columns`; `pg_constraint` definitions; `pg_get_triggerdef`; `pg_enum` labels + sort order |
+| Intended repository writes | zero |
+| Actual repository writes | zero, except the disclosed automatic `.lovable/plan.md` behavior |
+| Database writes / DDL / DML / mutating RPCs / migrations applied / backfills / deployment | zero for every category |
+| Roadmap persistence / Workstream persistence | zero |
+| Acceptance / Closure | none |
+| Last contract-verified ordinal | **010** |
+| Unresolved limitations | the five omitted-work items and two ambiguities in Section E |
+| Exact stopping point | A1-R1 complete at ordinal 010. Ordinal 011 not opened as a scoped verification target. Batch 02 not started. No Prompt 05 preparation. |
+| Recommended next continuation identity | **Prompt 04 — Continuation A1-R2 (ordinals 011–020)** — no new Prompt number consumed |
