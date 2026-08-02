@@ -1,199 +1,296 @@
-# LOVABLE-TARGETED-CURRENT-STATE-REAUDIT-L1
-Parent: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-...-AUDIT-04
-Mode: Plan/Chat — Read-Only Investigation. Targeted current-state re-audit.
+# RM-DH-004 GOVERNANCE PERSISTENCE PLANNING AUDIT
+
+Prompt ID: PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01
+Mode: Plan/Chat — Read-Only. Operation: Governance Persistence Planning Audit.
 
 ## A. Executive Verdict
 
-**BLOCKED BY SPECIFIC CURRENT-STATE GAPS**
+**READY FOR GOVERNANCE PERSISTENCE**
 
-- Zero import infrastructure exists: no staging, batch, provenance, quarantine, fingerprint, dry-run, reconciliation, rollback, opening-obligation, or unapplied-credit object in repository or live database (verified).
-- The Account Statement reads, filters, sorts and computes running balance from `ledger_entries.created_at`, not `effective_date` — documented explicitly in `src/lib/finance/effectiveDate.ts`. A 2017 invoice imported in 2026 would display in 2026 (verified).
-- `effective_date` exists and is populated by the server-side ledger writer, but 28 of 88 live ledger rows are NULL, and 23 rows already disagree with their creation date — so the economic-date column is real but not yet authoritative (verified).
-- A canonical atomic server-side invoice writer exists (`create_invoice_with_items`, `_finance_ledger_insert`, `post_payment_session`) and is import-shaped, so import does not need a new writer from scratch (verified).
-- Legacy client-side writers are still wired and bypass it: `postLedgerForInvoice.ts` inserts ledger rows and upserts `customer_balances` from the browser with a read-then-write balance; `usePOSCore.ts` inserts invoice header and items in two separate non-atomic statements (verified).
-- Payment allocation model is correct for the multi-invoice scenario: `payment_sessions` → `payment_allocations` → `payment_horse_allocations` (29 live sessions), one payment to many invoices, not split tender (verified).
-- Unapplied customer credit and opening obligations have **no truthful representation** — `ledger_entries.entry_type` observed values are only invoice, payment, adjustment (verified).
-- Tenant ownership integrity is currently sound in data (`owner_id` NOT NULL, 0 NULL, 0 tenants without an owner membership), but creation is a two-step client sequence with a best-effort delete rollback, not a transaction (verified).
-- Tenant/tenant_members RLS is coherent and non-recursive; `tenants` INSERT is `WITH CHECK (true)` with no `owner_id = auth.uid()` binding, so `owner_id` is application-supplied only (verified). Not an import blocker.
-- Lab credit consumption is not a live risk today: `lab_credit_wallets` has 0 rows (verified) — but the coupling must be checked before importing lab history.
+- `RM-DH-004` does not exist anywhere in the repository: zero occurrences of the string in any tracked file (verified by full-repository ID scan).
+- `WS-DH-2026-0003` through `WS-DH-2026-0011` are entirely unused; only `WS-DH-2026-0002` exists as a package and `WS-DH-2026-0001` appears once as a referenced-but-unpublished ID inside `workstream.md`.
+- `DEC-RM-DH-004-001` is the correct first decision ID: `docs/CONVENTIONS.md` §11.1 mandates `DEC-<Roadmap ID>-NNN`, consecutive, and no `DEC-RM-DH-004-*` exists.
+- The four-file package shape is mandatory and non-deferrable per §11.3, so the proposed `README.md` / `roadmap.md` / `decisions.md` / `changelog.md` set is correct and complete.
+- The proposed folder slug pattern matches the three existing packages (`rm-dh-00N-<kebab-title>`); the proposed name is compliant but longer than any precedent — a shorter compliant variant is offered.
+- Governance does **not** require nine Workstream packages now. §11.4 makes the registry an index, §11.7 forbids claiming state that has not occurred, and the only existing precedent is one package for the one Workstream that actually executed. Creating packages for blocked, planned, pilot and deferred Workstreams would prematurely persist dynamic state.
+- Four central files become stale on persistence and must be updated: `docs/roadmaps/README.md`, `docs/workstreams/README.md`, `docs/README.md`, and nothing else.
+- `docs/CONVENTIONS.md`, and every `RM-DH-001`, `RM-DH-002` and `RM-DH-003` file, must remain unchanged — no rule is added and no existing Roadmap's authoritative content becomes false.
+- One pre-existing index defect is disclosed and must not be silently absorbed: `docs/README.md` row `DHB-RM-003-DECISIONS` shows `Executed — awaiting Acceptance Re-Audit` while every sibling RM-DH-003 row shows `Closed — owner Closure persisted`.
+- No owner decision is outstanding for persistence itself; the approved contract in the prompt is internally consistent with repository governance.
 
-## B. Current-State Evidence Summary
+## B. Evidence and Access Boundary
 
-| Area | Verified current fact | Repository evidence | Live DB evidence | Confidence | Practical meaning |
-|---|---|---|---|---|---|
-| Tenant creation | Two-step client sequence: insert `tenants`, then insert `tenant_members` role owner; on member failure the client deletes the tenant | `src/contexts/TenantContext.tsx` `createTenant`, lines 369–428 | `tenants.owner_id` NOT NULL, no default | High | Non-atomic; a network loss between steps can leave an orphan tenant, though none exist today |
-| Tenant ownership | `owner_id` supplied by the client from `auth.getUser()`; not trigger-bound | `TenantContext.tsx` line 380 | 0 tenants with NULL `owner_id`; 0 tenants lacking an owner membership | High | Data is clean; binding is by convention, not enforcement |
-| Tenant/member RLS | 4 policies on `tenants`, 5 on `tenant_members`; helpers `is_tenant_member`, `has_tenant_role` | — | `pg_policies` (full expressions in section C) | High | Coherent, non-recursive; INSERT on `tenants` is unrestricted for authenticated users |
-| Financial write authority | Canonical RPCs coexist with legacy browser-direct writers | `src/lib/finance/invoiceRpc.ts`, `postPaymentSession.ts` vs `postLedgerForInvoice.ts`, `hooks/pos/usePOSCore.ts`, `hooks/billing/useBillingLinks.ts` | `_finance_ledger_insert`, `create_invoice_with_items`, `post_payment_session` present | High | Import can reuse the RPC layer, but legacy paths must not be used by the importer |
-| Economic dates | `effective_date` exists on `ledger_entries`; statement uses `created_at` | `src/lib/finance/effectiveDate.ts` (explicit contract), `useClientStatement.ts` lines 49–101 | 28 of 88 NULL; 23 rows differ from Riyadh creation date | High | Backdated history would not display economically |
-| Import infrastructure | Absent | No match for import/staging/quarantine/opening/provenance in `src/` or `supabase/` | No `%import%`, `%stag%`, `%opening%` table in `public` | High | Nothing to reuse; a landing layer must be built |
+**Directly read:** `docs/CONVENTIONS.md` (frontmatter, section index, complete §11 including §11.1–§11.10); `docs/README.md` (frontmatter, governance registry rows 117–131); `docs/roadmaps/README.md`; `docs/workstreams/README.md`; all four files of the `RM-DH-003` package (frontmatter, headings, changelog entry pattern, decision heading pattern); `docs/roadmaps/rm-dh-002-core-operations-and-expansion/README.md` and `roadmap.md`; frontmatter versions of all `RM-DH-001` files; `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md` (frontmatter and complete heading structure).
 
-## C. Current RLS State — tenants and tenant_members
+**Machine-verified:** full-repository regex scan for `RM-DH-0\d\d`, `WS-DH-20\d\d-\d{4}`, `DEC-RM-DH-\d{3}-\d{3}`; complete file listing of `docs/roadmaps/` and `docs/workstreams/`; frontmatter `version:` extraction across all governance files.
 
-| Table | Policy | Cmd | Roles | USING | WITH CHECK | Helpers | SECDEF | Practical meaning | Risk |
-|---|---|---|---|---|---|---|---|---|---|
-| tenants | Authenticated users can create tenants | INSERT | authenticated | — | `true` | none | n/a | Any authenticated user may insert any tenant row, including an arbitrary `owner_id` | `owner_id` not bound to `auth.uid()` at the policy layer |
-| tenants | Members can view their tenants | SELECT | authenticated | `is_tenant_member(auth.uid(), id)` | — | `is_tenant_member` | yes | Members read their own tenants | none observed |
-| tenants | Owners can view their own tenants | SELECT | authenticated | `owner_id = auth.uid()` | — | none | n/a | Creator reads own tenant before membership exists | none observed |
-| tenants | Owners can update their tenants | UPDATE | authenticated | `has_tenant_role(auth.uid(), id, 'owner')` | `has_tenant_role(auth.uid(), id, 'owner') AND owner_id = (SELECT t.owner_id FROM tenants t WHERE t.id = tenants.id)` | `has_tenant_role` | yes | Owners update, `owner_id` frozen | none observed |
-| tenant_members | Members can view tenant members | SELECT | authenticated | `is_tenant_member(auth.uid(), tenant_id)` | — | `is_tenant_member` | yes | Members see co-members | none observed |
-| tenant_members | Owners can add themselves as owner member | INSERT | authenticated | — | `user_id = auth.uid() AND role = 'owner' AND EXISTS (SELECT 1 FROM tenants t WHERE t.id = tenant_members.tenant_id AND t.owner_id = auth.uid())` | none | n/a | Bootstrap owner membership only for a tenant already owned | none observed |
-| tenant_members | Users can join via invitation | INSERT | authenticated | — | `user_id = auth.uid() AND EXISTS (SELECT 1 FROM invitations inv WHERE inv.tenant_id = tenant_members.tenant_id AND inv.proposed_role = tenant_members.role AND inv.status = 'pending' AND (inv.invitee_id = auth.uid() OR inv.invitee_email = (SELECT profiles.email FROM profiles WHERE profiles.id = auth.uid())))` | none | n/a | Self-join bound to a pending invitation with matching role | none observed |
-| tenant_members | Owners can update tenant members | UPDATE | authenticated | `has_tenant_role(auth.uid(), tenant_id, 'owner')` | — | `has_tenant_role` | yes | Owner-only member updates | no WITH CHECK; constrained by `enforce_tenant_member_immutability` trigger |
-| tenant_members | Owners can delete tenant members | DELETE | authenticated | `has_tenant_role(auth.uid(), tenant_id, 'owner')` | — | `has_tenant_role` | yes | Owner-only removal | none observed |
+**Inferred, not proven:** that no un-indexed draft of RM-DH-004 exists outside `docs/` under a name that does not contain the literal ID. The scan was repository-wide for the ID strings, so this residual risk is negligible.
 
-Triggers on `tenants`: `enforce_tenant_limit` (`check_tenant_limit`, SECDEF), `on_tenant_created_seed_roles` (`seed_tenant_roles`, SECDEF), `trg_provision_stable_local_record_permissions_ins/_upd` (SECDEF), `trg_tenants_provision_payment_account` (`_finance_provision_tenant_payment_account`, SECDEF), `update_tenants_updated_at`. None writes `owner_id`.
+**Inaccessible:** commit messages are uninformative — the last fifteen commits touching `docs/` are all titled `Changes`, so commit-message evidence for governance-commit patterns is **INACCESSIBLE FROM CURRENT LOVABLE CONTEXT**. Governance-commit patterns were reconstructed from the frontmatter `source:` fields instead, which are detailed and self-describing.
 
-Triggers on `tenant_members`: `enforce_tenant_member_immutability_trigger`, `trg_audit_tenant_members_role` (SECDEF), `update_tenant_members_updated_at`.
+**Repository history sufficiency:** sufficient for identity, path, version and pattern verification. Insufficient for commit-message-based process verification.
 
-No recursion or circular policy dependency observed. Repository/live divergence: none detected for these two tables.
+**Canonical/default branch:** **not proven**. The working branch is `edit/edt-d17e7fe2-20e8-4f83-9cf5-a993097cc8f9` at HEAD `1efc5b7f5764d7eea6695a7b4c9f835bd77a93b3`. Prior governance frontmatter references `main` as the merge target, but this run cannot prove the default branch from the sandbox.
 
-## D. Financial Write Authority
+## C. Current Governance Pattern (proven)
 
-| Object | Current writer | Atomic? | Client-direct write? | Import-safe? | Evidence | Required correction |
-|---|---|---|---|---|---|---|
-| invoices | `create_invoice_with_items` / `update_invoice_with_items` / `create_source_checkout_invoice` RPCs; POS writes directly | RPC yes, POS no | Yes (POS) | RPC path yes, POS path no | `src/lib/finance/invoiceRpc.ts`; `src/hooks/pos/usePOSCore.ts` lines 116–160 | Importer must use the RPC path only; no backdating parameter exists yet |
-| invoice_items | Same RPCs; POS inserts separately after the header | RPC yes, POS no | Yes (POS) | RPC path yes | `usePOSCore.ts` line 156 | Same |
-| ledger_entries | `_finance_ledger_insert` (SECDEF, advisory-locked, recomputes running balance); legacy `postLedgerForInvoice.ts` inserts directly | RPC yes, legacy no | Yes (legacy) | RPC path yes | `docs/aml_1_b_1/stage_j5_1/preflight/01_fn__finance_ledger_insert.txt`; `src/lib/finance/postLedgerForInvoice.ts` | Importer must call the RPC; legacy read-then-write balance is race-prone |
-| payment_sessions | `post_payment_session` RPC | Yes | Not observed | Yes | `src/lib/finance/postPaymentSession.ts` | None for import |
-| payment_allocations | Same RPC | Yes | Not observed | Yes | same | Needs an import-provenance field; `external_reference` exists |
-| payment_horse_allocations | Same RPC | Yes | Not observed | Yes | same | None |
-| customer_balances | `_finance_ledger_insert` upsert; legacy client upsert | RPC yes, legacy no | Yes (legacy) | Derived server-side on the RPC path | `postLedgerForInvoice.ts` upsert block | Never write directly during import |
-| billing_links | `_finance_billing_link_upsert`; client insert in `useBillingLinks.ts` | RPC yes | Yes | Partially | `src/hooks/billing/useBillingLinks.ts` line 68 | Import should use the RPC helper |
+**Roadmap package:** one folder per Roadmap under `docs/roadmaps/`, slug `rm-dh-00N-<kebab-case-title>`, containing exactly four files (`README.md`, `roadmap.md`, `decisions.md`, `changelog.md`). §11.3 forbids deferring `decisions.md` or `changelog.md`.
 
-Retry duplication: `finance_request_idempotency` protects RPC calls keyed by tenant/operation/idempotency key (`_finance_idempotency_begin`), so a retried identical RPC is a replay. There is **no row-level fingerprint** tying a source file row to a created record, so a re-run of the same source file with new keys would duplicate.
+**File authority split (§11.3, confirmed by the three live packages):**
+- `README.md` — stable identity, Arabic title, purpose, package navigation, governing decision link. Contains no dynamic status in RM-DH-001 and RM-DH-003; RM-DH-002's README does restate a `Verified identity` status block, which is a precedent for a static, non-progress identity contract only.
+- `roadmap.md` — the single authoritative source of current state: status block, Phase register, stage table, dependencies, remaining work, stopping point, next permitted action.
+- `decisions.md` — one `## DEC-RM-DH-00N-NNN` section per decision with `### Decision`, `### Rationale`, `### Rejected alternatives`.
+- `changelog.md` — `## Entries` with `### <ISO timestamp> — <event>` subsections, newest at the bottom, append-oriented.
 
-## E. Economic Date Integrity
+**Frontmatter:** every governance `.md` carries an HTML-comment block with `id`, `title`, `version`, `status`, `audience`, `date`, `last-verified`, `supersedes`, `superseded-by`, `source`, `source-sha256`. Document IDs follow `DHB-RM-00N-<PART>` and `DHB-WS-YYYY-NNNN`.
 
-- Does `ledger_entries.effective_date` exist? **Yes** (Fact — used in `_finance_ledger_insert`, ordering key of the running-balance loop).
-- Nullable? **Yes** (Fact — 28 rows are NULL).
-- Rows with NULL: **28 of 88** (Fact).
-- Populated by: `_finance_ledger_insert` (required argument, raises `FIN_LEDGER_INSERT_BAD_ARGS` if NULL), therefore every RPC-mediated posting (`create_invoice_with_items` → `approve_invoice`, `post_payment_session`, `post_expense_with_ledger`, `post_manual_ledger_adjustment`).
-- Not populated by: the legacy client writer `src/lib/finance/postLedgerForInvoice.ts`, which omits `effective_date` from its insert payload (Fact) — this is the source of the 28 NULL rows.
-- Statement behaviour: `useClientStatement.ts` selects `created_at`, filters `gte/lte` on `created_at`, orders by `created_at`, and maps `date: e.created_at`; `src/lib/finance/effectiveDate.ts` states the canonical contract is `effectiveDate(row) = ledger_entries.created_at` for filtering, display, running balance, sorting, First Financial Activity, and every export. **The statement does not use `effective_date`** (Fact).
-- Scenario (issue 20-02-2017, imported 03-08-2026): the ledger row would carry `effective_date = 2017-02-20` and `created_at = 2026-08-03`. The running balance inside `_finance_ledger_insert` would order it correctly in 2017, but the statement, its date filter, its exports and its First Financial Activity would place it in August 2026 (Inference from the two verified facts above). **Economically wrong on every read surface.**
-- Prerequisites before import: (1) cut the statement read path over from `created_at` to `effective_date`; (2) backfill the 28 NULL rows; (3) retire or fence the legacy writer so no new NULLs appear; (4) confirm the 23 rows where `effective_date` already differs from creation date are intentional before treating either column as truth.
+**Versioning:** semantic. New file = `1.0.0`. Index synchronization that only records another file's new version = patch (`docs/README.md` went 1.11.1 → 1.11.2 → 1.11.3 for exactly this). Adding a new registered row or a new rule = minor (`docs/README.md` 1.8.0 → 1.9.0 registered the whole governance layer; `CONVENTIONS.md` 1.1.0 → 1.2.0 added §11.10). Content restatement that changes recorded state = minor; defect correction that changes no state = patch. The `source:` field accumulates a semicolon-separated history of every version bump and is never truncated.
 
-## F. Existing Import Infrastructure
+**Registry pattern:** `docs/roadmaps/README.md` is an eight-column index; `docs/workstreams/README.md` is a seven-column index whose schema is explicitly frozen (a `Next step` column was added once and reverted as defect D-02). §11.4: a registry summary never overrides a package file.
 
-| Concept | Status |
+**Acceptance and Closure:** Execution → Acceptance Re-Audit → Acceptance Persistence → owner Closure → Closure Persistence, each recorded in `roadmap.md`, `workstream.md`, `changelog.md`, and synchronized into both registries and `docs/README.md`. Execution is never Acceptance (§11.5).
+
+**`.lovable/plan.md`:** governed by §11.10 and `DEC-RM-DH-003-004`. Platform-generated, single-path exception, must be disclosed separately, excluded from intended-file counts, never treated as implementation or Acceptance evidence, and untracking must not be retried.
+
+## D. ID and Path Collision Audit
+
+| Check | Result | Evidence |
+|---|---|---|
+| `RM-DH-004` anywhere in the repository | **Absent — no collision** | Repository-wide scan returned only RM-DH-001/002/003 |
+| Registered Roadmap IDs | `RM-DH-001`, `RM-DH-002`, `RM-DH-003` | `docs/roadmaps/README.md` registered table |
+| `WS-DH-2026-0003` … `WS-DH-2026-0011` | **All absent — all available** | Scan returned only `WS-DH-2026-0001` and `WS-DH-2026-0002` |
+| `WS-DH-2026-0001` | Referenced once inside `ws-dh-2026-0002-governance-foundation/workstream.md`; no package, not registered. Permitted gap per §11.5 | Scan + file listing |
+| `DEC-RM-DH-004-*` | **Absent** | Only `DEC-RM-DH-003-001` … `-004` exist |
+| Proposed folder `docs/roadmaps/rm-dh-004-financial-truth-historical-data-migration/` | **Does not exist; no collision.** Slug is convention-compliant (`rm-dh-00N-` + kebab-case). It is longer than all three precedents; `rm-dh-004-financial-truth-and-historical-migration` is a shorter, equally compliant alternative | Directory listing |
+| Proposed filenames | Exactly match the mandated four-file set | §11.3 |
+| Proposed document IDs `DHB-RM-004-README` / `-ROADMAP` / `-DECISIONS` / `-CHANGELOG` | **Absent — available**, and match the `DHB-RM-00N-*` precedent | `docs/README.md` registry |
+| Proposed Workstream slug `ws-dh-2026-0003-economic-date-integrity` and document ID `DHB-WS-2026-0003` | **Absent — available**, matches the `ws-dh-YYYY-NNNN-<kebab-title>` / `DHB-WS-YYYY-NNNN` precedent | Directory listing |
+
+## E. Exact File Allowlist and Denylist
+
+### Allowlist (7 intended files)
+
+| # | File path | Exists now? | Current version | Target version | Create/Modify | Exact sections | Content responsibility | Why required |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `docs/roadmaps/rm-dh-004-financial-truth-historical-data-migration/README.md` | No | — | 1.0.0 | Create | frontmatter; title + Arabic title; Roadmap ID; Purpose; Package navigation; Ownership boundaries; Relationships | Stable identity and navigation only | §11.3 mandates it |
+| 2 | `.../roadmap.md` | No | — | 1.0.0 | Create | frontmatter; Roadmap status block; Track register; Phase register; Workstream register; Dependency order; Phase 0 exit criteria; Current stopping point; Next permitted action | Sole authoritative dynamic state | §11.3 |
+| 3 | `.../decisions.md` | No | — | 1.0.0 | Create | frontmatter; Decision ID numbering note; `## DEC-RM-DH-004-001` with `### Decision`, `### Rationale`, `### Rejected alternatives` | Owner creation decision and independence rationale | §11.3, §11.1 |
+| 4 | `.../changelog.md` | No | — | 1.0.0 | Create | frontmatter; `## Entries`; one `### <timestamp> — Initial package creation` entry | Append-oriented chronology | §11.3 |
+| 5 | `docs/workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md` | No | — | 1.0.0 | Create | frontmatter; Identity; Scope; Exclusions; Evidence; Stage history; Current state; File plan; Validation plan; Rollback plan; Stopping point; Next permitted step | The only Workstream with real current state (Active, audit pending) | Mirrors the `WS-DH-2026-0002` precedent; the eight other Workstreams have no state to persist |
+| 6 | `docs/roadmaps/README.md` | Yes | 1.0.1 | 1.1.0 | Modify | Registered Roadmaps table — append one `RM-DH-004` row | Index only | The registry becomes incomplete the moment RM-DH-004 exists |
+| 7 | `docs/workstreams/README.md` | Yes | 1.2.2 | 1.3.0 | Modify | Registered Workstreams table — append one `WS-DH-2026-0003` row; correct the sentence "Only `WS-DH-2026-0002` is registered in this execution." | Index only | Same; the standalone sentence becomes false |
+| 8 | `docs/README.md` | Yes | 1.11.3 | 1.12.0 | Modify | Governance registry table — append five rows (four RM-DH-004 files + `DHB-WS-2026-0003`); update the `DHB-RM-REGISTRY` and `DHB-WS-REGISTRY` version cells to 1.1.0 / 1.3.0 | Central document index | Every governance file is registered here; omission is a coverage defect |
+
+Intended tracked file count: **8** (5 created, 3 modified). `.lovable/plan.md` is excluded from this count under §11.10.9.
+
+### Denylist
+
+| Path or category | Why excluded |
 |---|---|
-| Import batches | **Absent** |
-| Source files / source rows | **Absent** |
-| Staging layer | **Absent** |
-| Quarantine | **Absent** |
-| Provenance on financial rows | **Absent** (only `payment_allocations.external_reference`, a free-text field — partially reusable) |
-| Duplicate fingerprints | **Absent** at row level; `finance_request_idempotency` is **partially reusable** at call level |
-| Dry run | **Absent** |
-| Reconciliation | **Absent** |
-| Rollback | **Absent** for import; `cancel_invoice` and `post_manual_ledger_adjustment` are **partially reusable** as compensating mechanisms |
-| Opening obligations | **Absent** |
-| Unapplied customer credit | **Absent** as a first-class concept |
-| Historical/imported record status | **Absent**; `invoices_status_check` has no imported/historical value |
+| `src/**` | Governance-only persistence; no application behavior changes |
+| `supabase/**` (migrations, functions, tests) | No schema, data, RPC, or policy change is authorized |
+| Application and database tests | Nothing testable changes |
+| Live database objects | Out of scope for this Roadmap-creation run |
+| `docs/CONVENTIONS.md` | No new stable rule is required; RM-DH-004 complies with existing §11 |
+| `docs/roadmaps/rm-dh-001-*/**` | RM-DH-001's authoritative content does not become false; the handover relationship is stated one-way from RM-DH-004 |
+| `docs/roadmaps/rm-dh-002-*/**` | RM-DH-004 is independent; touching RM-DH-002 would imply a parent/child relationship the owner rejected |
+| `docs/roadmaps/rm-dh-003-*/**` | RM-DH-003 / Phase 2 is CLOSED; reopening a closed package to record an unrelated Roadmap is a governance violation |
+| `docs/workstreams/ws-dh-2026-0002-*/**` | Closed Workstream |
+| `docs/architecture/**`, `docs/handoff/**`, `docs/historical/**`, `docs/aml_1_b_1/**` | Accepted or historical evidence; §11.6 forbids silent correction |
+| Workstream packages for WS-DH-2026-0004 … 0011 | No current state exists to persist truthfully (§11.7) |
+| Project Knowledge, Workspace Knowledge, Skills | Not repository governance artifacts; separate authorization required |
+| Project settings, publish settings, secrets | Out of scope |
+| `.lovable/**` other than platform-generated `.lovable/plan.md` | §11.10.2 and §11.10.6 |
 
-Answers:
-- Safe landing/staging layer today? **No.**
-- Can source files be preserved and linked to results? **No** — no storage bucket, table, or column exists for this.
-- Retry without duplication? **Only within the 7-day RPC idempotency window with the same key.** Not for file re-runs.
-- Roll back one imported document without touching unrelated records? **No** — no batch or document grouping exists.
-- Quarantine ambiguous matches? **No.**
-- Full invoices coexisting with an opening obligation without double counting? **No** — no opening-obligation entry type, so the two cannot be distinguished in the balance.
-- Unapplied credit without a fake invoice or unexplained adjustment? **No** — only `adjustment` is available, which carries no semantic meaning on the statement.
-- Could imported lab history trigger live Lab Credit consumption? **Unverified coupling, zero live exposure** — `lab_credit_wallets` has 0 rows and `lab_credit_transactions` is driven by lab request flows, not by invoice import; a lab-history importer that replays lab request creation rather than writing invoices directly would be at risk. Must be confirmed before any lab import.
+## F. Package and Content Allocation (verified)
 
-### Scenario results
+The prompt's proposed responsibilities are **confirmed correct** against §11.3 and the three live packages, with these precisions:
 
-1. **Historical invoice (2017 → 2026):** economic date storable, display date wrong (2026), numbering would consume a current-series number via `_finance_invoice_number_next` unless the source number is preserved, ledger posts correctly by `effective_date`, statement shows it in 2026, duplicate risk high on file re-run, no provenance. **Not import-ready.**
-2. **One payment, two allocations:** correctly modelled — one `payment_sessions` row with two `payment_allocations` rows. This is allocation, not split tender (split tender would be multiple tenders inside one session). **Supported.**
-3. **Unapplied credit 2,000 of 5,000:** the 3,000 allocates cleanly; the 2,000 remainder has no truthful representation. It would land as an unexplained `adjustment` or as an over-payment with no label. **Not supported.**
-4. **Opening obligation 12,400 at 31-12-2025:** would require a synthetic invoice today. **Not supported.**
-5. **Mixed PDF with sections:** no section-level or row-level staging or classification model exists. **Not supported.**
-6. **Client is a stable, horse owner is an individual:** the data model does separate these — `clients` (billing party), `horses.owner_id`/`horse_owners`, and `party_horse_links` for many-to-many roles. Identities are preserved structurally. There is no import matching flow at all, so the risk is that a future importer conflates them; the model itself does not force it. **Model supported, flow absent.**
+**`README.md`** — frontmatter; `# RM-DH-004 — <English title>`; `**العنوان العربي:** <Arabic title>`; `**Roadmap ID:** RM-DH-004`; `## Purpose`; `## Package navigation` (four links); `## Ownership boundaries` (what RM-DH-004 owns and does not own); `## Relationships` (one paragraph each for RM-DH-002, RM-DH-003, RM-DH-001); `## Governing decision` (link to `DEC-RM-DH-004-001`). **Must not contain** current Phase, current Workstream, stopping point, or any progress value — those belong to `roadmap.md` alone.
 
-## C. Specific Blockers
+**`roadmap.md`** — frontmatter; `# RM-DH-004 — Authoritative Current State`; Arabic subtitle; a one-line statement that this file is the single authoritative source of current state; `## Roadmap status` fenced `text` block (Roadmap ID, Status, Priority, Owner, Owner Approval timestamp, Current Phase, Current Workstream, Current Workstream Stage, Technical Environment); `## Track register` (4 rows); `## Phase register` (Phase 0 … Phase 8 with status); `## Workstream register` (9 rows: ID, title, Track, Phase, Status, dependency, package present yes/no); `## Dependency order`; `## Inside RM-DH-004 / Phase 0` stage table; `## Phase 0 exit criteria`; `## Remaining work in this Phase`; `## Current stopping point`; `## Next permitted action`. **Must not contain** decision rationale or chronology.
 
-| ID | Blocker | Why it blocks Historical Import | Evidence | Owner decision? | Technical correction? |
-|---|---|---|---|---|---|
-| BL-1 | Statement reads `created_at`, not `effective_date` | Every imported historical record would display in the import month; statements, exports and First Financial Activity would be economically false | `src/lib/finance/effectiveDate.ts`; `useClientStatement.ts` 49–101 | No | Yes — read-path cutover |
-| BL-2 | 28 of 88 ledger rows have NULL `effective_date` | The economic-date column cannot become the sort/filter key while a third of rows are NULL | Live count | No | Yes — backfill |
-| BL-3 | Legacy client-side ledger writer still wired | Keeps producing NULL `effective_date` rows and race-prone balances; also a tempting shortcut for an importer | `src/lib/finance/postLedgerForInvoice.ts` | No | Yes — fence or retire |
-| BL-4 | No provenance / batch identity on financial rows | Imported rows are indistinguishable from operational rows; no selective rollback, no reconciliation | No such column on `invoices`, `ledger_entries` | No | Yes |
-| BL-5 | No opening-obligation or unapplied-credit representation | Scenarios 3 and 4 cannot be imported truthfully | `ledger_entries.entry_type` observed: invoice, payment, adjustment | Yes — owner must choose the representation | Yes |
-| BL-6 | No row-level idempotency fingerprint | A re-run of the same source file duplicates financial history | `finance_request_idempotency` is call-keyed only | No | Yes |
-| BL-7 | No staging / quarantine layer | Ambiguous client/horse/invoice matches would either be silently guessed or abort the batch | Absent in repo and DB | Yes — owner must accept a review queue | Yes |
-| BL-8 | Invoice numbering on backdated documents | Importing a 2017 invoice either consumes a 2026 series number or must preserve the source number, changing uniqueness assumptions | `_finance_invoice_number_next`; `invoices_tenant_id_invoice_number_key` | Yes | Yes |
-| BL-9 | POS writes invoice header and items non-atomically | If the importer reuses POS-shaped code it inherits partial-write risk | `usePOSCore.ts` 116–160 | No | Avoid; do not reuse this path |
+**`decisions.md`** — frontmatter; `## Decision ID numbering note` (state that numbering starts at `-001` with no alias, following the RM-DH-003 precedent of documenting numbering explicitly); `## DEC-RM-DH-004-001 — Creation of RM-DH-004 as an independent Roadmap` with `### Decision`, `### Rationale`, `### Rejected alternatives` (as a Phase of RM-DH-002; as a Track of RM-DH-002; as a Workstream under RM-DH-003). **Must not contain** current status or timestamps other than the owner-approval timestamp attached to the decision.
 
-Not blockers for import (noted, excluded): `tenants` INSERT policy has no `owner_id = auth.uid()` binding; tenant creation is non-atomic. Data is currently clean (0 orphans, 0 NULL owners).
+**`changelog.md`** — frontmatter; `# RM-DH-004 — Changelog`; Arabic subtitle; "Append-oriented chronological record. Newest entries are added at the bottom of the register."; `## Entries`; `### 2026-08-03T02:04:00+03:00 — Owner approval of RM-DH-004`; `### <execution timestamp> — Initial package creation`. **Must not contain** authoritative status.
 
-## D. Owner Decisions Required
+**Workstream file `WS-DH-2026-0003`** — mirroring the proven `WS-DH-2026-0002` heading set: `## Identity`, `## Scope`, `## Exclusions`, `## Evidence`, `## Stage history`, `## Current state`, `## File plan`, `## Validation plan`, `## Rollback plan`, `## Final stopping point`, `## Next permitted step`. At creation, `## Evidence` and `## Stage history` carry only the registration event; no Acceptance section exists yet.
 
-**OD-1 — How should a customer's pre-Dayli balance be represented when no invoice detail exists?**
-Example: a stable client owes 12,400 SAR at 31-12-2025 from an Excel sheet with no invoice list.
-- A: A dedicated opening-obligation ledger entry type, not revenue, shown as "Opening balance" on the statement.
-- B: A synthetic invoice numbered `OPENING-2025`.
-- Recommendation: **A**. B pollutes revenue reporting and VAT surfaces forever; A is one clean concept with a single presentation rule.
+## G. Workstream Persistence Matrix
 
-**OD-2 — How should prepaid money with no matching invoice be represented?**
-Example: 5,000 SAR received, only 3,000 allocatable.
-- A: An unapplied-credit ledger entry type that reduces the balance and remains available for future allocation.
-- B: Leave the 2,000 as an unallocated payment session remainder.
-- Recommendation: **A** for clarity on the statement; B is closer to the existing model but is invisible to the customer.
+| WS ID | Title | Package required now? | Proposed slug | Proposed path | Initial version | Initial Stage | Initial Status | Roadmap | Phase | Dependency | Stopping point | Class | Truthfulness |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WS-DH-2026-0003 | Economic Date Integrity | **Yes** | `ws-dh-2026-0003-economic-date-integrity` | `docs/workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md` | 1.0.0 | Investigative Audit | ACTIVE — INVESTIGATIVE AUDIT PENDING | RM-DH-004 | Phase 1 | none | Registered and active; Investigative Audit not started | Active | Truthful — real current state exists |
+| WS-DH-2026-0004 | Canonical Financial Write Authority | No | `ws-dh-2026-0004-canonical-financial-write-authority` | reserved | — | Not started | BLOCKED BY WS-DH-2026-0003 | RM-DH-004 | Phase 2 | WS-0003 | Not entered | Blocked | Package would prematurely create dynamic state |
+| WS-DH-2026-0005 | POS Financial Isolation | No | `ws-dh-2026-0005-pos-financial-isolation` | reserved | — | Not started | DEFERRED — POS COMING SOON / DISABLED | RM-DH-004 | Phase 2 | deferred | Not entered | Deferred | Same |
+| WS-DH-2026-0006 | Import Control Plane | No | `ws-dh-2026-0006-import-control-plane` | reserved | — | Not started | BLOCKED BY PHASES 1–2 | RM-DH-004 | Phase 3 | Phases 1–2 | Not entered | Blocked | Same |
+| WS-DH-2026-0007 | Provenance, Idempotency & Selective Rollback | No | `ws-dh-2026-0007-provenance-idempotency-and-rollback` | reserved | — | Not started | BLOCKED BY WS-DH-2026-0006 | RM-DH-004 | Phase 4 | WS-0006 | Not entered | Blocked | Same |
+| WS-DH-2026-0008 | Historical Financial Semantics | No | `ws-dh-2026-0008-historical-financial-semantics` | reserved | — | Not started | PLANNED — OWNER ALIGNMENT REQUIRED | RM-DH-004 | Phase 5 | owner alignment | Not entered | Planned | Same |
+| WS-DH-2026-0009 | Historical Document Identity & Numbering | No | `ws-dh-2026-0009-historical-document-identity-and-numbering` | reserved | — | Not started | PLANNED — OWNER ALIGNMENT REQUIRED | RM-DH-004 | Phase 5 | owner alignment | Not entered | Planned | Same |
+| WS-DH-2026-0010 | Client, Owner & Horse Matching Integrity | No | `ws-dh-2026-0010-client-owner-and-horse-matching-integrity` | reserved | — | Not started | BLOCKED BY CONTROL AND PROVENANCE LAYERS | RM-DH-004 | Phase 6 | WS-0006, WS-0007 | Not entered | Blocked | Same |
+| WS-DH-2026-0011 | Laboratory Historical Import Safety Pilot | No | `ws-dh-2026-0011-laboratory-historical-import-safety-pilot` | reserved | — | Not started | PILOT — BLOCKED BY PHASES 1–6 | RM-DH-004 | Phase 7 | Phases 1–6 | Not entered | Pilot | Same |
 
-**OD-3 — Should imported invoices keep their original document numbers?**
-Example: a 2017 lab invoice numbered `LAB-2017-0043`.
-- A: Preserve the source number exactly.
-- B: Issue new Dayli numbers and record the source number as a reference.
-- Recommendation: **A**, since the customer's own records and any tax history reference the original number.
+**Registration vs package creation:** all nine are **registered** — named with ID, Track, Phase, status and dependency — inside `RM-DH-004/roadmap.md`. Only WS-DH-2026-0003 receives a **package** and a row in `docs/workstreams/README.md`. Activation, execution, Acceptance and Closure are all later, separate events. §11.5 note 6 explicitly permits registered-but-unpublished Workstreams, and `WS-DH-2026-0001` is the live precedent.
 
-**OD-4 — How much history should be imported at all?**
-- A: Opening position only at a single cutover date.
-- B: Full transaction history where the source is complete, opening position elsewhere (hybrid).
-- Recommendation: **B**, limited to customers with complete source records.
+## H. Cross-Roadmap Relationship Plan
 
-**OD-5 — Will you accept a manual review queue for ambiguous matches?**
-Example: source says "Al Faisal" and two Dayli clients could match.
-- A: Quarantine the row for human decision.
-- B: Auto-match by best guess.
-- Recommendation: **A**. B silently corrupts customer balances.
+**RM-DH-004 ↔ RM-DH-002 (independence).** One paragraph in `RM-DH-004/README.md` under `## Relationships`: RM-DH-004 is an independent Roadmap, not a Phase, Track or Workstream of RM-DH-002. RM-DH-002 owns operational-domain workflows and current domain events; RM-DH-004 owns financial-truth stabilization, historical-import architecture, control, provenance, idempotency, reconciliation, rollback, historical financial semantics and historical-import Acceptance. Neither copies the other's current Phase, current Workstream, dynamic status, stopping point, Acceptance, Closure or next action. **No RM-DH-002 file is modified.** The reference is deliberately one-way to avoid a competing source of truth; RM-DH-002 is currently `PARTIALLY_RECOVERED` with no declared Current Phase, so it has no truthful place to record a dependency.
 
-## E. Minimum Technical Prerequisites
+**RM-DH-004 ↔ RM-DH-003 (governance compliance).** One sentence in `RM-DH-004/README.md` stating that this package complies with `docs/CONVENTIONS.md` §11, authored under RM-DH-003, and a link to `../../CONVENTIONS.md`. **No RM-DH-003 file is modified** — Phase 2 is CLOSED, and RM-DH-003's own next permitted action is unrelated. Compliance is demonstrated by conformance, not by editing the governing Roadmap.
 
-1. **Cut the statement read path to `effective_date`.** Purpose: make backdated records display economically. Affects `useClientStatement.ts`, `effectiveDate.ts`, statement exports, PDF/print, First Financial Activity. Risk if skipped: every imported record is economically false. Separate prompt: yes. High-risk and must be staged: yes — it changes what existing customers see today.
-2. **Backfill the 28 NULL `effective_date` rows.** Affects `ledger_entries`. Risk if skipped: prerequisite 1 cannot be completed safely. Separate prompt: no, bundle with 1. Staged: yes (backfill before cutover).
-3. **Fence or retire the legacy client ledger writer.** Affects `postLedgerForInvoice.ts` and its callers. Risk if skipped: new NULL rows keep appearing behind the cutover. Separate prompt: no. Staged: yes.
-4. **Add import provenance and batch identity.** Purpose: distinguish, reconcile, and roll back imported rows. Affects `invoices`, `ledger_entries`, plus a new batch table. Risk if skipped: no rollback, no reconciliation. Separate prompt: yes (schema design). Staged: yes.
-5. **Add row-level import idempotency.** Purpose: safe re-runs. Affects the new batch/row tables. Risk if skipped: duplicated financial history. Separate prompt: no, bundle with 4.
-6. **Introduce opening-obligation and unapplied-credit semantics.** Purpose: scenarios 3 and 4. Affects `ledger_entries.entry_type` and statement presentation. Depends on OD-1 and OD-2. Separate prompt: yes. Staged: yes.
-7. **Confirm the lab-credit coupling before any lab-history import.** Purpose: ensure imported lab history cannot consume live credits. Affects `lab_credit_wallets`, `lab_credit_transactions`, lab request flows. Risk if skipped: silent consumption of real balances. Separate prompt: yes, narrow.
+**RM-DH-004 ↔ RM-DH-001 (future handover).** One sentence in `RM-DH-004/README.md`: final accepted RM-DH-004 architecture, operating contracts, reconciliation evidence and migration runbooks will later become handover inputs under RM-DH-001. **No RM-DH-001 file is modified** — the handover has not occurred, so recording it in RM-DH-001 would violate §11.7.
 
-## F. Proposed Next Step
+**Reciprocity:** the central registries provide the reciprocal link. Both new Roadmap and Workstream rows point back at the packages, so navigation is complete without cross-editing closed or recovering packages.
 
-**Owner Alignment**, Mode: **Plan/Chat**.
+## I. Version Matrix
 
-Decisions OD-1 through OD-5 gate the schema design for prerequisites 4 and 6, and they are business decisions rather than technical unknowns. The technical prerequisites 1–3 are already fully specified by this audit and can be prepared as an execution prompt in parallel once the owner confirms the statement-date cutover is acceptable to current users.
+| File | Current | Target | Increment | Reason |
+|---|---|---|---|---|
+| `rm-dh-004-.../README.md` | — | 1.0.0 | Initial | New file; precedent: every RM-DH-001/002/003 file created at 1.0.0 |
+| `rm-dh-004-.../roadmap.md` | — | 1.0.0 | Initial | Same |
+| `rm-dh-004-.../decisions.md` | — | 1.0.0 | Initial | Same |
+| `rm-dh-004-.../changelog.md` | — | 1.0.0 | Initial | Same |
+| `ws-dh-2026-0003-.../workstream.md` | — | 1.0.0 | Initial | Precedent: `DHB-WS-2026-0002` created at 1.0.0 |
+| `docs/roadmaps/README.md` | 1.0.1 | 1.1.0 | Minor | A new registered Roadmap row is additive content, not a synchronization patch. Precedent: the 1.0.0 → 1.0.1 bump was a cell-synchronization patch; adding rows is a larger change |
+| `docs/workstreams/README.md` | 1.2.2 | 1.3.0 | Minor | A new registered Workstream row plus correction of a now-false standalone sentence |
+| `docs/README.md` | 1.11.3 | 1.12.0 | Minor | Five new registered rows. Precedent: 1.8.0 → 1.9.0 registered the governance layer as a minor bump, while pure synchronization passes (1.11.1, 1.11.2, 1.11.3) were patches |
 
-WORKSTREAM PERSISTENCE: NONE
+### Pre-existing defects (disclosed, not absorbed)
 
-ROADMAP IMPACT: ASSESSMENT ONLY — NO ROADMAP CREATION OR MODIFICATION
+- **PRE-DEF-01.** `docs/README.md` line 128, row `DHB-RM-003-DECISIONS`, coverage/status cell reads `Executed — awaiting Acceptance Re-Audit`, while `DHB-RM-003-ROADMAP`, `-CHANGELOG`, `DHB-WS-REGISTRY` and `DHB-WS-2026-0002` all read `Closed — owner Closure persisted` and RM-DH-003 / Phase 2 is CLOSED. This is a stale status cell predating RM-DH-004.
+- **PRE-DEF-02.** `docs/README.md` rows for the four RM-DH-001 files and the four RM-DH-002 files read `Accepted — awaiting owner closure`, while the Closure that was subsequently persisted covered `RM-DH-003 / Phase 2` and `WS-DH-2026-0002` only. Whether those eight rows are stale or correct cannot be determined from the index alone.
+
+Neither defect blocks truthful RM-DH-004 persistence: RM-DH-004 rows are appended, not merged into the affected cells. **Recommendation: do not correct them in the RM-DH-004 persistence run.** They belong to RM-DH-003's registry hygiene and would contaminate the RM-DH-004 allowlist and its no-change attestation. If the owner wants them fixed, that is a separate one-file patch.
+
+## J. Existing Reference Reclassification
+
+| Reference | Location | Classification | Required treatment |
+|---|---|---|---|
+| "Historical Recovery Required" / `PARTIALLY_RECOVERED` for RM-DH-002 | `docs/roadmaps/rm-dh-002-.../README.md`, `roadmap.md`, `decisions.md` | **Still correct — unrelated** | This is Roadmap-history recovery, not financial-data import. Distinct concept; do not cross-link, and do not let the shared word "historical" imply a relationship |
+| `effective_date` and historical-finance discussion | `docs/handoff/rounds/round-01/round-01-raw-audit-output.md`, `round-01-developer-handoff.md` | **Historical only** | Accepted Round 1 evidence. §11.6 forbids silent correction. RM-DH-004 may cite it as an input by reference; no edit |
+| `docs/aml_1_b_1/**` finance stage evidence | evidence tree | **Historical only** | Immutable raw evidence per §4. Cite, never edit |
+| Round 5 commercial/monetization architecture | `docs/architecture/commercial-plans-entitlements-platform-billing-and-monetization.md` | **Unrelated** | Platform billing, not historical import |
+| "Historical Financial Import", "322 migrations", "Opening Obligation", "Unapplied Customer Credit", "IDEA-DH-0008", "Prompt 04", "Full History" | **Not present in `docs/` governance documentation** | **Absent** | These concepts currently live only in prompt lineage and `.lovable/plan.md`. RM-DH-004 becomes their first repository home. Nothing to reclassify |
+
+No existing governance reference is stale or contradictory with respect to RM-DH-004, and no existing file requires a cross-reference edit.
+
+## K. Contradictions, Gaps and Owner Decisions
+
+**Repository facts:** RM-DH-004 and WS-0003…0011 are unused; four-file package mandatory; registries are indexes; one Workstream package exists for one executed Workstream; `docs/README.md` at 1.11.3 registers every governance file; §11.10 governs `.lovable/plan.md`; PRE-DEF-01 and PRE-DEF-02 exist.
+
+**Owner-approved contract:** Roadmap identity, titles, priority, owner, approval timestamp, Phase 0–8 structure, four Tracks, nine Workstreams, independence from RM-DH-002, Lovable-only environment. Accepted as given; no repository evidence contradicts any of it.
+
+**Lovable claims (this run):** the recommended 8-file allowlist; the recommendation to create only one Workstream package; the minor/patch version classifications; the recommendation to exclude PRE-DEF-01 and PRE-DEF-02.
+
+**Inferences:** that a new registry row warrants a minor rather than patch bump (reasoned from the 1.9.0 precedent, not stated as an explicit rule anywhere); that one-way relationship references are preferred (reasoned from §11.4 and from RM-DH-002's undeclared Current Phase).
+
+**Unresolved gaps:** the canonical/default branch is not proven from the sandbox; commit-message evidence is unavailable.
+
+**Owner decisions genuinely required before persistence:**
+1. **Folder slug.** Confirm `rm-dh-004-financial-truth-historical-data-migration`, or approve the shorter `rm-dh-004-financial-truth-and-historical-migration`. Either is compliant.
+2. **Workstream package scope.** Confirm the evidence-based recommendation of one package now (WS-DH-2026-0003) versus the alternative of nine packages immediately. Recommendation: one.
+3. **Pre-existing defects.** Confirm that PRE-DEF-01 and PRE-DEF-02 stay out of the RM-DH-004 run.
+
+No other owner decision is outstanding. Implementation details do not generate decisions.
+
+## L. Proposed Agent/Build Execution Contract
+
+1. **Allowed paths:** the eight files in Section E, and nothing else.
+2. **Prohibited paths:** everything in the Section E denylist. Explicitly: `src/**`, `supabase/**`, `docs/CONVENTIONS.md`, all RM-DH-001/002/003 files, `ws-dh-2026-0002-*`, `docs/architecture/**`, `docs/handoff/**`, `docs/historical/**`, `docs/aml_1_b_1/**`, Knowledge, Skills, settings, database.
+3. **Versions:** five files created at 1.0.0; `docs/roadmaps/README.md` 1.0.1 → 1.1.0; `docs/workstreams/README.md` 1.2.2 → 1.3.0; `docs/README.md` 1.11.3 → 1.12.0.
+4. **New files (5):** the four RM-DH-004 package files and `ws-dh-2026-0003-economic-date-integrity/workstream.md`.
+5. **Modified files (3):** the two registries and `docs/README.md`.
+6. **Status values, verbatim:** Roadmap Status `ACTIVE — PHASE 0`; Priority `P0 — CONTROLLING FINANCE PRIORITY`; Current Phase `RM-DH-004 / Phase 0 — Governance, Baseline & Execution Contract`; Current Workstream `WS-DH-2026-0003 — Economic Date Integrity`; Current Workstream Stage `INVESTIGATIVE AUDIT PENDING`; Phase 0 `ACTIVE`; Phase 1 `Not entered`; Phases 2, 3, 4, 6 `Blocked`; Phase 5 `Owner Alignment required`; Phase 7 `Pilot — blocked`; Phase 8 `Not started`; the nine Workstream statuses exactly as listed in Section G.
+7. **Relationship wording:** three short paragraphs in `RM-DH-004/README.md` only, per Section H. No reciprocal edit in any other Roadmap.
+8. **Workstream records:** all nine registered in `RM-DH-004/roadmap.md`; only WS-DH-2026-0003 gets a package and a `docs/workstreams/README.md` row; the seven-column registry schema is not altered.
+9. **Required Git checks:** capture branch, HEAD, `git status --porcelain`, staged/unstaged/untracked before and after; after execution run `git diff --name-only` against the pre-run HEAD and assert the changed set equals the eight allowlisted paths plus, separately disclosed, `.lovable/plan.md`.
+10. **No-change attestations:** zero application changes; zero database changes; zero migration changes; zero `docs/CONVENTIONS.md` changes; zero RM-DH-001/002/003 changes; zero Knowledge, Skill, and settings changes; no Phase advanced; no Acceptance; no Closure.
+11. **Rollback:** per Section M.
+12. **Build/typecheck:** not required — no code path changes. State this explicitly rather than running and citing a green build as evidence.
+13. **Documentation validation:** frontmatter present and complete on all five new files; document IDs unique; all intra-package links resolve; registry rows match file frontmatter versions exactly; no dynamic status outside `roadmap.md` and `workstream.md`; Arabic titles present; timestamps in `Asia/Riyadh — UTC+03:00` with Latin digits.
+14. **Final report structure:** intended file table with per-file before/after version; Git evidence; separate `.lovable/plan.md` disclosure; the eleven no-change attestations; exact stopping point; recommended next step.
+15. **Exact stopping point:** `RM-DH-004 / Phase 0 — governance package persisted; Acceptance Re-Audit not performed; Phase 0 not advanced.`
+
+## M. Rollback and Recovery Plan
+
+- **New files:** delete the `rm-dh-004-financial-truth-historical-data-migration/` folder and the `ws-dh-2026-0003-economic-date-integrity/` folder. No other artifact references them until the registry rows exist, so deletion is complete and self-contained.
+- **Modified indexes:** each change is a pure append plus a frontmatter version bump (plus one sentence correction in `docs/workstreams/README.md`). Restore by reverting to the pre-run HEAD copy of the three files, which is recoverable from Git regardless of commit granularity.
+- **Version mismatch detection:** compare each registry row's version cell against the target file's frontmatter `version:`. Any disagreement is an acceptance-blocking defect per §11.7.
+- **Unintended files:** `git diff --name-only <pre-run HEAD>..HEAD` minus the eight allowlisted paths must be empty except `.lovable/plan.md`.
+- **Separating intent from platform noise:** `.lovable/plan.md` is disclosed in its own report line, excluded from the intended-file count, and retained in full Git evidence, per §11.10.9.
+- **Commit structure:** the platform auto-commits; a dedicated content commit and a separate run-closing commit are the RM-DH-003 precedent and are **recommended but not achievable deterministically** in this environment. The report must therefore state the actual commit chronology observed rather than assert a planned one.
+- **Evidence required before Acceptance Re-Audit:** pre-run and post-run HEAD; pre-run and post-run `git status --porcelain`; the complete changed-path list; the eight-file version table; the `.lovable/plan.md` disclosure.
+
+## N. Acceptance Re-Audit Plan (read-only, follows execution)
+
+1. All eight intended paths exist with the expected content shape.
+2. `git diff --name-only` against the pre-execution HEAD equals the eight paths, plus `.lovable/plan.md` disclosed separately.
+3. `RM-DH-004`, `WS-DH-2026-0003`, `DEC-RM-DH-004-001`, `DHB-RM-004-*` and `DHB-WS-2026-0003` each resolve to exactly one defining location.
+4. Both registries contain exactly one new row each, and `docs/README.md` contains exactly five new rows.
+5. Every registry version cell equals the corresponding file's frontmatter `version:`.
+6. Relationship links resolve, are non-duplicative, and no dynamic state is copied between Roadmaps.
+7. No RM-DH-002 file changed; RM-DH-004 declares itself independent.
+8. No RM-DH-003 file changed and `docs/CONVENTIONS.md` is byte-identical.
+9. Dynamic state appears only in `RM-DH-004/roadmap.md` and the WS-0003 `workstream.md`.
+10. All nine Workstreams appear in `RM-DH-004/roadmap.md` with the exact approved statuses.
+11. WS-DH-2026-0003 is `ACTIVE — INVESTIGATIVE AUDIT PENDING` with no execution, QA, or Acceptance content.
+12. Phase 0 is still `ACTIVE`; no Phase advanced.
+13. No file claims Acceptance or Closure for RM-DH-004.
+14. No `src/**`, `supabase/**`, migration, Knowledge, Skill or settings change.
+15. Git evidence chain is complete and internally consistent.
+16. `.lovable/plan.md` disclosed separately if the platform changed it.
+
+## O. WORKSTREAM PERSISTENCE
+
+WORKSTREAM PERSISTENCE: NONE — PLANNING ONLY
+
+## P. ROADMAP IMPACT
+
+ROADMAP IMPACT:
+RM-DH-004 remains ACTIVE — PHASE 0.
+No Roadmap file was created or modified.
+No Phase was advanced.
+No Acceptance or Closure occurred.
 
 ## RUN METADATA AND EXACT STOPPING POINT
 
-- Mode: Plan/Chat — Read-Only Investigation.
-- Operation: Targeted current-state re-audit for Historical Financial Import readiness.
-- Parent Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04.
-- Continuation Label: LOVABLE-TARGETED-CURRENT-STATE-REAUDIT-L1.
-- Prompt status: UNSENT DRAFT — no new lineage number consumed.
-- Prompt Preparation Date: 03-08-2026. Prompt Preparation Time: 00:59. Timezone: Asia/Riyadh (UTC+03:00).
-- Run Start: 03-08-2026, approximately 23:27 (02-08-2026 20:27 UTC) — exact second not recorded.
-- Run End / Final Report: 03-08-2026, approximately 23:40 Riyadh — exact second not recorded.
-- Environment: Lovable sandbox, project connected to the managed Lovable Cloud database; the queried database is the one the inspected application code targets via `src/integrations/supabase/client.ts`. Repository-to-live provenance beyond that binding cannot be proven from this context — INACCESSIBLE FROM CURRENT LOVABLE CONTEXT.
-- Current branch: `edit/edt-c3fca615-7e07-4772-b8a4-a0943a2dad0c`. Current HEAD: `2aa09a66e1f19f918567c6a74ac7d47e629bb3a2`.
-- Working tree before: clean. Working tree after: modified only by `.lovable/plan.md`.
-- Repository paths read: `src/contexts/TenantContext.tsx` (createTenant, lines 318–440); `src/lib/finance/effectiveDate.ts`; `src/lib/finance/postLedgerForInvoice.ts`; `src/lib/finance/invoiceRpc.ts`; `src/lib/finance/postPaymentSession.ts`; `src/hooks/clients/useClientStatement.ts`; `src/hooks/pos/usePOSCore.ts`; `src/hooks/billing/useBillingLinks.ts`; `invoices.schema.txt`; `customer_balances.schema.txt`; `docs/aml_1_b_1/stage_j5_1/preflight/01_fn__finance_ledger_insert.txt`, `01_fn__finance_idempotency_begin.txt`, `10_all_finance_fns.txt`; repository-wide `rg` scans of `src/` and `supabase/` for import, staging, quarantine, opening-obligation, provenance, and tenant/financial write patterns.
-- Database objects inspected: `pg_policies` for `tenants` and `tenant_members`; `pg_trigger`/`pg_proc` for both tables; `information_schema.tables` and `information_schema.columns` in `public`; row-level reads on `tenants`, `tenant_members`, `ledger_entries`, `invoices`, `payment_sessions`, `clients`, `customer_balances`, `lab_credit_wallets`.
-- Read-only queries executed: two `supabase--read_query` calls (catalog/import-capability probe; policy, trigger, column and fact probe). Three shell commands, all `git rev-parse`/`git status`, `rg`, `sed`, `code--view` reads.
-- Repository changes: zero (excluding `.lovable/plan.md`). Database changes: zero. Migration changes: zero. Project Knowledge changes: zero. Settings changes: zero. Workstream persistence: none. Roadmap persistence: none. Acceptance: none. Closure: none.
-- Exact stopping point: final report delivered. No implementation, schema design, import object, or persistence produced.
-- Recommended next step: Owner Alignment on decisions OD-1 through OD-5.
-- Recommended next Mode: Plan/Chat.
+1. Mode: Plan/Chat — Read-Only.
+2. Operation: Governance Persistence Planning Audit.
+3. Prompt ID: PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01.
+4. Prompt status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED.
+5. Prompt Preparation Date: 03-08-2026.
+6. Prompt Preparation Time: 02:19.
+7. Prompt Preparation Timezone: Asia/Riyadh — UTC+03:00.
+8. Run Start Date and Time: 2026-08-03, approximately 01:02 (Asia/Riyadh) — exact second not recorded.
+9. First evidenced activity: `git rev-parse` / repository governance file listing.
+10. Run End Date and Time: 2026-08-03, approximately 01:12 (Asia/Riyadh) — exact second not recorded.
+11. Last evidenced activity: read of `docs/README.md` governance registry rows 117–131.
+12. Final Report Date and Time: 2026-08-03, approximately 01:13 (Asia/Riyadh) — exact second not recorded.
+13. Timestamp evidence source: session clock only; no Git author/committer timestamp was captured for this run.
+14. Branch: `edit/edt-d17e7fe2-20e8-4f83-9cf5-a993097cc8f9`.
+15. Canonical/default branch evidence: **not proven from this environment**. Prior governance frontmatter references `main` as the merge target; this run did not verify it.
+16. HEAD before: `1efc5b7f5764d7eea6695a7b4c9f835bd77a93b3`.
+17. HEAD after: unchanged at inspection time; any subsequent commit is platform-generated.
+18. Working Tree before: clean — `git status --porcelain` returned no output.
+19. Working Tree after: modified only by the platform-generated `.lovable/plan.md`.
+20. Staged paths before: none. After: none observed.
+21. Unstaged paths before: none. After: `.lovable/plan.md` (platform-generated).
+22. Untracked non-ignored paths before: none. After: none.
+23. Repository paths read: `docs/CONVENTIONS.md`; `docs/README.md`; `docs/roadmaps/README.md`; `docs/workstreams/README.md`; all four `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/*` files; `docs/roadmaps/rm-dh-002-core-operations-and-expansion/README.md` and `roadmap.md`; frontmatter of all four `docs/roadmaps/rm-dh-001-documentation-and-developer-handover/*` files; `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md`; plus repository-wide ID and term scans.
+24. Database queries executed: **none**.
+25. Intended repository changes: **zero**.
+26. Application changes: **zero**.
+27. Database changes: **zero**.
+28. Migration changes: **zero**.
+29. Project Knowledge changes: **zero**.
+30. Workspace Knowledge changes: **zero**.
+31. Skill changes: **zero**.
+32. Settings changes: **zero**.
+33. Platform-generated `.lovable/plan.md` disclosure: this planning report was written to `.lovable/plan.md` by Lovable Plan Mode. Under `docs/CONVENTIONS.md` §11.10 and `DEC-RM-DH-003-004` it is disclosed separately, excluded from the intended-file count of zero, is not implementation, is not Acceptance evidence, and is not proof that other paths remained unchanged.
+34. Workstream persistence: none.
+35. Roadmap persistence: none.
+36. Acceptance: none.
+37. Closure: none.
+38. Exact stopping point: planning-audit report delivered. No governance file created or modified; Phase 0 not advanced; WS-DH-2026-0003 not activated; the Economic Date Mini Audit not begun.
+39. Recommended next step: proceed to an owner-reviewed Agent/Build governance-persistence prompt implementing the Section L contract, after the owner confirms the three items in Section K.
+40. Recommended next Mode: Agent/Build.
