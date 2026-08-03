@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-REGISTRY
 title: Dayli Horse — Central Workstream Registry
-version: 1.3.1
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-07-30
@@ -51,7 +51,7 @@ Workstream ID format: `WS-DH-YYYY-NNNN`.
 | `WS-DH-2026-0002` | Governance Foundation | تأسيس نظام الحوكمة داخل مستودع Lovable | `RM-DH-003` | Closure persisted | CLOSED | [`workstream.md`](./ws-dh-2026-0002-governance-foundation/workstream.md) |
 | `WS-DH-2026-0003` | Economic Date Integrity | سلامة التاريخ الاقتصادي للقيود والقراءات المالية | `RM-DH-004` | INVESTIGATIVE AUDIT PENDING | ACTIVE — INVESTIGATIVE AUDIT PENDING | [`workstream.md`](./ws-dh-2026-0003-economic-date-integrity/workstream.md) |
 
-`WS-DH-2026-0002` is the closed, previously registered Workstream. `WS-DH-2026-0003` is the newly registered active Workstream, currently in Phase 1 of `RM-DH-004` with its Investigative Audit pending. Its governance package is persisted, its Acceptance Re-Audit passed, and Owner Acceptance is persisted; the technical Investigative Audit has not started, so the Workstream itself is not technically accepted. `WS-DH-2026-0004` through `WS-DH-2026-0011` are registered only in the authoritative `RM-DH-004` Workstream register in [`../roadmaps/rm-dh-004-financial-truth-historical-data-migration/roadmap.md`](../roadmaps/rm-dh-004-financial-truth-historical-data-migration/roadmap.md) and are not yet published as dedicated packages.
+`WS-DH-2026-0002` is the closed, previously registered Workstream. `WS-DH-2026-0003` is the registered active Workstream, and its Roadmap `RM-DH-004` has now advanced into Phase 1 — Economic Date Integrity under owner-approved Decision `DEC-RM-DH-004-002`, with the Phase advancement persisted and its read-only Acceptance Re-Audit pending. Its governance package is persisted, its Acceptance Re-Audit passed, Owner Acceptance is persisted and verified; the technical Investigative Audit has not started, so the Workstream itself is not technically accepted. `WS-DH-2026-0004` through `WS-DH-2026-0011` are registered only in the authoritative `RM-DH-004` Workstream register in [`../roadmaps/rm-dh-004-financial-truth-historical-data-migration/roadmap.md`](../roadmaps/rm-dh-004-financial-truth-historical-data-migration/roadmap.md) and are not yet published as dedicated packages.
 
 ## Related registries
 
