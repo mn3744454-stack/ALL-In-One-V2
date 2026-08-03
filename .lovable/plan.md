@@ -1,1229 +1,515 @@
-# STAGE B — EXACT LIVE POLICY IDENTITY, PRESERVED FINGERPRINT ALGORITHM, CUMULATIVE FULL-LINEAGE ZERO-REGRESSION, AND FINAL FORWARD/ROLLBACK SYMMETRY CORRECTION AUDIT
+# PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01 — CORRECTION CONTINUATION C2
 
-Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-EXACT-LIVE-POLICY-IDENTITY-PRESERVED-FINGERPRINT-AND-FINAL-SYMMETRY-CORRECTION-AUDIT-19
-Mode: Plan/Chat — Read-Only. Repository changes: zero. Database changes: zero.
-
----
-
-## A. COMBINED VERDICTS
-
-1. Correction Acknowledgement: **PROMPT-18 POLICY-IDENTITY AND FINGERPRINT REGRESSION WITHDRAWN**
-2. Full-Lineage Reconciliation: **PROMPTS 01–18 CUMULATIVE LINEAGE RECONCILED**
-3. Parallel Drift: **NO MATERIAL PARALLEL DRIFT DETECTED**
-4. Live Policy Identity: **EXACT LIVE SEVEN-POLICY IDENTITY VERIFIED**
-5. Fingerprint Contract: **PRESERVED POLICY-FINGERPRINT CONTRACT CLOSED**
-6. Artifact Equivalence: **PROMPT-16/17 HASH EQUIVALENCE PROVEN**
-7. Forward Migration: **FINAL EXACT-POLICY FORWARD MIGRATION SQL EXECUTABLE**
-8. Rollback: **FINAL EXACT-POLICY ROLLBACK SQL EXECUTABLE**
-9. PUBLIC POS Execute: **PUBLIC-ANON-AUTHENTICATED POS EXECUTE CONTRACT CLOSED**
-10. Symmetry: **FORWARD-ROLLBACK-FORWARD SYMMETRY CONTRACT CLOSED**
-11. Full-Lineage Zero Regression: **ZERO REGRESSION TO PROMPTS 01–18 CONFIRMED**
-12. Stage B: **STAGE B READY FOR AGENT/BUILD EXECUTION PROMPT**
+Full-Lineage Contract Restoration and Zero-Regression Correction. Mode: Plan/Chat — Read-Only. Repository changes: none. Database access: none.
 
 ---
 
-## B. ROADMAP AND WORKSTREAM STATE
+## 1. EXECUTIVE VERDICT
 
-- RM-DH-004 — ACTIVE — Phase 1 — Economic Date Integrity.
-- WS-DH-2026-0003 — ACTIVE — Stage A accepted, persisted and verified; Stage B contract closure active; Stage B implementation not started.
-- WS-DH-2026-0005 — POS Financial Isolation — DEFERRED.
-- No Phase advancement, Acceptance or Closure occurred.
+GOVERNANCE C2 CORRECTION PASSED —
+FULL-LINEAGE CONTRACT RESTORED —
+PERSISTENCE CONTRACT READY FOR OWNER REVIEW
 
----
-
-## C. LOVABLE CORRECTION ACKNOWLEDGEMENT
-
-LOVABLE CORRECTION ACKNOWLEDGEMENT:
-The Prompt-18 Forward policy names, policy-drop set, Rollback policy set and expressions, modified fingerprint algorithm, final SQL readiness, zero-regression and Stage-B readiness verdicts are withdrawn.
-
-Prompt-18 effective function ACLs, internal-writer negative execution contract, external-wrapper ACL contract, trusted public-schema contract and current-versus-target application truth remain authoritative and are not reopened.
-
-The complete Prompt-01-through-Prompt-18 lineage has been reconciled.
-
-The final migration pair now requires exact live policy names, exact original policy expressions, the preserved Prompt-16/17 fingerprint algorithm, scope-bound artifact evidence, parallel-work drift disclosure and complete Forward/Rollback symmetry.
+All 42 Zero-Regression rows pass. No protected repository governance path changed since the C1 HEAD.
 
 ---
 
-## D. EVIDENCE BOUNDARY
+## 2. CORRECTION ACKNOWLEDGMENT
 
-| Class | Content |
+The C1 claim of full contract preservation is withdrawn. C1's complete reissue materially altered accepted Phase 3 contracts without new evidence or Owner approval. Specifically withdrawn: Sub-phase renumbering to 3.1–3.8; the invented Track set; the altered Workstream titles, order, dependencies and Track assignments; the nine added rows in `docs/workstreams/README.md`; the undefined version expressions; the broad-revert rollback; the imported RM-DH-004 items; the substituted Deferred Items Register; the replaced Phase state; the treatment of candidate Workstream IDs as allocated; the substituted C1 preparation time of 00:27; and the zero-regression claim itself.
+
+C1 remains authoritative only for: the ChatGPT-private governance boundary; Parent Prompt consumed status; C1 consumed status; the `.lovable/plan.md`-only HEAD change finding; and the no-write finding.
+
+The cumulative contract in Section 4 is the sole authoritative Phase 3 planning contract. No other finding is reopened.
+
+---
+
+## 3. COMPLETE CUMULATIVE PROMPT LINEAGE LEDGER
+
+| Item | Parent Prompt 01 | Continuation C1 | Continuation C2 |
+|---|---|---|---|
+| ID | PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01 | C1 | C2 |
+| Local number | 01 — consumed | none consumed | none consumed |
+| Status | SUBMITTED — RUN — CONSUMED | SUBMITTED — RUN — CONSUMED | SUBMITTED — RUN — CONSUMED |
+| Mode | Plan/Chat — Read-only | Plan/Chat — Read-only | Plan/Chat — Read-only |
+| Operation | Governance Persistence Planning Audit | Private-governance boundary and run-status correction | Full-lineage contract restoration and zero-regression correction |
+| Preparation | 03-08-2026, 23:27, Asia/Riyadh | 04-08-2026, 00:05, Asia/Riyadh | 04-08-2026, 02:11, Asia/Riyadh |
+| Branch | `edit/edt-1629dbca-22c7-427d-83d9-b7df3324659e` | `edit/edt-acaedce4-fb39-4035-92cc-070bd7fc7f92` | `edit/edt-105ad101-fbf4-4e11-9e0e-d62df6b70270` |
+| HEAD | `2133b5f3413e7ab97be739a07332087e9a9ec54e` | `134c0d41a9caa99a7bd16f7f67b496e96b49a18f` | `aa169aaacc5da0c3d36a91d416b40a3a6ab12d52` |
+| Working tree | Clean before and after | Clean before and after | Clean before and after |
+| Database access | None | None | None |
+| Repository persistence | None | None | None |
+| Verdict | GOVERNANCE PERSISTENCE CONTRACT READY — OWNER REVIEW REQUIRED | Boundary and status corrected; contract regression introduced | Contract restored — see Section 1 |
+
+Parent-Prompt accepted findings 1–20 (RM-DH-003 ACTIVE; Phase 2 CLOSED; Phase 3 next collision-free Phase; no Phase 2 reopening; no new Roadmap; DEC-RM-DH-003-004 highest; -005 and -006 next; two-decision recommendation; WS-DH-2026-0004 to -0011 reserved by RM-DH-004; WS-DH-2026-0012 to -0020 collision-free and provisional; five Tracks, eight Sub-phases 3.0–3.7, nine Workstreams; Option C; seven-path allowlist; exclusion list; exact numeric version matrix; exact-file-restoration rollback; complete Deferred Items Register; Phase 3 unexecuted; Memory Genesis, Refactoring Baseline and Stage B not started) are preserved unchanged in Section 4.
+
+Parent-Prompt defects: private-artifact inputs, and the incorrect UNSENT status. Both were corrected by C1 and remain corrected.
+
+C1 defects: the twelve rejected changes enumerated in Section 2 and Section 5.
+
+---
+
+## 4. PRESERVED AND STILL AUTHORITATIVE — FULL-LINEAGE CONTRACT
+
+### 4.1 Roadmap and Phase identity
+
+RM-DH-003 — Roadmap & Workstream Governance Foundation. Roadmap Status: ACTIVE. Prior Phase: RM-DH-003 / Phase 2 — CLOSED, not reopened, not re-dated, not weakened.
+
+Approved new Phase: RM-DH-003 / Phase 3 — "Persistent Knowledge Architecture, Verification, Organization and Installation" / "هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها".
+
+Current Phase state for the persistence contract: ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE.
+
+### 4.2 Read-only and persistence boundary
+
+Neither the Parent Prompt, C1 nor C2 authorizes repository persistence, Phase/Track/Workstream creation through a write, permanent ID consumption, Project Knowledge installation, Workspace Knowledge modification, Skill modification, AGENTS.md creation, application changes, database access, migrations, Acceptance or Closure.
+
+### 4.3 Memory boundary
+
+Persistent Knowledge Stage A: SUBSTANTIVELY COMPLETE. Inventory: 104 permanent official Memory IDs; 100 directly read; 4 referenced but inaccessible. Permanently reserved inaccessible IDs: MEM-079, MEM-084, MEM-090, MEM-095 — never reconstructed, reused, renumbered or silently replaced. 104 objects are an inventory, not 104 approved Project Knowledge rules. Stage B not started. Project Knowledge not installed.
+
+All remaining registers appear verbatim in Sections 13–22, 26 and 29.
+
+---
+
+## 5. REJECTED OR SUPERSEDED FINDING
+
+REJECTED OR SUPERSEDED FINDING: the C1 claim that it preserved the complete approved Phase 3 planning contract while its replacement report changed Sub-phases, Tracks, Workstreams, Workstream assignment, Phase status, Option C, central-index treatment, exact versions, rollback method, Deferred Items, Workstream ID consumption wording, and the C1 Prompt Preparation Time.
+
+Exact replacement: the cumulative contract in Section 4 and Sections 13–22, 26 and 29 of this C2 report.
+
+No external technical standard is involved. No primary-source URL is required.
+
+---
+
+## 6. NARROW CURRENT-STATE REGRESSION CHECK
+
+| Check | Result |
 |---|---|
-| LIVE DATABASE FACT | PostgreSQL 17.6; database `postgres`; read role `supabase_read_only_user`; seven policies on the two tables; all table/function/schema ACLs below |
-| REPOSITORY FACT | Branch `edit/edt-6aa572eb-dff0-4091-935a-0aa3206b71ce`; HEAD `764d59e9a2adcabefc6527bcee8b4300acc4187b`; clean working tree; canonical remote branch `origin/main`; application paths below |
-| OFFICIAL POSTGRESQL DOCUMENTATION FACT | DROP POLICY / CREATE POLICY / pg_policy / row security / privilege semantics per the PostgreSQL 17 docs cited in the Prompt |
-| PRESERVED PRIOR FINDING | Prompts 04–18 accepted contracts in §G |
-| LOVABLE PRIOR CLAIM (withdrawn) | Prompt-18 Forward/Rollback policy set, altered fingerprint algorithm, readiness verdicts |
-| CHATGPT CORRECTION INFERENCE | Prompt-19 correction scope in §I |
-| CURRENT GAP | None material |
+| Current branch | `edit/edt-105ad101-fbf4-4e11-9e0e-d62df6b70270` |
+| Current HEAD | `aa169aaacc5da0c3d36a91d416b40a3a6ab12d52` |
+| Working tree | Clean |
+| Staged paths | None |
+| Unstaged paths | None |
+| Untracked non-ignored paths | None |
+| Parent HEAD `2133b5f34…` reachable | Yes |
+| C1 HEAD `134c0d41a…` reachable | Yes |
+| HEAD changed from C1 HEAD | Yes |
+| Changed paths, C1 HEAD → current HEAD | `.lovable/plan.md` only |
 
-Documentation 01–13 was not used. No financial business rows were queried.
+Relevance classification: `.lovable/plan.md` is the platform-managed planning artifact governed by `DEC-RM-DH-003-004` and `docs/CONVENTIONS.md` §11.10. It is not a protected surface, not implementation and not Acceptance evidence.
 
----
+Protected surfaces tested — the seven-file allowlist, the RM-DH-003 package, `docs/roadmaps/README.md`, `docs/workstreams/README.md`, `docs/README.md`, and RM-DH-004's authoritative Workstream-ID register: none changed. Parent repository findings are therefore preserved.
 
-## E. PARALLEL-WORK DRIFT MATRIX
+Live version re-read (informational corroboration of Section 20, no contract change): RM-DH-003 `README.md` 1.0.0; `roadmap.md` 1.2.2; `decisions.md` 1.1.0; `changelog.md` 1.2.3; `docs/roadmaps/README.md` 1.2.1; `docs/workstreams/README.md` 1.4.1; `docs/README.md` 1.13.1; `docs/CONVENTIONS.md` 1.2.0. All equal the accepted current values.
 
-| Object / path | Prior evidence | Current evidence | Drift? | Material to Prompt 19? | Treatment |
-|---|---|---|---|---|---|
-| Branch | Prompt-18 platform edit branch | `edit/edt-6aa572eb-dff0-4091-935a-0aa3206b71ce` | Yes | No | Platform branch rotation; canonical branch remains `origin/main`; no governance/finance object changed |
-| HEAD | Prompt-18 HEAD | `764d59e9a2adcabefc6527bcee8b4300acc4187b` | Yes | No | Same reason; application target paths re-read live below |
-| Working tree | Clean | Clean | No | — | — |
-| `public.ledger_entries` policies | 3 (1 INSERT, 2 SELECT) | 3 identical | No | — | Preserved |
-| `public.customer_balances` policies | 4 (INSERT/UPDATE/DELETE/SELECT) | 4 identical | No | — | Preserved |
-| Policy fingerprint algorithm | Prompt-16/17 algorithm | Re-executed verbatim (§M) | No | — | Preserved |
-| Pre-state hash | `e978f912777a28108f46ba79e2ce071e` | Recomputed identical | No | — | Equivalence proven |
-| Post-state hash | `04297828f4bd33eba043f6c9274ec57b` | Recomputed identical | No | — | Equivalence proven |
-| Canonical Finance functions | 11 accepted signatures | All resolve, owner `postgres`, SECURITY DEFINER | No | — | Preserved |
-| Three helpers | `search_path=public` | `search_path=public` on all three | No | — | Target unchanged |
-| `create_pos_sale(uuid,uuid,jsonb)` | anon + authenticated EXECUTE, no PUBLIC | Identical | No | — | Freeze target unchanged |
-| Browser table privileges | All 8 for anon + authenticated | All 8 for anon + authenticated | No | — | Preserved |
-| Schema `public` CREATE | PUBLIC/anon/authenticated false | false / false / false; USAGE true for anon + authenticated | No | — | Trusted-schema premise holds |
-| Stage B application target paths | Not implemented | Still not implemented (§S) | No | — | Planning-only state confirmed |
-
-No parallel execution of Stage B occurred.
+No ChatGPT-private artifact was inspected. Documentation 01–13 was not inspected. The database was not queried. No repository path was written.
 
 ---
 
-## F. CUMULATIVE PROMPT LINEAGE LEDGER — PROMPTS 01–18
+## 7. FULL-LINEAGE ZERO-REGRESSION MATRIX
 
-| # | ID | Status | Accepted finding | Error | Correction | Current authoritative treatment | Stopping point |
-|---|---|---|---|---|---|---|---|
-| 01 | Exact ID not available in verified evidence | SUBMITTED — RUN — CONSUMED | Shared-finance baseline | None recorded | None | Historical evidence only | Historical |
-| 02 (+ Continuation A) | Exact ID not available | SUBMITTED — RUN — CONSUMED | Critical evidence completion | None recorded | None | Historical evidence only; no new number consumed by Continuation A | Historical |
-| 03 | Exact ID not fully established | SUBMITTED — RUN — CONSUMED | Partial evidence | Report incomplete for Owner Alignment | Superseded by 04 | Historical only; authorizes nothing | Historical |
-| 04 | ...HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04 | SUBMITTED — RUN — CONSUMED | Import contract, drift audit, five preserved interpretations | None material | Continuations completed evidence | Preserved; implementation not authorized | Owner Alignment ready |
-| 05 | ...ECONOMIC-DATE-AND-28-ROW-DEMO-BACKFILL-MINI-AUDIT-05 | SUBMITTED — RUN — CONSUMED | Economic Date scope; 28-row classification | None | — | Preserved | Staged planning |
-| 06 | ...STAGE-A-BACKFILL-PREVIEW-06 | SUBMITTED — RUN — CONSUMED | 88 rows, 28 NULL, 7 clients, 3 tenants, 87-row chain | None | D-5 opened | Preserved | Owner decision D-5 |
-| 07 | ...STAGE-A-BACKFILL-EXECUTION-07 | SUBMITTED — RUN — CONSUMED | 28 dates repaired, 69 balances updated, 87 rows resequenced, zero monetary delta | None | — | Preserved; Stage-A rows outside Stage B scope | Execution complete |
-| 08 | ...STAGE-A-ACCEPTANCE-REAUDIT-08 | SUBMITTED — RUN — CONSUMED | STAGE A ACCEPTANCE PASSED | None | — | Preserved | Owner Acceptance ready |
-| 09 | ...STAGE-A-ACCEPTANCE-PERSISTENCE-09 | SUBMITTED — RUN — CONSUMED | Acceptance persisted | None | — | Preserved | Persistence complete |
-| 10 | ...ACCEPTANCE-PERSISTENCE-VERIFICATION-AND-STAGE-B-READINESS-10 | SUBMITTED — RUN — CONSUMED | Persistence verified; writer inventory expanded | None | — | Preserved | Stage B contract closure required |
-| 11 | ...STAGE-B-WRITER-EXPENSE-INTERNAL-COST-POS-FREEZE-CONTRACT-CLOSURE-MINI-AUDIT-11 | SUBMITTED — RUN — CONSUMED | Expense target, writer removals, POS target | Assumed app-side removal sufficient | Rejected by 12 | Preserved except the rejected sufficiency claim | Contract closed |
-| 12 | ...DATABASE-WRITE-AUTHORITY-AND-RPC-CUTOVER-CLOSURE-AUDIT-12 | SUBMITTED — RUN — CONSUMED | DB authority must close; SELECT-only target | Incomplete privilege set (MAINTAIN) | Corrected by 13 | Preserved as corrected | Authority contract |
-| 13 | ...PRIVILEGE-COMPLETENESS-AND-HELPER-SEARCH-PATH-CORRECTION-AUDIT-13 | SUBMITTED — RUN — CONSUMED | PG 17.6; 8 privileges; zero column ACLs; REVOKE ALL → GRANT SELECT | `pg_temp` omission treated as safe; rollback policy miscount | Corrected by 14 | Preserved as corrected | Privilege contract |
-| 14 | ...PG-TEMP-HELPER-SAFETY-AND-FINAL-MIGRATION-ROLLBACK-CORRECTION-AUDIT-14 | SUBMITTED — RUN — CONSUMED | TEMP via PUBLIC; three helpers; seven policies | Q7 `proconfig` comparison used display quoting | Corrected by 15 | Preserved as corrected | Migration contract |
-| 15 | ...FINAL-PROCONFIG-ASSERTION-AND-MIGRATION-EXECUTABILITY-CLOSURE-AUDIT-15 | SUBMITTED — RUN — CONSUMED | `search_path=public, pg_temp` element; `unnest(proconfig)` assertion | PUBLIC polroles treated as NULL/empty | Corrected by 16 | Preserved as corrected | Executability |
-| 16 | ...FINAL-POLROLES-PUBLIC-REPRESENTATION-AND-POLICY-FINGERPRINT-CORRECTION-AUDIT-16 | SUBMITTED — RUN — CONSUMED | `polroles={0}`; PERMISSIVE; both hashes | Silent function-set substitution; helper omission | Corrected by 17 | Hashes and role predicate preserved | Fingerprint contract |
-| 17 | ...CANONICAL-FUNCTION-IDENTITY-THREE-HELPER-AND-FINAL-ZERO-REGRESSION-CORRECTION-AUDIT-17 | SUBMITTED — RUN — CONSUMED | Canonical identities restored; `_finance_invoice_approve_inline` dependency; zero PUBLIC table grants | Execute authority/wrapper/trusted-schema not frozen | Corrected by 18 | Preserved | Identity contract |
-| 18 | ...INTERNAL-WRITER-EXECUTE-AUTHORITY-TRUSTED-SCHEMA-AND-FINAL-EXECUTION-FREEZE-AUDIT-18 | SUBMITTED — RUN — CONSUMED | `aclexplode(COALESCE(proacl, acldefault(...)))` methodology; internal-writer negative EXECUTE; six wrapper ACLs; trusted schema; current-vs-target separation | Eight policy/fingerprint/SQL errors (§H) | Corrected by this Prompt 19 | ACL, wrapper, trusted-schema and current-vs-target findings preserved; policy/fingerprint/SQL/readiness verdicts withdrawn | Regression withdrawn |
-
----
-
-## G. PRESERVED AND STILL AUTHORITATIVE — FULL LINEAGE
-
-Stage A (executed, accepted, persisted, verified; 28 dates and the 87-row chain fixed; Stage-A rows outside Stage B mutation scope); Economic Date contract (`expense_date` for expenses; cancellation and historical backdating remain separate decisions); application cutover target (§S); POS target (visible, Coming Soon, inert; full POS deferred to WS-DH-2026-0005); table authority (browser SELECT-only via REVOKE ALL → GRANT SELECT across all eight PG 17 privileges; zero column ACLs; zero PUBLIC grants; service_role and owner intact); function and helper contract (identity by signature; SECURITY DEFINER write authority; internal writers unavailable to PUBLIC/anon/authenticated; six authenticated wrappers preserved; three helpers to `search_path=public, pg_temp`; no helper body replacement); trusted schema (no PUBLIC/anon/authenticated CREATE, USAGE preserved); the seven-policy RLS contract; `polroles=ARRAY[0::oid]` and PERMISSIVE for all seven; both accepted hashes; the complete Deferred Items Register.
-
----
-
-## H. REJECTED OR SUPERSEDED FINDINGS
-
-Withdrawn from Prompt 18:
-
-1. Forward used nonexistent policy names `ledger_entries_insert`, `ledger_entries_update`, `customer_balances_insert`, `customer_balances_update` — no such policies exist live.
-2. Forward omitted the real `Permission-based delete customer balances` policy.
-3. Rollback invented a Ledger UPDATE policy — no Ledger UPDATE policy exists.
-4. Rollback omitted Customer Balance DELETE.
-5. Rollback used `is_tenant_member(...)` instead of the exact `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` expressions.
-6. Prompt 18 changed the fingerprint algorithm while reusing hashes produced by the Prompt-16/17 algorithm.
-7. PUBLIC POS EXECUTE was not fully frozen.
-8. Rollback assertions were incomplete.
-
-Consequently withdrawn: FINAL AUTHORITY-FROZEN FORWARD MIGRATION SQL EXECUTABLE; FINAL AUTHORITY-FROZEN ROLLBACK SQL EXECUTABLE; ZERO REGRESSION TO PROMPTS 14–17 CONFIRMED; STAGE B READY FOR AGENT/BUILD EXECUTION PROMPT.
-
-Also superseded earlier: Prompt-11 app-only sufficiency; Prompt-12 incomplete privilege set; Prompt-13 `pg_temp` safety and rollback miscount; Prompt-14 Q7 comparison; Prompt-15 PUBLIC-as-NULL predicate; Prompt-16 function-set substitution.
-
----
-
-## I. SOLE CURRENT CORRECTION SCOPE
-
-Reopened only: exact policy names, commands, roles and USING/WITH CHECK expressions; Prompt-18 drop set and rollback set; restoration of the Prompt-16/17 fingerprint algorithm; verification of both hashes under it; PUBLIC/anon/authenticated POS EXECUTE freeze; Forward/Rollback/Forward symmetry; final Stage B readiness. Nothing else in §6 of the Prompt was reopened.
-
----
-
-## J. EXACT LIVE SEVEN-POLICY MATRIX (LIVE DATABASE FACT)
-
-| Schema | Table | Exact policy name | Cmd | Permissive? | Raw polroles | USING | WITH CHECK | Forward treatment |
-|---|---|---|---|---|---|---|---|---|
-| public | customer_balances | Permission-based delete customer balances | d (DELETE) | true | {0} | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | `<NULL>` | DROP |
-| public | customer_balances | Permission-based insert customer balances | a (INSERT) | true | {0} | `<NULL>` | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | DROP |
-| public | customer_balances | Permission-based update customer balances | w (UPDATE) | true | {0} | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | DROP |
-| public | customer_balances | Tenant members can view balances | r (SELECT) | true | {0} | `is_tenant_member(auth.uid(), tenant_id)` | `<NULL>` | PRESERVE |
-| public | ledger_entries | Permission-based insert ledger entries | a (INSERT) | true | {0} | `<NULL>` | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | DROP |
-| public | ledger_entries | Tenant members can view ledger | r (SELECT) | true | {0} | `is_tenant_member(auth.uid(), tenant_id)` | `<NULL>` | PRESERVE |
-| public | ledger_entries | Tenant members can view ledger entries | r (SELECT) | true | {0} | `(EXISTS ( SELECT 1 FROM tenant_members tm WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))` | `<NULL>` | PRESERVE |
-
-Count = 7. All PERMISSIVE. All PUBLIC-only (`polroles={0}`). Live set matches the preserved §5.8 contract exactly, with no Ledger UPDATE or Ledger DELETE policy in existence.
-
-RLS: both tables `relrowsecurity=true`, `relforcerowsecurity=false`, owner `postgres`.
-
----
-
-## K. PROMPT-18 POLICY-NAME EVALUATION
-
-| Prompt-18 Forward name | Exists live? | Correct exact name |
-|---|---|---|
-| `ledger_entries_insert` | No | `Permission-based insert ledger entries` |
-| `ledger_entries_update` | No — no Ledger UPDATE policy exists at all | n/a — must not be created |
-| `customer_balances_insert` | No | `Permission-based insert customer balances` |
-| `customer_balances_update` | No | `Permission-based update customer balances` |
-| (missing from Prompt 18) | Exists | `Permission-based delete customer balances` |
-
-Prompt-18 Forward would have aborted on the first DROP and would have left the Customer Balance DELETE write path open.
-
----
-
-## L. PROMPT-18 ROLLBACK-POLICY EVALUATION
-
-| Defect | Live truth | Correction |
-|---|---|---|
-| Recreated a Ledger UPDATE policy | No such policy in pre-state | Must not be created |
-| Omitted Customer Balance DELETE | Exists in pre-state | Must be recreated |
-| Used `is_tenant_member(...)` for write policies | All four write policies use `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | Exact expressions restored in §U |
-| Wrong policy names | See §K | Exact names restored |
-| Incomplete assertions | — | Full assertion set in §U |
-
-A Prompt-18 rollback would not have restored the pre-state hash.
-
----
-
-## M. PRESERVED FINGERPRINT ALGORITHM (executed verbatim, read-only)
-
-```sql
-SELECT md5(string_agg(
-         n.nspname||'|'||
-         c.relname||'|'||
-         p.polname||'|'||
-         p.polcmd::text||'|'||
-         p.polpermissive::text||'|'||
-         COALESCE(
-           (
-             SELECT string_agg(role_oid::text, ',' ORDER BY role_oid)
-             FROM unnest(p.polroles) AS role_oid
-           ),
-           '<NULL>'
-         )||'|'||
-         COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')||'|'||
-         COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>'),
-         E'\n'
-         ORDER BY c.relname, p.polname
-       ))
-FROM pg_policy p
-JOIN pg_class c
-  ON c.oid = p.polrelid
-JOIN pg_namespace n
-  ON n.oid = c.relnamespace
-WHERE n.nspname = 'public'
-  AND c.relname IN ('ledger_entries', 'customer_balances');
-```
-
-The post-state variant is the identical statement with the added predicate `AND p.polcmd = 'r'`.
-
-No field order, separator, NULL marker, role representation, schema inclusion, `polpermissive` inclusion, row separator or ordering was changed.
-
----
-
-## N. HASH / FINGERPRINT / ARTIFACT BINDING MATRIX
-
-| Binding field | Value |
-|---|---|
-| Roadmap | RM-DH-004 |
-| Workstream | WS-DH-2026-0003 |
-| Prompt Lineage | Shared Tenant Operational Finance + Historical Migration |
-| Prompt | Prompt 19 |
-| Objects | `public.ledger_entries` policies; `public.customer_balances` policies |
-| Algorithm | §M SQL, unmodified |
-| Fields | schema, table, policy name, command, `polpermissive`, ordered role OIDs, normalized USING, normalized WITH CHECK |
-| Field separator | `\|` |
-| Row separator | `E'\n'` |
-| NULL rule | `<NULL>` |
-| Role order | numeric OID ascending |
-| Row order | table name, policy name |
-| Hash function | PostgreSQL built-in `md5` |
-| Environment | live database `postgres`, PostgreSQL 17.6, role `supabase_read_only_user` |
-| Repository binding | branch `edit/edt-6aa572eb-dff0-4091-935a-0aa3206b71ce`, HEAD `764d59e9a2adcabefc6527bcee8b4300acc4187b` |
-| Evidence time | Exact time not recorded |
-
----
-
-## O. ARTIFACT EQUIVALENCE MATRIX
-
-| Binding dimension | Prompt-16/17 evidence | Prompt-19 evidence | Equivalent? | Proof |
+| ID | Expected authoritative value | C2 value | Result | Evidence |
 |---|---|---|---|---|
-| Roadmap / Workstream / Lineage | RM-DH-004 / WS-DH-2026-0003 / shared finance | Identical | Yes | Prompt identity |
-| Database / environment | Same live Lovable Cloud database | `postgres`, PG 17.6 | Yes | `current_database()`, `version()` |
-| Object set | Two tables' policies | Identical two tables, 7 policies | Yes | §J |
-| Algorithm / fields / separators / NULL rule / ordering | Prompt-16/17 algorithm | §M executed verbatim | Yes | §M |
-| Role representation | `{0}` | `{0}` on 7/7 | Yes | §J |
-| Policy names / commands / expressions | Preserved contract | Byte-identical | Yes | §J and canonical string §P |
-| Pre-state hash | `e978f912777a28108f46ba79e2ce071e` | Recomputed `e978f912777a28108f46ba79e2ce071e` | Yes | §P |
-| Post-state hash | `04297828f4bd33eba043f6c9274ec57b` | Recomputed `04297828f4bd33eba043f6c9274ec57b` | Yes | §P |
-| Branch / HEAD | Different platform edit branch | Rotated | Not identical | Immaterial: no repository object participates in the hash; canonical branch `origin/main` unchanged |
+| ZR-01 | Parent Prompt 01 = SUBMITTED — RUN — CONSUMED | Same | PASS | §3 |
+| ZR-02 | C1 = SUBMITTED — RUN — CONSUMED | Same | PASS | §3 |
+| ZR-03 | C2 after run = SUBMITTED — RUN — CONSUMED | Same | PASS | §3, §33 |
+| ZR-04 | No new local Prompt number consumed | None consumed | PASS | §3 |
+| ZR-05 | RM-DH-003 ACTIVE | ACTIVE | PASS | §4.1; `roadmap.md` |
+| ZR-06 | Phase 2 CLOSED | CLOSED | PASS | §4.1; `roadmap.md` Phase register |
+| ZR-07 | Phase 3 = ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE | Same | PASS | §4.1, §13 |
+| ZR-08 | Sub-phases exactly 3.0–3.7 | Exactly 3.0–3.7 | PASS | §14 |
+| ZR-09 | No Sub-phase 3.8 | None | PASS | §14 |
+| ZR-10 | Track A title and purpose preserved | Preserved | PASS | §15 |
+| ZR-11 | Track B title and purpose preserved | Preserved | PASS | §15 |
+| ZR-12 | Track C title and purpose preserved | Preserved | PASS | §15 |
+| ZR-13 | Track D title and purpose preserved | Preserved | PASS | §15 |
+| ZR-14 | Track E title and purpose preserved | Preserved | PASS | §15 |
+| ZR-15 | WS-0012 title, Track, Sub-phase preserved | Preserved | PASS | §16 |
+| ZR-16 | WS-0013 title, Track, Sub-phase preserved | Preserved | PASS | §16 |
+| ZR-17 | WS-0014 title, Track, dependency preserved | Preserved | PASS | §16 |
+| ZR-18 | WS-0015 title, Track, dependency preserved | Preserved | PASS | §16 |
+| ZR-19 | WS-0016 title, Track, dependency preserved | Preserved | PASS | §16 |
+| ZR-20 | WS-0017 title, Track, dependency preserved | Preserved | PASS | §16 |
+| ZR-21 | WS-0018 title, Track, dependency preserved | Preserved | PASS | §16 |
+| ZR-22 | WS-0019 title, Track, dependency preserved | Preserved | PASS | §16 |
+| ZR-23 | WS-0020 title, Track, dependency preserved | Preserved | PASS | §16 |
+| ZR-24 | Candidate IDs provisional and unconsumed | COLLISION-FREE — PROVISIONAL — NOT CONSUMED | PASS | §12, §16 |
+| ZR-25 | Decision IDs -005 and -006 are the exact recommendation | Same | PASS | §11, §24 |
+| ZR-26 | D1–D10 meaning unchanged | Unchanged | PASS | §17 |
+| ZR-27 | Option C exact package contract preserved | Preserved | PASS | §18 |
+| ZR-28 | No new Workstream rows in `docs/workstreams/README.md` | None | PASS | §18, §23 |
+| ZR-29 | One navigation statement only | One only | PASS | §18, §23 |
+| ZR-30 | Exact seven-path allowlist preserved | Preserved | PASS | §21 |
+| ZR-31 | No eighth intended path | None | PASS | §21 |
+| ZR-32 | Exact numeric version matrix preserved | Preserved; live values equal | PASS | §20, §6 |
+| ZR-33 | Exact-file-restoration rollback preserved | Preserved | PASS | §26 |
+| ZR-34 | Full 16-item Deferred Items Register preserved | 16 items, unchanged | PASS | §29 |
+| ZR-35 | No unrelated RM-DH-004 item imported | None imported | PASS | §28, §29 |
+| ZR-36 | C1 Prompt Preparation Time = 00:05 | 00:05 | PASS | §3, §33 |
+| ZR-37 | ChatGPT-private governance outside Lovable scope | Not inspected | PASS | §6, §32 |
+| ZR-38 | No repository-versus-private-artifact comparison | None performed | PASS | §6 |
+| ZR-39 | MEM-079, -084, -090, -095 reserved | Reserved | PASS | §4.3 |
+| ZR-40 | Stage B not started | Not started | PASS | §4.3, §30 |
+| ZR-41 | Project Knowledge not installed | Not installed | PASS | §4.3, §32 |
+| ZR-42 | No repository, application, database, Knowledge, Skill or setting write | None | PASS | §32, §33 |
 
-All material dimensions equivalent — the Prompt-16/17 hashes are reused with proof, not by label.
+42 of 42 PASS. Zero FAIL.
 
 ---
 
-## P. CANONICAL PRE-STATE AND POST-STATE STRINGS AND HASHES
+## 8. FACTS DIRECTLY VERIFIED FROM THE REPOSITORY
 
-### Pre-state canonical string (7 policies)
+1. Branch `edit/edt-105ad101-fbf4-4e11-9e0e-d62df6b70270`; HEAD `aa169aaacc5da0c3d36a91d416b40a3a6ab12d52`; clean working tree with no staged, unstaged or untracked non-ignored paths.
+2. Commits `2133b5f3413e7ab97be739a07332087e9a9ec54e` and `134c0d41a9caa99a7bd16f7f67b496e96b49a18f` are reachable.
+3. The only path changed between the C1 HEAD and the current HEAD is `.lovable/plan.md`.
+4. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` v1.2.2 declares Roadmap Status `Active`, Phase 0 `Completed`, Phase 1 `Completed`, Phase 2 `CLOSED`, and no Phase 3.
+5. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md` v1.1.0 contains `DEC-RM-DH-003-001` through `-004` and no `-005`.
+6. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/README.md` is v1.0.0 and holds stable identity and navigation only.
+7. Live front-matter versions of the seven allowlist paths plus `docs/CONVENTIONS.md` equal the accepted current values in Section 20.
+
+---
+
+## 9. OWNER-PROVIDED APPROVED SCOPE INPUTS
+
+Supplied directly inside the Prompt and valid as planning inputs without inspecting any private source: the Phase 3 identity and bilingual title; the five Tracks; Sub-phases 3.0–3.7; the nine Workstream titles, Tracks, Sub-phases and dependencies; the two-decision structure; the D1–D10 architecture package; Option C; the seven-path allowlist; the denylist; the numeric version matrix; the exact-file-restoration rollback contract; the Deferred Items Register; and the Memory boundary.
+
+---
+
+## 10. PHASE-NUMBER COLLISION AUDIT
+
+| Phase | Repository state | Collision |
+|---|---|---|
+| Phase 0 | Completed | n/a |
+| Phase 1 | Completed | n/a |
+| Phase 2 | CLOSED | n/a |
+| Phase 3 | Absent | None — Phase 3 is the next collision-free Phase |
+
+No Phase 2 reopening required. No new Roadmap required.
+
+---
+
+## 11. DECISION-NUMBER COLLISION AUDIT
+
+| Decision | State |
+|---|---|
+| DEC-RM-DH-003-001 to -004 | Persisted; unchanged; not renumbered |
+| DEC-RM-DH-003-005 | Free — recommended for Phase 3 Governance Approval |
+| DEC-RM-DH-003-006 | Free — recommended for the D1–D10 package |
+
+---
+
+## 12. WORKSTREAM-NUMBER COLLISION AUDIT
+
+| Range | State |
+|---|---|
+| WS-DH-2026-0002, -0003 | Existing packages; untouched |
+| WS-DH-2026-0004 to -0011 | Permanently reserved by RM-DH-004 |
+| WS-DH-2026-0012 to -0020 | COLLISION-FREE — PROVISIONAL — NOT CONSUMED |
+
+A read-only planning or correction report does not allocate or consume these IDs. Permanent consumption requires an authorized persistence write.
+
+---
+
+## 13. EXACT APPROVED PHASE 3 REGISTER
+
+| Field | Value |
+|---|---|
+| Phase | RM-DH-003 / Phase 3 |
+| English title | Persistent Knowledge Architecture, Verification, Organization and Installation |
+| Arabic title | هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها |
+| Current state | ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE |
+| Repository state | Owner-approved but not repository-persisted |
+
+---
+
+## 14. EXACT APPROVED SUB-PHASE REGISTER
+
+| Sub-phase | Title |
+|---|---|
+| 3.0 | Scope and Governance Persistence — current position |
+| 3.1 | Foundational Read-Only Audits |
+| 3.2 | Knowledge Organizational Architecture |
+| 3.3 | Persistent Knowledge Stage B |
+| 3.4 | Persistent Knowledge Stage C |
+| 3.5 | Persistent Knowledge Stage D |
+| 3.6 | Persistent Knowledge Stage E |
+| 3.7 | Acceptance, Installation and Verification |
+
+There is no approved Sub-phase 3.8.
+
+---
+
+## 15. EXACT APPROVED TRACK REGISTER
+
+| Track | Title | Purpose | Workstreams |
+|---|---|---|---|
+| A | Memory Governance and Provenance | Define Memory origin, admission, numbering, amendment, supersession, succession, provenance and maintenance. | WS-DH-2026-0012 |
+| B | Codebase Architecture Intelligence | Map the current codebase, coupling, duplication, risk zones, shared-kernel opportunities and future Refactoring requirements without performing Refactoring. | WS-DH-2026-0013 |
+| C | Knowledge Organization | Organize: Shared Platform Foundation; 13 Account-Type Module Playbooks; Cross-Module Journey Registry; Feature Placement and Participation Matrix; complete Memory and source mapping. | WS-DH-2026-0014, WS-DH-2026-0015 |
+| D | Technical Verification | Perform Persistent Knowledge Stage B through bounded read-only verification slices. | WS-DH-2026-0016 |
+| E | Reconstruction, Acceptance and Installation | Perform Persistent Knowledge Stages C, D and E, then Owner Acceptance, Project Knowledge installation, persistence verification, maintenance governance and eventual Owner Closure. | WS-DH-2026-0017, WS-DH-2026-0018, WS-DH-2026-0019, WS-DH-2026-0020 |
+
+---
+
+## 16. EXACT APPROVED WORKSTREAM REGISTER
+
+| Candidate ID | English title | Arabic title | Track | Sub-phase | Mode | Initial status |
+|---|---|---|---|---|---|---|
+| WS-DH-2026-0012 | Memory Genesis, Admission, Numbering and Succession | أصل الذاكرة، ومعايير القبول، والترقيم، والخلافة | A | 3.1 | Plan/Chat — Read-only | ACTIVE — INVESTIGATIVE AUDIT NOT STARTED, after separately approved Sub-phase 3.1 advancement |
+| WS-DH-2026-0013 | Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit | خط أساس إعادة هيكلة الكود، والترابط، والتكرار، وفرص النوى المشتركة | B | 3.1 | Plan/Chat — Read-only | ACTIVE — INVESTIGATIVE AUDIT NOT STARTED, after separately approved Sub-phase 3.1 advancement |
+| WS-DH-2026-0014 | Organizational Blueprint and Feature Placement Architecture | المخطط التنظيمي ومعمارية توزيع الميزات | C | 3.2 | — | BLOCKED BY WS-DH-2026-0012 AND WS-DH-2026-0013 |
+| WS-DH-2026-0015 | Memory, Chapter and Source Migration Matrix | مصفوفة نقل الذاكرة والفصول والمصادر | C | 3.2 | — | BLOCKED BY WS-DH-2026-0012 AND WS-DH-2026-0013 |
+| WS-DH-2026-0016 | Persistent Knowledge Stage B Technical Verification Program | برنامج التحقق الفني للمعرفة الدائمة — Stage B | D | 3.3 | Plan/Chat — Read-only | BLOCKED BY WS-DH-2026-0014 AND WS-DH-2026-0015 |
+| WS-DH-2026-0017 | Persistent Knowledge Stage C Reconciliation | مصالحة وتصحيح المعرفة — Stage C | E | 3.4 | — | BLOCKED BY WS-DH-2026-0016 |
+| WS-DH-2026-0018 | Persistent Knowledge Stage D Final Reconstruction | البناء النهائي للـProject Knowledge — Stage D | E | 3.5 | — | BLOCKED BY WS-DH-2026-0017 |
+| WS-DH-2026-0019 | Persistent Knowledge Stage E Independent Re-Audit | المراجعة المستقلة النهائية — Stage E | E | 3.6 | Plan/Chat — Read-only | BLOCKED BY WS-DH-2026-0018 |
+| WS-DH-2026-0020 | Owner Acceptance, Project Knowledge Installation and Persistence Verification | اعتماد المالك، وتثبيت المعرفة، والتحقق من التثبيت | E | 3.7 | — | BLOCKED BY PASSED STAGE E AND EXPLICIT OWNER ACCEPTANCE |
+
+Parallel read-only policy: WS-DH-2026-0012 and WS-DH-2026-0013 may run in parallel because both are read-only.
+
+---
+
+## 17. EXACT D1–D10 ARCHITECTURE PACKAGE
+
+- **D1 — Module Identity.** A Module remains a principal Dayli Horse account-type operational domain. A Module is not the same as every capability contained inside it.
+- **D2 — Feature Identity.** A Feature remains an operational capability inside a Module. A Feature may be core, optional, advanced, shared or cross-module, but it does not automatically become a Module.
+- **D3 — Governed Cross-Module Feature Packs.** An eligible Workspace may activate a governed and internally coherent Feature Pack originating from another domain without activating the entire source Module. Feature Packs must preserve operational truth and dependencies.
+- **D4 — No Arbitrary Feature Cherry-Picking.** The system must not allow arbitrary individual Feature selection where dependencies would create an incomplete, misleading, unsafe or non-operational workflow.
+- **D5 — Request Features Are Separate from Internal Execution.** The ability to request a service from another Module does not mean the requesting Workspace internally operates that Module. Requesting, coordinating, executing, owning the record, paying and receiving the result remain separate roles.
+- **D6 — Module Core Features and Minimum Core Bundles.** Identity-defining Module Core Features must not be separated in a way that makes the Module operationally false. A Minimum Core Bundle may be approved only where it creates a complete, truthful and enforceable operational journey.
+- **D7 — Clinic and Hospital Module Family.** Clinic and Hospital remain initially within one Veterinary Care Module family rather than being duplicated Modules. Organization subtype and Feature depth may distinguish Veterinary Clinic, Veterinary Hospital and Veterinary Center.
+- **D8 — Self-Declared Organization Type and Verification Boundary.** A Workspace may self-declare its organization type. Self-declaration does not mean Dayli Horse verified professional, facility, government or licensing status.
+- **D9 — Separate Product-Control Layers.** Feature Catalog identity; current implementation; Feature depth; commercial entitlement; Workspace activation; Branch configuration; user permission; workflow assignment; billing; usage limit; suspension or expiry remain separate. No layer automatically proves another.
+- **D10 — Detailed Pack, Pricing, Dependency and Execution Design Is Pending.** Approval of D1–D10 does not approve exact Feature Pack names, exact pack composition, standalone Feature eligibility, prices, renewal terms, usage meters, migrations, entitlement tables, implementation sequence, current-code correction or production activation. Those require separate investigation, Owner Alignment and authorized execution.
+
+D1–D10 text belongs in `decisions.md` only and must not be duplicated across files.
+
+---
+
+## 18. EXACT OPTION C PACKAGE AND INDEX CONTRACT
+
+1. Create no dedicated Workstream package or directory.
+2. Register all nine proposed Workstreams in the authoritative RM-DH-003 `roadmap.md` Workstream register.
+3. Use status `Not yet created`, or an exactly equivalent repository-approved registry status that does not imply an audit has started.
+4. Add no Workstream rows for WS-DH-2026-0012 through WS-DH-2026-0020 to `docs/workstreams/README.md`.
+5. Add only one navigation statement to `docs/workstreams/README.md` explaining that those IDs are registered in the authoritative RM-DH-003 roadmap register and do not yet have dedicated packages.
+6. Create the dedicated packages for WS-DH-2026-0012 and WS-DH-2026-0013 only in a later separately authorized Sub-phase 3.1 advancement run.
+7. Keep indexes as navigation registries, not alternative dynamic state sources.
+
+---
+
+## 19. FILE-BY-FILE PERSISTENCE PLAN
+
+| # | Path | Required treatment |
+|---|---|---|
+| 1 | `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/README.md` | Minimal permanent scope and navigation update only. Do not copy dynamic Phase, Track, Workstream or stopping-point tables into this README. |
+| 2 | `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` | Primary authoritative Phase 3 update: Phase 3 row; Phase purpose; Track register; Sub-phase register; Workstream register; dependencies; parallelism rule; completion criteria; Deferred Items Register; current stopping point; next permitted action. Preserve Phase 0, Phase 1, Phase 2 and Phase 2 closure content. |
+| 3 | `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md` | Append `DEC-RM-DH-003-005` and `DEC-RM-DH-003-006`. Do not renumber or rewrite `-001` through `-004`. D1–D10 text lives here only. |
+| 4 | `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` | Append one execution entry using the real execution timestamp. Do not invent, backdate, or use Prompt Preparation Time as execution time. |
+| 5 | `docs/roadmaps/README.md` | Update only the RM-DH-003 current-position cell and required metadata. Do not alter RM-DH-001, RM-DH-002 or RM-DH-004 rows. |
+| 6 | `docs/workstreams/README.md` | Add one navigation sentence only. Do not add nine Workstream rows. |
+| 7 | `docs/README.md` | Synchronize the changed RM-DH-003 governance-file versions and provenance per the existing index contract. Do not copy Phase 3 dynamic detail into this file. |
+
+---
+
+## 20. EXACT NUMERIC CURRENT-TO-TARGET VERSION MATRIX
+
+| Path | Current | Target | Increment |
+|---|---|---|---|
+| RM-DH-003 `README.md` | 1.0.0 | 1.1.0 | minor |
+| RM-DH-003 `roadmap.md` | 1.2.2 | 1.3.0 | minor |
+| RM-DH-003 `decisions.md` | 1.1.0 | 1.2.0 | minor |
+| RM-DH-003 `changelog.md` | 1.2.3 | 1.3.0 | minor |
+| `docs/roadmaps/README.md` | 1.2.1 | 1.2.2 | patch |
+| `docs/workstreams/README.md` | 1.4.1 | 1.4.2 | patch |
+| `docs/README.md` | 1.13.1 | 1.14.0 | minor |
+| `docs/CONVENTIONS.md` | 1.2.0 | 1.2.0 | no change |
+| New Workstream package | — | — | none created; no initial 1.0.0 file |
+
+Before future execution these current versions must be re-read. If any current version has changed, execution must not silently use this matrix: it must report drift and stop for Owner review unless exact equivalence is proven and a new approved matrix is issued.
+
+---
+
+## 21. EXACT SEVEN-PATH ALLOWLIST
 
 ```text
-public|customer_balances|Permission-based delete customer balances|d|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|<NULL>
-public|customer_balances|Permission-based insert customer balances|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|customer_balances|Permission-based update customer balances|w|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|customer_balances|Tenant members can view balances|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Permission-based insert ledger entries|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|ledger_entries|Tenant members can view ledger|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Tenant members can view ledger entries|r|true|0|(EXISTS ( SELECT 1
-   FROM tenant_members tm
-  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))|<NULL>
+docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/README.md
+docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md
+docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md
+docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md
+docs/roadmaps/README.md
+docs/workstreams/README.md
+docs/README.md
 ```
 
-Pre-state hash: `e978f912777a28108f46ba79e2ce071e` — matches the accepted value.
-
-### Post-state canonical string (3 SELECT policies)
-
-```text
-public|customer_balances|Tenant members can view balances|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Tenant members can view ledger|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Tenant members can view ledger entries|r|true|0|(EXISTS ( SELECT 1
-   FROM tenant_members tm
-  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))|<NULL>
-```
-
-Post-state hash: `04297828f4bd33eba043f6c9274ec57b` — matches the accepted value.
-
-Note: the third element of the multi-line USING expression contains embedded newlines from `pg_get_expr`; they are part of the hashed text and must not be normalized.
+Any eighth intended repository path blocks execution readiness.
 
 ---
 
-## Q. PRESERVED FUNCTION ACL AND TRUSTED-SCHEMA FINDINGS (re-verified, not reopened)
+## 22. EXACT DENYLIST
 
-Internal writers — EXECUTE grantees (effective, via `aclexplode(COALESCE(proacl, acldefault('f', proowner)))`):
+The future execution must not create, modify or delete: `src/**`; `public/**`; `supabase/**`; database schema; database data; migrations; RLS; RPCs; Edge Functions; application configuration; build configuration; `docs/CONVENTIONS.md`; the RM-DH-001 package; the RM-DH-002 package; the RM-DH-004 package; the WS-DH-2026-0002 package; the WS-DH-2026-0003 package; any other Roadmap or Workstream package; any new Workstream directory; Project Knowledge; Workspace Knowledge; Skills; AGENTS.md; project settings; workspace settings; cross-project sharing; Documentation 01–13; historical or unrelated documentation paths.
 
-| Signature | PUBLIC | anon | authenticated | Preserved grantees |
-|---|---|---|---|---|
-| `_finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)` | No | No | No | postgres, service_role, sandbox_exec, sandbox_exec_vhxglsvxwwpmoqjabfmj |
-| `_finance_invoice_approve_inline(uuid,uuid,uuid)` | No | No | No | postgres, service_role, sandbox_exec, sandbox_exec_vhxglsvxwwpmoqjabfmj |
-
-Application wrappers — authenticated EXECUTE present, PUBLIC and anon absent, for all six: `post_expense_with_ledger(uuid,uuid,uuid)`, `post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)`, `post_payment_session(uuid,uuid,jsonb)`, `approve_invoice(uuid,uuid,uuid)`, `post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)`, `create_source_checkout_invoice(uuid,uuid,jsonb)`.
-
-POS RPC — `create_pos_sale(uuid,uuid,jsonb)`: current EXECUTE grantees `anon, authenticated, postgres, service_role, sandbox_exec, sandbox_exec_vhxglsvxwwpmoqjabfmj`. PUBLIC has no EXECUTE today; the Forward revoke from `PUBLIC, anon, authenticated` is therefore a freeze that removes anon and authenticated and keeps PUBLIC at false.
-
-Helpers — `has_permission(uuid,uuid,text)`, `is_tenant_member(uuid,uuid)`, `is_active_tenant_member(uuid,uuid)`: all SECURITY DEFINER, owner `postgres`, current `proconfig = {search_path=public}`.
-
-Table privileges — `public.ledger_entries` and `public.customer_balances`: anon and authenticated each hold all eight privileges (SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN). PUBLIC grants: 0. Column ACLs: 0. Browser-role memberships in `pg_auth_members`: 0.
-
-Trusted schema — CREATE on schema `public`: PUBLIC false, anon false, authenticated false; USAGE true for anon and authenticated.
-
-No drift against Prompt 18.
+ChatGPT-private governance artifacts remain outside Lovable scope entirely.
 
 ---
 
-## R. FUNCTION-SET SCOPE MATRIX
+## 23. CENTRAL-INDEX SYNCHRONIZATION PLAN
 
-### A. Preserved canonical contract
+- `docs/roadmaps/README.md`: RM-DH-003 current-position cell and required metadata only; version 1.2.1 → 1.2.2; RM-DH-001, RM-DH-002 and RM-DH-004 rows untouched.
+- `docs/workstreams/README.md`: exactly one navigation sentence stating that WS-DH-2026-0012 through WS-DH-2026-0020 are registered in the authoritative RM-DH-003 roadmap register and do not yet have dedicated packages; zero new rows; version 1.4.1 → 1.4.2.
+- `docs/README.md`: synchronize the four changed RM-DH-003 governance-file versions and provenance; no Phase 3 dynamic detail; version 1.13.1 → 1.14.0.
 
-| Exact signature | Origin Prompt | Current live state | Required by Stage B? | Preserved? |
-|---|---|---|---|---|
-| `_finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)` | 17 | SECURITY DEFINER, owner postgres, no browser EXECUTE | Yes — negative-authority assertion | Yes |
-| `_finance_invoice_approve_inline(uuid,uuid,uuid)` | 17 | Same | Yes — negative-authority assertion | Yes |
-| `post_expense_with_ledger(uuid,uuid,uuid)` | 11 | authenticated EXECUTE | Yes — Expense cutover target | Yes |
-| `post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)` | 17 | authenticated EXECUTE | Yes — wrapper preservation | Yes |
-| `post_payment_session(uuid,uuid,jsonb)` | 17 | authenticated EXECUTE | Yes — wrapper preservation | Yes |
-| `approve_invoice(uuid,uuid,uuid)` | 17 | authenticated EXECUTE | Yes — wrapper preservation | Yes |
-| `post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)` | 17/18 | authenticated EXECUTE | Yes — wrapper preservation | Yes |
-| `create_source_checkout_invoice(uuid,uuid,jsonb)` | 17 | authenticated EXECUTE | Yes — wrapper preservation | Yes |
-| `create_pos_sale(uuid,uuid,jsonb)` | 11/12 | anon + authenticated EXECUTE | Yes — revocation target | Yes |
-| `has_permission(uuid,uuid,text)` | 14 | `search_path=public` | Yes — helper hardening | Yes |
-| `is_tenant_member(uuid,uuid)` | 14 | `search_path=public` | Yes — helper hardening | Yes |
-| `is_active_tenant_member(uuid,uuid)` | 14/17 | `search_path=public` | Yes — helper hardening | Yes |
-
-### B. Additional observed functions
-
-| Function | Why observed | Direct dependency? | Required precondition? | Included or excluded | Evidence |
-|---|---|---|---|---|---|
-| `post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)` | Finance inventory | No | No | Excluded | authenticated EXECUTE; no Stage B privilege/policy change touches it |
-| `cancel_invoice(uuid,uuid,uuid,date,text)` | Finance inventory | No | No | Excluded — cancellation Economic Date remains a separate decision | authenticated EXECUTE |
-| `record_salary_payment(uuid,uuid,uuid,numeric,text,timestamp with time zone,text,text,boolean)` | HR Salary lane | No | No | Excluded — deferred lane | authenticated EXECUTE |
-| `get_payment_session(...)` | Prompt 17 | No — read-only projection | No | Excluded | Prompt-17 finding preserved |
-
-No accepted function was replaced.
+Indexes remain navigation registries, never alternative dynamic state sources.
 
 ---
 
-## S. CURRENT REPOSITORY STATE VERSUS APPROVED TARGET
+## 24. DECISION AND CHANGELOG PERSISTENCE PLAN
 
-CURRENT REPOSITORY STATE (re-read live at HEAD `764d59e9a`):
+`decisions.md`: append `DEC-RM-DH-003-005` — Phase 3 Governance Approval, recording Phase 3 identity and bilingual title; Phase purpose; five Tracks; eight Sub-phases 3.0–3.7; nine Workstreams; dependencies; the parallel read-only policy for WS-0012 and WS-0013; four permanently reserved inaccessible Memory IDs; no automatic implementation; no Project Knowledge installation in this execution; no Skills or AGENTS.md change; Documentation 01–13 exclusion; Project/Workspace Knowledge isolation; and the current-versus-persisted-state distinction. Then append `DEC-RM-DH-003-006` — Module, Feature and Product-Control Architecture Package D1–D10, recording the Owner-approved package without changing its meaning. `-001` through `-004` remain unchanged and unrenumbered.
 
-| Item | State |
-|---|---|
-| `src/lib/finance/postLedgerForExpense.ts` | Exists and is reachable — imported and called at `src/pages/DashboardFinance.tsx:35` and `:311` |
-| `src/lib/finance/postLedgerForInvoice.ts` | Exists and is reachable — imported and called at `src/hooks/pos/usePOSCore.ts:5` and `:163` |
-| Dead `useLedger.createEntry` | Exists — `src/hooks/finance/useLedger.ts:104`, exported at `:164`–`:165` |
-| Automatic `backfillLedgerDescriptions` | Exists and executes via dynamic import at `src/pages/DashboardFinance.tsx:347`–`:348` |
-| POS reachability | Reachable — nav entry `pos` → route `/dashboard/finance/pos` in `src/navigation/navConfig.ts:277`–`280` |
-| Operational POS hooks/writers | Mounted — `usePOSCore` performs direct `invoices`/`invoice_items` inserts and calls `postLedgerForInvoice` |
-| Stage B implementation | Not present |
-
-APPLICATION CONTRACT STATUS: APPROVED TARGET — NOT YET IMPLEMENTED
-
-APPROVED STAGE B TARGET: Expense approval via `post_expense_with_ledger`; `postLedgerForExpense` and `postLedgerForInvoice` removed; dead `useLedger.createEntry` removed; automatic `backfillLedgerDescriptions` execution removed; Ledger and Customer Balance hooks read-only; POS visible with Coming Soon, disabled, non-clickable, non-keyboard-activatable, no active navigation target, direct route inert, no operational POS hook or writer mounted; browser table writes closed; internal writers not browser-invocable; no historical financial rows changed.
+`changelog.md`: append exactly one execution entry using the real execution timestamp recorded during the authorized run.
 
 ---
 
-## T. FINAL EXACT FORWARD MIGRATION SQL (not executed)
+## 25. CORRECTED ACCEPTANCE CRITERIA
 
-```sql
--- STAGE B FORWARD MIGRATION — Financial write authority closure
--- RM-DH-004 / Phase 1 / WS-DH-2026-0003
--- Read-only planning artifact. Do not execute outside an authorized Agent/Build run.
-
-BEGIN;
-
--- ============================================================
--- 15.1 PRECONDITIONS
--- ============================================================
-DO $$
-DECLARE
-  v_hash text;
-  v_n    int;
-BEGIN
-  -- PostgreSQL major version
-  IF current_setting('server_version_num')::int < 170000 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: expected PostgreSQL 17+, found %', version();
-  END IF;
-
-  -- Target tables exist, are owned by postgres, and have RLS enabled
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND c.relrowsecurity
-    AND pg_get_userbyid(c.relowner) = 'postgres';
-  IF v_n <> 2 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: target tables/ownership/RLS state, found %', v_n;
-  END IF;
-
-  -- Canonical function signatures resolve
-  IF to_regprocedure('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)') IS NULL
-     OR to_regprocedure('public._finance_invoice_approve_inline(uuid,uuid,uuid)') IS NULL
-     OR to_regprocedure('public.post_expense_with_ledger(uuid,uuid,uuid)') IS NULL
-     OR to_regprocedure('public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)') IS NULL
-     OR to_regprocedure('public.post_payment_session(uuid,uuid,jsonb)') IS NULL
-     OR to_regprocedure('public.approve_invoice(uuid,uuid,uuid)') IS NULL
-     OR to_regprocedure('public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)') IS NULL
-     OR to_regprocedure('public.create_source_checkout_invoice(uuid,uuid,jsonb)') IS NULL
-     OR to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)') IS NULL
-     OR to_regprocedure('public.has_permission(uuid,uuid,text)') IS NULL
-     OR to_regprocedure('public.is_tenant_member(uuid,uuid)') IS NULL
-     OR to_regprocedure('public.is_active_tenant_member(uuid,uuid)') IS NULL
-  THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: one or more canonical signatures did not resolve';
-  END IF;
-
-  -- Internal writers must not be browser-executable
-  IF has_function_privilege('public','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('anon','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('authenticated','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('public','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-     OR has_function_privilege('anon','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-     OR has_function_privilege('authenticated','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-  THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: internal writer is browser-executable';
-  END IF;
-
-  -- Six wrappers must be executable by authenticated
-  IF NOT (has_function_privilege('authenticated','public.post_expense_with_ledger(uuid,uuid,uuid)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_payment_session(uuid,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.approve_invoice(uuid,uuid,uuid)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)','EXECUTE')
-      AND has_function_privilege('authenticated','public.create_source_checkout_invoice(uuid,uuid,jsonb)','EXECUTE'))
-  THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: wrapper ACL missing';
-  END IF;
-
-  -- POS current ACL: anon and authenticated executable, PUBLIC not
-  IF NOT (has_function_privilege('anon','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE'))
-     OR has_function_privilege('public','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
-  THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: unexpected create_pos_sale ACL';
-  END IF;
-
-  -- Helper current search paths
-  SELECT count(*) INTO v_n
-  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-  WHERE n.nspname = 'public'
-    AND p.proname IN ('has_permission','is_tenant_member','is_active_tenant_member')
-    AND EXISTS (
-      SELECT 1 FROM unnest(p.proconfig) cfg
-      WHERE btrim(split_part(cfg,'=',1)) = 'search_path'
-        AND btrim(split_part(cfg,'=',2)) = 'public'
-    );
-  IF v_n <> 3 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: expected 3 helpers at search_path=public, found %', v_n;
-  END IF;
-
-  -- TEMP evidence: TEMP is granted through PUBLIC on this database
-  IF NOT has_database_privilege('public', current_database(), 'TEMP') THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: expected TEMP granted to PUBLIC';
-  END IF;
-
-  -- All eight browser privileges currently present on both tables
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee::regrole::text IN ('anon','authenticated');
-  IF v_n <> 32 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: expected 32 browser privilege entries, found %', v_n;
-  END IF;
-
-  -- Zero PUBLIC table grants
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee = 0;
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: PUBLIC table grants present (%)', v_n;
-  END IF;
-
-  -- Zero Column ACLs
-  SELECT count(*) INTO v_n
-  FROM pg_attribute at JOIN pg_class c ON c.oid = at.attrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND at.attacl IS NOT NULL;
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: column ACLs present (%)', v_n;
-  END IF;
-
-  -- Zero browser-role inheritance
-  SELECT count(*) INTO v_n
-  FROM pg_auth_members m
-  WHERE m.member::regrole::text IN ('anon','authenticated');
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: browser role membership present (%)', v_n;
-  END IF;
-
-  -- Trusted schema CREATE contract
-  IF has_schema_privilege('public','public','CREATE')
-     OR has_schema_privilege('anon','public','CREATE')
-     OR has_schema_privilege('authenticated','public','CREATE')
-     OR NOT has_schema_privilege('anon','public','USAGE')
-     OR NOT has_schema_privilege('authenticated','public','USAGE')
-  THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: trusted schema contract violated';
-  END IF;
-
-  -- Exact seven-policy matrix
-  SELECT count(*) INTO v_n
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND p.polpermissive
-    AND p.polroles = ARRAY[0::oid];
-  IF v_n <> 7 THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: expected 7 permissive PUBLIC-only policies, found %', v_n;
-  END IF;
-
-  -- Exact pre-state canonical hash
-  SELECT md5(string_agg(
-           n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||
-           p.polpermissive::text||'|'||
-           COALESCE((SELECT string_agg(role_oid::text, ',' ORDER BY role_oid)
-                     FROM unnest(p.polroles) AS role_oid), '<NULL>')||'|'||
-           COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')||'|'||
-           COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>'),
-           E'\n' ORDER BY c.relname, p.polname))
-    INTO v_hash
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances');
-  IF v_hash IS DISTINCT FROM 'e978f912777a28108f46ba79e2ce071e' THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: pre-state policy hash % <> e978f912777a28108f46ba79e2ce071e', v_hash;
-  END IF;
-END $$;
-
--- Record current table comments for rollback reference (no change made).
--- ledger_entries comment and customer_balances comment are captured by the
--- execution run's evidence package before this migration is applied.
-
--- ============================================================
--- 15.2 POLICY DROPS (exact live names; no IF EXISTS)
--- ============================================================
-DROP POLICY "Permission-based insert ledger entries"
-ON public.ledger_entries;
-
-DROP POLICY "Permission-based insert customer balances"
-ON public.customer_balances;
-
-DROP POLICY "Permission-based update customer balances"
-ON public.customer_balances;
-
-DROP POLICY "Permission-based delete customer balances"
-ON public.customer_balances;
-
--- ============================================================
--- 15.3 TABLE PRIVILEGES — browser roles become SELECT-only
--- ============================================================
-REVOKE ALL ON public.ledger_entries    FROM anon, authenticated;
-REVOKE ALL ON public.customer_balances FROM anon, authenticated;
-
-GRANT SELECT ON public.ledger_entries    TO anon, authenticated;
-GRANT SELECT ON public.customer_balances TO anon, authenticated;
-
--- No GRANT to PUBLIC is issued; service_role and owner authority are untouched.
-
--- ============================================================
--- 15.4 POS EXECUTE FREEZE
--- ============================================================
-REVOKE EXECUTE
-ON FUNCTION public.create_pos_sale(uuid,uuid,jsonb)
-FROM PUBLIC, anon, authenticated;
-
--- ============================================================
--- 15.5 HELPER SEARCH-PATH HARDENING (configuration only; no body change)
--- ============================================================
-ALTER FUNCTION public.has_permission(uuid,uuid,text)      SET search_path = public, pg_temp;
-ALTER FUNCTION public.is_tenant_member(uuid,uuid)         SET search_path = public, pg_temp;
-ALTER FUNCTION public.is_active_tenant_member(uuid,uuid)  SET search_path = public, pg_temp;
-
--- ============================================================
--- 15.6 POSTCONDITIONS
--- ============================================================
-DO $$
-DECLARE
-  v_hash text;
-  v_n    int;
-BEGIN
-  -- anon and authenticated hold SELECT only (2 tables x 2 roles = 4 entries)
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee::regrole::text IN ('anon','authenticated');
-  IF v_n <> 4 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: expected 4 browser privilege entries, found %', v_n;
-  END IF;
-
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee::regrole::text IN ('anon','authenticated')
-    AND a.privilege_type <> 'SELECT';
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: non-SELECT browser privilege remains (%)', v_n;
-  END IF;
-
-  -- PUBLIC has zero table grants
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee = 0;
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: PUBLIC table grant present (%)', v_n;
-  END IF;
-
-  -- Zero Column ACLs
-  SELECT count(*) INTO v_n
-  FROM pg_attribute at JOIN pg_class c ON c.oid = at.attrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND at.attacl IS NOT NULL;
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: column ACL present (%)', v_n;
-  END IF;
-
-  -- Internal-writer ACLs unchanged
-  IF has_function_privilege('public','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('anon','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('authenticated','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('public','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-     OR has_function_privilege('anon','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-     OR has_function_privilege('authenticated','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-  THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: internal writer became browser-executable';
-  END IF;
-
-  -- Six authenticated wrappers preserved
-  IF NOT (has_function_privilege('authenticated','public.post_expense_with_ledger(uuid,uuid,uuid)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_payment_session(uuid,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.approve_invoice(uuid,uuid,uuid)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)','EXECUTE')
-      AND has_function_privilege('authenticated','public.create_source_checkout_invoice(uuid,uuid,jsonb)','EXECUTE'))
-  THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: wrapper ACL lost';
-  END IF;
-
-  -- POS unavailable to PUBLIC, anon, authenticated
-  IF has_function_privilege('public','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
-     OR has_function_privilege('anon','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
-     OR has_function_privilege('authenticated','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
-  THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: create_pos_sale still browser-executable';
-  END IF;
-
-  -- Trusted schema contract still true
-  IF has_schema_privilege('public','public','CREATE')
-     OR has_schema_privilege('anon','public','CREATE')
-     OR has_schema_privilege('authenticated','public','CREATE')
-     OR NOT has_schema_privilege('anon','public','USAGE')
-     OR NOT has_schema_privilege('authenticated','public','USAGE')
-  THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: trusted schema contract violated';
-  END IF;
-
-  -- All three helpers equal public, pg_temp
-  SELECT count(*) INTO v_n
-  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-  WHERE n.nspname = 'public'
-    AND p.proname IN ('has_permission','is_tenant_member','is_active_tenant_member')
-    AND EXISTS (
-      SELECT 1 FROM unnest(p.proconfig) cfg
-      WHERE btrim(split_part(cfg,'=',1)) = 'search_path'
-        AND btrim(split_part(cfg,'=',2)) = 'public, pg_temp'
-    );
-  IF v_n <> 3 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: expected 3 helpers at public, pg_temp, found %', v_n;
-  END IF;
-
-  -- Exactly three policies remain, all SELECT, PERMISSIVE, PUBLIC-only, exact names
-  SELECT count(*) INTO v_n
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances');
-  IF v_n <> 3 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: expected 3 policies, found %', v_n;
-  END IF;
-
-  SELECT count(*) INTO v_n
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND p.polcmd = 'r'
-    AND p.polpermissive
-    AND p.polroles = ARRAY[0::oid]
-    AND p.polname IN ('Tenant members can view ledger',
-                      'Tenant members can view ledger entries',
-                      'Tenant members can view balances');
-  IF v_n <> 3 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: retained SELECT policy identity mismatch (%)', v_n;
-  END IF;
-
-  SELECT count(*) INTO v_n
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND p.polcmd <> 'r';
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: non-SELECT policy remains (%)', v_n;
-  END IF;
-
-  -- Exact post-state canonical hash
-  SELECT md5(string_agg(
-           n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||
-           p.polpermissive::text||'|'||
-           COALESCE((SELECT string_agg(role_oid::text, ',' ORDER BY role_oid)
-                     FROM unnest(p.polroles) AS role_oid), '<NULL>')||'|'||
-           COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')||'|'||
-           COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>'),
-           E'\n' ORDER BY c.relname, p.polname))
-    INTO v_hash
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances');
-  IF v_hash IS DISTINCT FROM '04297828f4bd33eba043f6c9274ec57b' THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: post-state policy hash % <> 04297828f4bd33eba043f6c9274ec57b', v_hash;
-  END IF;
-END $$;
-
--- No financial business-row DML is performed by this migration.
--- Stage-A rows are not referenced or modified.
-
-COMMIT;
-```
+The future Governance Persistence Execution Acceptance Re-Audit must prove all 32 conditions: (1) RM-DH-003 is the same permanent Roadmap; (2) Phase 0 and Phase 1 unchanged; (3) Phase 2 CLOSED and not reopened; (4) Phase 3 exists exactly once; (5) Phase 3 status is represented consistently with Sub-phase 3.0 as the current governance-persistence position; (6) eight Sub-phases exist exactly once, numbered 3.0–3.7; (7) five approved Tracks exist exactly once with approved names and purposes; (8) nine proposed Workstreams exist exactly once in RM-DH-003 `roadmap.md` with approved names, Tracks, Sub-phases and dependencies; (9) no dedicated Workstream package or directory created; (10) no new rows in `docs/workstreams/README.md` for WS-0012 to WS-0020; (11) only the approved navigation statement for those IDs; (12) no Workstream claims its investigation has started; (13) no collision with RM-DH-004; (14) `-005` and `-006` appended exactly once; (15) `-001` through `-004` unchanged; (16) D1–D10 retain approved meaning; (17) MEM-079, MEM-084, MEM-090 and MEM-095 remain reserved; (18) exactly seven paths and no eighth; (19) the exact numeric version matrix applied unless separately reviewed live-state drift blocks execution; (20) indexes remain navigation registries; (21) RM-DH-004 dynamic state not copied into RM-DH-003; (22) no RM-DH-004, WS-DH-2026-0002 or WS-DH-2026-0003 file changes; (23) no Project Knowledge installation; (24) no Workspace Knowledge modification; (25) no Skill modification; (26) no AGENTS.md creation; (27) no application or database change; (28) platform-managed `.lovable/plan.md` activity disclosed separately; (29) rollback uses exact-path restoration unless the execution proves a broad revert is safer and free of concurrent shared-index risk; (30) no ChatGPT-private governance artifact inspected, copied, compared or persisted; (31) no prior Lineage contract silently changed; (32) the complete Deferred Items Register remains visible.
 
 ---
 
-## U. FINAL EXACT EMERGENCY ROLLBACK SQL (not executed)
+## 26. EXACT-FILE-RESTORATION ROLLBACK PLAN
 
-```sql
--- EMERGENCY ROLLBACK ONLY: This restores unsafe browser-direct financial
--- table writes and browser invocation of the deferred POS RPC.
--- RM-DH-004 / Phase 1 / WS-DH-2026-0003. Do not execute outside an
--- authorized emergency run.
+Accepted strategy: EXACT FILE RESTORATION. A broad plain Git revert is not automatically preferred, because `docs/README.md`, `docs/roadmaps/README.md` and `docs/workstreams/README.md` are shared registries that may receive interleaved changes from other active Roadmaps or Lovable sessions.
 
-BEGIN;
+1. Record the exact pre-execution branch and HEAD.
+2. Record the execution content commit or commits.
+3. Restore each of the seven allowlist paths to its exact pre-run content when rollback is required.
+4. Prefer `git checkout <pre-run-SHA> -- <exact-path>` or an equivalently deterministic exact-path restoration method.
+5. Re-read current shared-index state before rollback.
+6. Preserve unrelated concurrent RM-DH-004 or other Roadmap changes.
+7. Remove any unexpected new Workstream directory.
+8. Avoid database rollback, because no DB write is allowed.
+9. Avoid empty rollback commits.
+10. Verify the restored seven-path diff against the pre-run SHA is empty.
 
--- ============================================================
--- POLICY RESTORATION — exact pre-state identity
--- ============================================================
-CREATE POLICY "Permission-based insert ledger entries"
-ON public.ledger_entries
-AS PERMISSIVE
-FOR INSERT
-TO PUBLIC
-WITH CHECK (
-  has_permission(
-    auth.uid(),
-    tenant_id,
-    'finance.invoice.edit'::text
-  )
-);
-
-CREATE POLICY "Permission-based insert customer balances"
-ON public.customer_balances
-AS PERMISSIVE
-FOR INSERT
-TO PUBLIC
-WITH CHECK (
-  has_permission(
-    auth.uid(),
-    tenant_id,
-    'finance.invoice.edit'::text
-  )
-);
-
-CREATE POLICY "Permission-based update customer balances"
-ON public.customer_balances
-AS PERMISSIVE
-FOR UPDATE
-TO PUBLIC
-USING (
-  has_permission(
-    auth.uid(),
-    tenant_id,
-    'finance.invoice.edit'::text
-  )
-)
-WITH CHECK (
-  has_permission(
-    auth.uid(),
-    tenant_id,
-    'finance.invoice.edit'::text
-  )
-);
-
-CREATE POLICY "Permission-based delete customer balances"
-ON public.customer_balances
-AS PERMISSIVE
-FOR DELETE
-TO PUBLIC
-USING (
-  has_permission(
-    auth.uid(),
-    tenant_id,
-    'finance.invoice.edit'::text
-  )
-);
-
--- ============================================================
--- TABLE PRIVILEGE RESTORATION — all eight browser privileges
--- ============================================================
-GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
-ON public.ledger_entries TO anon, authenticated;
-
-GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
-ON public.customer_balances TO anon, authenticated;
-
--- No grant to PUBLIC is issued.
-
--- ============================================================
--- POS EXECUTE RESTORATION — anon and authenticated only
--- ============================================================
-GRANT EXECUTE
-ON FUNCTION public.create_pos_sale(uuid,uuid,jsonb)
-TO anon, authenticated;
-
--- PUBLIC deliberately receives no EXECUTE.
-
--- ============================================================
--- HELPER SEARCH-PATH RESTORATION
--- ============================================================
-ALTER FUNCTION public.has_permission(uuid,uuid,text)      SET search_path = public;
-ALTER FUNCTION public.is_tenant_member(uuid,uuid)         SET search_path = public;
-ALTER FUNCTION public.is_active_tenant_member(uuid,uuid)  SET search_path = public;
-
--- ============================================================
--- TABLE COMMENT RESTORATION
--- ============================================================
--- Restore the exact table comments captured in the execution run's evidence
--- package prior to the Forward Migration. If the Forward Migration made no
--- comment change, no statement is required here.
-
--- ============================================================
--- ROLLBACK POSTCONDITIONS
--- ============================================================
-DO $$
-DECLARE
-  v_hash text;
-  v_n    int;
-BEGIN
-  -- All eight privileges restored for anon (8) and authenticated (8) on both tables = 32
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee::regrole::text = 'anon';
-  IF v_n <> 16 THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: anon privileges = % (expected 16)', v_n;
-  END IF;
-
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee::regrole::text = 'authenticated';
-  IF v_n <> 16 THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: authenticated privileges = % (expected 16)', v_n;
-  END IF;
-
-  -- Zero PUBLIC table grants
-  SELECT count(*) INTO v_n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
-       LATERAL aclexplode(c.relacl) a
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances')
-    AND a.grantee = 0;
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: PUBLIC table grant present (%)', v_n;
-  END IF;
-
-  -- Exact seven policies, names, commands, permissive state, roles
-  SELECT count(*) INTO v_n
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances');
-  IF v_n <> 7 THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: expected 7 policies, found %', v_n;
-  END IF;
-
-  SELECT count(*) INTO v_n
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND p.polpermissive
-    AND p.polroles = ARRAY[0::oid]
-    AND (
-      (c.relname = 'ledger_entries'    AND p.polname = 'Permission-based insert ledger entries'    AND p.polcmd = 'a')
-   OR (c.relname = 'ledger_entries'    AND p.polname = 'Tenant members can view ledger'            AND p.polcmd = 'r')
-   OR (c.relname = 'ledger_entries'    AND p.polname = 'Tenant members can view ledger entries'    AND p.polcmd = 'r')
-   OR (c.relname = 'customer_balances' AND p.polname = 'Permission-based insert customer balances' AND p.polcmd = 'a')
-   OR (c.relname = 'customer_balances' AND p.polname = 'Permission-based update customer balances' AND p.polcmd = 'w')
-   OR (c.relname = 'customer_balances' AND p.polname = 'Permission-based delete customer balances' AND p.polcmd = 'd')
-   OR (c.relname = 'customer_balances' AND p.polname = 'Tenant members can view balances'          AND p.polcmd = 'r')
-    );
-  IF v_n <> 7 THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: exact policy identity mismatch (%)', v_n;
-  END IF;
-
-  -- No duplicate policy name per table
-  SELECT count(*) INTO v_n FROM (
-    SELECT c.relname, p.polname
-    FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-         JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'
-      AND c.relname IN ('ledger_entries','customer_balances')
-    GROUP BY 1,2 HAVING count(*) > 1
-  ) d;
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: duplicate policy detected (%)', v_n;
-  END IF;
-
-  -- Exact pre-state canonical hash (proves expressions restored byte-for-byte)
-  SELECT md5(string_agg(
-           n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||
-           p.polpermissive::text||'|'||
-           COALESCE((SELECT string_agg(role_oid::text, ',' ORDER BY role_oid)
-                     FROM unnest(p.polroles) AS role_oid), '<NULL>')||'|'||
-           COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')||'|'||
-           COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>'),
-           E'\n' ORDER BY c.relname, p.polname))
-    INTO v_hash
-  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
-       JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries','customer_balances');
-  IF v_hash IS DISTINCT FROM 'e978f912777a28108f46ba79e2ce071e' THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: pre-state hash % <> e978f912777a28108f46ba79e2ce071e', v_hash;
-  END IF;
-
-  -- All three helper paths equal public
-  SELECT count(*) INTO v_n
-  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-  WHERE n.nspname = 'public'
-    AND p.proname IN ('has_permission','is_tenant_member','is_active_tenant_member')
-    AND EXISTS (
-      SELECT 1 FROM unnest(p.proconfig) cfg
-      WHERE btrim(split_part(cfg,'=',1)) = 'search_path'
-        AND btrim(split_part(cfg,'=',2)) = 'public'
-    );
-  IF v_n <> 3 THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: helper search_path not restored (%)', v_n;
-  END IF;
-
-  -- POS ACL: anon/authenticated restored, PUBLIC still false
-  IF NOT (has_function_privilege('anon','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE'))
-  THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: POS EXECUTE not restored';
-  END IF;
-  IF has_function_privilege('public','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE') THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: PUBLIC gained POS EXECUTE';
-  END IF;
-
-  -- Internal-writer ACLs unchanged
-  IF has_function_privilege('public','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('anon','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('authenticated','public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)','EXECUTE')
-     OR has_function_privilege('public','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-     OR has_function_privilege('anon','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-     OR has_function_privilege('authenticated','public._finance_invoice_approve_inline(uuid,uuid,uuid)','EXECUTE')
-  THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: internal writer ACL drift';
-  END IF;
-
-  -- Wrapper ACLs unchanged
-  IF NOT (has_function_privilege('authenticated','public.post_expense_with_ledger(uuid,uuid,uuid)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_payment_session(uuid,uuid,jsonb)','EXECUTE')
-      AND has_function_privilege('authenticated','public.approve_invoice(uuid,uuid,uuid)','EXECUTE')
-      AND has_function_privilege('authenticated','public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)','EXECUTE')
-      AND has_function_privilege('authenticated','public.create_source_checkout_invoice(uuid,uuid,jsonb)','EXECUTE'))
-  THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: wrapper ACL drift';
-  END IF;
-
-  -- Trusted schema unchanged
-  IF has_schema_privilege('public','public','CREATE')
-     OR has_schema_privilege('anon','public','CREATE')
-     OR has_schema_privilege('authenticated','public','CREATE')
-  THEN
-    RAISE EXCEPTION 'ROLLBACK FAILED: schema CREATE drift';
-  END IF;
-END $$;
-
--- No financial business-row DML is performed by this rollback.
-
-COMMIT;
-```
+A broad Git revert may be used only if execution proves there are no interleaved or concurrent shared-file changes and explicitly explains why it is safer in that exact run.
 
 ---
 
-## V. FORWARD → ROLLBACK → FORWARD SYMMETRY CONTRACT
+## 27. CORRECTED RISKS, COUNTERARGUMENTS AND RESIDUALS
 
-| State | Policies | Browser table privileges | POS EXECUTE | Helper search_path | Canonical hash |
-|---|---|---|---|---|---|
-| A — audited pre-state | 7 exact | all 8 for anon + authenticated | anon + authenticated; PUBLIC false | `public` | `e978f912777a28108f46ba79e2ce071e` |
-| B — after Forward | 3 exact SELECT | SELECT only | none for PUBLIC/anon/authenticated | `public, pg_temp` | `04297828f4bd33eba043f6c9274ec57b` |
-| A — after Rollback | 7 exact | all 8 restored | anon + authenticated; PUBLIC false | `public` | `e978f912777a28108f46ba79e2ce071e` |
-| B — after second Forward | 3 exact SELECT | SELECT only | none | `public, pg_temp` | `04297828f4bd33eba043f6c9274ec57b` |
+| # | Risk | Counterargument / mitigation | Residual |
+|---|---|---|---|
+| 1 | Phase 3 breadth | Eight Sub-phases and staged advancement bound each step | Owner must approve each advancement |
+| 2 | Nine-Workstream governance overhead | Option C registers without creating packages | Overhead returns at 3.1 |
+| 3 | Concurrent read-only work while RM-DH-004 is active | Separate Roadmap, separate registers; drift check before execution | Interleaving on shared indexes |
+| 4 | Workstream-ID collision | -0004 to -0011 reserved; -0012 to -0020 verified collision-free and provisional | Re-verify before persistence write |
+| 5 | Dynamic-state duplication in README or indexes | `roadmap.md` is the only authoritative state file | Reviewer discipline |
+| 6 | D1–D10 duplication | D1–D10 lives only in `decisions.md` | Future summarizing |
+| 7 | Treating 104 Memory objects as 104 approved rules | Inventory-versus-rule distinction stated | Misreading in later Stages |
+| 8 | Treating Stage A as Stage B verification | Stage B explicitly not started | Premature confidence |
+| 9 | Creating Workstream packages too early | Packages deferred to authorized 3.1 | Accidental directory creation |
+| 10 | Stale Git evidence from concurrent Lovable sessions | HEAD and diff re-read this run | Drift after this report |
+| 11 | `.lovable/plan.md` misclassification | Disclosed separately under `DEC-RM-DH-003-004` | Miscount in later evidence |
+| 12 | Repository governance drift before execution | Mandatory pre-execution drift check with stop condition | Drift between review and run |
+| 13 | Shared-index rollback collision | Exact-path restoration contract | Concurrent writes during rollback |
 
-Symmetry proof: the Forward drops exactly the four write policies present in State A and makes no other policy change, so the surviving three rows of the canonical string are byte-identical to their State-A rows — this is why the State-B hash is a strict subset re-hash of the State-A input. The Rollback recreates the four dropped policies with the exact live names, commands, PERMISSIVE state, PUBLIC role and `has_permission(...)` expressions, restoring the State-A canonical string byte-for-byte. Privilege, POS-ACL and helper changes are each exact inverses. No statement in either direction touches financial rows, table ownership, RLS enablement, schema ACLs, internal-writer ACLs or wrapper ACLs.
-
-This run did not execute the sequence. Required isolated execution QA sequence: capture State-A evidence → apply Forward → assert State-B → apply Rollback → assert State-A including the pre-state hash → apply Forward again → assert State-B including the post-state hash → capture final evidence.
-
----
-
-## W. QA ADDITIONS
-
-Policy migration: exact four write policies exist before Forward; all four absent after; exactly three SELECT policies remain with the exact retained names; Forward hash matches `04297828f4bd33eba043f6c9274ec57b`; Rollback recreates exactly four; Rollback hash matches `e978f912777a28108f46ba79e2ce071e`; Forward→Rollback→Forward succeeds.
-
-Negative checks: nonexistent policy names are not silently accepted (no `IF EXISTS` on the four mandatory drops); no Ledger UPDATE write policy appears in either direction; Customer Balance DELETE is restored by Rollback; no write policy remains after Forward.
-
-POS: PUBLIC, anon and authenticated cannot execute after Forward; PUBLIC remains unable after Rollback; anon and authenticated are restored only by the emergency Rollback.
-
-Helpers and ACLs: all three helper search paths asserted in both directions; internal-writer ACLs unchanged; six wrapper ACLs unchanged; schema `public` remains trusted.
-
-Parallel drift: immediately before Agent/Build, re-read branch and HEAD, re-read all seven policies, recompute both canonical strings and hashes, abort on any drift, and record intended versus actual changed paths.
-
-Data: no financial rows change through the authority migration; no Stage-A rows change; Ledger and Balance reconciliation remains exact.
-
-Build and typecheck alone are not Acceptance. Separate QA and a read-only Acceptance Re-Audit remain mandatory.
+No unrelated RM-DH-004 defect is added to this register.
 
 ---
 
-## X. DEFERRED ITEMS REGISTER
+## 28. PRE-EXISTING DEFECTS DISCOVERED BUT EXCLUDED
 
-### Promoted Stage B items
-
-| Item | Original Prompt / evidence | Current status | Current lane | Future lane | Dependency | Risk if forgotten | Next trigger |
-|---|---|---|---|---|---|---|---|
-| Expense browser writer cutover | 11 | Approved, not implemented | Stage B | — | `post_expense_with_ledger` | Ledger writes bypass canonical authority | Agent/Build |
-| `postLedgerForExpense` removal | 11 | Reachable at `DashboardFinance.tsx:311` | Stage B | — | Cutover | Direct browser ledger insert survives | Agent/Build |
-| `postLedgerForInvoice` removal | 11 | Reachable at `usePOSCore.ts:163` | Stage B | — | POS fencing | POS writes ledger directly | Agent/Build |
-| Dead `useLedger.createEntry` removal | 11 | Present at `useLedger.ts:104` | Stage B | — | — | Latent write path | Agent/Build |
-| Automatic `backfillLedgerDescriptions` removal | 11 | Executes at `DashboardFinance.tsx:347` | Stage B | — | — | Unattended ledger UPDATE | Agent/Build |
-| POS Coming Soon / inert fencing | 11 | POS reachable | Stage B | WS-DH-2026-0005 | Nav + route | Unfrozen POS financial writes | Agent/Build |
-| Browser table DML closure | 12/13 | All 8 privileges live | Stage B | — | Forward §15.3 | Direct browser DML on financial truth | Agent/Build |
-| Four exact write-policy removal | 19 | Verified live | Stage B | — | Forward §15.2 | Write policies remain | Agent/Build |
-| `create_pos_sale` browser/PUBLIC EXECUTE revocation | 12/19 | anon + authenticated live | Stage B | — | Forward §15.4 | Deferred POS invocable | Agent/Build |
-| Three-helper `public, pg_temp` correction | 14/15/17 | All three at `public` | Stage B | — | Forward §15.5 | `pg_temp` shadowing risk | Agent/Build |
-| Internal writer EXECUTE authority freeze | 18 | Verified clean | Stage B assertion | — | Preconditions | Silent privilege drift | Agent/Build |
-| External wrapper ACL preservation | 18 | Verified | Stage B assertion | — | Pre/postconditions | App breakage | Agent/Build |
-| Trusted `public` schema CREATE guard | 18 | Verified false | Stage B assertion | — | Pre/postconditions | Object shadowing | Agent/Build |
-| `post_manual_ledger_adjustment` ACL preservation | 18 | Verified | Stage B assertion | — | Wrapper set | Lost admin path | Agent/Build |
-| Current-versus-target truth correction | 18 | Preserved | Stage B | — | §S | False "already done" claims | Agent/Build |
-| Exact live policy name restoration | 19 | Closed by this audit | Stage B | — | §J | Aborted migration | Agent/Build |
-| Exact rollback policy body restoration | 19 | Closed by this audit | Stage B | — | §U | Non-restorable rollback | Agent/Build |
-| Preserved fingerprint algorithm freeze | 19 | Closed by this audit | Stage B | — | §M | Incomparable hashes | Agent/Build |
-| PUBLIC POS EXECUTE guard | 19 | Closed by this audit | Stage B | — | §T/§U | PUBLIC escalation on rollback | Agent/Build |
-| Rollback assertion completeness | 19 | Closed by this audit | Stage B | — | §U | Undetected partial rollback | Agent/Build |
-| Function-set scope clarification | 19 | Closed by this audit | Stage B | — | §R | Silent set substitution | Agent/Build |
-| Parallel drift pre-execution guard | 19 | Defined | Stage B QA | — | §W | Executing against drifted state | Agent/Build |
-| Scope-bound hash/artifact equivalence proof | 19 | Proven | Stage B | — | §O | Cross-context hash reuse | Agent/Build |
-
-### Deferred items
-
-| Item | Original Prompt / evidence | Current status | Current lane | Future lane | Dependency | Risk if forgotten | Next trigger |
-|---|---|---|---|---|---|---|---|
-| Internal Cost terminology correction | 11 | Deferred | — | Later WS | Content | Misread cost semantics | Post-Stage B |
-| Internal Cost Unknown vs Real Zero | 11 | Deferred | — | Later WS | Data model | False zero costs | Post-Stage B |
-| Internal Cost contextual terminology | 11 | Deferred | — | Later WS | Content | Ambiguity | Post-Stage B |
-| HR Salary-to-Expense atomicity | 11 | Deferred | — | Later WS | RPC design | Partial writes | Post-Stage B |
-| HR Salary idempotency | 11 | Deferred | — | Later WS | RPC design | Duplicate salary rows | Post-Stage B |
-| HR Salary reversal | 11 | Deferred | — | Later WS | RPC design | No correction path | Post-Stage B |
-| HR-linked Expense deletion | 11 | Deferred | — | Later WS | Lifecycle | Orphan records | Post-Stage B |
-| Expense unpost/reversal | 11 | Deferred | — | Later WS | Ledger contract | No correction path | Post-Stage B |
-| Supplier Payable lifecycle | 11 | Deferred | — | Later WS | Domain | Untracked payables | Post-Stage B |
-| Supplier Payable-to-Expense authority | 11 | Deferred | — | Later WS | Domain | Wrong authority | Post-Stage B |
-| Full POS implementation | 11 | Deferred | — | WS-DH-2026-0005 | POS fencing | Premature POS finance | WS-0005 activation |
-| Future `create_pos_sale` activation | 12 | Deferred | — | WS-DH-2026-0005 | POS design | Unsafe reactivation | WS-0005 activation |
-| Manual Ledger Adjustment UI | 18 | Deferred | — | Later WS | `post_manual_ledger_adjustment` | No admin surface | Post-Stage B |
-| Residual financial-table privilege hardening | 13 | Deferred | — | Later WS | Broader tables | Other tables stay open | Post-Stage B |
-| Full schema qualification of `has_permission` | 14 | Deferred | — | Later WS | Policy bodies | Resolution ambiguity | Post-Stage B |
-| Duplicate Ledger SELECT policy review | 16 | Deferred — two SELECT policies confirmed live | — | Later WS | Read semantics | Redundant read paths | Post-Stage B |
-| Database-level TEMP grant to PUBLIC | 14 | Deferred | — | Later WS | Platform | `pg_temp` exposure | Post-Stage B |
-| PUBLIC EXECUTE on permission helpers | 14 | Deferred | — | Later WS | Platform | Helper enumeration | Post-Stage B |
-| Platform `sandbox_exec*` financial privileges | 17/18 | Deferred | — | Later WS | Platform-owned | Unreviewed platform authority | Post-Stage B |
-
-No item removed. No unrelated item promoted. No new Roadmap, Workstream or Decision ID created.
+None newly discovered in this narrow C2 check. Previously disclosed RM-DH-004 defects and observations remain in their own lineage and are deliberately not imported here.
 
 ---
 
-## Y. FULL-LINEAGE ZERO-REGRESSION CONFIRMATION
+## 29. COMPLETE DEFERRED ITEMS REGISTER
 
-Tested explicitly against Prompts 01–18, not only Prompt 18:
+1. Actual code Refactoring.
+2. Feature Pack implementation.
+3. Module activation implementation.
+4. Subscription and pricing implementation.
+5. New Feature implementation.
+6. Missing Module implementation.
+7. Skills revision.
+8. Root AGENTS.md creation.
+9. Workspace Knowledge use.
+10. Documentation 01–13 historical recovery.
+11. Cross-project sharing changes.
+12. RM-DH-004 financial execution.
+13. Any technical defect discovered by a later Persistent Knowledge Stage B audit.
+14. Any Project Knowledge installation.
+15. Memory Genesis investigation.
+16. Refactoring Baseline investigation.
 
-- Prompts 01–03 — historical-only status preserved; no authority claimed from them.
-- Prompt 04 — all five preserved interpretations intact; no historical backdating introduced.
-- Prompts 05–10 — Stage A scope, execution, acceptance, persistence and verification untouched; no Stage-A row is referenced by either migration.
-- Prompt 11 — Expense target, four removals, POS target and deferrals all preserved in §S and §X.
-- Prompt 12 — database authority closure preserved; app-only sufficiency remains rejected.
-- Prompt 13 — PG 17.6, eight privileges, zero column ACLs, `REVOKE ALL → GRANT SELECT`, no browser CREATE — all re-verified live and encoded in §T.
-- Prompt 14 — three helpers, `public, pg_temp` target, seven policies, exact signatures, TEMP-via-PUBLIC — all preserved; the rejected Q7 comparison is not reintroduced.
-- Prompt 15 — the robust `unnest(proconfig)` key-based assertion is used in §T; no array-literal comparison appears.
-- Prompt 16 — `polroles = ARRAY[0::oid]` predicate and both hashes preserved and re-proven.
-- Prompt 17 — eleven canonical identities, `_finance_invoice_approve_inline` dependency, three helpers and zero PUBLIC table grants preserved; §R contains no silent substitution.
-- Prompt 18 — effective-ACL methodology, internal-writer negative contract, six wrapper ACLs, `post_manual_ledger_adjustment`, trusted-schema closure and current-versus-target separation preserved; only the eight enumerated defects are withdrawn.
-
-ZERO REGRESSION TO PROMPTS 01–18 CONFIRMED.
-
----
-
-## Z. BLOCKERS AND GAPS
-
-None.
+No unrelated RM-DH-004 item is imported. No item may leave this Register without successful Acceptance, explicit Owner cancellation, or approved supersession.
 
 ---
 
-## AA. WORKSTREAM PERSISTENCE
+## 30. WORKSTREAM PERSISTENCE
 
-WORKSTREAM PERSISTENCE:
-NONE — READ-ONLY CUMULATIVE-LINEAGE, PARALLEL-DRIFT, EXACT-POLICY IDENTITY, PRESERVED-FINGERPRINT AND FINAL MIGRATION-SYMMETRY CORRECTION AUDIT ONLY.
+WORKSTREAM PERSISTENCE: NONE — C2 CORRECTION ONLY
 
-Stage A remains accepted, persisted and verified.
-
-WS-DH-2026-0003 remains ACTIVE.
-
-Stage B implementation has not started.
-
-Prompt-18 effective function ACL, trusted-schema and current-versus-target findings remain preserved.
-
-No governance file was modified.
-
-Stage C and Stage D have not started.
-
-No Workstream Closure occurred.
+No Workstream is created. No Workstream package is created. No Workstream ID is consumed. No Workstream investigation begins. Memory Genesis, Refactoring Baseline and Persistent Knowledge Stage B have not started.
 
 ---
 
-## AB. ROADMAP IMPACT
+## 31. ROADMAP IMPACT
 
-ROADMAP IMPACT:
-RM-DH-004 remains ACTIVE — PHASE 1.
-
-This correction audit does not complete Phase 1.
-
-WS-DH-2026-0005 remains DEFERRED.
-
-No new Roadmap, Phase, Workstream or Decision ID was created.
-
-No Phase advancement, Phase Closure or Roadmap Closure occurred.
+RM-DH-003 remains ACTIVE. RM-DH-003 / Phase 2 remains CLOSED. Phase 3 remains Owner-approved but not repository-persisted. Sub-phase 3.0 remains the current governance position. No Phase is advanced. No Track is created through a write. No Workstream is created through a write. No Roadmap or registry file is intentionally modified. No Project Knowledge is installed. No Acceptance or Closure is claimed. RM-DH-004 remains separate. Governance Persistence Execution remains unauthorized until ChatGPT and Owner review the passed C2 report.
 
 ---
 
-## AC. RUN METADATA AND EXACT STOPPING POINT
+## 32. NO-CHANGE ATTESTATION
 
-1. Mode: Plan/Chat — Read-Only.
-2. Operation: Cumulative full-lineage reconciliation, parallel-drift detection, exact live policy identity recovery, Prompt-18 correction, preserved fingerprint restoration, scope-bound hash verification, PUBLIC POS EXECUTE freeze, Forward/Rollback/Forward symmetry verification, Stage B readiness determination.
-3. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-EXACT-LIVE-POLICY-IDENTITY-PRESERVED-FINGERPRINT-AND-FINAL-SYMMETRY-CORRECTION-AUDIT-19.
-4. Prompt status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED; now SUBMITTED — RUN — CONSUMED.
-5. Prompt Preparation: 04-08-2026, 02:02, Asia/Riyadh (UTC+03:00).
-6. Run Start / Run End / Final Report: Exact time not recorded. Timestamp evidence: message delivery 2026-08-03 21:28 UTC / 2026-08-04 00:28 Asia/Riyadh.
-7. PostgreSQL version: PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit.
-8. Database: `postgres`. Table owner: `postgres`. Read role used: `supabase_read_only_user`.
-9. Branch: `edit/edt-6aa572eb-dff0-4091-935a-0aa3206b71ce`. Canonical branch evidence: `refs/remotes/origin/HEAD → refs/remotes/origin/main`.
-10. HEAD before / after: `764d59e9a2adcabefc6527bcee8b4300acc4187b` / unchanged.
-11. Working tree before / after: clean / clean. Staged: none / none. Unstaged: none / none. Untracked non-ignored: none / none.
-12. Parallel chats/Roadmaps known active: RM-DH-003 Phase 3 governance planning (separate lineage). Parallel ChatGPT state: inaccessible. Shared repository and database state: read directly, per §E.
-13. Repository paths read: `src/lib/finance/` listing, `src/pages/DashboardFinance.tsx` (references), `src/hooks/pos/usePOSCore.ts`, `src/hooks/finance/useLedger.ts`, `src/lib/finance/postLedgerForExpense.ts`, `src/lib/finance/postLedgerForInvoice.ts`, `src/lib/finance/backfillLedgerDescriptions.ts`, `src/navigation/navConfig.ts`, plus Git metadata.
-14. Catalog objects read: `pg_policy`, `pg_class`, `pg_namespace`, `pg_proc`, `pg_attribute`, `pg_auth_members`; functions `pg_get_expr`, `aclexplode`, `acldefault`, `has_schema_privilege`, `md5`, `version`, `current_database`, `current_user`.
-15. Catalog queries: two read-only `SELECT` statements (policy/fingerprint; ACL/helper/schema/RLS). Financial-row queries: zero.
-16. Exact live policy names, commands, roles and expressions: §J. Prompt-18 incorrect names: §K. Prompt-18 incorrect rollback set: §L.
-17. Preserved fingerprint SQL: §M. Binding dimensions: §N. Artifact equivalence proof: §O.
-18. Canonical pre-state string and hash: §P — `e978f912777a28108f46ba79e2ce071e`. Canonical post-state string and hash: §P — `04297828f4bd33eba043f6c9274ec57b`.
-19. Function ACLs preserved: §Q. Trusted-schema state preserved: §Q. PUBLIC POS EXECUTE state: false today; anon and authenticated true today; all three false after Forward.
-20. Current application reachability and approved target: §S — APPROVED TARGET — NOT YET IMPLEMENTED.
-21. Final Forward SQL: complete and executable (§T). Final Rollback: complete and executable (§U). Symmetry: closed (§V). Full-lineage reconciliation: reconciled (§F, §Y).
-22. Deferred items: all preserved; Stage B items promoted only within the approved lane (§X).
-23. Repository changes: zero. Database changes: zero. Migration changes: zero. Financial-row changes: zero. Project Knowledge changes: zero. Workspace Knowledge changes: zero. Skill changes: zero. Settings changes: zero.
-24. `.lovable/plan.md` disclosure: this report was written to `.lovable/plan.md` through Plan Mode's normal platform-managed behavior, replacing the prior planning content. No manual edit outside Plan Mode occurred.
-25. Twelve required verdicts: §A.
-26. Stage B implementation: not started. Stage C: not started. Stage D: not started. QA: not started. Acceptance: not started. Closure: none.
-27. Exact stopping point:
+Zero intentional changes to: application code; repository governance files; Roadmap files; Workstream files; central indexes; database schema; database data; migrations; RLS; RPCs; Edge Functions; Project Knowledge; Workspace Knowledge; Skills; AGENTS.md; project settings; workspace settings; cross-project sharing.
 
-The Prompt-18 policy-identity and fingerprint regression has been withdrawn.
+ChatGPT-private governance artifacts remain outside Lovable scope and were not inspected, compared or persisted.
 
-The complete Prompt-01-through-Prompt-18 Lineage has been reconciled.
+Platform-managed `.lovable/plan.md` activity is disclosed separately: this report was written to `.lovable/plan.md` through Plan Mode's normal platform-managed behavior, replacing the prior planning content. No manual edit outside Plan Mode occurred. That path is excluded from the intended-change count and is not implementation or Acceptance evidence.
 
-Parallel-work drift has been tested and disclosed.
+---
 
-The exact live seven-policy contract, scope-bound fingerprint algorithm, canonical pre-state and post-state artifacts, PUBLIC POS execution guard, complete exact Forward Migration, complete exact Rollback, Forward-Rollback-Forward symmetry, preserved ACL/schema findings, complete Deferred Items Register and full-lineage zero-regression proof have been established.
+## 33. RUN METADATA AND EXACT STOPPING POINT
 
-No implementation, policy change, privilege change, migration, financial-data change, Stage C, Stage D, QA, Acceptance or Closure has occurred.
-
-28. One recommended next step: issue the separately authorized Stage B Agent/Build Execution Prompt that applies the §T Forward Migration together with the §S application cutover, with the §W pre-execution drift guard run immediately before execution.
-29. Recommended next Mode: Agent/Build — Stage B Execution.
+1. Mode and operation: Plan/Chat — Read-only; cumulative full-lineage correction, restoration of the approved Phase 3 governance-persistence planning contract, and complete zero-regression reissue.
+2. Parent Prompt ID: PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01.
+3. Parent Prompt status: SUBMITTED — RUN — CONSUMED.
+4. C1 ID: Correction Continuation C1.
+5. C1 status: SUBMITTED — RUN — CONSUMED.
+6. C2 ID: Correction Continuation C2.
+7. C2 status after receipt and run: SUBMITTED — RUN — CONSUMED.
+8. No new local Prompt number was consumed.
+9. Parent Prompt Preparation: 03-08-2026 — August, 23:27, Asia/Riyadh (UTC+03:00).
+10. C1 Prompt Preparation: 04-08-2026 — August, 00:05, Asia/Riyadh (UTC+03:00).
+11. C2 Prompt Preparation: 04-08-2026 — August, 02:11, Asia/Riyadh (UTC+03:00).
+12. C2 Lovable Run Start: Exact time not recorded.
+13. C2 Lovable Run End: Exact time not recorded.
+14. C2 Final Report: Exact time not recorded.
+15. Timestamp evidence source: platform message delivery metadata — 2026-08-03 23:23 UTC / 2026-08-04 02:23 Asia/Riyadh.
+16. Parent branch and HEAD: `edit/edt-1629dbca-22c7-427d-83d9-b7df3324659e` / `2133b5f3413e7ab97be739a07332087e9a9ec54e`.
+17. C1 branch and HEAD: `edit/edt-acaedce4-fb39-4035-92cc-070bd7fc7f92` / `134c0d41a9caa99a7bd16f7f67b496e96b49a18f`.
+18. Current branch and HEAD: `edit/edt-105ad101-fbf4-4e11-9e0e-d62df6b70270` / `aa169aaacc5da0c3d36a91d416b40a3a6ab12d52`.
+19. Current HEAD changed from C1 HEAD: Yes.
+20. Paths changed since C1 HEAD: `.lovable/plan.md` only.
+21. Relevance classification: `.lovable/plan.md` — platform-managed planning artifact; not a protected surface; no governance intersection.
+22. Working Tree before and after: clean / clean.
+23. Staged paths: none.
+24. Unstaged paths: none.
+25. Untracked non-ignored paths: none.
+26. Historical commit reachability: `2133b5f3413e7ab97be739a07332087e9a9ec54e` reachable; `134c0d41a9caa99a7bd16f7f67b496e96b49a18f` reachable.
+27. Repository commands used: `git rev-parse --abbrev-ref HEAD`; `git rev-parse HEAD`; `git status --porcelain`; `git cat-file -e <sha>^{commit}`; `git diff --name-only 134c0d41a… HEAD`; front-matter version reads of the seven allowlist paths and `docs/CONVENTIONS.md`.
+28. Database access: None.
+29. Intended repository changes: None.
+30. Platform-managed `.lovable/plan.md` activity: disclosed in Section 32.
+31. Project Knowledge changes: None.
+32. Workspace Knowledge changes: None.
+33. Skill changes: None.
+34. AGENTS.md changes: None.
+35. Roadmap persistence: None.
+36. Workstream persistence: None.
+37. Full-Lineage Zero-Regression result: 42 of 42 PASS; zero FAIL.
+38. Exact stopping point: the complete corrected C2 replacement planning report and the 42-row Full-Lineage Zero-Regression Matrix have been issued. No repository file was modified, no Phase 3 was created or persisted, no Track or Workstream was created, no ID was consumed through a write, no Project Knowledge was installed, no Workspace Knowledge or Skill was modified, no AGENTS.md was created, the database was neither queried nor modified, and Memory Genesis, Refactoring Baseline, Stage B, Governance Persistence Execution, Acceptance and Closure did not start.
+39. Exact next permitted action: ChatGPT and Owner review of this complete corrected report. Only after that review may ChatGPT prepare a separate complete Agent/Build Governance Persistence Execution Prompt. No execution is authorized by this C2 continuation.
