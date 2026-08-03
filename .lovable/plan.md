@@ -1,341 +1,1001 @@
-# RM-DH-003 / Phase 3 — Governance Persistence Planning Audit
+# STAGE B — FINAL POLROLES / PUBLIC REPRESENTATION, ROLE-AWARE POLICY FINGERPRINT, AND MIGRATION EXECUTABILITY CORRECTION AUDIT
 
-Prompt ID: PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01
-Mode: Plan/Chat — Read-only. Repository changes: zero. Database access: none.
+Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-POLROLES-PUBLIC-REPRESENTATION-AND-POLICY-FINGERPRINT-CORRECTION-AUDIT-16
+Mode: Plan/Chat — Read-Only. Repository changes: zero. Database changes: zero.
 
-## 1. Executive Verdict
+## A. Combined Verdicts
 
-`GOVERNANCE PERSISTENCE CONTRACT READY — OWNER REVIEW REQUIRED`
+1. Correction Acknowledgement — `PROMPT-15 POLROLES FINDING WITHDRAWN AND CORRECTED`
+2. Raw Catalog Representation — `PUBLIC POLICY ROLE REPRESENTATION VERIFIED`
+3. Prompt-15 Assertion — `PROMPT-15 POLROLES ASSERTION FAILS`
+4. Policy Contract — `FINAL ROLE-AWARE POLICY CONTRACT CLOSED`
+5. Forward Migration — `FINAL FORWARD MIGRATION SQL EXECUTABLE`
+6. Rollback — `FINAL ROLLBACK SQL EXECUTABLE`
+7. Zero Regression — `ZERO REGRESSION TO PRESERVED FINDINGS CONFIRMED`
+8. Stage B — `STAGE B READY FOR AGENT/BUILD EXECUTION PROMPT`
 
-Phase 3 is collision-free, `DEC-RM-DH-003-005` and `-006` are the next free decision IDs, and `WS-DH-2026-0012` through `WS-DH-2026-0020` are collision-free. No blocking evidence or collision defect was found.
+## B. Roadmap and Workstream State
 
-## 2. Facts Directly Verified From The Current Repository
+- Roadmap: RM-DH-004 — ACTIVE — PHASE 1 (Economic Date Integrity).
+- Workstream: WS-DH-2026-0003 — ACTIVE — STAGE A ACCEPTED, PERSISTED AND VERIFIED; STAGE B NOT STARTED.
+- Related deferred Workstream: WS-DH-2026-0005 — POS Financial Isolation — DEFERRED.
+- No Roadmap, Phase, Workstream or Decision ID created or advanced.
 
-1. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` v1.2.2 records Roadmap Status `Active`, Phase 0 `Completed`, Phase 1 `Completed`, Phase 2 `CLOSED`, and the explicit line `None — no Phase 3 or later Phase exists or is owner-approved` under **Phase advance**. RM-DH-003 has exactly three registered Phases (0, 1, 2).
-2. The RM-DH-003 Phase register contains no Phase 3 row in any state — not active, closed, planned, superseded or reserved.
-3. `decisions.md` v1.1.0 contains exactly four canonical decisions: `DEC-RM-DH-003-001`, `-002`, `-003`, `-004`. Line 25 states the IDs are consecutive; `-004` is the highest and has no alias.
-4. `docs/workstreams/README.md` v1.4.1 registers exactly two dedicated packages: `WS-DH-2026-0002` (CLOSED) and `WS-DH-2026-0003` (ACTIVE). It states explicitly that `WS-DH-2026-0004` through `WS-DH-2026-0011` "are registered only in the authoritative RM-DH-004 Workstream register … and are not yet published as dedicated packages."
-5. `docs/roadmaps/rm-dh-004-financial-truth-historical-data-migration/roadmap.md` v1.1.1 carries the authoritative eight-row register for `WS-DH-2026-0004` … `WS-DH-2026-0011`, each marked `Not yet created`. The reservation is real and permanent.
-6. A repository-wide sweep of every `WS-DH-2026-00NN` token across `docs/**` returns IDs 0001 through 0011 only. **No occurrence of `WS-DH-2026-0012` … `WS-DH-2026-0020` exists anywhere.**
-7. No repository file mentions `RM-DH-003 / Phase 3`, Persistent Knowledge Architecture, Memory Genesis, Refactoring Baseline, or `DEC-RM-DH-003-005` or later. The only "Phase 3" hits are unrelated (RM-DH-004's own phases, `docs/aml_1_b_1/**` execution notes, and `docs/historical/**`, which is excluded evidence).
-8. `docs/workstreams/` contains exactly three entries: `README.md`, `ws-dh-2026-0002-governance-foundation/`, `ws-dh-2026-0003-economic-date-integrity/`.
-9. Root `AGENTS.md` — not inspected this run beyond the governance tree; the reported-absent status is carried forward unverified.
+## C. Lovable Correction Acknowledgement
 
-## 3. Active Instruction And Master Register Baseline
+`LOVABLE CORRECTION ACKNOWLEDGEMENT:
+The Prompt-15 NULL/empty-polroles representation of PUBLIC is withdrawn.
+Only the policy-role representation, role-aware fingerprints,
+and dependent Forward/Rollback assertions are reopened.
+All findings listed under PRESERVED AND STILL AUTHORITATIVE remain unchanged.`
 
-- Active ChatGPT Project Instructions: **Dayli Horse Project Operating Instructions V6** — OWNER-INSTALLED AND ACTIVE, accepted as stated by the Owner. Not inspectable from this environment.
-- Active Master Register: **v0.17.0** — OWNER-INSTALLED ACTIVE REPLACEMENT, accepted as stated by the Owner. Not inspectable from this environment.
-- The phrase "Complete Replacement Register — Owner Source Replacement Pending" is treated as **superseded administrative metadata**, per the Owner's clarification. v0.16.0, v0.15.0 and Instructions V5 are **not** competing active sources.
-- Access gap: neither artifact is stored in this repository, so neither could be read. Their status is accepted on Owner authority, not verified.
+Error Correction Protocol, all eight points:
 
-## 4. Later Owner-Approved Inputs Accepted For Planning
+1. **Prior Prompt.** `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-PROCONFIG-ASSERTION-AND-MIGRATION-EXECUTABILITY-CLOSURE-AUDIT-15`.
+2. **Prior claim and affected sections.** Prompt 15 asserted that a PUBLIC policy is represented by `polroles IS NULL` or `cardinality(polroles) = 0`, stated "polroles empty implies PUBLIC", and used the predicate `p.polroles IS NULL OR cardinality(p.polroles) = 0` in its Forward precondition, Forward postcondition, Rollback postcondition and seven-policy fingerprint.
+3. **Technical error.** `pg_policy.polroles` is `oid[]` and is never NULL or empty for a live policy. `PUBLIC` is stored as the single OID zero — the array `{0}`, cardinality 1. An empty or NULL array is not the PUBLIC representation; it is a state PostgreSQL does not produce for `CREATE POLICY`.
+4. **Execution impact.** Confirmed against the live catalog: the predicate evaluates FALSE for all seven policies. Every Prompt-15 block depending on it would abort or mis-report. Impacts confirmed below in §I.
+5. **Replacement contract.** `p.polpermissive AND p.polroles = ARRAY[0::oid]` — proven TRUE for all seven live policies.
+6. **Withdrawal.** The Prompt-15 role assertion is explicitly withdrawn and is not used anywhere in the SQL below.
+7. **No preserved finding reopened.** Confirmed — see §E.
+8. **Zero regression.** Confirmed — see §R.
 
-Accepted as approved governance state issued **after** Master Register v0.17.0: RM-DH-003 / Phase 3 and its bilingual title; the five Tracks A–E; the nine Workstreams and their titles; the eight Sub-phases 3.0–3.7; the D1–D10 architecture package; the parallel read-only Workstream policy; the 104-ID Stage A inventory with four permanently reserved inaccessible IDs (MEM-079, MEM-084, MEM-090, MEM-095). Their absence from the issued v0.17.0 text is **not** treated as lack of approval.
+## D. Evidence Boundary
 
-## 5. Current-State Reconciliation
+**OFFICIAL POSTGRESQL DOCUMENTATION FACT**
+- `pg_policy.polroles` is `oid[]`; role OID zero means PUBLIC and normally appears alone (docs/17 catalog-pg-policy).
+- Omitting `TO role_name` in `CREATE POLICY` makes the policy apply to PUBLIC (docs/17 sql-createpolicy).
 
-**Facts that match.** RM-DH-003 Active; Phase 2 CLOSED; `WS-DH-2026-0002` CLOSED; Stage A/B/C/D/E of Persistent Knowledge not represented anywhere in the repository; Skills 01–26 untouched by this initiative; `WS-DH-2026-0004`–`0011` reserved by RM-DH-004.
+**LIVE DATABASE FACT** (read as `supabase_read_only_user`, three catalog queries, zero financial-row queries)
+- `PostgreSQL 17.6 on aarch64-unknown-linux-gnu`, database `postgres`, database owner `postgres`.
+- Exactly **seven** policies exist across `public.ledger_entries` (3) and `public.customer_balances` (4).
+- **Every one of the seven has `polroles = {0}`, cardinality 1, resolved role PUBLIC, `polpermissive = true`.** Zero restrictive policies. Zero named-role policies.
+- Both tables: owner `postgres`; `relrowsecurity = true`; `relforcerowsecurity = false`; `obj_description` = NULL (no table comment currently exists).
+- Both tables: `anon` and `authenticated` each hold all eight PG17 privileges — DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE. `service_role` and `postgres` hold the same eight.
+- `public_grant_count = 0` on both tables: the PUBLIC pseudo-role currently holds **no** table-level grant.
+- Column-level ACL count on both tables: **0**.
+- `pg_auth_members` rows for `anon`/`authenticated` as member: **0** — no browser-role inheritance.
+- `public.create_pos_sale(uuid,uuid,jsonb)` EXECUTE is currently granted to `postgres`, `anon`, `authenticated`, `service_role`, `sandbox_exec_vhxglsvxwwpmoqjabfmj`, `sandbox_exec`. PUBLIC is not an explicit grantee.
+- Function identity/config (all owned by `postgres`, all `prosecdef = true`):
+  - `_finance_invoice_approve_inline(uuid,uuid,uuid)` — `search_path=""`
+  - `create_pos_sale(uuid,uuid,jsonb)` — `search_path=""`
+  - `create_source_checkout_invoice(uuid,uuid,jsonb)` — `search_path=""`
+  - `get_payment_session(uuid,uuid)` — `search_path=""`
+  - `post_expense_with_ledger(uuid,uuid,uuid)` — `search_path=""`
+  - `post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)` — `search_path=""`
+  - `post_payment_session(uuid,uuid,jsonb)` — `search_path=""`
+  - `has_permission(uuid,uuid,text)` — **`search_path=public`** (helper requiring bounded correction)
+  - `is_tenant_member(uuid,uuid)` — **`search_path=public`** (helper requiring bounded correction)
+  - `complete_local_horse_record(uuid,uuid,jsonb)` — `search_path=public, pg_temp`
+  - `update_horse_identity(uuid,uuid,jsonb)` — `search_path=public, pg_temp`
 
-**Repository newer than the Master Register.** RM-DH-004 has advanced to `ACTIVE — PHASE 1`; `WS-DH-2026-0003` Stage A is executed, accepted and persisted at v1.1.1 with acceptance-persistence verification pending. If v0.17.0 predates that, the repository is authoritative for RM-DH-004 state.
+**REPOSITORY FACT**
+- No repository file was written or modified this run. The Stage B application contract (§O) is carried unchanged from Prompts 12–15.
 
-**Master Register / Owner decisions newer than the repository.** The entire Phase 3 approval, the five Tracks, the nine Workstreams, and D1–D10 exist only as Owner decisions. **Zero repository persistence.** This is the gap this contract closes.
+**LOVABLE PRIOR CLAIM**
+- Prompt 15: "polroles empty implies PUBLIC" — now proven false against the live catalog and withdrawn.
+- Prompt 15 fingerprint hash `44770e308a526915fb301bc951601450` — superseded; it did not encode role OIDs correctly.
 
-**Stale administrative metadata.** The "Owner Source Replacement Pending" phrase in an exported v0.17.0 copy. Superseded; not actionable.
+**CHATGPT CORRECTION INFERENCE**
+- `p.polroles = ARRAY[0::oid]` is the exact-equality PUBLIC-only test. Array equality (not `@>` or `= ANY`) is required so that `{0, 16xxx}` and `{}` both fail. Labelled inference at design level; the TRUE result for all seven policies is live fact.
 
-**Contradictions.** One, and it is expected: `roadmap.md` line 115 asserts "no Phase 3 or later Phase exists or is owner-approved". That sentence was true when written and is now stale against the later Owner approval. It is **not** a defect — it is precisely the line the execution run must update. It must not be read as evidence that Phase 3 is unapproved.
+**CURRENT GAP**
+- Two `sandbox_exec*` roles hold SELECT+INSERT on both tables and EXECUTE on `create_pos_sale`. These are platform sandbox roles, not browser roles. They are **out of the authorized Stage B scope** and are neither revoked nor asserted upon. Recorded as an observation only.
+- `force_rls = false` on both tables. Since both tables are owned by `postgres` and browser roles will hold SELECT only, this does not create a browser bypass. Not in scope; recorded.
 
-**Unsupported claims.** Project Knowledge and Workspace Knowledge live state cannot be inspected from this environment. Last verified empty on 01-08-2026; reported as carrying no installed final Dayli Horse Project Knowledge. **Not freshly verified this run.** Root `AGENTS.md` absence likewise not re-verified.
+## E. PRESERVED AND STILL AUTHORITATIVE
 
-## 6. Git And Environment Evidence
-
-- Branch: `edit/edt-1629dbca-22c7-427d-83d9-b7df3324659e`
-- HEAD before and after: `2133b5f3413e7ab97be739a07332087e9a9ec54e` — unchanged
-- Working tree before and after: **clean** (`git status --porcelain` empty both times)
-- Staged paths: none. Unstaged paths: none. Untracked non-ignored paths: none.
-- Canonical/default branch: `refs/remotes/origin/HEAD` resolves to `refs/remotes/origin/main`. Canonical branch is `main`, **proven** by remote symbolic ref.
-
-## 7. Phase-Number Collision Audit
-
-| Check | Result |
-|---|---|
-| Highest existing RM-DH-003 Phase | Phase 2 |
-| Phase 3 exists in any state | No |
-| Next available Phase number | **Phase 3** — free |
-| Phase 2 reopening required | No |
-| New Roadmap required | No |
-
-## 8. Decision-Number Collision Audit
-
-| Check | Result |
-|---|---|
-| Existing decisions | `-001`, `-002`, `-003`, `-004` |
-| Highest official repository decision | **`DEC-RM-DH-003-004`** — confirmed |
-| Next free IDs | `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006` |
-
-**Recommendation: two decisions, not one and not eleven.**
-
-- `DEC-RM-DH-003-005` — **Phase 3 Governance Approval.** Phase 3 identity, bilingual title, purpose, five Tracks, eight Sub-phases, nine Workstreams, dependency and parallelism policy, evidence-boundary rules (no Documentation 01–13 by default; four inaccessible Memory IDs permanently reserved; Project/Workspace Knowledge isolation; no Skills or AGENTS.md change), and the active V6 / v0.17.0 baseline with the later-approval distinction.
-- `DEC-RM-DH-003-006` — **Module, Feature and Product-Control Architecture Package (D1–D10).** The ten architecture decisions recorded verbatim in substance, plus D10's explicit non-approval boundary.
-
-Rationale for two: the governance-structure decision and the product-architecture decision have different reopen triggers and different downstream consumers. One combined decision would force a full re-approval whenever either half changes. Eleven separate IDs would inflate the register and duplicate the D1–D10 preamble ten times. Earlier decisions are not renumbered and their text is not touched.
-
-## 9. Workstream-Number Collision Audit
-
-| Range | Status | Evidence |
+| Preserved finding (§5) | Remains unchanged? | Live confirmation this run |
 |---|---|---|
-| `WS-DH-2026-0001` | Referenced once, no package | sweep |
-| `WS-DH-2026-0002` | CLOSED, dedicated package | registry + directory |
-| `WS-DH-2026-0003` | ACTIVE, dedicated package | registry + directory |
-| `WS-DH-2026-0004`–`0011` | **Permanently reserved by RM-DH-004**, registered in its roadmap register only, all `Not yet created` | RM-DH-004 roadmap.md rows |
-| `WS-DH-2026-0012`–`0020` | **Collision-free — zero occurrences repository-wide** | full-tree token sweep |
+| 5.1 Stage A executed, accepted, persisted, verified; bounded rows untouched | Yes | No financial-row query and no DML issued |
+| 5.2 Expense routes to `post_expense_with_ledger`; `expense_date` is Economic Date; browser writers deleted; read hooks retained; auto-backfill removed | Yes | `post_expense_with_ledger(uuid,uuid,uuid)` confirmed present, SECURITY DEFINER, owner `postgres`, `search_path=""` |
+| 5.3 POS visible, Coming Soon, inert; `create_pos_sale` not activated | Yes | No change proposed to POS behavior; `create_pos_sale` EXECUTE only revoked, never activated |
+| 5.4 PG 17.6; `arwdDxtm` = 8 privileges; zero column ACLs; no role inheritance; REVOKE ALL then GRANT SELECT | Yes | 17.6 confirmed; 8 privileges enumerated live; column ACL count 0; `pg_auth_members` count 0 |
+| 5.5 Canonical RPCs exact-signature, owner `postgres`, SECURITY DEFINER, empty search path; helper correction `public, pg_temp`; no body rewrite | Yes | All seven canonical RPCs confirmed `search_path=""`; both helpers confirmed `search_path=public` |
+| 5.6 Stored element is `search_path=public, pg_temp`, not `search_path="public, pg_temp"` | Yes | Live proof: `complete_local_horse_record` and `update_horse_identity` display `{"search_path=public, pg_temp"}` — one outer Array-display quote pair, inner text unquoted; contrast `{"search_path=\"\""}` for the empty-path RPCs |
+| 5.7 3 + 4 = 7 policies; 4 write to remove; 3 read to retain | Yes | Live count exactly 7; commands `r,r,a` on ledger_entries and `r,a,w,d` on customer_balances |
+| 5.8 Deferred Items Register mandatory and complete | Yes | Reproduced in full in §Q; nothing removed |
 
-The candidate range in the Prompt is confirmed correct. IDs remain **provisional** until a persistence execution consumes them; this report consumes nothing.
+## F. REJECTED OR SUPERSEDED FINDING
 
-## 10. Exact Proposed Phase 3 Register
+**Sole rejected finding:** Prompt 15 treated PUBLIC policy roles as `NULL` or an empty `polroles` array.
 
-| Phase reference | English title | Arabic title | Status |
-|---|---|---|---|
-| `RM-DH-003 / Phase 0` | ChatGPT Governance Foundation | — | Completed (unchanged) |
-| `RM-DH-003 / Phase 1` | Lovable Repository Investigation | — | Completed (unchanged) |
-| `RM-DH-003 / Phase 2` | Governance Foundation Execution | — | CLOSED (unchanged) |
-| `RM-DH-003 / Phase 3` | Persistent Knowledge Architecture, Verification, Organization and Installation | هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها | ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE |
+**Replacement:** PUBLIC is `polroles = ARRAY[0::oid]` (cardinality 1). Every dependent assertion, fingerprint and hash is reissued below on that basis. Nothing else is reopened.
 
-Sub-phase register: 3.0 Scope and Governance Persistence (current); 3.1 Foundational Read-Only Audits; 3.2 Knowledge Organizational Architecture; 3.3 Stage B; 3.4 Stage C; 3.5 Stage D; 3.6 Stage E; 3.7 Acceptance, Installation and Verification.
+## G. Raw polroles Matrix
 
-## 11. Exact Proposed Track Register
+| Schema | Table | Policy | Cmd | Permissive? | Raw polroles | Cardinality | Unnested OID | Resolved role | Exact PUBLIC-only? |
+|---|---|---|---|---|---|---|---|---|---|
+| public | customer_balances | Permission-based delete customer balances | d | true | `{0}` | 1 | 0 | PUBLIC | Yes |
+| public | customer_balances | Permission-based insert customer balances | a | true | `{0}` | 1 | 0 | PUBLIC | Yes |
+| public | customer_balances | Permission-based update customer balances | w | true | `{0}` | 1 | 0 | PUBLIC | Yes |
+| public | customer_balances | Tenant members can view balances | r | true | `{0}` | 1 | 0 | PUBLIC | Yes |
+| public | ledger_entries | Permission-based insert ledger entries | a | true | `{0}` | 1 | 0 | PUBLIC | Yes |
+| public | ledger_entries | Tenant members can view ledger | r | true | `{0}` | 1 | 0 | PUBLIC | Yes |
+| public | ledger_entries | Tenant members can view ledger entries | r | true | `{0}` | 1 | 0 | PUBLIC | Yes |
 
-| Track | English title | Purpose | Workstreams |
-|---|---|---|---|
-| A | Memory Governance and Provenance | Memory origin, admission, numbering, amendment, supersession, succession, provenance, maintenance | 0012 |
-| B | Codebase Architecture Intelligence | Map current codebase, coupling, duplication, risk zones, shared-kernel opportunities, future Refactoring requirements — no Refactoring performed | 0013 |
-| C | Knowledge Organization | Shared Platform Foundation, 13 Account-Type Module Playbooks, Cross-Module Journey Registry, Feature Placement and Participation Matrix, complete Memory and source mapping | 0014, 0015 |
-| D | Technical Verification | Persistent Knowledge Stage B via bounded read-only verification slices | 0016 |
-| E | Reconstruction, Acceptance and Installation | Stages C, D, E, then Owner Acceptance, installation, persistence verification, maintenance governance, eventual Closure | 0017, 0018, 0019, 0020 |
+No NULL array, no empty array, no named role, no multi-role array, no restrictive policy, no unexpected role set. Nothing suppressed.
 
-## 12. Exact Proposed Workstream Register
+## H. PostgreSQL PUBLIC Representation Analysis
 
-| ID | English title | Track | Sub-phase | Mode | Initial status |
+- Documentation contract: OID zero denotes PUBLIC and normally appears alone. (`OFFICIAL POSTGRESQL DOCUMENTATION FACT`)
+- Live Dayli Horse state: every relevant policy stores `{0}`. (`LIVE DATABASE FACT`)
+- The two agree. The documented representation is confirmed by, not substituted for, live evidence. No contradiction; no blocking condition triggered.
+- Consequence: `cardinality(polroles) = 1` for all seven policies, so any predicate requiring cardinality 0 or NULL is unsatisfiable here.
+
+## I. Prompt-15 Assertion Evaluation
+
+Predicate evaluated: `p.polroles IS NULL OR cardinality(p.polroles) = 0`
+
+| Policy | Raw value | Cardinality | Predicate result | Correct PUBLIC result | Difference |
 |---|---|---|---|---|---|
-| `WS-DH-2026-0012` | Memory Genesis, Admission, Numbering and Succession | A | 3.1 | Plan/Chat — Read-only | ACTIVE — INVESTIGATIVE AUDIT NOT STARTED (only after Acceptance + explicit advancement) |
-| `WS-DH-2026-0013` | Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit | B | 3.1 | Plan/Chat — Read-only | ACTIVE — INVESTIGATIVE AUDIT NOT STARTED (same gate) |
-| `WS-DH-2026-0014` | Organizational Blueprint and Feature Placement Architecture | C | 3.2 | — | BLOCKED BY WS-DH-2026-0012 AND WS-DH-2026-0013 |
-| `WS-DH-2026-0015` | Memory, Chapter and Source Migration Matrix | C | 3.2 | — | BLOCKED BY WS-DH-2026-0012 AND WS-DH-2026-0013 |
-| `WS-DH-2026-0016` | Persistent Knowledge Stage B Technical Verification Program | D | 3.3 | Plan/Chat — Read-only | BLOCKED BY WS-DH-2026-0014 AND WS-DH-2026-0015 |
-| `WS-DH-2026-0017` | Persistent Knowledge Stage C Reconciliation | E | 3.4 | — | BLOCKED BY WS-DH-2026-0016 |
-| `WS-DH-2026-0018` | Persistent Knowledge Stage D Final Reconstruction | E | 3.5 | — | BLOCKED BY WS-DH-2026-0017 |
-| `WS-DH-2026-0019` | Persistent Knowledge Stage E Independent Re-Audit | E | 3.6 | Plan/Chat — Read-only | BLOCKED BY WS-DH-2026-0018 |
-| `WS-DH-2026-0020` | Owner Acceptance, Project Knowledge Installation and Persistence Verification | E | 3.7 | — | BLOCKED BY PASSED STAGE E AND EXPLICIT OWNER ACCEPTANCE |
+| customer_balances / Permission-based delete customer balances | `{0}` | 1 | **false** | true | Inverted |
+| customer_balances / Permission-based insert customer balances | `{0}` | 1 | **false** | true | Inverted |
+| customer_balances / Permission-based update customer balances | `{0}` | 1 | **false** | true | Inverted |
+| customer_balances / Tenant members can view balances | `{0}` | 1 | **false** | true | Inverted |
+| ledger_entries / Permission-based insert ledger entries | `{0}` | 1 | **false** | true | Inverted |
+| ledger_entries / Tenant members can view ledger | `{0}` | 1 | **false** | true | Inverted |
+| ledger_entries / Tenant members can view ledger entries | `{0}` | 1 | **false** | true | Inverted |
 
-Arabic titles are carried exactly as approved in the Prompt and are persisted verbatim.
+Verdict: `PROMPT-15 POLROLES ASSERTION FAILS` — 0 of 7 satisfied; the predicate is universally false where it must be universally true.
 
-## 13. Dedicated-Package Recommendation
+Confirmed aborting/mis-reporting blocks in Prompt 15:
 
-**Recommended: Option C — no dedicated Workstream package in the initial persistence execution.**
+| Impact claimed in §7 | Confirmed? | Explanation |
+|---|---|---|
+| Forward precondition aborts before any change | **Confirmed** | The seven-policy PUBLIC-only precondition would find zero matching policies and raise |
+| Forward postcondition reports false failure | **Confirmed** | The three retained read policies would each fail the PUBLIC-only check |
+| Rollback postcondition aborts after recreating policies | **Confirmed** | Correctly recreated `{0}` policies would fail verification, rolling the emergency rollback back |
+| Whole transaction rolls back despite correct SQL | **Confirmed** | All assertions are inside the single transaction; any raise reverts everything |
+| Fingerprint cannot distinguish role sets | **Confirmed** | A boolean derived from a universally-false predicate carries zero role information; `{0}`, `{}`, `{authenticated}` and `{0,authenticated}` would all hash identically |
+| Stage B receives a false readiness verdict | **Confirmed** | Prompt 15 declared the SQL executable; it was not |
 
-Repository precedent is decisive and unambiguous. RM-DH-004 registered eight Workstreams (`0004`–`0011`) in its `roadmap.md` register with the status `Not yet created`, and `docs/workstreams/README.md` explicitly documents that pattern. Only `WS-DH-2026-0003`, the Workstream actually being worked, received a dedicated package. Applying the same rule here: all nine Workstreams are registered in the authoritative RM-DH-003 `roadmap.md` register with `Not yet created`, and no directory is created under `docs/workstreams/` during governance persistence.
+## J. Final PUBLIC-Only Assertion
 
-Option A and Option B are both rejected. They create packages for Workstreams whose Sub-phase 3.1 advancement has not been approved, they risk a package whose "Current State" section is indistinguishable from a started audit (Acceptance criterion 8), and they diverge from the only precedent in the repository. `WS-DH-2026-0012` and `WS-DH-2026-0013` receive dedicated packages later, in the separately authorized run that advances the Roadmap from Sub-phase 3.0 to 3.1 — not now.
+```sql
+p.polpermissive
+AND p.polroles = ARRAY[0::oid]
+```
 
-Consequence: `docs/workstreams/README.md` gains **no new rows**. It gains one sentence stating that `WS-DH-2026-0012` through `WS-DH-2026-0020` are registered only in the authoritative RM-DH-003 register, mirroring the existing `0004`–`0011` sentence.
+Justified by live evidence (`{0}` on all seven policies). Rejection behavior, by construction of array exact-equality plus the permissive conjunct:
 
-## 14. File-By-File Persistence Plan
+| Input | Result |
+|---|---|
+| `NULL` roles | rejected (`NULL = ARRAY[0]` is NULL, not true) |
+| `{}` empty array | rejected |
+| `{authenticated_oid}` | rejected |
+| `{0, authenticated_oid}` | rejected (ordering and cardinality both differ) |
+| `{0,0}` duplicate | rejected |
+| restrictive policy (`polpermissive = false`) | rejected |
+| `{0}` permissive | accepted |
 
-**M1 — `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/README.md`: CHANGE REQUIRED (minimal).** Identity and navigation only. The Purpose paragraph currently scopes the Roadmap to governance-layer foundation; Phase 3 widens the Roadmap's permanent scope to include Persistent Knowledge Architecture, so one sentence is added. No Phase status, no Track table, no Workstream table, no dynamic state.
+## K. Role-Aware Seven-Policy Matrix
 
-**M2 — `roadmap.md`: PRIMARY AUTHORITATIVE CHANGE.** Add the Phase 3 row to the Phase register. Replace the "Next permitted Roadmap action" and the `Phase advance: None — no Phase 3 or later Phase exists or is owner-approved` line with the Phase 3 approved state. Add: a Phase 3 purpose section; the five-Track register; the eight-Sub-phase register; the nine-Workstream register with dependencies and `Not yet created`; the parallelism rule for 0012/0013; Phase 3 completion criteria; a Deferred Items Register; the exact current stopping point (Sub-phase 3.0, governance persistence executed, Acceptance Re-Audit pending); the exact next permitted action. Phase 0/1/2 rows and all Phase 2 closure content remain byte-identical.
-
-**M3 — `decisions.md`: APPEND TWO DECISIONS.** `DEC-RM-DH-003-005` and `-006` as specified in §8, appended after `-004`. The consecutive-ID statement on line 25 is extended to `-006`. Decisions `-001` … `-004` are not renumbered, not reworded, not re-dated. D1–D10 text lives **only** here; `roadmap.md` references the decision ID rather than repeating the architecture.
-
-**M4 — `changelog.md`: APPEND ONE ENTRY.** A single append-only entry recording the Owner approval of Phase 3 and the governance persistence execution, dated with the execution run's real Git-evidenced timestamp. **No timestamp is invented in this planning run, and no entry is written now.**
-
-**M5 — Workstream packages: NONE CREATED.** Per §13.
-
-**M6 — Central indexes.** `docs/roadmaps/README.md`: the `RM-DH-003` row's **Current position** cell only, synchronized to Phase 3 / Sub-phase 3.0. Status cell stays `Active`. No column added; `RM-DH-001`, `-002`, `-004` rows byte-identical. `docs/workstreams/README.md`: one navigation sentence per §13; no new rows; no column change. `docs/README.md`: version-row synchronization for the four RM-DH-003 files that change, plus the standard `source:` provenance append. No dynamic Phase 3 detail is copied into any index.
-
-**Not touched:** RM-DH-001, RM-DH-002, RM-DH-004 packages; the `WS-DH-2026-0002` package; the `WS-DH-2026-0003` package; `docs/CONVENTIONS.md` (no new stable rule is required — §11 already governs Phase, Track and Workstream registration, and §11.10 already governs `.lovable/plan.md`).
-
-## 15. Exact Current-To-Target Version Matrix
-
-All current values were read from live frontmatter this run, not from prior reports.
-
-| File | Existing/New | Current | Target | Increment | Reason | Current last-verified | Proposed last-verified |
+| Schema | Table | Policy name | Cmd | Perm/Restr | Exact roles | USING | WITH CHECK |
 |---|---|---|---|---|---|---|---|
-| `rm-dh-003/README.md` | Existing | 1.0.0 | 1.1.0 | minor | Additive scope sentence; no identity or navigation removed | 2026-07-30 | execution date |
-| `rm-dh-003/roadmap.md` | Existing | 1.2.2 | 1.3.0 | minor | New Phase, Track register, Sub-phase register, Workstream register, Deferred Items Register — substantial additive state, no prior state invalidated | 2026-07-31 | execution date |
-| `rm-dh-003/decisions.md` | Existing | 1.1.0 | 1.2.0 | minor | Two new decisions appended; existing decisions unchanged | 2026-07-31 | execution date |
-| `rm-dh-003/changelog.md` | Existing | 1.2.3 | 1.3.0 | minor | New append-only entry for a new Phase approval | 2026-07-31 | execution date |
-| `docs/roadmaps/README.md` | Existing | 1.2.1 | 1.2.2 | patch | Single existing cell synchronized; no row, column or schema change | 2026-08-03 | execution date |
-| `docs/workstreams/README.md` | Existing | 1.4.1 | 1.4.2 | patch | One navigation sentence; no row or column change | 2026-08-03 | execution date |
-| `docs/README.md` | Existing | 1.13.1 | 1.14.0 | minor | Registers a new Phase's governance layer and four changed file versions | 2026-08-03 | execution date |
-| `docs/CONVENTIONS.md` | Existing | 1.2.0 | 1.2.0 | none | No stable rule change required | 2026-07-30 | unchanged |
-| Any new Workstream package | New | — | — | n/a | None created — Option C | — | — |
+| public | customer_balances | Permission-based delete customer balances | DELETE (`d`) | PERMISSIVE | `{0}` = PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | NULL (absent) |
+| public | customer_balances | Permission-based insert customer balances | INSERT (`a`) | PERMISSIVE | `{0}` = PUBLIC | NULL (absent) | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
+| public | customer_balances | Permission-based update customer balances | UPDATE (`w`) | PERMISSIVE | `{0}` = PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
+| public | customer_balances | Tenant members can view balances | SELECT (`r`) | PERMISSIVE | `{0}` = PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | NULL (absent) |
+| public | ledger_entries | Permission-based insert ledger entries | INSERT (`a`) | PERMISSIVE | `{0}` = PUBLIC | NULL (absent) | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
+| public | ledger_entries | Tenant members can view ledger | SELECT (`r`) | PERMISSIVE | `{0}` = PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | NULL (absent) |
+| public | ledger_entries | Tenant members can view ledger entries | SELECT (`r`) | PERMISSIVE | `{0}` = PUBLIC | `(EXISTS ( SELECT 1 FROM tenant_members tm WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))` | NULL (absent) |
 
-No `major` increment is justified: nothing existing is removed, renamed, renumbered or invalidated. No `1.0.0` initial is required because no new file is created.
+- Expressions are `pg_get_expr`-normalized and shown in full, not summarized.
+- NULL expression is distinguished from `true`: none of the seven has a literal `true` expression; the blanks above are genuine catalog NULLs (no clause).
+- Policy count is exactly seven — no additional policy exists on either table.
+- Every policy is PUBLIC-only and PERMISSIVE.
+- **Four write policies to be removed:** the three `Permission-based … customer balances` (d/a/w) and `Permission-based insert ledger entries`.
+- **Three read policies to remain:** `Tenant members can view balances`, `Tenant members can view ledger`, `Tenant members can view ledger entries`.
 
-## 16. Exact Allowlist
+## L. Final Fingerprint SQL, Canonical Strings and Hashes
 
-The later Agent/Build persistence run may write to exactly these seven paths, and no others:
+Exact SQL used (read-only, executed this run):
 
-```text
-docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/README.md
-docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md
-docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md
-docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md
-docs/roadmaps/README.md
-docs/workstreams/README.md
-docs/README.md
+```sql
+WITH pol AS (
+  SELECT n.nspname AS s, c.relname AS t, p.polname, p.polcmd::text AS cmd, p.polpermissive AS perm,
+    COALESCE((SELECT string_agg(role_oid::text, ',' ORDER BY role_oid)
+              FROM unnest(p.polroles) AS role_oid), '<NULL>') AS roles,
+    COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')      AS u,
+    COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>') AS w
+  FROM pg_policy p
+  JOIN pg_class c     ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public'
+    AND c.relname IN ('ledger_entries', 'customer_balances')
+), can AS (
+  SELECT
+    string_agg(s||'|'||t||'|'||polname||'|'||cmd||'|'||perm::text||'|'||roles||'|'||u||'|'||w,
+               E'\n' ORDER BY t, polname) AS pre_all,
+    string_agg(s||'|'||t||'|'||polname||'|'||cmd||'|'||perm::text||'|'||roles||'|'||u||'|'||w,
+               E'\n' ORDER BY t, polname) FILTER (WHERE cmd = 'r') AS post_read
+  FROM pol
+)
+SELECT pre_all, md5(pre_all) AS pre_hash,
+       post_read, md5(post_read) AS post_hash,
+       (SELECT count(*) FROM pol) AS n_pol
+FROM can;
 ```
 
-No additional path is required by any current repository finding.
+Fingerprint distinguishes, by construction: PUBLIC `{0}` (`roles = '0'`) vs empty array (`roles = ''`) vs NULL array (`roles = '<NULL>'`) vs authenticated-only (`roles = '<auth oid>'`) vs PUBLIC-plus-another (`roles = '0,<oid>'`); permissive vs restrictive (`perm` element); changed command; changed USING or WITH CHECK; missing policy and added policy (both change the row set and therefore the aggregate). Ordering is stable via `ORDER BY role_oid` inside and `ORDER BY t, polname` outside. `md5` is a PostgreSQL built-in, non-mutating; no extension required.
 
-## 17. Exact Denylist
+**Complete canonical pre-state string (seven policies):**
 
 ```text
-src/**
-supabase/**  (including migrations, schema, data, RLS, RPCs, Edge Functions)
-docs/CONVENTIONS.md
-docs/roadmaps/rm-dh-001-documentation-and-developer-handover/**
-docs/roadmaps/rm-dh-002-core-operations-and-expansion/**
-docs/roadmaps/rm-dh-004-financial-truth-historical-data-migration/**
-docs/workstreams/ws-dh-2026-0002-governance-foundation/**
-docs/workstreams/ws-dh-2026-0003-economic-date-integrity/**
-docs/handoff/**, docs/historical/**, docs/architecture/**, docs/aml_1_b_1/**
-all other Roadmap and Workstream packages
-Project Knowledge, Workspace Knowledge, Skills, AGENTS.md
-project settings, workspace settings, cross-project sharing
-Master Register, ChatGPT Project Instructions
+public|customer_balances|Permission-based delete customer balances|d|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|<NULL>
+public|customer_balances|Permission-based insert customer balances|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
+public|customer_balances|Permission-based update customer balances|w|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
+public|customer_balances|Tenant members can view balances|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
+public|ledger_entries|Permission-based insert ledger entries|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
+public|ledger_entries|Tenant members can view ledger|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
+public|ledger_entries|Tenant members can view ledger entries|r|true|0|(EXISTS ( SELECT 1
+   FROM tenant_members tm
+  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))|<NULL>
 ```
 
-## 18. Central-Index Synchronization Plan
+**Pre-state hash (7 policies): `e978f912777a28108f46ba79e2ce071e`**
 
-Per §14 M6. Governing rule: indexes remain navigation registries. Phase 3's Track register, Sub-phase register, Workstream register, dependencies and stopping point live **only** in `rm-dh-003/roadmap.md`. No index acquires an alternative dynamic-state source, and no RM-DH-004 dynamic state is copied into RM-DH-003.
+**Complete canonical post-state string (three retained read policies):**
 
-## 19. Decision And Changelog Persistence Plan
+```text
+public|customer_balances|Tenant members can view balances|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
+public|ledger_entries|Tenant members can view ledger|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
+public|ledger_entries|Tenant members can view ledger entries|r|true|0|(EXISTS ( SELECT 1
+   FROM tenant_members tm
+  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))|<NULL>
+```
 
-Two decisions appended (§8, §14 M3); one changelog entry appended at execution with a real timestamp (§14 M4). D1–D10 appears in exactly one file. The four inaccessible Memory IDs, the Documentation 01–13 exclusion, the Knowledge-isolation rule and the no-Skills/no-AGENTS.md boundary are recorded once inside `DEC-RM-DH-003-005` and referenced elsewhere by ID.
+**Post-state hash (3 policies): `04297828f4bd33eba043f6c9274ec57b`**
 
-## 20. Acceptance Criteria For The Future Execution
+The Prompt-15 hash `44770e308a526915fb301bc951601450` is not reused and is superseded.
 
-The Acceptance Re-Audit must positively prove all 25 conditions in Prompt §R. Operative checks: RM-DH-003 remains the same Roadmap ID with Phase 2 CLOSED and byte-identical Phase 0–2 rows; exactly one Phase 3 row; exactly five Track rows; exactly nine Workstream rows with no duplicates; a full-tree sweep confirming `WS-DH-2026-0012`–`0020` appear only inside `rm-dh-003/roadmap.md` and the one navigation sentence, and never collide with `0004`–`0011`; zero directories added under `docs/workstreams/`; no Workstream row or text asserting a started or completed audit; D1–D10 persisted with unchanged approved meaning; MEM-079, MEM-084, MEM-090 and MEM-095 recorded as permanently reserved and not reconstructed; `git diff --name-only` returning exactly the seven allowlist paths and nothing else; every version and `last-verified` value matching §15; `.lovable/plan.md` activity disclosed separately and never counted as governance persistence; and no earlier Lovable finding silently corrected.
+Note for the executor: the post-state string embeds the exact newline/indentation of `pg_get_expr` output for the third policy. It is reproduced verbatim above; the migration below recomputes it from the catalog rather than embedding it, so no transcription risk exists.
 
-## 21. Rollback Plan
+## M. Final Exact Forward Migration SQL
 
-Deterministic and Git-based; not executed in this run.
+Complete and executable. **Not executed by this run.**
 
-1. Record the execution content commit SHA or SHAs before rollback begins.
-2. **Exact file restoration is safer than `git revert`** here. Concurrent RM-DH-004 work is live on the same tree, and `docs/README.md`, `docs/roadmaps/README.md` and `docs/workstreams/README.md` are shared by both efforts. A revert of a shared-file commit risks discarding an interleaved RM-DH-004 edit. Restore per-path with `git checkout <pre-run-SHA> -- <path>` for each of the seven allowlist paths.
-3. Restore all seven files to their exact pre-run content, including frontmatter versions and `last-verified` values.
-4. Remove any newly created Workstream directory. Under Option C none should exist; if one is found, its presence is itself an Acceptance failure.
-5. Verify unrelated RM-DH-004 and `WS-DH-2026-0003` files are byte-identical before and after rollback.
-6. No database rollback — no database change is permitted at any point.
-7. No empty rollback commits.
-8. Confirm the restored tree matches the pre-run SHA for the seven paths with `git diff <pre-run-SHA> -- <paths>` returning empty.
+```sql
+-- =====================================================================
+-- RM-DH-004 / WS-DH-2026-0003 / STAGE B
+-- Ledger & Customer Balance SELECT-only hardening,
+-- browser-write policy removal, create_pos_sale EXECUTE revocation,
+-- bounded SECURITY DEFINER helper search_path correction.
+-- Role-aware PUBLIC contract: polroles = ARRAY[0::oid].
+-- Zero DML against financial business tables.
+-- =====================================================================
 
-## 22. Risks, Counterarguments And Residuals
+BEGIN;
 
-| # | Risk | Likelihood | Impact | Detection | Mitigation | Residual |
-|---|---|---|---|---|---|---|
-| 1 | Phase 3 becomes too broad | High | Medium | Sub-phase gate reviews; each Workstream's own Exclusions section | Eight Sub-phases with explicit blocking dependencies; D10 non-approval boundary; Deferred Items Register | Medium — inherent to the Phase's ambition |
-| 2 | Nine Workstreams create governance overhead | Medium | Low | Roadmap review at each Sub-phase | Option C: register-only, no packages until worked; precedent-matched | Low |
-| 3 | Two parallel read-only Workstreams while RM-DH-004 active | Medium | Medium | Working-tree and HEAD checks at each run start | Both are read-only; neither touches RM-DH-004 paths; parallelism gated behind explicit advancement | Low |
-| 4 | Workstream ID collision with RM-DH-004 | Low | High | Full-tree token sweep, repeated at execution and Acceptance | Sweep proves 0012–0020 unused; RM-DH-004's 0004–0011 register left untouched | Very low |
-| 5 | Dynamic state copied into README/indexes | Medium | Medium | Acceptance diff review of index files | Index changes capped at one cell and one sentence; §18 rule | Low |
-| 6 | D1–D10 repeated across files | Medium | Medium | Grep for D1–D10 text at Acceptance | Architecture text confined to `DEC-RM-DH-003-006`; referenced by ID elsewhere | Low |
-| 7 | 104 Memory objects treated as 104 approved rules | High | High | Stage B verification slices | Stage A is inventory only; Track D exists precisely to verify; recorded in `DEC-RM-DH-003-005` | Medium |
-| 8 | Stage A completion read as Stage B verification | High | High | Sub-phase 3.3 gate | Explicit Sub-phase separation; Stage B blocked behind 0014 and 0015 | Low |
-| 9 | Dedicated packages created too early | Medium | Medium | Directory listing at Acceptance | Option C | Very low |
-| 10 | Stale Git evidence from concurrent sessions | Medium | Medium | HEAD and working-tree capture before and after every run | Re-capture at execution start; abort on unexpected dirty tree | Medium |
-| 11 | `.lovable/plan.md` misclassified as implementation | Medium | Medium | Acceptance diff review | `CONVENTIONS.md` §11.10 exception; separate disclosure required | Low |
-| 12 | Repository differs from Master Register snapshot | High | Medium | This reconciliation (§5) | Repository precedence rule 1; reconciliation repeated at execution | Low |
-| 13 | Phase 3's absence from v0.17.0 read as non-approval | Medium | High | Reviewer challenge | Explicitly rebutted in §4 and recorded in `DEC-RM-DH-003-005` | Low |
-| 14 | "Owner Source Replacement Pending" treated as current | Medium | Medium | Reviewer challenge | Owner clarification recorded in §3 | Low |
-| 15 | V5 and V6 treated as simultaneously active | Low | High | Instruction-version check at run start | V6 sole active; V5 superseded | Very low |
-| 16 | Earlier Lovable claim silently corrected | Low | High | Error Correction Protocol review | None applied this run; §23 empty | Very low |
+SET LOCAL statement_timeout = '120s';
+SET LOCAL lock_timeout = '15s';
 
-## 23. Prior Lovable Errors Discovered
+-- ---------------------------------------------------------------------
+-- 1. PRECONDITIONS
+-- ---------------------------------------------------------------------
+DO $pre$
+DECLARE
+  v_sig       text;
+  v_hash      text;
+  v_expected  text := 'e978f912777a28108f46ba79e2ce071e';
+  v_cnt       int;
+  v_temp_ok   boolean;
+BEGIN
+  -- 1.1 PostgreSQL major version
+  IF current_setting('server_version_num')::int < 170000 THEN
+    RAISE EXCEPTION 'PRECONDITION FAILED: PostgreSQL 17+ required, found %',
+      current_setting('server_version');
+  END IF;
 
-None. No previous Lovable claim, verdict or report was found to be incorrect during this audit. The Error Correction Protocol was not invoked.
+  -- 1.2 Table ownership, RLS state, FORCE RLS state
+  FOR v_sig IN SELECT unnest(ARRAY['ledger_entries','customer_balances']) LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'public' AND c.relname = v_sig
+        AND pg_get_userbyid(c.relowner) = 'postgres'
+        AND c.relrowsecurity IS TRUE
+        AND c.relforcerowsecurity IS FALSE
+    ) THEN
+      RAISE EXCEPTION
+        'PRECONDITION FAILED: public.% must be owned by postgres with RLS enabled and FORCE RLS disabled', v_sig;
+    END IF;
+  END LOOP;
 
-## 24. PRESERVED AND STILL AUTHORITATIVE
+  -- 1.3 Exact eleven function identities, ownership, SECURITY DEFINER
+  FOR v_sig IN
+    SELECT unnest(ARRAY[
+      'public.post_expense_with_ledger(uuid,uuid,uuid)',
+      'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',
+      'public.post_payment_session(uuid,uuid,jsonb)',
+      'public.get_payment_session(uuid,uuid)',
+      'public.create_source_checkout_invoice(uuid,uuid,jsonb)',
+      'public._finance_invoice_approve_inline(uuid,uuid,uuid)',
+      'public.create_pos_sale(uuid,uuid,jsonb)',
+      'public.has_permission(uuid,uuid,text)',
+      'public.is_tenant_member(uuid,uuid)',
+      'public.update_horse_identity(uuid,uuid,jsonb)',
+      'public.complete_local_horse_record(uuid,uuid,jsonb)'
+    ])
+  LOOP
+    IF to_regprocedure(v_sig) IS NULL THEN
+      RAISE EXCEPTION 'PRECONDITION FAILED: function % does not exist with this exact signature', v_sig;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_proc p
+      WHERE p.oid = to_regprocedure(v_sig)
+        AND p.prosecdef IS TRUE
+        AND pg_get_userbyid(p.proowner) = 'postgres'
+    ) THEN
+      RAISE EXCEPTION 'PRECONDITION FAILED: % must be SECURITY DEFINER owned by postgres', v_sig;
+    END IF;
+  END LOOP;
 
-Not required — no finding was rejected or superseded. For clarity, all prior RM-DH-003 findings, all Phase 2 closure evidence, all four existing decisions, and all RM-DH-004 / `WS-DH-2026-0003` findings remain preserved and authoritative.
+  -- 1.4 Canonical Finance RPC search paths must be the empty path
+  FOR v_sig IN
+    SELECT unnest(ARRAY[
+      'public.post_expense_with_ledger(uuid,uuid,uuid)',
+      'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',
+      'public.post_payment_session(uuid,uuid,jsonb)',
+      'public.get_payment_session(uuid,uuid)',
+      'public.create_source_checkout_invoice(uuid,uuid,jsonb)',
+      'public._finance_invoice_approve_inline(uuid,uuid,uuid)',
+      'public.create_pos_sale(uuid,uuid,jsonb)'
+    ])
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+      WHERE p.oid = to_regprocedure(v_sig)
+        AND split_part(cfg, '=', 1) = 'search_path'
+        AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = ''
+    ) THEN
+      RAISE EXCEPTION 'PRECONDITION FAILED: % must have the empty search_path', v_sig;
+    END IF;
+  END LOOP;
 
-## 25. REJECTED OR SUPERSEDED FINDING
+  -- 1.5 Helper current search paths must be exactly 'public'
+  FOR v_sig IN
+    SELECT unnest(ARRAY['public.has_permission(uuid,uuid,text)',
+                        'public.is_tenant_member(uuid,uuid)'])
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+      WHERE p.oid = to_regprocedure(v_sig)
+        AND split_part(cfg, '=', 1) = 'search_path'
+        AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = 'public'
+    ) THEN
+      RAISE EXCEPTION 'PRECONDITION FAILED: % must currently have search_path=public', v_sig;
+    END IF;
+  END LOOP;
+
+  -- 1.6 Effective TEMP privilege evidence required by the helper correction
+  SELECT has_database_privilege('public', current_database(), 'TEMP') INTO v_temp_ok;
+  IF v_temp_ok IS NOT TRUE THEN
+    RAISE EXCEPTION
+      'PRECONDITION FAILED: expected TEMP granted to PUBLIC on database %, which is the premise of the pg_temp demotion correction',
+      current_database();
+  END IF;
+
+  -- 1.7 Exact current table privileges: anon and authenticated hold all eight
+  FOR v_sig IN SELECT unnest(ARRAY['ledger_entries','customer_balances']) LOOP
+    SELECT count(*) INTO v_cnt
+    FROM (VALUES ('anon'),('authenticated')) AS b(role_name),
+         (VALUES ('SELECT'),('INSERT'),('UPDATE'),('DELETE'),
+                 ('TRUNCATE'),('REFERENCES'),('TRIGGER'),('MAINTAIN')) AS pr(priv)
+    WHERE has_table_privilege(b.role_name, format('public.%I', v_sig), pr.priv);
+    IF v_cnt <> 16 THEN
+      RAISE EXCEPTION
+        'PRECONDITION FAILED: expected 16 browser privilege pairs on public.%, found %', v_sig, v_cnt;
+    END IF;
+  END LOOP;
+
+  -- 1.8 Zero column-level ACLs on both tables
+  SELECT count(*) INTO v_cnt
+  FROM pg_attribute a
+  JOIN pg_class c     ON c.oid = a.attrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public'
+    AND c.relname IN ('ledger_entries','customer_balances')
+    AND a.attacl IS NOT NULL;
+  IF v_cnt <> 0 THEN
+    RAISE EXCEPTION 'PRECONDITION FAILED: expected zero column ACLs, found %', v_cnt;
+  END IF;
+
+  -- 1.9 Zero browser-role inheritance
+  SELECT count(*) INTO v_cnt
+  FROM pg_auth_members m JOIN pg_roles r ON r.oid = m.member
+  WHERE r.rolname IN ('anon','authenticated');
+  IF v_cnt <> 0 THEN
+    RAISE EXCEPTION 'PRECONDITION FAILED: expected zero browser-role memberships, found %', v_cnt;
+  END IF;
+
+  -- 1.10 Exact seven-policy role-aware pre-state fingerprint
+  SELECT count(*) INTO v_cnt
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances');
+  IF v_cnt <> 7 THEN
+    RAISE EXCEPTION 'PRECONDITION FAILED: expected exactly 7 policies, found %', v_cnt;
+  END IF;
+
+  SELECT count(*) INTO v_cnt
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+    AND p.polpermissive AND p.polroles = ARRAY[0::oid];
+  IF v_cnt <> 7 THEN
+    RAISE EXCEPTION
+      'PRECONDITION FAILED: expected 7 PERMISSIVE PUBLIC-only (polroles = {0}) policies, found %', v_cnt;
+  END IF;
+
+  SELECT md5(string_agg(
+           n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||p.polpermissive::text||'|'||
+           COALESCE((SELECT string_agg(ro::text, ',' ORDER BY ro) FROM unnest(p.polroles) AS ro), '<NULL>')||'|'||
+           COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')||'|'||
+           COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>'),
+           E'\n' ORDER BY c.relname, p.polname))
+    INTO v_hash
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances');
+
+  IF v_hash IS DISTINCT FROM v_expected THEN
+    RAISE EXCEPTION
+      'PRECONDITION FAILED: seven-policy role-aware fingerprint mismatch. expected %, found %',
+      v_expected, v_hash;
+  END IF;
+
+  -- 1.11 Exact current table comments (both currently absent)
+  IF EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      AND obj_description(c.oid, 'pg_class') IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'PRECONDITION FAILED: expected no existing table comment on either target table';
+  END IF;
+
+  -- 1.12 Current create_pos_sale EXECUTE state: browser roles can execute
+  IF NOT (has_function_privilege('anon',          'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
+      AND has_function_privilege('authenticated', 'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')) THEN
+    RAISE EXCEPTION 'PRECONDITION FAILED: expected anon and authenticated to currently hold EXECUTE on create_pos_sale';
+  END IF;
+
+  -- 1.13 service_role authority intact
+  FOR v_sig IN SELECT unnest(ARRAY['ledger_entries','customer_balances']) LOOP
+    IF NOT has_table_privilege('service_role', format('public.%I', v_sig), 'SELECT')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_sig), 'INSERT')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_sig), 'UPDATE')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_sig), 'DELETE') THEN
+      RAISE EXCEPTION 'PRECONDITION FAILED: service_role authority missing on public.%', v_sig;
+    END IF;
+  END LOOP;
+
+  RAISE NOTICE 'ALL PRECONDITIONS PASSED';
+END
+$pre$;
+
+-- ---------------------------------------------------------------------
+-- 2. FORWARD CHANGES
+-- ---------------------------------------------------------------------
+
+-- 2.1 Table privileges: revoke everything from browser roles and PUBLIC
+REVOKE ALL ON TABLE public.ledger_entries    FROM anon, authenticated, PUBLIC;
+REVOKE ALL ON TABLE public.customer_balances FROM anon, authenticated, PUBLIC;
+
+-- 2.2 Re-grant SELECT only
+GRANT SELECT ON TABLE public.ledger_entries    TO anon, authenticated;
+GRANT SELECT ON TABLE public.customer_balances TO anon, authenticated;
+
+-- 2.3 Drop exactly the four audited browser-write policies
+DROP POLICY "Permission-based insert ledger entries"    ON public.ledger_entries;
+DROP POLICY "Permission-based insert customer balances" ON public.customer_balances;
+DROP POLICY "Permission-based update customer balances" ON public.customer_balances;
+DROP POLICY "Permission-based delete customer balances" ON public.customer_balances;
+-- The three read policies are intentionally untouched:
+--   "Tenant members can view ledger"          ON public.ledger_entries
+--   "Tenant members can view ledger entries"  ON public.ledger_entries
+--   "Tenant members can view balances"        ON public.customer_balances
+
+-- 2.4 Revoke browser EXECUTE on the deferred POS writer
+REVOKE EXECUTE ON FUNCTION public.create_pos_sale(uuid, uuid, jsonb) FROM anon, authenticated, PUBLIC;
+
+-- 2.5 Bounded SECURITY DEFINER helper correction (no body rewrite)
+ALTER FUNCTION public.has_permission(uuid, uuid, text)  SET search_path = public, pg_temp;
+ALTER FUNCTION public.is_tenant_member(uuid, uuid)      SET search_path = public, pg_temp;
+
+-- 2.6 Approved table comments
+COMMENT ON TABLE public.ledger_entries IS
+  'Financial truth: append-only ledger. Browser roles hold SELECT only. All writes must go through canonical SECURITY DEFINER Finance RPCs. RM-DH-004 / WS-DH-2026-0003 Stage B.';
+COMMENT ON TABLE public.customer_balances IS
+  'Financial truth: derived customer balances. Browser roles hold SELECT only. All writes must go through canonical SECURITY DEFINER Finance RPCs. RM-DH-004 / WS-DH-2026-0003 Stage B.';
+
+-- 2.7 Zero DML against financial business tables is issued by this migration.
+
+-- ---------------------------------------------------------------------
+-- 3. POSTCONDITIONS
+-- ---------------------------------------------------------------------
+DO $post$
+DECLARE
+  v_tbl      text;
+  v_role     text;
+  v_priv     text;
+  v_cnt      int;
+  v_hash     text;
+  v_expected text := '04297828f4bd33eba043f6c9274ec57b';
+BEGIN
+  -- 3.1 Browser roles: SELECT only, no other privilege of the eight
+  FOREACH v_tbl IN ARRAY ARRAY['ledger_entries','customer_balances'] LOOP
+    FOREACH v_role IN ARRAY ARRAY['anon','authenticated'] LOOP
+      IF NOT has_table_privilege(v_role, format('public.%I', v_tbl), 'SELECT') THEN
+        RAISE EXCEPTION 'POSTCONDITION FAILED: % lost SELECT on public.%', v_role, v_tbl;
+      END IF;
+      FOREACH v_priv IN ARRAY ARRAY['INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'] LOOP
+        IF has_table_privilege(v_role, format('public.%I', v_tbl), v_priv) THEN
+          RAISE EXCEPTION 'POSTCONDITION FAILED: % still holds % on public.%', v_role, v_priv, v_tbl;
+        END IF;
+      END LOOP;
+    END LOOP;
+
+    -- 3.2 PUBLIC holds no table privilege
+    SELECT count(*) INTO v_cnt
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
+         LATERAL aclexplode(c.relacl) g
+    WHERE n.nspname = 'public' AND c.relname = v_tbl AND g.grantee = 0;
+    IF v_cnt <> 0 THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: PUBLIC retains % grant(s) on public.%', v_cnt, v_tbl;
+    END IF;
+
+    -- 3.3 service_role authority intact
+    IF NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'SELECT')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'INSERT')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'UPDATE')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'DELETE') THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: service_role authority lost on public.%', v_tbl;
+    END IF;
+
+    -- 3.4 Table owner remains functional
+    IF NOT has_table_privilege('postgres', format('public.%I', v_tbl), 'SELECT')
+    OR NOT has_table_privilege('postgres', format('public.%I', v_tbl), 'UPDATE') THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: owner authority lost on public.%', v_tbl;
+    END IF;
+  END LOOP;
+
+  -- 3.5 No column ACL introduced
+  SELECT count(*) INTO v_cnt
+  FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+    AND a.attacl IS NOT NULL;
+  IF v_cnt <> 0 THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: % column ACL(s) present', v_cnt;
+  END IF;
+
+  -- 3.6 Canonical Finance RPC EXECUTE remains correct
+  IF NOT has_function_privilege('authenticated', 'public.post_expense_with_ledger(uuid,uuid,uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: authenticated lost EXECUTE on post_expense_with_ledger';
+  END IF;
+
+  -- 3.7 create_pos_sale is unreachable from the browser, retained for service_role
+  IF has_function_privilege('anon',          'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
+  OR has_function_privilege('authenticated', 'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: a browser role still holds EXECUTE on create_pos_sale';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p, LATERAL aclexplode(p.proacl) g
+    WHERE p.oid = to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)') AND g.grantee = 0
+  ) THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: PUBLIC retains EXECUTE on create_pos_sale';
+  END IF;
+  IF NOT has_function_privilege('service_role', 'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: service_role lost EXECUTE on create_pos_sale';
+  END IF;
+
+  -- 3.8 Helper proconfig equals the approved secure contract (text element, not Array display)
+  FOREACH v_tbl IN ARRAY ARRAY['public.has_permission(uuid,uuid,text)',
+                               'public.is_tenant_member(uuid,uuid)'] LOOP
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+      WHERE p.oid = to_regprocedure(v_tbl)
+        AND split_part(cfg, '=', 1) = 'search_path'
+        AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = 'public, pg_temp'
+    ) THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: % does not carry search_path=public, pg_temp', v_tbl;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = to_regprocedure(v_tbl) AND p.prosecdef) THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: % lost SECURITY DEFINER', v_tbl;
+    END IF;
+  END LOOP;
+
+  -- 3.9 Exactly three policies remain, all PERMISSIVE, all PUBLIC-only, all SELECT
+  SELECT count(*) INTO v_cnt
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances');
+  IF v_cnt <> 3 THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: expected exactly 3 policies, found %', v_cnt;
+  END IF;
+
+  SELECT count(*) INTO v_cnt
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+    AND p.polcmd = 'r' AND p.polpermissive AND p.polroles = ARRAY[0::oid];
+  IF v_cnt <> 3 THEN
+    RAISE EXCEPTION
+      'POSTCONDITION FAILED: expected 3 PERMISSIVE PUBLIC-only (polroles = {0}) SELECT policies, found %', v_cnt;
+  END IF;
+
+  -- 3.10 No write policy of any kind remains
+  IF EXISTS (
+    SELECT 1 FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      AND p.polcmd <> 'r'
+  ) THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: a non-SELECT policy still exists';
+  END IF;
+
+  -- 3.11 Three-policy role-aware post-state fingerprint
+  SELECT md5(string_agg(
+           n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||p.polpermissive::text||'|'||
+           COALESCE((SELECT string_agg(ro::text, ',' ORDER BY ro) FROM unnest(p.polroles) AS ro), '<NULL>')||'|'||
+           COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')||'|'||
+           COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>'),
+           E'\n' ORDER BY c.relname, p.polname))
+    INTO v_hash
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances');
+
+  IF v_hash IS DISTINCT FROM v_expected THEN
+    RAISE EXCEPTION
+      'POSTCONDITION FAILED: three-policy role-aware fingerprint mismatch. expected %, found %',
+      v_expected, v_hash;
+  END IF;
+
+  -- 3.12 RLS still enabled
+  IF EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      AND c.relrowsecurity IS NOT TRUE
+  ) THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: RLS is no longer enabled on a target table';
+  END IF;
+
+  RAISE NOTICE 'ALL POSTCONDITIONS PASSED';
+END
+$post$;
+
+COMMIT;
+```
+
+Zero financial rows change and Stage-A rows remain unchanged because the migration contains no `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `COPY` or `MERGE` against any business table — this is verifiable by inspection of the statement list in section 2.
+
+## N. Final Exact Rollback SQL
+
+```sql
+-- =====================================================================
+-- EMERGENCY ROLLBACK ONLY: This rollback intentionally restores the
+-- prior unsafe browser-write authority over Ledger and Customer Balance
+-- truth.
+-- =====================================================================
+
+BEGIN;
+
+SET LOCAL statement_timeout = '120s';
+SET LOCAL lock_timeout = '15s';
+
+-- ---------------------------------------------------------------------
+-- 1. RESTORE ALL EIGHT PG17 TABLE PRIVILEGES TO THE PROVEN PRIOR ROLES
+-- ---------------------------------------------------------------------
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
+  ON TABLE public.ledger_entries    TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
+  ON TABLE public.customer_balances TO anon, authenticated;
+-- PUBLIC held no table grant in the pre-state and is deliberately not granted.
+
+-- ---------------------------------------------------------------------
+-- 2. RECREATE EXACTLY THE FOUR REMOVED WRITE POLICIES
+--    Exact names, commands, PERMISSIVE state, PUBLIC-only role contract
+--    (TO PUBLIC => polroles = {0}), exact USING / WITH CHECK expressions.
+--    The three read policies are NOT recreated - they were never dropped.
+-- ---------------------------------------------------------------------
+CREATE POLICY "Permission-based insert ledger entries"
+  ON public.ledger_entries
+  AS PERMISSIVE
+  FOR INSERT
+  TO PUBLIC
+  WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text));
+
+CREATE POLICY "Permission-based insert customer balances"
+  ON public.customer_balances
+  AS PERMISSIVE
+  FOR INSERT
+  TO PUBLIC
+  WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text));
+
+CREATE POLICY "Permission-based update customer balances"
+  ON public.customer_balances
+  AS PERMISSIVE
+  FOR UPDATE
+  TO PUBLIC
+  USING      (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text))
+  WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text));
+
+CREATE POLICY "Permission-based delete customer balances"
+  ON public.customer_balances
+  AS PERMISSIVE
+  FOR DELETE
+  TO PUBLIC
+  USING (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text));
+
+-- ---------------------------------------------------------------------
+-- 3. RESTORE THE EXACT PRIOR create_pos_sale EXECUTE GRANTS
+-- ---------------------------------------------------------------------
+GRANT EXECUTE ON FUNCTION public.create_pos_sale(uuid, uuid, jsonb) TO anon, authenticated;
+-- postgres, service_role and the platform sandbox roles were never revoked.
+
+-- ---------------------------------------------------------------------
+-- 4. RESTORE THE EXACT PRIOR HELPER search_path
+-- ---------------------------------------------------------------------
+ALTER FUNCTION public.has_permission(uuid, uuid, text) SET search_path = public;
+ALTER FUNCTION public.is_tenant_member(uuid, uuid)     SET search_path = public;
+
+-- ---------------------------------------------------------------------
+-- 5. RESTORE THE EXACT PRIOR TABLE COMMENTS (both were absent)
+-- ---------------------------------------------------------------------
+COMMENT ON TABLE public.ledger_entries    IS NULL;
+COMMENT ON TABLE public.customer_balances IS NULL;
+
+-- ---------------------------------------------------------------------
+-- 6. ROLLBACK VERIFICATION
+-- ---------------------------------------------------------------------
+DO $rb$
+DECLARE
+  v_tbl      text;
+  v_role     text;
+  v_priv     text;
+  v_cnt      int;
+  v_hash     text;
+  v_expected text := 'e978f912777a28108f46ba79e2ce071e';
+BEGIN
+  -- 6.1 All eight prior table privileges restored for both browser roles
+  FOREACH v_tbl IN ARRAY ARRAY['ledger_entries','customer_balances'] LOOP
+    FOREACH v_role IN ARRAY ARRAY['anon','authenticated'] LOOP
+      FOREACH v_priv IN ARRAY ARRAY['SELECT','INSERT','UPDATE','DELETE',
+                                    'TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'] LOOP
+        IF NOT has_table_privilege(v_role, format('public.%I', v_tbl), v_priv) THEN
+          RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: % missing % on public.%', v_role, v_priv, v_tbl;
+        END IF;
+      END LOOP;
+    END LOOP;
+  END LOOP;
+
+  -- 6.2 Exactly seven policies, no duplicate
+  SELECT count(*) INTO v_cnt
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances');
+  IF v_cnt <> 7 THEN
+    RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: expected exactly 7 policies, found %', v_cnt;
+  END IF;
+
+  -- 6.3 All seven are PERMISSIVE and exactly PUBLIC-only
+  SELECT count(*) INTO v_cnt
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+    AND p.polpermissive AND p.polroles = ARRAY[0::oid];
+  IF v_cnt <> 7 THEN
+    RAISE EXCEPTION
+      'ROLLBACK VERIFY FAILED: expected 7 PERMISSIVE PUBLIC-only (polroles = {0}) policies, found %', v_cnt;
+  END IF;
+
+  -- 6.4 Exact seven-policy role-aware fingerprint, covering names, commands,
+  --     role arrays and both expressions
+  SELECT md5(string_agg(
+           n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||p.polpermissive::text||'|'||
+           COALESCE((SELECT string_agg(ro::text, ',' ORDER BY ro) FROM unnest(p.polroles) AS ro), '<NULL>')||'|'||
+           COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')||'|'||
+           COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>'),
+           E'\n' ORDER BY c.relname, p.polname))
+    INTO v_hash
+  FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances');
+
+  IF v_hash IS DISTINCT FROM v_expected THEN
+    RAISE EXCEPTION
+      'ROLLBACK VERIFY FAILED: seven-policy role-aware fingerprint mismatch. expected %, found %',
+      v_expected, v_hash;
+  END IF;
+
+  -- 6.5 Exact prior function EXECUTE state restored
+  IF NOT has_function_privilege('anon',          'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
+  OR NOT has_function_privilege('authenticated', 'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
+  OR NOT has_function_privilege('service_role',  'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: prior create_pos_sale EXECUTE state not restored';
+  END IF;
+
+  -- 6.6 Exact prior helper proconfig restored
+  FOREACH v_tbl IN ARRAY ARRAY['public.has_permission(uuid,uuid,text)',
+                               'public.is_tenant_member(uuid,uuid)'] LOOP
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+      WHERE p.oid = to_regprocedure(v_tbl)
+        AND split_part(cfg, '=', 1) = 'search_path'
+        AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = 'public'
+    ) THEN
+      RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: % does not carry the prior search_path=public', v_tbl;
+    END IF;
+  END LOOP;
+
+  -- 6.7 Prior comment state restored (absent)
+  IF EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      AND obj_description(c.oid, 'pg_class') IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: a table comment remains';
+  END IF;
+
+  RAISE NOTICE 'ROLLBACK VERIFICATION PASSED';
+END
+$rb$;
+
+COMMIT;
+```
+
+The rollback verification uses no total-count-alone check, no name-only check, no `polroles IS NULL`, no empty-array assumption, no substring check and no role-insensitive hash. It issues zero DML against financial business tables.
+
+## O. Application Contract Confirmation
+
+This audit introduces **no** change to the settled application execution contract. The future Stage B Agent/Build scope remains exactly: typed frontend wrapper for `post_expense_with_ledger`; Expense approval routed through the RPC; `expense_date` mapped as Economic Date; idempotency key; canonical RPC error-code handling; removal of `postLedgerForExpense`, `postLedgerForInvoice` and dead `useLedger.createEntry`; retention of `useLedgerEntries` and `useCustomerBalances` as read-only; removal of automatic runtime execution of `backfillLedgerDescriptions`; POS visible, Coming Soon, non-clickable, non-keyboard-activatable, inert direct route, no operational POS hook or writer mounted, `create_pos_sale` not activated. No additional application change is proposed; none is authorized.
+
+## P. QA Additions
+
+**17.1 Raw Catalog Verification** — all seven `polroles` values recorded (`{0}` ×7); all cardinalities recorded (1 ×7); all role OIDs resolved (0 → PUBLIC); PUBLIC represented exactly as `ARRAY[0::oid]`; no named role unexpectedly present.
+
+**17.2 Forward Migration** — pre-state role-aware fingerprint matches `e978f912777a28108f46ba79e2ce071e`; post-state matches `04297828f4bd33eba043f6c9274ec57b`; all three retained policies PUBLIC-only; all PERMISSIVE; no write policy remains; no restrictive policy appears; migration transaction completes in an isolated test; no financial row changes.
+
+**17.3 Rollback** — recreates exactly four write policies; creates no read-policy duplicate (verified by the 7-count plus fingerprint); all seven match the exact pre-state fingerprint; commands and expressions as expected; exact proven PUBLIC representation; transaction completes in isolation; Forward Migration reapplies successfully after Rollback; no financial row changes in either direction.
+
+**17.4 Regression** — Expense RPC cutover unchanged; SELECT surfaces functional; Realtime reads functional; POS visible but inert; no operational POS request generated; helper permission checks remain tenant-safe after the `pg_temp` demotion; no Stage-A data changes.
+
+Build and Typecheck alone are not Acceptance. Separate QA and a read-only Acceptance Re-Audit remain mandatory.
+
+## Q. Deferred Items Register
+
+| Item | Original evidence | Current status | Current lane | Future lane | Dependency | Risk if forgotten | Next trigger |
+|---|---|---|---|---|---|---|---|
+| Expense Browser Writer cutover | Prompt 11–12 writer audit | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | `post_expense_with_ledger` | Browser keeps writing financial truth | Stage B Agent/Build |
+| Dead `useLedger.createEntry` removal | Prompt 11 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | None | Dead writer can be revived | Stage B Agent/Build |
+| POS Safety Fencing | Prompt 11–12 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | WS-DH-2026-0005 | None | Non-atomic POS writes reachable | Stage B Agent/Build |
+| Ledger / Customer Balance SELECT-only hardening | Prompt 13 privilege audit | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | Policy drop | Direct-DML bypass of RPCs | Stage B migration |
+| `create_pos_sale` browser EXECUTE revocation | Prompt 12 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | WS-DH-2026-0005 | None | Deferred POS writer callable | Stage B migration |
+| `backfillLedgerDescriptions` automatic-run removal | Prompt 11 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | None | Unattended historical mutation | Stage B Agent/Build |
+| Helper `public, pg_temp` correction | Prompt 14 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | TEMP-to-PUBLIC evidence | `pg_temp` shadowing in SECURITY DEFINER | Stage B migration |
+| Seven-policy Rollback correction | Prompt 14 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | Pre-state fingerprint | Rollback cannot restore pre-state | Stage B migration |
+| Robust proconfig assertion | Prompt 15 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | None | False assertion failure on Array quoting | Stage B migration |
+| `polroles` / PUBLIC representation correction | This Prompt 16 | PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE | Stage B | — | Live catalog | Migration aborts despite correct SQL | Stage B migration |
+| Role-aware Policy fingerprint correction | This Prompt 16 | PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE | Stage B | — | Live catalog | Role changes undetected | Stage B migration |
+| Internal Cost terminology correction | Prompt 11 | DEFERRED — TRACKED | — | Later Phase | Terminology decision | Misleading cost labels | Owner terminology decision |
+| Internal Cost Unknown vs Real Zero | Prompt 11 | DEFERRED — TRACKED | — | Later Phase | Data model | Zero read as truth | Internal Cost workstream |
+| Internal Cost contextual terminology by account type | Prompt 11 | DEFERRED — TRACKED | — | Later Phase | Account-type model | Wrong wording per account type | Internal Cost workstream |
+| HR Salary-to-Expense atomicity | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | Expense RPC | Partial salary posting | HR finance workstream |
+| HR Salary idempotency | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | Idempotency keys | Duplicate salary expense | HR finance workstream |
+| HR Salary reversal | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | Reversal contract | No safe correction path | HR finance workstream |
+| Generic Expense deletion of HR-linked records | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | HR linkage | Orphaned HR records | HR finance workstream |
+| Expense unpost / reversal | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | Ledger reversal design | Uncorrectable expense | Expense reversal workstream |
+| Supplier Payable payment / Expense / Ledger lifecycle | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | Payables model | Incomplete payables truth | Payables workstream |
+| Supplier Payable-to-Expense authority | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | Payables model | Unclear write authority | Payables workstream |
+| Full POS implementation | Prompt 11–12 | DEFERRED — TRACKED | — | WS-DH-2026-0005 | Stage B fencing | POS never delivered | WS-DH-2026-0005 start |
+| Future `create_pos_sale` activation | Prompt 12 | DEFERRED — TRACKED | — | WS-DH-2026-0005 | POS implementation | Premature activation | WS-DH-2026-0005 start |
+| Manual Ledger Adjustment product workflow | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | SELECT-only hardening | No adjustment path after hardening | Adjustment workstream |
+| Residual financial-table privilege hardening | Prompt 13 | DEFERRED — TRACKED | — | Later Phase | Stage B precedent | Other finance tables stay open | Follow-on privilege audit |
+| Full schema qualification of `has_permission` | Prompt 14 | DEFERRED — TRACKED | — | Later Phase | Body rewrite authorization | Residual resolution risk | Helper-body workstream |
+| Duplicate Ledger SELECT policy review | Prompt 14 | DEFERRED — TRACKED | — | Later Phase | Policy consolidation | Two overlapping read policies persist | Policy cleanup workstream |
+| Database-level TEMP grant to PUBLIC review | Prompt 14 | DEFERRED — TRACKED | — | Later Phase | Platform constraints | Broad TEMP remains | Platform hardening review |
+
+No item removed. No item promoted beyond what is directly required to correct the `polroles` contract.
+
+## R. Zero-Regression Confirmation
+
+- **Stage A** — no financial-row query, no DML, no Stage-A row touched. No regression.
+- **Expense cutover** — unchanged; `post_expense_with_ledger` confirmed present and correctly configured. No regression.
+- **POS contract** — unchanged; POS remains visible/inert and `create_pos_sale` remains deactivated. No regression.
+- **SELECT-only strategy** — unchanged; REVOKE ALL then GRANT SELECT preserved verbatim. No regression.
+- **Helper strategy** — unchanged; bounded `SET search_path = public, pg_temp`, no body rewrite. No regression.
+- **proconfig contract** — unchanged; robust text-element assertion retained and independently re-confirmed by live evidence. No regression.
+- **Deferred Items Register** — complete and unchanged apart from two additions required by this correction. No regression.
+
+`ZERO REGRESSION TO PRESERVED FINDINGS CONFIRMED`
+
+## S. Blockers and Gaps
 
 None.
 
-## 26. Pre-Existing Defects Discovered But Excluded
+Two non-blocking observations, recorded and explicitly out of scope: platform `sandbox_exec*` roles hold SELECT+INSERT on both tables and EXECUTE on `create_pos_sale`; `relforcerowsecurity` is false on both tables.
 
-None. `roadmap.md` line 115 ("no Phase 3 … exists or is owner-approved") is **not** a defect: it was accurate when written and is the intended target of the Phase 3 update. `docs/workstreams/README.md` and the `WS-DH-2026-0002` package were inspected and require no mandatory same-source navigation correction.
+## T. WORKSTREAM PERSISTENCE
 
-## 27. Deferred Items Register
+`WORKSTREAM PERSISTENCE:
+NONE — READ-ONLY POLROLES, PUBLIC-ROLE,
+ROLE-AWARE POLICY-FINGERPRINT AND FINAL MIGRATION-EXECUTABILITY
+CORRECTION AUDIT ONLY.
 
-| # | Deferred item | Status | Enters via |
-|---|---|---|---|
-| 1 | Actual code Refactoring | DEFERRED — TRACKED | Separately authorized execution after Track B |
-| 2 | Feature Pack implementation | DEFERRED — TRACKED | Post-D10 design + Owner Alignment |
-| 3 | Module activation implementation | DEFERRED — TRACKED | Post-D10 design + Owner Alignment |
-| 4 | Subscription and pricing implementation | DEFERRED — TRACKED | Post-D10 design + Owner Alignment |
-| 5 | New Feature implementation | DEFERRED — TRACKED | Separate Roadmap/Phase |
-| 6 | Missing Module implementation | DEFERRED — TRACKED | Separate Roadmap/Phase |
-| 7 | Skills revision | DEFERRED — TRACKED | Separately authorized Skill governance run |
-| 8 | Root `AGENTS.md` creation | DEFERRED — TRACKED | Separately authorized |
-| 9 | Workspace Knowledge use | DEFERRED — TRACKED | Owner decision |
-| 10 | Documentation 01–13 historical recovery | DEFERRED — TRACKED | Explicit named Owner authorization only |
-| 11 | Cross-project sharing changes | DEFERRED — TRACKED | Must remain disabled |
-| 12 | RM-DH-004 financial execution | DEFERRED — TRACKED | RM-DH-004's own governance, fully separate |
-| 13 | Any technical defect found by a later Stage B audit | DEFERRED — TRACKED | Stage B findings register |
-| 14 | Any Project Knowledge installation | DEFERRED — TRACKED | `WS-DH-2026-0020` only |
-| 15 | Memory Genesis investigation | DEFERRED — TRACKED | `WS-DH-2026-0012`, after advancement to 3.1 |
-| 16 | Refactoring Baseline investigation | DEFERRED — TRACKED | `WS-DH-2026-0013`, after advancement to 3.1 |
+Stage A remains accepted, persisted and verified.
 
-No item enters execution through this planning Prompt.
+WS-DH-2026-0003 remains ACTIVE.
 
-## 28. WORKSTREAM PERSISTENCE
+Stage B implementation has not started.
 
-WORKSTREAM PERSISTENCE: NONE — PLANNING ONLY
+The Prompt-12 through Prompt-15 application, POS, privilege,
+helper, proconfig and Deferred-Item contracts remain preserved,
+except for the explicitly withdrawn Prompt-15 policy-role assertion.
 
-No Workstream is created. No Workstream ID is consumed merely by this report. Candidate IDs `WS-DH-2026-0012` through `WS-DH-2026-0020` remain provisional until persistence execution.
+No governance file was modified.
 
-## 29. ROADMAP IMPACT
+Stage C and Stage D have not started.
 
-- RM-DH-003 remains ACTIVE.
-- RM-DH-003 / Phase 2 remains CLOSED.
-- Phase 3 is Owner-approved in ChatGPT but not yet repository-persisted.
-- No Phase is advanced. No Track is created. No Workstream is created.
-- No Roadmap or registry file is intentionally modified.
-- No Project Knowledge is installed. No Acceptance or Closure is claimed.
-- RM-DH-004 remains separate and unaffected.
-- Active Master Register v0.17.0 is not modified by this run.
-- Project Operating Instructions V6 are not modified by this run.
+No Workstream Closure occurred.`
 
-## 30. NO-CHANGE ATTESTATION
+## U. ROADMAP IMPACT
 
-Zero intended changes to: application code; repository governance files; Roadmap files; Workstream files; indexes; database schema; database data; migrations; RLS; RPCs; Edge Functions; Project Knowledge; Workspace Knowledge; Skills; AGENTS.md; project settings; workspace settings; cross-project sharing; Master Register; ChatGPT Project Instructions.
+`ROADMAP IMPACT:
+RM-DH-004 remains ACTIVE — PHASE 1.
 
-`.lovable/plan.md` disclosure: this planning report is held in `.lovable/plan.md`, the platform-managed planning artifact governed by `docs/CONVENTIONS.md` §11.10. It is the only file touched this run and it is not repository governance persistence.
+This correction audit does not complete Phase 1.
 
-## RUN METADATA AND EXACT STOPPING POINT
+WS-DH-2026-0005 remains DEFERRED.
 
-1. Mode and operation: Plan/Chat — Read-only; Governance Persistence Planning Audit only.
-2. Prompt ID and received status: PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01; UNSENT DRAFT — NUMBER NOT YET CONSUMED.
-3. Prompt Preparation: 03-08-2026, 23:27, Asia/Riyadh (UTC+03:00).
-4. Lovable Run Start: 03-08-2026, 23:27 Asia/Riyadh (message receipt).
-5. Lovable Run End: Exact time not recorded.
-6. Final Report: Exact time not recorded.
-7. Timestamp evidence source: platform message clock; Git for commit evidence.
-8. Branch: `edit/edt-1629dbca-22c7-427d-83d9-b7df3324659e`.
-9. Canonical/default branch: `main` — **proven** via `refs/remotes/origin/HEAD` → `refs/remotes/origin/main`.
-10. HEAD before and after: `2133b5f3413e7ab97be739a07332087e9a9ec54e` / unchanged.
-11. Working tree before and after: clean / clean.
-12. Staged paths: none. 13. Unstaged paths: none. 14. Untracked non-ignored paths: none.
-15. Repository paths inspected: `docs/CONVENTIONS.md`; `docs/README.md`; `docs/roadmaps/README.md`; `docs/workstreams/README.md`; all four RM-DH-003 package files; `docs/workstreams/ws-dh-2026-0002-governance-foundation/workstream.md`; `docs/roadmaps/rm-dh-004-financial-truth-historical-data-migration/roadmap.md`; `docs/workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md`; `docs/workstreams/` directory listing; plus a full-tree token sweep across `docs/**` for Workstream IDs, Phase 3, Persistent Knowledge, Memory Genesis, Refactoring Baseline and `DEC-RM-DH-003-005`.
-16. Active Project Instructions version used: V6.
-17. Active Master Register version used: v0.17.0.
-18. Later Owner decisions used: Phase 3 approval; five Tracks; nine Workstreams; eight Sub-phases; D1–D10.
-19. Database access: None.
-20. Intended repository changes: None.
-21. Platform-generated `.lovable/plan.md` activity: this report written to `.lovable/plan.md` by Plan Mode; no manual edit outside that artifact.
-22. Project Knowledge changes: None. 23. Workspace Knowledge changes: None. 24. Skill changes: None. 25. AGENTS.md changes: None. 26. Master Register changes: None. 27. Project Instructions changes: None. 28. Roadmap persistence: None. 29. Workstream persistence: None.
-30. Exact stopping point: the complete read-only governance-persistence planning contract has been produced — current repository state verified, Phase, decision and Workstream collisions audited, Phase 3 / Track / Workstream registers proposed, dedicated-package recommendation made, file-by-file plan, version matrix, allowlist, denylist, Acceptance criteria, rollback plan, risks and Deferred Items Register delivered. No Phase, Track, Workstream, decision, changelog, index, Knowledge, Skill, application or database change occurred. No execution, Acceptance, persistence or Closure occurred.
-31. Exact next permitted action: ChatGPT and Owner review of this planning result, followed only by a separately authorized complete Agent/Build Governance Persistence Execution Prompt.
+No new Roadmap, Phase, Workstream or Decision ID was created.
+
+No Phase advancement, Phase Closure or Roadmap Closure occurred.`
+
+## V. Run Metadata and Exact Stopping Point
+
+1. Mode: Plan/Chat — Read-Only.
+2. Operation: Targeted `pg_policy.polroles` live representation audit, PUBLIC-role contract correction, role-aware policy fingerprint completion, final Forward/Rollback executability closure, Stage B execution readiness determination.
+3. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-POLROLES-PUBLIC-REPRESENTATION-AND-POLICY-FINGERPRINT-CORRECTION-AUDIT-16.
+4. Prompt status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED.
+5. Prompt Preparation Date: 03-08-2026. 6. Time: 23:38. 7. Timezone: Asia/Riyadh — UTC+03:00.
+8. Run Start Date and Time: 03-08-2026, 23:38 Asia/Riyadh (message receipt).
+9. First evidenced activity: raw `pg_policy` catalog query on `public.ledger_entries` and `public.customer_balances`.
+10. Run End Date and Time: Exact time not recorded.
+11. Last evidenced activity: table-level privilege, ownership, RLS and comment query.
+12. Final Report Date and Time: Exact time not recorded.
+13. Timestamp evidence source: platform message clock.
+14. PostgreSQL version: PostgreSQL 17.6 on aarch64-unknown-linux-gnu.
+15. Current database name: `postgres`. 16. Database owner: `postgres`.
+17. Branch: `edit/edt-1629dbca-22c7-427d-83d9-b7df3324659e`.
+18. Canonical/default branch evidence: `refs/remotes/origin/HEAD` → `refs/remotes/origin/main`.
+19. HEAD before: `2133b5f3413e7ab97be739a07332087e9a9ec54e`. 20. HEAD after: unchanged.
+21. Working tree before: clean. 22. Working tree after: clean.
+23. Staged paths before/after: none / none. 24. Unstaged: none / none. 25. Untracked non-ignored: none / none.
+26. Repository paths read: none this run — all evidence came from the live catalog.
+27. Database objects read: `pg_policy`, `pg_class`, `pg_namespace`, `pg_roles`, `pg_auth_members`, `pg_proc`, `pg_attribute`, `pg_database`, `aclexplode`, `pg_get_expr`, `obj_description`, `md5`.
+28. Catalog queries executed: three, all read-only SELECT.
+29. Financial-row queries: zero. 30. Database role: `supabase_read_only_user`.
+31. Raw `polroles` values: `{0}` for all seven policies.
+32. Policy cardinalities: 1 for all seven.
+33. Resolved role OIDs: 0 → PUBLIC for all seven.
+34. Prompt-15 predicate results: false for all seven — assertion fails.
+35. Final PUBLIC-only assertion: `p.polpermissive AND p.polroles = ARRAY[0::oid]`.
+36. Seven-policy pre-state canonical string: §L. 37. Pre-state hash: `e978f912777a28108f46ba79e2ce071e`.
+38. Three-policy post-state canonical string: §L. 39. Post-state hash: `04297828f4bd33eba043f6c9274ec57b`.
+40. Exact Forward Migration result: `FINAL FORWARD MIGRATION SQL EXECUTABLE` (authored, not executed).
+41. Exact Rollback result: `FINAL ROLLBACK SQL EXECUTABLE` (authored, not executed).
+42. Deferred items preserved: all 17 deferred entries. 43. Deferred items promoted: 11 current-scope items, of which 2 are new contract corrections from this Prompt.
+44. Repository changes: zero. 45. Database changes: zero. 46. Migration changes: zero. 47. Financial-row changes: zero.
+48. Project Knowledge changes: zero. 49. Workspace Knowledge changes: zero. 50. Skill changes: zero. 51. Settings changes: zero.
+52. `.lovable/plan.md` disclosure: this report is held in `.lovable/plan.md`, the platform-generated planning artifact governed by `docs/CONVENTIONS.md` §11.10. It is the only file touched this run and it is not governance persistence.
+53. Eight required verdicts: §A.
+54. Stage B implementation: not started. 55. Stage C: not started. 56. Stage D: not started. 57. QA: not started. 58. Acceptance: not started. 59. Closure: none.
+60. **Exact stopping point:** The prior Prompt-15 PUBLIC-role error has been explicitly withdrawn. The live `pg_policy.polroles` representation, exact PUBLIC-only contract, role-aware seven-policy pre-state, three-policy post-state, executable Forward Migration, executable Rollback, preserved application scope, zero-regression confirmation, and complete Deferred Items Register have been established. No implementation, migration, financial-data change, Stage C, Stage D, QA, Acceptance or Closure has occurred.
+61. **One recommended next step:** Issue the complete Stage B Agent/Build Execution Prompt carrying the §M Forward Migration, the §N Rollback and the §O application contract verbatim.
+62. **Recommended next Mode:** Agent/Build.
