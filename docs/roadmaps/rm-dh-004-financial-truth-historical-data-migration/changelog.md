@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-004-CHANGELOG
 title: RM-DH-004 — Changelog
-version: 1.1.0
+version: 1.1.1
 status: current
 audience: internal
 date: 2026-08-03
 last-verified: 2026-08-03
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Append-oriented; no Acceptance and no Closure recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04: appends one new chronological entry recording the passed Acceptance Re-Audit, the explicit Owner Acceptance and the completed Acceptance Persistence. All earlier entries are preserved byte-identical, the earlier rounded package-creation timestamp is not altered, OBS-01 is not corrected, and no Closure entry is recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends three new chronological entries recording the Prompt 05 Acceptance Persistence Verification and Phase 0 readiness verdict, the explicit Owner Phase advancement decision of 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), and the executed Phase Advancement Persistence. All earlier entries are preserved byte-identical, OBS-01 is not edited, no prior timestamp is altered, and no Closure entry is recorded.
+source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Append-oriented; no Acceptance and no Closure recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04: appends one new chronological entry recording the passed Acceptance Re-Audit, the explicit Owner Acceptance and the completed Acceptance Persistence. All earlier entries are preserved byte-identical, the earlier rounded package-creation timestamp is not altered, OBS-01 is not corrected, and no Closure entry is recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends three new chronological entries recording the Prompt 05 Acceptance Persistence Verification and Phase 0 readiness verdict, the explicit Owner Phase advancement decision of 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), and the executed Phase Advancement Persistence. All earlier entries are preserved byte-identical, OBS-01 is not edited, no prior timestamp is altered, and no Closure entry is recorded.; v1.1.1 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage A Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-A-ACCEPTANCE-PERSISTENCE-09, following the passed read-only Stage A Acceptance Re-Audit (Prompt 08) and the explicit Owner Acceptance granted by Mohamed Nour on 03-08-2026 at 19:15 Asia/Riyadh (UTC+03:00): appends three chronological entries recording the passed Stage A Acceptance Re-Audit, the explicit Stage A Owner Acceptance and the executed Stage A Acceptance Persistence. All earlier entries are preserved byte-identical, no prior timestamp or timestamp observation is altered, OBS-01 and OBS-A-01 are not rewritten, no new decision ID was created, and no Closure entry is recorded.
 source-sha256: n/a
 -->
 
@@ -88,3 +88,39 @@ Append-oriented chronological record. New entries are added at the bottom.
 - No technical Acceptance.
 - No Closure.
 - Read-only Phase Advancement Persistence Acceptance Re-Audit pending.
+
+### Exact time not recorded — Stage A Acceptance Re-Audit Passed
+
+- Prompt `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-A-ACCEPTANCE-REAUDIT-08` completed as a read-only independent re-audit.
+- Verdict: `STAGE A ACCEPTANCE PASSED — READY FOR OWNER ACCEPTANCE`.
+- Zero Acceptance blockers were found.
+- All 28 approved target Economic Dates were verified against the live database.
+- All 87 canonical running balances across the seven affected Clients were independently recomputed with zero mismatch.
+- Monetary difference remained 0.00.
+- Exactly ten evidence files were verified, with zero unexpected repository path.
+- Rollback was verified as ready.
+- Observation OBS-A-01 (timestamp inconsistency) was classified NON-BLOCKING and no correction path was opened.
+- Owner Acceptance remained pending at the end of Prompt 08.
+- The exact wall-clock time of that run is not recorded.
+
+### 2026-08-03T19:15:00+03:00 — Owner Accepted Stage A
+
+- The owner, Mohamed Nour, explicitly accepted Stage A of WS-DH-2026-0003.
+- The Acceptance applies only to the bounded Stage A scope: the 28 approved Economic Date corrections, the atomic `balance_after` recalculation, the evidence package and the rollback contract.
+- Stage B, Stage C and Stage D were not authorized.
+- Workstream-wide Technical Acceptance was not granted.
+- No Workstream, Phase or Roadmap Closure was granted.
+- OBS-A-01 was accepted as a non-blocking observation requiring no independent correction path.
+
+### Exact time not recorded — Stage A Acceptance Persistence Executed
+
+- The six allowlisted governance files were updated: RM-DH-004 `roadmap.md` and `changelog.md`, the WS-DH-2026-0003 `workstream.md`, and the three central registries.
+- Stage A Acceptance is persisted for its bounded scope.
+- RM-DH-004 remains ACTIVE — PHASE 1.
+- WS-DH-2026-0003 remains ACTIVE — STAGE A ACCEPTED; STAGE B NOT STARTED.
+- Stage B, Stage C and Stage D have not started.
+- No application, database, migration, test, Knowledge, Skill or setting change occurred, and no database query was executed.
+- The Stage A evidence package and the RM-DH-004 decisions file were not modified, and no new decision ID was created.
+- A read-only Stage A Acceptance Persistence Verification is pending.
+- No Closure occurred.
+- The exact wall-clock time of this persistence run is not recorded.
