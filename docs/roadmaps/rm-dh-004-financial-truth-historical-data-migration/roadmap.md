@@ -49,22 +49,22 @@ Current Workstream:
 WS-DH-2026-0003 — Economic Date Integrity
 
 Current Workstream Status:
-ACTIVE — INVESTIGATIVE AUDIT PENDING
+ACTIVE — STAGE A ACCEPTED; STAGE B NOT STARTED
 
 Current Workstream Stage:
-INVESTIGATIVE AUDIT PENDING
+STAGE A ACCEPTED — ACCEPTANCE PERSISTENCE VERIFICATION PENDING
 
 Technical Environment:
 Lovable only unless explicitly changed by the owner
 
 Repository Persistence State:
-RM-DH-004 governance package persisted; Acceptance Re-Audit passed; explicit Owner Acceptance approved; Acceptance Persistence completed and independently verified; owner-approved Phase 0 to Phase 1 advancement persisted. The Phase Advancement Persistence Acceptance Re-Audit is pending.
+RM-DH-004 governance package persisted; Acceptance Re-Audit passed; explicit Owner Acceptance approved; Acceptance Persistence completed and independently verified; owner-approved Phase 0 to Phase 1 advancement persisted; WS-DH-2026-0003 Stage A executed, re-audited, Owner accepted and persisted. The Phase Advancement Persistence Acceptance Re-Audit and the Stage A Acceptance Persistence Verification are pending.
 
 Phase 0 Status:
 COMPLETED — OWNER ADVANCEMENT APPROVED AND PERSISTED
 
 Phase 1 Status:
-ACTIVE — PHASE ADVANCEMENT PERSISTED; READ-ONLY VERIFICATION PENDING
+ACTIVE — STAGE A ACCEPTED AND PERSISTED; PHASE 1 NOT COMPLETE
 
 Phase Advancement Decision:
 APPROVED BY OWNER
@@ -72,8 +72,26 @@ APPROVED BY OWNER
 Phase Advancement Persistence:
 EXECUTED — ACCEPTANCE RE-AUDIT PENDING
 
-Economic Date Investigative Audit:
+Stage A Execution:
+EXECUTED AND COMMITTED
+
+Stage A Acceptance Re-Audit:
+PASSED
+
+Stage A Owner Acceptance:
+GRANTED BY MOHAMED NOUR — 03-08-2026 — 19:15 — Asia/Riyadh — UTC+03:00
+
+Stage A Acceptance Persistence:
+EXECUTED — READ-ONLY VERIFICATION PENDING
+
+Stage A Technical Acceptance:
+PASSED — OWNER ACCEPTED — PERSISTED FOR STAGE A ONLY
+
+Stage B, Stage C and Stage D:
 NOT STARTED
+
+Economic Date Investigative Audit:
+STAGE A COMPLETE AND ACCEPTED; STAGE B INVESTIGATION NOT STARTED
 
 Governance Persistence Acceptance:
 PASSED — OWNER ACCEPTED — PERSISTED
@@ -82,10 +100,14 @@ Technical Roadmap Acceptance:
 NOT STARTED
 
 Workstream Technical Acceptance:
-NOT STARTED
+NOT COMPLETE — Stage A only is accepted
+
+Phase 1 Acceptance:
+NOT COMPLETE
 
 Closure:
 None — Phase 1 is not closed, WS-DH-2026-0003 is not closed, and RM-DH-004 is not closed
+
 ```
 
 ## Track Register
@@ -186,10 +208,11 @@ Completed scope:
 ### Phase 1 — Economic Date Integrity
 
 Status:
-ACTIVE — ECONOMIC DATE INTEGRITY; INVESTIGATIVE AUDIT NOT STARTED
+ACTIVE — STAGE A ACCEPTED AND PERSISTED; STAGE B, STAGE C AND STAGE D NOT STARTED; PHASE 1 NOT COMPLETE
 
 Primary Workstream:
 WS-DH-2026-0003
+
 
 ### Phase 2 — Canonical Financial Write Authority
 
@@ -319,33 +342,68 @@ Phase 0 exit requirements are satisfied by owner decision and persistence, subje
 
 Phase 1 technical scope is **not** accepted. No technical Acceptance and no Closure exist.
 
+## Stage A Register — WS-DH-2026-0003 Economic Date Backfill
+
+| Item | State |
+|---|---|
+| Stage A Execution | EXECUTED AND COMMITTED |
+| Stage A Acceptance Re-Audit | PASSED |
+| Stage A Owner Acceptance | GRANTED BY MOHAMED NOUR |
+| Stage A Acceptance Persistence | EXECUTED — READ-ONLY VERIFICATION PENDING |
+| Stage A Technical Acceptance | PASSED — OWNER ACCEPTED — PERSISTED FOR STAGE A ONLY |
+| Workstream-wide Technical Acceptance | NOT COMPLETE |
+| Phase 1 Acceptance | NOT COMPLETE |
+| Stage B — Writer Contract | NOT STARTED |
+| Stage C — Read-Path Cutover | NOT STARTED |
+| Stage D — Constraint Enforcement | NOT STARTED |
+| Closure | NONE |
+
+Accepted Stage A aggregate evidence:
+
+- 28 approved `effective_date` corrections;
+- zero remaining NULL `effective_date` in the verified 88-row population;
+- 87 canonical Ledger rows verified;
+- zero `balance_after` mismatch;
+- seven Clients affected;
+- three Tenants affected;
+- monetary difference 0.00;
+- ten evidence files present;
+- rollback ready;
+- Owner Decisions D-1 through D-5 complied with;
+- OBS-A-01 accepted as a non-blocking timestamp observation requiring no independent correction path.
+
+No private Client names or private financial details are recorded here.
+
 ## Remaining Work
 
-1. read-only Phase Advancement Persistence Acceptance Re-Audit;
-2. correction of any proven Phase Advancement Persistence defects;
-3. after successful verification, preparation of the WS-DH-2026-0003 Economic Date Integrity Investigative Audit;
-4. no technical execution before that investigation and later Owner Alignment.
+1. read-only Stage A Acceptance Persistence Verification and Stage B Readiness Review;
+2. read-only Phase Advancement Persistence Acceptance Re-Audit;
+3. correction of any proven persistence defects;
+4. after successful verification, the Stage B Writer Contract investigation for WS-DH-2026-0003;
+5. no Stage B, Stage C or Stage D technical execution before that investigation and later Owner Alignment.
 
 ## Current Stopping Point
 
-The owner approved RM-DH-004 advancement from Phase 0 to Phase 1, and the Phase Advancement has been persisted.
+Stage A of WS-DH-2026-0003 has been executed, independently re-audited, explicitly accepted by the Owner and persisted for its bounded scope.
 
-RM-DH-004 is now ACTIVE — PHASE 1.
+RM-DH-004 remains ACTIVE — PHASE 1.
 
-Phase 0 governance requirements are completed, subject to read-only verification of this persistence.
+WS-DH-2026-0003 remains ACTIVE.
 
-WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
+Stage B, Stage C and Stage D have not started.
 
-The Economic Date Investigative Audit has not started.
+Workstream-wide Technical Acceptance, Phase 1 completion and all Closure states remain incomplete.
 
-All nine Workstreams remain registered and only WS-DH-2026-0003 has a dedicated package.
+Stage A Acceptance Persistence requires a separate read-only verification before Stage B investigation may begin.
 
-No application, database, migration, financial-data, QA, technical Acceptance or Closure work has occurred.
 
 ## Next Permitted Action
 
-Plan/Chat — Read-Only Phase Advancement Persistence Acceptance Re-Audit
+Plan/Chat — Read-Only Stage A Acceptance Persistence Verification and Stage B Readiness Review
 
-Stated separately: after successful Phase Advancement Persistence verification, the next Workstream-specific action may be:
+Stated separately: that verification must stop before Stage B implementation, before any Writer change, before any Statement change and before any database change.
 
-Plan/Chat — Read-Only Economic Date Integrity Investigative Audit
+Also stated separately: the read-only Phase Advancement Persistence Acceptance Re-Audit remains an open governance item, and after successful verification the next Workstream-specific action may be:
+
+Plan/Chat — Read-Only Economic Date Integrity Investigative Audit for Stage B
+
