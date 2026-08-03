@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-REGISTRY
 title: Dayli Horse — Central Roadmap Registry
-version: 1.1.0
+version: 1.1.1
 status: current
 audience: internal
 date: 2026-07-30
@@ -33,7 +33,7 @@ This registry is an **index only**. It is not a competing copy of any Roadmap's 
 | `RM-DH-001` | Documentation & Developer Handover | توثيق المشروع وتسليمه للمطور أو الشركة | Active | Not applicable | Post Round 5 — accepted documentation baseline | [`rm-dh-001-documentation-and-developer-handover/`](./rm-dh-001-documentation-and-developer-handover/README.md) | [`roadmap.md`](./rm-dh-001-documentation-and-developer-handover/roadmap.md) |
 | `RM-DH-002` | Dayli Horse — Core Operations, Horse Governance, Production Readiness & Expansion Roadmap | ديلي هورس — خارطة العمليات الأساسية وحوكمة الخيل والجاهزية التشغيلية والتوسع | Active | PARTIALLY_RECOVERED — Historical Recovery Required | Not declared pending structured historical recovery | [`rm-dh-002-core-operations-and-expansion/`](./rm-dh-002-core-operations-and-expansion/README.md) | [`roadmap.md`](./rm-dh-002-core-operations-and-expansion/roadmap.md) |
 | `RM-DH-003` | Roadmap & Workstream Governance Foundation | تأسيس حوكمة خرائط العمل ومسارات العمل | Active | Not applicable | Phase 2 closed — next Phase not owner-approved | [`rm-dh-003-roadmap-and-workstream-governance/`](./rm-dh-003-roadmap-and-workstream-governance/README.md) | [`roadmap.md`](./rm-dh-003-roadmap-and-workstream-governance/roadmap.md) |
-| `RM-DH-004` | Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap | ديلي هورس — خارطة تثبيت الحقيقة المالية وترحيل البيانات التاريخية | ACTIVE — PHASE 0 | Not applicable | Phase 0 — Governance, Baseline & Execution Contract; current Workstream `WS-DH-2026-0003` — Economic Date Integrity; next step: Plan/Chat — Read-Only Governance Persistence Acceptance Re-Audit | [`rm-dh-004-financial-truth-historical-data-migration/`](./rm-dh-004-financial-truth-historical-data-migration/README.md) | [`roadmap.md`](./rm-dh-004-financial-truth-historical-data-migration/roadmap.md) |
+| `RM-DH-004` | Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap | ديلي هورس — خارطة تثبيت الحقيقة المالية وترحيل البيانات التاريخية | ACTIVE — PHASE 0 | Not applicable | Phase 0 — Governance, Baseline & Execution Contract; current Workstream `WS-DH-2026-0003` — Economic Date Integrity; Governance Persistence Acceptance passed and Owner Acceptance persisted; Phase advancement pending explicit Owner approval; next step: Plan/Chat — Read-Only Acceptance Persistence Verification and Phase 0 Advancement Readiness Review | [`rm-dh-004-financial-truth-historical-data-migration/`](./rm-dh-004-financial-truth-historical-data-migration/README.md) | [`roadmap.md`](./rm-dh-004-financial-truth-historical-data-migration/roadmap.md) |
 
 ## Related registries
 
