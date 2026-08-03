@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0003
 title: WS-DH-2026-0003 — Economic Date Integrity
-version: 1.0.0
+version: 1.0.1
 status: current
 audience: internal
 date: 2026-08-03
 last-verified: 2026-08-03
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 0 — Governance Persistence, under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02 and Decision DEC-RM-DH-004-001. Initial package persistence only; the Investigative Audit has not started and no financial or technical work is authorized by this file.
+source: authored during RM-DH-004 / Phase 0 — Governance Persistence, under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02 and Decision DEC-RM-DH-004-001. Initial package persistence only; the Investigative Audit has not started and no financial or technical work is authorized by this file.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04, following the passed read-only Acceptance Re-Audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03 and the explicit Owner Acceptance granted by Mohamed Nour: records the governance-package Acceptance and its persistence only. The Workstream Status remains ACTIVE — INVESTIGATIVE AUDIT PENDING and the Stage remains INVESTIGATIVE AUDIT PENDING. Governance-package Acceptance is not technical Workstream Acceptance; the Economic Date Investigative Audit has not started and no code, SQL, migration, backfill, QA, technical Acceptance or Closure is authorized or recorded.
 source-sha256: n/a
 -->
 
@@ -104,25 +104,32 @@ The twenty-eight rows were not re-audited or reinterpreted in this execution.
 |---:|---|---|
 | 1 | Roadmap classification and owner approval | Complete |
 | 2 | Workstream registration | Complete |
-| 3 | Workstream package persistence | Completed by this execution |
-| 4 | Investigative Audit | Pending |
-| 5 | Owner Alignment | Pending |
-| 6 | Agent/Build Execution | Not started |
-| 7 | QA | Not started |
-| 8 | Acceptance Re-Audit | Not started |
-| 9 | Acceptance Persistence | Not started |
-| 10 | Owner Closure | Not started |
-| 11 | Closure Persistence | Not started |
+| 3 | Workstream package persistence | Complete |
+| 4 | Governance Persistence Acceptance Re-Audit | Complete — Passed |
+| 5 | Owner Acceptance of the governance package | Complete |
+| 6 | Governance Acceptance Persistence | Complete |
+| 7 | Economic Date Investigative Audit | Pending — not started |
+| 8 | Owner Alignment on the technical contract | Pending |
+| 9 | Technical Agent/Build Execution | Not started |
+| 10 | QA | Not started |
+| 11 | Technical Acceptance Re-Audit | Not started |
+| 12 | Technical Acceptance Persistence | Not started |
+| 13 | Owner Closure | Not started |
+| 14 | Closure Persistence | Not started |
+
+Stages 1 to 6 concern the governance package only. Stages 7 to 14 concern the technical Workstream and have not begun.
 
 ## Current State
 
 - The Workstream is governance-active.
-- The package now exists.
-- The Investigative Audit has not started.
-- There is no accepted row-by-row backfill contract.
-- There is no execution.
+- The package exists, is persisted and is governance-accepted.
+- Governance-package Acceptance does **not** constitute technical Workstream Acceptance.
+- The Economic Date Investigative Audit has not started.
+- No re-audit or reinterpretation of the twenty-eight Ledger rows has occurred.
+- There is no accepted row-level or row-by-row backfill contract.
+- No code, database, migration or financial-data change has occurred.
 - There is no QA.
-- There is no Acceptance.
+- There is no technical Acceptance.
 - There is no Closure.
 
 ## File Plan
@@ -131,7 +138,9 @@ No application or database file plan is approved yet. The future Investigative A
 
 ## Validation Plan
 
-This initial package is validated only through the RM-DH-004 Governance Persistence Acceptance Re-Audit. No financial validation is performed in this persistence execution.
+The initial governance-package validation was performed through the RM-DH-004 Governance Persistence Acceptance Re-Audit, which passed. Owner Acceptance of the governance package was granted, and Acceptance Persistence has been completed.
+
+Technical validation remains entirely future work. No financial validation was performed and no financial correctness verdict has been issued for this Workstream.
 
 ## Rollback Plan
 
@@ -141,20 +150,20 @@ No financial rollback is described because no financial change is authorized.
 
 ## Final Stopping Point
 
-WS-DH-2026-0003 is ACTIVE — INVESTIGATIVE AUDIT PENDING.
+WS-DH-2026-0003 governance registration and package persistence are accepted and persisted.
 
-Its governance package has been persisted.
+The Workstream remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
 
-Its Investigative Audit has not started.
+Its Economic Date Investigative Audit has not started.
 
-No code, database, migration or financial data change has occurred.
+No technical execution, QA, technical Acceptance or Closure has occurred.
 
 ## Next Permitted Step
 
-Plan/Chat — Read-Only Governance Persistence Acceptance Re-Audit
+Plan/Chat — Read-Only Acceptance Persistence Verification and Phase 0 Advancement Readiness Review
 
-After governance-persistence Acceptance and owner approval, the next Workstream-specific step may be:
+Stated separately: after explicit Owner approval of Phase 0 advancement and any required advancement persistence, the Workstream-specific next step will be:
 
 Plan/Chat — Read-Only Economic Date Integrity Investigative Audit
 
-That audit is not started by this execution.
+That audit must not begin before those governance actions are complete, and it is not started by this execution.
