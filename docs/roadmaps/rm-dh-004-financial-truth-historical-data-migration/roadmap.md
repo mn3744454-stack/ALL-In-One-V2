@@ -285,20 +285,22 @@ Stated separately:
 |---:|---|---|
 | 1 | Owner Roadmap Creation Approval | COMPLETE |
 | 2 | ChatGPT Master Register Registration | COMPLETE |
-| 3 | Plan/Chat Governance Persistence Planning Audit | COMPLETE |
+| 3 | Governance Persistence Planning Audit | COMPLETE |
 | 4 | Owner Alignment on Persistence Scope | COMPLETE |
-| 5 | Agent/Build Governance Persistence | COMPLETE |
-| 6 | Read-Only Governance Persistence Acceptance Re-Audit | COMPLETE — PASSED |
+| 5 | Governance Persistence Execution | COMPLETE |
+| 6 | Governance Persistence Acceptance Re-Audit | COMPLETE — PASSED |
 | 7 | Owner Acceptance | COMPLETE — APPROVED BY MOHAMED NOUR |
 | 8 | Acceptance Persistence | COMPLETE |
-| 9 | Phase 0 Advancement Decision | PENDING EXPLICIT OWNER APPROVAL |
-| 10 | WS-DH-2026-0003 Economic Date Investigative Audit | NOT STARTED |
+| 9 | Acceptance Persistence Verification and Phase 0 Readiness Review | COMPLETE — VERIFIED / READY |
+| 10 | Owner Phase Advancement Decision | COMPLETE — APPROVED BY MOHAMED NOUR |
+| 11 | Phase Advancement Persistence | COMPLETE BY THIS RUN — ACCEPTANCE RE-AUDIT PENDING |
+| 12 | WS-DH-2026-0003 Economic Date Investigative Audit | NOT STARTED |
 
-Owner Acceptance, Acceptance Persistence and Phase advancement are three separate stages and must not be conflated.
+Owner Acceptance, Acceptance Persistence, Acceptance Persistence Verification, the Owner Phase advancement decision and Phase Advancement Persistence are separate stages and must not be conflated.
 
 ## Phase 0 Exit Criteria
 
-Phase 0 must not exit until all ten criteria below are satisfied.
+All ten criteria below are satisfied.
 
 | # | Criterion | State |
 |---:|---|---|
@@ -309,34 +311,41 @@ Phase 0 must not exit until all ten criteria below are satisfied.
 | 5 | the RM-DH-004 package passes a read-only Acceptance Re-Audit | Satisfied |
 | 6 | the WS-DH-2026-0003 package passes the same Re-Audit | Satisfied |
 | 7 | the owner explicitly accepts the governance persistence | Satisfied |
-| 8 | any required Acceptance Persistence is completed | Satisfied |
-| 9 | the owner explicitly approves Phase advancement | Not satisfied |
-| 10 | any required Phase advancement persistence is completed | Not satisfied |
+| 8 | any required Acceptance Persistence is completed and verified | Satisfied |
+| 9 | the owner explicitly approves Phase advancement | Satisfied |
+| 10 | any required Phase advancement persistence is completed | Satisfied |
 
-Phase 0 is **not** exited and **not** closed. Criteria 9 and 10 remain outstanding.
+Phase 0 exit requirements are satisfied by owner decision and persistence, subject only to the read-only Acceptance Re-Audit of this Phase Advancement Persistence.
 
-## Remaining Work in Phase 0
+Phase 1 technical scope is **not** accepted. No technical Acceptance and no Closure exist.
 
-1. read-only verification of this Acceptance Persistence, if required by the repository governance pattern;
-2. explicit Owner decision on Phase 0 advancement;
-3. Phase advancement persistence only if the owner approves advancement;
-4. preparation of the WS-DH-2026-0003 Economic Date Integrity Investigative Audit Prompt;
-5. no Economic Date work of any kind before those governance actions are complete.
+## Remaining Work
+
+1. read-only Phase Advancement Persistence Acceptance Re-Audit;
+2. correction of any proven Phase Advancement Persistence defects;
+3. after successful verification, preparation of the WS-DH-2026-0003 Economic Date Integrity Investigative Audit;
+4. no technical execution before that investigation and later Owner Alignment.
 
 ## Current Stopping Point
 
-RM-DH-004 Governance Persistence has passed Acceptance Re-Audit, has been explicitly accepted by the owner, and the Acceptance has been persisted.
+The owner approved RM-DH-004 advancement from Phase 0 to Phase 1, and the Phase Advancement has been persisted.
 
-RM-DH-004 remains ACTIVE — PHASE 0.
+RM-DH-004 is now ACTIVE — PHASE 1.
+
+Phase 0 governance requirements are completed, subject to read-only verification of this persistence.
 
 WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
 
-No Phase advancement, Economic Date investigation, technical execution, QA, technical Acceptance or Closure has occurred.
+The Economic Date Investigative Audit has not started.
 
 All nine Workstreams remain registered and only WS-DH-2026-0003 has a dedicated package.
 
-No application, database, migration or test work has been performed.
+No application, database, migration, financial-data, QA, technical Acceptance or Closure work has occurred.
 
 ## Next Permitted Action
 
-Plan/Chat — Read-Only Acceptance Persistence Verification and Phase 0 Advancement Readiness Review
+Plan/Chat — Read-Only Phase Advancement Persistence Acceptance Re-Audit
+
+Stated separately: after successful Phase Advancement Persistence verification, the next Workstream-specific action may be:
+
+Plan/Chat — Read-Only Economic Date Integrity Investigative Audit
