@@ -317,7 +317,7 @@ Stated separately:
 | 9 | Acceptance Persistence Verification and Phase 0 Readiness Review | COMPLETE — VERIFIED / READY |
 | 10 | Owner Phase Advancement Decision | COMPLETE — APPROVED BY MOHAMED NOUR |
 | 11 | Phase Advancement Persistence | COMPLETE BY THIS RUN — ACCEPTANCE RE-AUDIT PENDING |
-| 12 | WS-DH-2026-0003 Economic Date Investigative Audit | NOT STARTED |
+| 12 | WS-DH-2026-0003 Stage A — Economic Date Backfill | COMPLETE — OWNER ACCEPTED AND PERSISTED; VERIFICATION PENDING |
 
 Owner Acceptance, Acceptance Persistence, Acceptance Persistence Verification, the Owner Phase advancement decision and Phase Advancement Persistence are separate stages and must not be conflated.
 
