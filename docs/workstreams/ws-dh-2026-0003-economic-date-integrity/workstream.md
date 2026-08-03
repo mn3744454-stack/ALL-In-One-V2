@@ -35,10 +35,11 @@ Track:
 Track 1 — Financial Core Truth & Write Safety
 
 Current Status:
-ACTIVE — INVESTIGATIVE AUDIT PENDING
+ACTIVE — STAGE A ACCEPTED; STAGE B NOT STARTED
 
 Current Stage:
-INVESTIGATIVE AUDIT PENDING
+STAGE A ACCEPTED — ACCEPTANCE PERSISTENCE VERIFICATION PENDING
+
 
 Owner:
 Mohamed Nour
@@ -114,30 +115,40 @@ The twenty-eight rows were not re-audited or reinterpreted in this execution.
 | 7 | Acceptance Persistence Verification | Complete — Verified |
 | 8 | Owner Phase advancement decision (Phase 0 to Phase 1) | Complete — Approved |
 | 9 | Phase Advancement Persistence | Complete — Acceptance Re-Audit pending |
-| 10 | Economic Date Investigative Audit | Pending — not started |
-| 11 | Owner Alignment on the technical contract | Pending |
-| 12 | Technical Agent/Build Execution | Not started |
-| 13 | QA | Not started |
-| 14 | Technical Acceptance Re-Audit | Not started |
-| 15 | Technical Acceptance Persistence | Not started |
-| 16 | Owner Closure | Not started |
-| 17 | Closure Persistence | Not started |
+| 10 | Economic Date Investigative Audit (Stage A scope) | Complete |
+| 11 | Owner Alignment on the Stage A technical contract | Complete — Decisions D-1 to D-5 |
+| 12 | Stage A Execution — Economic Date Backfill and atomic `balance_after` recalculation | Complete |
+| 13 | Stage A Acceptance Re-Audit | Complete — Passed |
+| 14 | Stage A Owner Acceptance | Complete — Approved by Mohamed Nour |
+| 15 | Stage A Acceptance Persistence | Complete by this run — Verification pending |
+| 16 | Stage B Writer Contract Investigation | Not started |
+| 17 | Stage C Read-Path Cutover | Not started |
+| 18 | Stage D Constraint Enforcement | Not started |
+| 19 | Workstream-wide Technical Acceptance | Not complete |
+| 20 | Owner Closure | Not started |
+| 21 | Closure Persistence | Not started |
 
-Stages 1 to 9 concern governance only. Stages 10 to 17 concern the technical Workstream and have not begun.
+Stages 1 to 9 concern governance only. Stages 10 to 15 concern the bounded Stage A technical scope, which is accepted. Stages 16 to 21 have not begun.
+
+Stage A Acceptance, Workstream-wide Technical Acceptance and Workstream Closure are three distinct states and must not be conflated.
+
 
 ## Current State
 
-- The Workstream is governance-active under RM-DH-004 Phase 1.
-- The package exists, is persisted and is governance-accepted.
-- Governance-package Acceptance does **not** constitute technical Workstream Acceptance.
-- Phase 1 activation does **not** start the Economic Date Investigative Audit.
-- The Economic Date Investigative Audit has not started.
-- No re-audit or reinterpretation of the twenty-eight Ledger rows has occurred.
-- There is no accepted row-level or row-by-row backfill contract.
-- No code, database, migration or financial-data change has occurred.
-- There is no QA.
-- There is no technical Acceptance.
+- The Workstream is technically active under RM-DH-004 Phase 1, with Stage A accepted.
+- The Stage A `effective_date` correction is accepted.
+- The Stage A atomic `balance_after` recalculation is accepted.
+- The current verified population contains zero NULL `effective_date`.
+- The Stage A evidence package and rollback contract are complete.
+- The legacy direct client writer remains deferred to Stage B.
+- Statements and exports remain deferred to Stage C.
+- `NOT NULL` enforcement remains deferred to Stage D.
+- Stage A Acceptance does **not** constitute Workstream-wide Technical Acceptance.
+- Governance-package Acceptance and Stage A Acceptance are distinct events, and neither is Workstream Closure.
+- Stage A Acceptance Persistence remains subject to a separate read-only verification.
+- There is no Workstream-wide Technical Acceptance.
 - There is no Closure.
+
 
 ## File Plan
 
@@ -157,20 +168,19 @@ No financial rollback is described because no financial change is authorized.
 
 ## Final Stopping Point
 
-WS-DH-2026-0003 governance registration and package persistence are accepted and persisted, and RM-DH-004 has advanced to Phase 1 — Economic Date Integrity.
+Stage A has been executed, re-audited, Owner accepted and persisted for its bounded scope.
 
-The Workstream remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
+WS-DH-2026-0003 remains ACTIVE.
 
-Its Economic Date Investigative Audit has not started.
+Stage B, Stage C and Stage D have not started.
 
-No technical execution, QA, technical Acceptance or Closure has occurred.
+Acceptance Persistence Verification is pending.
+
+No Workstream-wide Technical Acceptance or Closure has occurred.
 
 ## Next Permitted Step
 
-Plan/Chat — Read-Only Phase Advancement Persistence Acceptance Re-Audit
+Plan/Chat — Read-Only Stage A Acceptance Persistence Verification and Stage B Readiness Review
 
-Stated separately: after successful Phase Advancement Persistence verification, the Workstream-specific next step will be:
+Stage B must not begin in that verification run, and no Writer, Statement, export or database change is authorized by this file.
 
-Plan/Chat — Read-Only Economic Date Integrity Investigative Audit
-
-That audit must not begin before that verification is complete, and it is not started by this execution.
