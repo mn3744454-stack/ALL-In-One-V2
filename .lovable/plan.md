@@ -1,242 +1,247 @@
-# RM-DH-004 — Acceptance Persistence Verification and Phase 0 Advancement Readiness Review
+# Economic Date Integrity and 28-Row Demo Backfill Contract — Mini Audit (Read-Only)
 
-Prompt ID: PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-VERIFICATION-05
-Mode: Plan/Chat — Read-Only. No repository, database, Knowledge, Skill or setting change was made.
+Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-AND-28-ROW-DEMO-BACKFILL-MINI-AUDIT-05
 
-## A. Combined Verdict
+## A. Executive Verdict
 
-1. Acceptance Persistence Verification Verdict: **ACCEPTANCE PERSISTENCE VERIFIED**
-2. Phase 0 Advancement Readiness Verdict: **PHASE 0 READY FOR EXPLICIT OWNER ADVANCEMENT DECISION**
+`READY FOR OWNER ALIGNMENT AND STAGED EXECUTION PLANNING`
+
+25 of 28 undated ledger rows have a directly verified authoritative source date. 3 rows depend on one cancellation-date policy decision. 2 of the 25 hit a server-side guard and need an explicit rule choice (still not evidence gaps).
 
 ## B. Evidence Boundary
 
-Directly verified: Git commit range, per-commit changed paths, aggregate diff, ancestry, merge-commit structure, working-tree state, frontmatter of all eight governance files, roadmap/changelog/workstream body content, registry row diffs, relative-link resolution, ID occurrence scan, workstream directory listing.
+Directly verified (live DB):
+- `ledger_entries`: 88 rows total; 28 rows with `effective_date IS NULL`.
+- Column `effective_date date`, nullable, no default, no CHECK on it.
+- Every one of the 25 payment-type NULL rows has a linked `payment_sessions` row with a non-null `payment_date` (query returned 0 rows lacking it).
+- 3 adjustment rows carry empty `metadata` and no invoice-side cancellation timestamp exists (`invoices` has only `issue_date`, `due_date`, `created_at`, `updated_at`, `payment_received_at`).
 
-Prompt 04 claims confirmed: six-file scope, six version increments, Acceptance wording, Phase 0 not advanced, WS-DH-2026-0003 unchanged in status.
+Directly verified (repository):
+- `src/hooks/clients/useClientStatement.ts` selects, filters (`gte`/`lte`) and sorts on `created_at`.
+- `src/hooks/clients/useUnallocatedPayments.ts` same pattern.
+- `src/lib/finance/effectiveDate.ts` documents `created_at` as the canonical statement date.
+- `get_client_first_financial_activity` uses `MIN(le.created_at)`.
+- `_finance_ledger_insert` requires `p_effective_date` NOT NULL (raises `FIN_LEDGER_INSERT_BAD_ARGS`), so new server-written rows cannot be NULL.
+- `post_payment` rejects `p_effective_date < invoice.issue_date` or `> today+7` (Riyadh).
 
-Inferences: none material.
+Prior claims confirmed: 88 total, 28 NULL, statements read `created_at`, chronology should move to `effective_date`.
 
-Inaccessible evidence: exact wall-clock time of the Prompt 04 owner interaction (the changelog truthfully records "Exact time not recorded"). Non-repository platform systems (Knowledge, Skills, settings, secrets, integrations) cannot be diffed; no such tool was invoked in this run and none was reported invoked by Prompt 04.
+Prior claims disproven: none.
 
-Unresolved gaps: none blocking.
+Inferences (labelled): "Demo" status of the rows is owner-asserted, not provable from the data.
 
-## C. Git Lineage and Prompt 04 Range
+Unresolved gaps: no provenance/import columns exist anywhere; no `cancelled_at` column.
 
-- Current branch: `edit/edt-b4b5642b-8a52-4924-adfe-a310b434d81d`
-- Canonical/default branch: not independently provable from the sandbox checkout; only the edit branch is present. This does not affect content verification.
-- Prompt 04 HEAD before: `a4449c679ce4a27a65d0b735176d23bba57248e6` ("Update plan")
-- Prompt 04 HEAD after: `2d570b1aa6f84af4af5a28d36c72dc5ae06d3c5a` ("Persisted Acceptance evidence")
-- Ancestry: `git merge-base --is-ancestor a4449c679 2d570b1aa` → true
-- Current HEAD: `2d570b1aa` — identical to Prompt 04 HEAD after; no later commits
-- Working tree: clean at audit start and audit end (`git status --porcelain` empty)
+## C. Current Schema and Writer Contract
 
-Commit range (author = committer timestamps, UTC):
+- Table `public.ledger_entries` — `effective_date date NULL`, no default, no CHECK, no trigger touching it.
+- Indexes referencing it: `idx_ledger_entries_tenant_effective_date` (partial, NOT NULL), `ledger_entries_effective_composite_idx (tenant_id, client_id, effective_date, created_at, id)`.
+- Writers (all `SECURITY DEFINER`): `_finance_ledger_insert` (mandatory date), used by `approve_invoice` (`issue_date`), `post_expense_with_ledger` (`expense_date`), `post_payment` / `post_payment_session`, `cancel_invoice` (`p_reversal_date`), `post_manual_ledger_adjustment`.
+- Legacy client-side writer still present: `src/hooks/finance/useLedger.ts` `createEntry` inserts into `ledger_entries` directly and never supplies `effective_date` — the only surviving NULL-producing path.
+- No view reads `effective_date`; `v_customer_ledger_balances` is amount-based.
 
-| Commit | Time (UTC) | Subject | Paths |
-|---|---|---|---|
-| `9e25cd5bf` | 2026-08-03 08:23:38 | Changes | RM-DH-004 `roadmap.md` |
-| `a9840094c` | 2026-08-03 08:24:14 | Changes | RM-DH-004 `changelog.md` |
-| `b7883aabc` | 2026-08-03 08:24:52 | Changes | WS-DH-2026-0003 `workstream.md` |
-| `5dc7d632f` | 2026-08-03 08:25:53 | Changes | `docs/README.md`, `docs/roadmaps/README.md`, `docs/workstreams/README.md` |
-| `94a3db084` | 2026-08-03 08:26:14 | Changes | `docs/README.md`, `docs/roadmaps/README.md`, `docs/workstreams/README.md` |
-| `2d570b1aa` | 2026-08-03 08:26:40 | Persisted Acceptance evidence | run-closing merge commit, parents `a4449c679` + `94a3db084`, zero additional diff |
+## D. Financial Date Consumer Inventory
 
-Run-closing commit exists (`2d570b1aa`) and introduces no content change (`git diff 94a3db084 2d570b1aa` empty).
+| Consumer | Path / object | Current date field | Purpose | Required canonical field | Risk | Change required? |
+|---|---|---|---|---|---|---|
+| Client Statement rows | `src/hooks/clients/useClientStatement.ts` | `created_at` | filter, sort, display, running balance | `effective_date` | High | Yes |
+| Statement date contract | `src/lib/finance/effectiveDate.ts` | `created_at` | canonical doc + boundary helpers | `effective_date` | High | Yes |
+| Unallocated payments | `src/hooks/clients/useUnallocatedPayments.ts` | `created_at` | filter/sort | `effective_date` | Medium | Yes |
+| First financial activity | RPC `get_client_first_financial_activity` | `MIN(created_at)` | statement anchor | `MIN(effective_date)` | High | Yes |
+| Ledger list | `src/hooks/finance/useLedger.ts` | `created_at` | ordering | `effective_date` | Medium | Yes |
+| Invoice payment summary | `src/lib/finance/fetchInvoicePaymentSummary.ts` | `effective_date` then `created_at` | payment lines, PDF disclosure | `effective_date` | Low | Already aligned |
+| Invoice PDF / Print | `src/components/finance/InvoicePDFGenerator.tsx` | `issue_date` + payment dates | document | `issue_date` (document date) | Low | No |
+| Invoice lists/cards | `useInvoices.ts`, `InvoicesList.tsx`, `InvoiceCard.tsx` | `issue_date` | document chronology | `issue_date` | Low | No |
+| Expenses | `useExpenses.ts` | `expense_date` | economic date | `expense_date` | Low | No |
+| Statement CSV/Print export | statement tab export path | inherits statement rows | export | `effective_date` | High (screen/export divergence) | Yes, same commit as statement |
+| Recording timestamps in `InvoiceDetailsSheet.tsx` | `created_at` | audit "recorded at" display | `created_at` (audit) | None | No |
 
-## D. Exact Six-Path Audit
+Excluded as non-economic: all UI/audit `created_at`/`updated_at` displays, notification timestamps, HR/lab operational dates.
 
-| Path | Status | Intended? | Commit | Result |
+## E. Canonical Economic-Date Contract
+
+| Object | Economic date | System date | Import date | Posting date | Required rule | Open question |
+|---|---|---|---|---|---|---|
+| Invoice | `issue_date` | `created_at` | none (absent) | ledger row's `effective_date` at approval | ledger invoice entry `effective_date = issue_date` | none |
+| Invoice Item | inherits invoice | `created_at` | none | n/a | no independent date | none |
+| Payment | `payment_sessions.payment_date` | `created_at` | none | ledger `effective_date` | ledger payment entry = session `payment_date` | payment earlier than invoice `issue_date` (guard) |
+| Payment Allocation | inherits parent payment | `created_at` | none | n/a | no independent date | none |
+| Ledger Entry | `effective_date` | `created_at` | none | `created_at` | must always be supplied | none |
+| Opening Obligation | not implemented | — | — | — | future: owner-supplied as-of date | deferred to import workstream |
+| Unapplied Credit | payment economic date | `created_at` | none | `created_at` | follows payment | none |
+| Adjustment | supplied `p_effective_date` | `created_at` | none | `created_at` | must be explicit | none |
+| Refund | not modelled separately | — | — | — | deferred | deferred |
+| Cancellation | policy-dependent | `created_at` | none | `created_at` | `cancel_invoice` takes `p_reversal_date` | **OWNER DECISION D-1** |
+| Historical Correction | source document date | `created_at` | absent | `created_at` | requires provenance columns | **OWNER DECISION D-3** |
+| Imported Historical Document | source date | `created_at` | absent | `created_at` | needs import infra (out of scope) | deferred |
+
+## F. Current NULL-Date Population
+
+- Total ledger rows: 88
+- NULL `effective_date`: 28 (31.8%)
+- Tenants: `348ce41c…` 21, `145f2128…` 5, `8951ac1a…` 2
+- Entry types: payment/invoice 25 (sum −17,912.58); adjustment/invoice 2 (−15,750.00); adjustment/invoice_cancellation 1 (−1,725.00)
+- All 28 rows have a non-null `client_id`.
+- `created_at` window: 2026-02-05 → 2026-07-18
+- Demo-proven: 0 rows provable from data; Demo-asserted by owner: 28. No provenance column exists to prove it, so all 28 are treated as *owner-asserted Demo*, not data-proven.
+
+## G. Complete Row-by-Row Matrix
+
+Proposed date = session `payment_date` (payments) unless flagged. Confidence High unless noted. Class `A` = `AUTO_RESOLVABLE_DIRECT_SOURCE`, `R` = `AUTO_RESOLVABLE_DETERMINISTIC_RULE`, `O` = `OWNER_DECISION_REQUIRED`.
+
+| # | Ledger ID | Type | Amount | created_at | Invoice | issue_date | Session payment_date | Proposed | Evidence | Class |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | aac917e5 | payment | −150.00 | 2026-02-05 | INV-LAB-ML3A65ZF-RMC7 | 2026-02-01 | 2026-02-05 | 2026-02-05 | payment session | A |
+| 2 | 432b5a3f | payment | −10.00 | 2026-02-05 | INV-LAB-ML3A65ZF-RMC7 | 2026-02-01 | 2026-02-05 | 2026-02-05 | payment session | A |
+| 3 | 938b39ea | payment | −120.00 | 2026-02-05 | INV-LAB-ML9XS8HS-ALTN | 2026-02-05 | 2026-02-05 | 2026-02-05 | payment session | A |
+| 4 | 1c7eb5d2 | payment | −230.00 | 2026-02-06 | INV-LAB-MLAEBDG6-J5UN | 2026-02-06 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 5 | 650edda7 | payment | −150.00 | 2026-02-06 | INV-LAB-MLADGLZY-ZAVV | 2026-02-06 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 6 | 17e217fa | payment | −150.00 | 2026-02-06 | INV-LAB-ML9XV91Q-4WPQ | 2026-02-05 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 7 | 449d1078 | payment | −120.00 | 2026-02-06 | INV-LAB-ML2IGWCM-MANH | 2026-01-31 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 8 | 2663b1d6 | payment | −30.00 | 2026-02-06 | INV-LAB-ML2IGWCM-MANH | 2026-01-31 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 9 | d99c7b9a | payment | −30.00 | 2026-02-06 | INV-LAB-ML9XS8HS-ALTN | 2026-02-05 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 10 | 66e71c13 | payment | −110.00 | 2026-02-06 | INV-LAB-ML1MMMNN-RCL0 | 2026-01-31 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 11 | c58040a8 | payment | −40.00 | 2026-02-06 | INV-LAB-ML1MMMNN-RCL0 | 2026-01-31 | 2026-02-06 | 2026-02-06 | payment session | A |
+| 12 | 3cd0f5ab | payment | −10.00 | 2026-02-08 | INV-LAB-MLE6FAHB-9URC | 2026-02-08 | 2026-02-08 | 2026-02-08 | payment session | A |
+| 13 | 4f445239 | payment | −20.00 | 2026-02-08 | INV-LAB-MLE6FAHB-9URC | 2026-02-08 | 2026-02-08 | 2026-02-08 | payment session | A |
+| 14 | 61cfe843 | payment | −45.00 | 2026-02-08 | INV-LAB-MLE6FAHB-9URC | 2026-02-08 | 2026-02-08 | 2026-02-08 | payment session | A |
+| 15 | 9cca7047 | payment | −45.00 | 2026-03-03 | INV-LAB-MMA1TFSU-JF7R | 2026-03-03 | 2026-03-03 | 2026-03-03 | payment session | A |
+| 16 | 59b9a721 | payment | −70.00 | 2026-03-03 | INV-LAB-MMA1TFSU-JF7R | 2026-03-03 | 2026-03-03 | 2026-03-03 | payment session | A |
+| 17 | 8817234c | payment | −12.00 | 2026-03-03 | INV-LAB-MMA1TFSU-JF7R | 2026-03-03 | 2026-03-03 | 2026-03-03 | payment session | A |
+| 18 | 065c7158 | payment | −85.00 | 2026-03-03 | INV-LAB-MLWQMSK5-MY4D (approved) | 2026-02-21 | 2026-03-03 | 2026-03-03 | payment session | A |
+| 19 | 03e3eee7 | payment | −95.00 | 2026-03-28 | INV-MN9GDJVA (partial) | 2026-03-27 | 2026-03-28 | 2026-03-28 | payment session | A |
+| 20 | b2dabb21 | adjustment (cancellation) | −1,725.00 | 2026-03-28 | اسط-202603-108 (cancelled) | 2026-03-28 | — | 2026-03-28 (void action date) | no cancellation-date column; description "Void" | O (D-1) |
+| 21 | b3e6f31e | adjustment | −10,000.00 | 2026-04-03 | INV-MMQ5FJ3G (cancelled) | 2026-03-14 | — | 2026-04-03 or 2026-03-14 | "Phase 6 Reconciliation: voided duplicate" | O (D-1/D-2) |
+| 22 | 92c69b2c | adjustment | −5,750.00 | 2026-04-03 | INV-MNAVS3UJ (cancelled) | 2026-03-28 | — | 2026-04-03 or 2026-03-28 | "Phase 6 Reconciliation: voided duplicate" | O (D-1/D-2) |
+| 23 | 774175c3 | payment | −700.00 | 2026-05-09 | SUL-202605-199 | 2026-05-10 | 2026-05-09 | 2026-05-09 (conflicts with guard) | payment session; **payment precedes issue_date** | O (D-4) |
+| 24 | 72913983 | payment | −250.00 | 2026-05-09 | SUL-202605-199 | 2026-05-10 | 2026-05-09 | 2026-05-09 (conflicts with guard) | payment session; **payment precedes issue_date** | O (D-4) |
+| 25 | df4629d5 | payment | −15,322.58 | 2026-06-05 | INV-MQ1HZ1SN | 2026-06-05 | 2026-06-05 | 2026-06-05 | payment session | A |
+| 26 | 46104539 | payment | −80.00 | 2026-07-18 | INV-LAB-MMA1TFSU-JF7R | 2026-03-03 | 2026-07-18 | 2026-07-18 | payment session | A |
+| 27 | 5b301cd7 | payment | −23.00 | 2026-07-18 | INV-LAB-MMA1TFSU-JF7R | 2026-03-03 | 2026-07-18 | 2026-07-18 | payment session | A |
+| 28 | 9b8b1da0 | payment | −15.00 | 2026-07-18 | الم-202607-951 | 2026-07-18 | 2026-07-18 | 2026-07-18 | payment session | A |
+
+Horse attribution is not carried on `ledger_entries`; horse context resolves only through `invoice_items` and is unaffected by a date-only correction.
+
+## H. Resolution Classification
+
+| Class | Count | Rows |
+|---|---|---|
+| AUTO_RESOLVABLE_DIRECT_SOURCE | 23 | payments with session date and no guard conflict |
+| AUTO_RESOLVABLE_DETERMINISTIC_RULE | 0 | — |
+| OWNER_DECISION_REQUIRED | 5 | 3 cancellation adjustments + 2 pre-issue payments |
+| QUARANTINE_REQUIRED | 0 | — |
+| NOT_ELIGIBLE_FOR_BACKFILL | 0 | — |
+| ALREADY_RESOLVED_OR_NO_LONGER_PRESENT | 0 | — |
+
+## I. Reconciliation and Side-Effect Analysis
+
+The correction is chronology-only. It does not touch `amount`, `balance_after` inputs, allocations, invoice status or payment status. Caveat: `_finance_ledger_insert` recomputes `balance_after` in `ORDER BY effective_date, created_at, id`. Filling NULL dates changes *ordering*, so `balance_after` per row can be re-sequenced even though the client's final balance and all amounts are unchanged. Stage A must therefore (a) reconcile `SUM(amount)` per client before/after as identical, (b) reconcile final `customer_balances.balance` as identical, and (c) accept `balance_after` re-sequencing as an intended consequence, recorded row-by-row in the rollback artifact.
+
+Currently no export hides a row: all consumers read `created_at`, which is non-null everywhere.
+
+## J. Consumer Cutover Plan
+
+1. Owner confirms the canonical contract (Section E) and decisions D-1..D-4.
+2. Preview backfill (read-only SELECT producing the before/after artifact).
+3. Execute the bounded backfill of the approved rows (Stage A).
+4. Reconcile amounts and balances.
+5. Close the NULL-producing writer: `useLedger.ts` `createEntry` (Stage B) — must be done **before** read cutover so no new NULL row can appear behind a changed read path.
+6. Cut over read paths in one change set: statement hook, `effectiveDate.ts`, unallocated payments, `get_client_first_financial_activity`, ledger list, statement CSV/Print/PDF (Stage C).
+7. QA, then add `NOT NULL` (Stage D).
+8. Acceptance re-audit.
+
+Ordering rationale: backfill precedes read cutover so no row can vanish from a date-filtered view; the writer fix precedes read cutover so the NULL population cannot regrow; screen and export change in one commit so chronology never differs between them; `NOT NULL` comes last so no live writer can be broken mid-flight.
+
+## K. Proposed Staged Agent/Build Contract (not executed)
+
+**Stage A — Date Backfill.** One migration. Scope: the 23 auto-resolvable rows plus any of the 5 approved by the owner, addressed by explicit UUID list only. Sets `effective_date` only. Emits a before/after artifact under `docs/aml_1_b_1/…`. Rollback: per-ID `UPDATE … SET effective_date = NULL`. Validation: per-client `SUM(amount)` and `customer_balances.balance` identical; NULL count drops exactly by the targeted count.
+
+**Stage B — Writer Contract.** `src/hooks/finance/useLedger.ts`: remove or reroute `createEntry` to a server RPC. No broader browser-writer/POS work. Validation: no client path inserts into `ledger_entries`.
+
+**Stage C — Read-Path Cutover.** `src/lib/finance/effectiveDate.ts`, `src/hooks/clients/useClientStatement.ts`, `src/hooks/clients/useUnallocatedPayments.ts`, `src/hooks/finance/useLedger.ts` (read), statement CSV/Print/PDF path, and RPC `get_client_first_financial_activity` (`MIN(effective_date)`). No `COALESCE` fallback. Validation: screen, CSV, Print and PDF produce identical ordered rows for a fixed range.
+
+**Stage D — Constraint Enforcement.** `ALTER TABLE public.ledger_entries ALTER COLUMN effective_date SET NOT NULL` plus a negative test. Only after Stage A leaves zero NULLs and Stage B is proven.
+
+## L. Owner Decisions
+
+| ID | Question | Options | Recommendation | Consequence of delay |
 |---|---|---|---|---|
-| `docs/roadmaps/rm-dh-004-.../roadmap.md` | Modified | Yes | `9e25cd5bf` | PASS |
-| `docs/roadmaps/rm-dh-004-.../changelog.md` | Modified | Yes | `a9840094c` | PASS |
-| `docs/workstreams/ws-dh-2026-0003-.../workstream.md` | Modified | Yes | `b7883aabc` | PASS |
-| `docs/roadmaps/README.md` | Modified | Yes | `5dc7d632f`, `94a3db084` | PASS |
-| `docs/workstreams/README.md` | Modified | Yes | `5dc7d632f`, `94a3db084` | PASS |
-| `docs/README.md` | Modified | Yes | `5dc7d632f`, `94a3db084` | PASS |
+| D-1 | Economic date of a cancellation/void entry | (a) date the void was actioned; (b) original invoice `issue_date` | (a) — a void is its own economic event; matches `cancel_invoice(p_reversal_date)` | 3 rows stay NULL, Stage D blocked |
+| D-2 | Rows 21–22 are duplicate-invoice reconciliation voids | (a) treat as normal voids under D-1; (b) separate cleanup workstream | (a) for the date; keep any duplicate-data cleanup out of scope | 2 rows stay NULL |
+| D-3 | Historical-correction backdating policy | (a) allow with provenance; (b) forbid until import infra exists | (b) — defer to the import workstream | none for this workstream |
+| D-4 | Rows 23–24: payment dated 2026-05-09 against an invoice issued 2026-05-10 | (a) keep 2026-05-09 (accepts a pre-issue payment); (b) clamp to `issue_date` 2026-05-10; (c) quarantine | (a) — the session date is the real economic event; note the `post_payment` guard applies to new writes only | 2 rows stay NULL, Stage D blocked |
 
-Expected tracked path count: 6. Actual: 6. Unexpected: 0. Missing intended: 0. `.lovable/plan.md`: not present in the Prompt 04 range (see O).
+No owner decision is required for the other 23 rows.
 
-## E. Final Eight-File Version Matrix
+## M. Rollback Contract
 
-| File | Required | Actual | Document ID | Frontmatter result | Registry synchronization |
-|---|---|---|---|---|---|
-| RM-DH-004 `README.md` | 1.0.0 | 1.0.0 | `DHB-RM-004-README` | status current, date/last-verified 2026-08-03 | matches `docs/README.md` |
-| RM-DH-004 `roadmap.md` | 1.0.1 | 1.0.1 | `DHB-RM-004-ROADMAP` | source history appended, not replaced | matches |
-| RM-DH-004 `decisions.md` | 1.0.0 | 1.0.0 | `DHB-RM-004-DECISIONS` | unchanged | matches |
-| RM-DH-004 `changelog.md` | 1.0.1 | 1.0.1 | `DHB-RM-004-CHANGELOG` | source history appended | matches |
-| WS-DH-2026-0003 `workstream.md` | 1.0.1 | 1.0.1 | `DHB-WS-2026-0003` | source history appended | matches |
-| `docs/roadmaps/README.md` | 1.1.1 | 1.1.1 | `DHB-RM-REGISTRY` | source history appended | self-cell 1.1.1 in `docs/README.md` |
-| `docs/workstreams/README.md` | 1.3.1 | 1.3.1 | `DHB-WS-REGISTRY` | source history appended | self-cell 1.3.1 in `docs/README.md` |
-| `docs/README.md` | 1.12.1 | 1.12.1 | `DHB-INDEX` | source history appended | n/a |
+Artifact per execution: batch ID, actor, execution timestamp (Asia/Riyadh), reason, and one line per affected ledger ID with `effective_date` before (NULL) and after, plus `balance_after` before and after. Reversal is a per-ID `UPDATE` restoring NULL and the prior `balance_after`. Proofs stored with the artifact: per-client `SUM(amount)` unchanged, `customer_balances.balance` unchanged, count of rows modified equals the targeted ID count, and a NULL-count check over rows created during the execution window (any new NULL row is excluded from the batch and reported).
 
-`source-sha256: n/a` on all RM-DH-004 package files, consistent with prior baseline. No version or registry mismatch.
+## N. Acceptance Criteria
 
-## F. RM-DH-004 Roadmap Verification
+Exactly the 16 criteria in the prompt's Section 15, with these measurable bindings: (1) each targeted ID shows the approved date; (2) `SELECT count(*) FROM ledger_entries WHERE id NOT IN (batch) AND xmin changed` = 0; (3) per-client `SUM(amount)` identical; (4) `customer_balances` identical; (5) zero NULLs in the accepted target class; (8)(9) statement and first-activity queries reference `effective_date` with no `COALESCE`; (10) screen/PDF/CSV/Print row order identical for a fixed range; (15) an insert without `effective_date` fails. Build or typecheck alone is not Acceptance.
 
-- Identity: `DHB-RM-004-ROADMAP` v1.0.1, RM-DH-004, `ACTIVE — PHASE 0`, `P0 — CONTROLLING FINANCE PRIORITY`. PASS.
-- Acceptance separation: Governance Persistence Acceptance `PASSED — OWNER ACCEPTED — PERSISTED`; Technical Roadmap Acceptance `NOT STARTED`; Workstream Technical Acceptance `NOT STARTED`; Closure `None`. No implication of technical or financial acceptance. PASS.
-- Stage Register: exactly ten rows, states 1–8 COMPLETE (6 = COMPLETE — PASSED, 7 = COMPLETE — APPROVED BY MOHAMED NOUR), 9 PENDING EXPLICIT OWNER APPROVAL, 10 NOT STARTED. The file also states explicitly that Owner Acceptance, Acceptance Persistence and Phase advancement are three separate stages. Stage-title wording differs cosmetically from this prompt's phrasing (row 3 "Plan/Chat Governance Persistence Planning Audit", row 5 "Agent/Build Governance Persistence"); semantics are identical. Non-blocking. PASS.
-- Exit criteria: exactly 8 of 10 satisfied; 9 and 10 not satisfied; the file states Phase 0 is not exited and not closed. PASS.
-- Remaining Work: five items limited to read-only verification, Owner advancement decision, conditional advancement persistence, later Investigative Audit preparation, and the "no Economic Date work" bar. PASS.
-- Current Stopping Point: matches the required meaning exactly. PASS.
-- Next Permitted Action: "Plan/Chat — Read-Only Acceptance Persistence Verification and Phase 0 Advancement Readiness Review". PASS.
+## O. Contradictions and Risks
 
-## G. RM-DH-004 Changelog Verification
+- Blocking: none.
+- Non-blocking: `balance_after` re-sequencing (Section I); two overlapping SELECT policies on `ledger_entries`.
+- Deferred: opening obligations, provenance/import columns, historical-correction policy.
+- Out of scope: POS atomicity, horse attribution on ledger rows, duplicate-invoice data cleanup.
 
-`DHB-RM-004-CHANGELOG` v1.0.1. The two earlier entries (Owner Approval 02:04:00+03:00, Initial Governance Package Creation 02:52:00+03:00) are byte-unchanged; one new entry is appended at the bottom, chronologically last. It records the passed Re-Audit, zero blockers, OBS-01 non-blocking and accepted without correction, explicit Owner Acceptance by Mohamed Nour, the six updated files, Phase 0 remaining ACTIVE, WS-DH-2026-0003 remaining Investigative Audit Pending, no technical/application/database/Knowledge/Skill/setting change, no Closure, advancement pending. Timestamp integrity: header uses "Exact time not recorded" — truthful and repository-compliant; no impossible timestamp. PASS.
-
-## H. WS-DH-2026-0003 Verification
-
-`DHB-WS-2026-0003` v1.0.1; Parent Roadmap RM-DH-004; Phase 1 — Economic Date Integrity; Track 1. Status `ACTIVE — INVESTIGATIVE AUDIT PENDING`, Stage `INVESTIGATIVE AUDIT PENDING`. The fourteen-row Stage History marks stages 1–6 (governance) Complete and stages 7–14 (technical) Pending/Not started, with an explicit note that stages 1–6 concern the governance package only. Current State states governance-package Acceptance is not technical Workstream Acceptance. Evidence boundary preserved: the 28-of-88 finding is retained as prior evidence, explicitly not re-audited; no accepted backfill contract; no code/database change; no financial correctness verdict. Final Stopping Point and Next Permitted Step match the required text, with the Economic Date Investigative Audit listed only as a later step gated on Owner advancement approval. PASS.
-
-## I. Registry Synchronization
-
-Roadmap registry (`DHB-RM-REGISTRY` v1.1.1): eight-column schema unchanged, source history preserved and appended, exactly one RM-DH-004 row, no duplicates. RM-DH-001/002/003 rows byte-unchanged.
-
-Before → after (RM-DH-004 Current position cell):
-
-- Before: `Phase 0 — Governance, Baseline & Execution Contract; current Workstream WS-DH-2026-0003 — Economic Date Integrity; next step: Plan/Chat — Read-Only Governance Persistence Acceptance Re-Audit`
-- After: `... Governance Persistence Acceptance passed and Owner Acceptance persisted; Phase advancement pending explicit Owner approval; next step: Plan/Chat — Read-Only Acceptance Persistence Verification and Phase 0 Advancement Readiness Review`
-
-Workstream registry (`DHB-WS-REGISTRY` v1.3.1): frozen seven-column schema unchanged; the WS-DH-2026-0003 table row is byte-unchanged (`INVESTIGATIVE AUDIT PENDING` / `ACTIVE — INVESTIGATIVE AUDIT PENDING`); only the explanatory paragraph was extended to record that the governance package is persisted, its Acceptance Re-Audit passed and Owner Acceptance is persisted, while the technical Investigative Audit has not started and the Workstream is not technically accepted. No rows exist for WS-DH-2026-0004…0011. WS-DH-2026-0002 row unchanged (`Closure persisted` / `CLOSED`).
-
-Central document registry (`DHB-INDEX` v1.12.1): registry version cells updated to `DHB-RM-REGISTRY` 1.1.1 and `DHB-WS-REGISTRY` 1.3.1; RM-DH-004 rows show README 1.0.0, ROADMAP 1.0.1, DECISIONS 1.0.0, CHANGELOG 1.0.1, WS-0003 1.0.1. All five acceptance cells moved from `Persisted — awaiting Acceptance Re-Audit` to `Governance persistence accepted and persisted — Phase 0 active` (WS row: `... — technical audit not started`). No row claims Phase 0 closed, Phase 1 entered, technical Acceptance passed, or Roadmap closed. Navigation bullets unchanged; no navigation expansion.
-
-## J. Link Validation
-
-49 relative links checked across the six modified files plus RM-DH-004 `README.md` and `decisions.md`. Broken links: 0. Malformed anchors: 0. Links to WS-DH-2026-0004…0011 packages: 0 (directory listing confirms only `ws-dh-2026-0002-...` and `ws-dh-2026-0003-...` exist).
-
-## K. ID and Duplicate Audit
-
-- `DEC-RM-DH-004-001`: authoritative definition in RM-DH-004 `decisions.md`; references only in RM-DH-004 `README.md`/`roadmap.md`, both registries and the workstream file.
-- `DHB-RM-004-ROADMAP`: defined in `roadmap.md` frontmatter; single registry reference in `docs/README.md`.
-- `DHB-WS-2026-0003`: defined in `workstream.md` frontmatter; single registry reference in `docs/README.md`.
-- Same single-definition pattern holds for `DHB-RM-004-README`, `DHB-RM-004-DECISIONS`, `DHB-RM-004-CHANGELOG`.
-- WS-DH-2026-0004…0011 appear only as register rows inside RM-DH-004 `roadmap.md` — no package, no duplicate authority.
-- Prompt 04 introduced no new decision ID, package, or duplicate registry row.
-
-## L. Unchanged-File and Prohibited-Path Audit
-
-The aggregate diff `a4449c679..2d570b1aa` contains exactly six paths, therefore proven zero change to: `src/**`, `supabase/**`, migrations, application and database tests, Edge Functions, database schema and data, `docs/CONVENTIONS.md`, RM-DH-001/002/003 packages, WS-DH-2026-0002 package, RM-DH-004 `README.md` (v1.0.0) and `decisions.md` (v1.0.0), `docs/architecture/**`, `docs/handoff/**`, `docs/historical/**`, `docs/aml_1_b_1/**`. Prompt 04 added no decision, changed no ownership boundary or cross-roadmap relationship, and duplicated no dynamic state into README.
-
-Non-repository systems (Skills, Project/Workspace Knowledge, settings, secrets, integrations) are not diffable; no corresponding tool was invoked in this run. No proof beyond that is claimed.
-
-## M. OBS-01 Boundary
-
-Unchanged. The `02:52:00+03:00` initial-package entry is byte-identical; no rewrite, no new interpretation. The new entry states only that OBS-01 was classified non-blocking and accepted without correction, which is within boundary.
-
-## N. PRE-DEF Boundary
-
-PRE-DEF-01 (stale `DHB-RM-003-DECISIONS` status cell) unchanged. PRE-DEF-02 (RM-DH-001 / RM-DH-002 status cells) unchanged. Neither corrected nor worsened; no unrelated registry hygiene change occurred.
-
-## O. `.lovable/plan.md` Disclosure
-
-`.lovable/plan.md` is tracked. Its last commit before the Prompt 04 range is `a3c9471be`, which precedes the range baseline `a4449c679`. It does not appear in any Prompt 04 commit and is not part of the six-file diff. This read-only run writes this report to `.lovable/plan.md`, which is the platform-generated planning-artifact exception under `docs/CONVENTIONS.md` §11.10 (DEC-RM-DH-003-004); it is not Acceptance Persistence, implementation, technical evidence, an intended audit path, or proof about other paths. No other `.lovable/**` path is tracked.
-
-## P. Acceptance Persistence Blockers
-
-None.
-
-## Q. Phase 0 Readiness Analysis
-
-| # | Readiness condition | Result | Evidence |
-|---:|---|---|---|
-| 1 | Roadmap creation approved | PASS | `roadmap.md` Owner Approval 03-08-2026 02:04 |
-| 2 | Registered in ChatGPT governance | PASS (reported) | Stage Register row 2 COMPLETE |
-| 3 | Governance Persistence planning completed | PASS | Stage Register row 3 |
-| 4 | Persistence scope aligned with owner | PASS | Stage Register row 4 |
-| 5 | Package execution completed | PASS | 8-file package present, versions correct |
-| 6 | Acceptance Re-Audit passed | PASS | changelog entry; `PASSED` state |
-| 7 | Owner Acceptance explicitly granted | PASS | Stage Register row 7 |
-| 8 | Acceptance Persistence completed | PASS | six-file Git range |
-| 9 | Independently verified by this run | PASS | Sections C–N |
-| 10 | No unresolved governance blocker | PASS | Section P |
-| 11 | Phase 0 remains active | PASS | `ACTIVE — PHASE 0` |
-| 12 | WS-0003 Active — Investigative Audit Pending | PASS | workstream + registry |
-| 13 | No premature technical work | PASS | zero `src/**`, `supabase/**` changes |
-| 14 | Next owner decision statable | PASS | Section R |
-| 15 | Advancement persistable separately | PASS | criteria 9 and 10 outstanding |
-
-Phase 0 is ready only for the owner's decision. Phase 0 has not advanced. No repository change occurred in this run. If the owner approves, a separate Agent/Build Phase Advancement Persistence Prompt is required; the Economic Date Investigative Audit stays blocked until that persistence completes.
-
-## R. Owner Advancement Decision Contract
-
-Option A — Approve Advancement: advance RM-DH-004 from Phase 0 to Phase 1 — Economic Date Integrity; keep WS-DH-2026-0003 ACTIVE — INVESTIGATIVE AUDIT PENDING; authorize Phase Advancement Persistence only; do not start the Economic Date audit in the same run.
-
-Option B — Keep Phase 0 Active: do not advance; state the reason or hold condition; preserve all current states; no technical work starts.
-
-The decision is the owner's and is not made here.
-
-## S. WORKSTREAM PERSISTENCE
+## P. WORKSTREAM PERSISTENCE
 
 WORKSTREAM PERSISTENCE:
-WS-DH-2026-0003 governance-package Acceptance is verified as persisted.
-The Workstream remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
-No Economic Date Investigative Audit, technical execution, QA, technical Acceptance or Closure occurred.
+NONE — READ-ONLY MINI AUDIT ONLY.
+WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING until the owner reviews this report.
+No execution, QA, Acceptance or Closure occurred.
 
-## T. ROADMAP IMPACT
+## Q. ROADMAP IMPACT
 
 ROADMAP IMPACT:
-RM-DH-004 Governance Persistence Acceptance is verified as persisted.
-RM-DH-004 remains ACTIVE — PHASE 0.
-Phase 0 has not advanced.
-All nine Workstreams remain registered.
-Only WS-DH-2026-0003 has a dedicated package.
-No technical Roadmap Acceptance or Closure occurred.
-
-## U. Recommended Next Step
-
-Obtain the explicit Owner decision on RM-DH-004 / Phase 0 advancement (Option A or Option B). Not performed here; Phase not advanced; Economic Date audit not started.
+RM-DH-004 remains ACTIVE — PHASE 1.
+No Phase advancement, technical execution, Acceptance or Closure occurred in this run.
 
 ## RUN METADATA AND EXACT STOPPING POINT
 
-1. Mode: Plan/Chat — Read-Only
-2. Operation: Acceptance Persistence Verification and Phase 0 Advancement Readiness Review
-3. Prompt ID: PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-VERIFICATION-05
-4. Prompt status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED (now run)
-5. Prompt Preparation Date: 03-08-2026
-6. Prompt Preparation Time: 11:31
-7. Prompt Preparation Timezone: Asia/Riyadh — UTC+03:00
-8. Run Start Date and Time: 2026-08-03 ~08:35 UTC (11:35 Asia/Riyadh)
-9. First evidenced activity: `git log`/`git status` repository state read
-10. Run End Date and Time: 2026-08-03 — exact time not recorded
-11. Last evidenced activity: writing this report to `.lovable/plan.md`
-12. Final Report Date and Time: 2026-08-03 — exact time not recorded
-13. Timestamp evidence source: Git author/committer timestamps and platform message time
-14. Current branch: `edit/edt-b4b5642b-8a52-4924-adfe-a310b434d81d`
-15. Prompt 04 execution branch: same branch (only branch present); not independently provable beyond this checkout
-16. Canonical/default branch evidence: not available in this checkout
-17. Prompt 04 HEAD before: `a4449c679`
-18. Prompt 04 HEAD after: `2d570b1aa`
-19. Current HEAD: `2d570b1aa`
-20. Ancestry verification: `a4449c679` is an ancestor of `2d570b1aa` — confirmed
-21. Working Tree at audit start: clean
-22. Working Tree at audit end: clean except the platform-generated `.lovable/plan.md`
-23. Staged paths at start and end: none
-24. Unstaged paths at start: none; at end: `.lovable/plan.md` (platform-generated)
-25. Untracked paths at start and end: none
-26. Repository paths read: the eight RM-DH-004 governance files, `docs/README.md`, `docs/roadmaps/README.md`, `docs/workstreams/README.md`, `docs/workstreams/` listing
-27. Git commands executed: `log`, `branch --show-current`, `status --porcelain`, `rev-parse`, `diff`, `merge-base --is-ancestor`, `show --stat`, `ls-files`
-28. Validation commands executed: link-resolution loop, frontmatter grep, ID occurrence scan
-29. Database queries executed: none
-30. Intended audit changes: zero
-31. Actual intentional repository changes: zero
-32. Platform-generated `.lovable/plan.md` disclosure: this report was written to `.lovable/plan.md` under the §11.10 exception
-33. Application changes: zero
-34. Database changes: zero
-35. Migration changes: zero
-36. Test changes: zero
-37. Project Knowledge changes: zero
-38. Workspace Knowledge changes: zero
-39. Skill changes: zero
-40. Settings changes: zero
-41. Acceptance Persistence verdict: ACCEPTANCE PERSISTENCE VERIFIED
-42. Phase 0 readiness verdict: PHASE 0 READY FOR EXPLICIT OWNER ADVANCEMENT DECISION
-43. Owner Phase advancement decision: not performed
-44. Phase advancement persistence: not performed
-45. Economic Date Investigative Audit: not started
-46. Technical Acceptance: none
-47. Closure: none
-48. Exact stopping point: Acceptance Persistence verified and Phase 0 ready for an explicit Owner advancement decision
-49. One recommended next step: obtain the explicit Owner Phase 0 advancement decision (Option A or Option B)
-50. Recommended next Mode: Owner decision, then Agent/Build only if Option A is approved
+1. Mode: Plan/Chat — Read-Only.
+2. Operation: Economic Date Consumer Audit and 28-Row Demo Backfill Contract Mini Audit.
+3. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-AND-28-ROW-DEMO-BACKFILL-MINI-AUDIT-05.
+4. Prompt status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED.
+5. Prompt Preparation Date: 03-08-2026.
+6. Prompt Preparation Time: 11:57.
+7. Timezone: Asia/Riyadh (UTC+03:00).
+8. Run Start: 03-08-2026 12:02 (+03:00), from the message send time 09:02 UTC.
+9. First evidenced activity: ledger row-count and `\d ledger_entries` query.
+10. Run End: Exact time not recorded.
+11. Last evidenced activity: adjustment-row metadata and invoice date-column query.
+12. Final Report Date and Time: Exact time not recorded.
+13. Timestamp evidence source: platform-supplied message send time; all others Exact time not recorded.
+14. Branch: current edit branch.
+15. Canonical/default branch evidence: not queried this run.
+16. HEAD before: not queried this run.
+17. HEAD after: unchanged (no source commits).
+18. Working Tree before: not queried this run.
+19. Working Tree after: only `.lovable/plan.md`.
+20.–22. Staged / unstaged / untracked paths: not queried; no source path staged or created by this run.
+23. Repository paths read: `src/hooks/clients/useClientStatement.ts`, `src/hooks/clients/useUnallocatedPayments.ts`, `src/lib/finance/effectiveDate.ts`, `src/lib/finance/postLedgerForPayments.ts`, `src/lib/finance/postPaymentSession.ts`, `src/hooks/finance/useLedger.ts`, `src/lib/finance/fetchInvoicePaymentSummary.ts`, `docs/aml_1_b_1/stage_j5_1/preflight/*`, migration index via ripgrep.
+24. Database queries executed: 11 read-only SELECT / `\d` statements.
+25. Database role used: the sandbox managed Postgres role.
+26. Rows read: 88 ledger rows plus related invoices, payment sessions, catalog rows.
+27. Intended repository changes: zero.
+28. Actual intentional repository changes: zero.
+29. Database changes: zero.
+30. Migration changes: zero.
+31. Project Knowledge changes: zero.
+32. Workspace Knowledge changes: zero.
+33. Skill changes: zero.
+34. Settings changes: zero.
+35. `.lovable/plan.md` disclosure: written by Plan Mode to hold this report; it is a platform planning artifact under DEC-RM-DH-003-004 and is not a governance or application change.
+36. Current Ledger-row count: 88.
+37. Current NULL `effective_date` count: 28.
+38. Workstream status: ACTIVE — INVESTIGATIVE AUDIT PENDING.
+39. Roadmap phase: RM-DH-004 / Phase 1.
+40. Acceptance: none.
+41. Closure: none.
+42. Exact stopping point: Economic Date consumers and the current NULL-date population have been investigated read-only. The row-by-row correction contract, Owner decisions, staged execution plan, rollback and Acceptance criteria have been reported. No code, database, migration or financial-data change has occurred.
+43. Recommended next step: owner rules on D-1, D-2 and D-4, then authorize Stage A preview.
+44. Recommended next Mode: Plan/Chat — Read-Only (Stage A backfill preview), then Agent/Build.
