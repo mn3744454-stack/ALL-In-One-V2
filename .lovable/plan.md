@@ -1,154 +1,129 @@
-# Stage B — pg_temp Security-Definer Safety and Final Migration/Rollback Correction Audit
+# Stage B — Final Proconfig Assertion and Migration Executability Closure Audit
 
-Prompt: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-PG-TEMP-HELPER-SAFETY-AND-FINAL-MIGRATION-ROLLBACK-CORRECTION-AUDIT-14
+Prompt: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-PROCONFIG-ASSERTION-AND-MIGRATION-EXECUTABILITY-CLOSURE-AUDIT-15
 Mode: Plan/Chat — Read-Only. Repository changes zero. Database changes zero.
 
 ## A. Combined Verdicts
 
-1. Temporary-Schema Safety: `TEMPORARY-SCHEMA CORRECTION REQUIRED`
-2. Helper Contract: `SECURITY DEFINER HELPER CONTRACT CLOSED` (closed with the single bounded correction in §K)
-3. Forward Migration: `FINAL FORWARD MIGRATION CONTRACT COMPLETE`
-4. Rollback: `FINAL ROLLBACK CONTRACT COMPLETE AND EXECUTABLE`
+1. Proconfig: `FINAL PROCONFIG ASSERTION CONTRACT CLOSED`
+2. Policy Contract: `EXACT POLICY PRECONDITION AND ROLLBACK CONTRACT CLOSED`
+3. Forward Migration: `FINAL FORWARD MIGRATION SQL EXECUTABLE`
+4. Rollback: `FINAL ROLLBACK SQL EXECUTABLE`
 5. Stage B: `STAGE B READY FOR AGENT/BUILD EXECUTION PROMPT`
 
 ## B. Roadmap and Workstream State
 
 RM-DH-004 ACTIVE — PHASE 1. WS-DH-2026-0003 ACTIVE; Stage A accepted, persisted, verified. Stage B not started. Stage C and Stage D not started. WS-DH-2026-0005 DEFERRED.
 
-## C. Prompt-13 Findings Preserved
+## C. Prompt-14 Findings Preserved
 
-PostgreSQL 17.6. `arwdDxtm` = SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN. Zero column-level ACLs on `ledger_entries` and `customer_balances`. No role memberships for `anon`, `authenticated`, `service_role`. No PUBLIC entry in either table's `relacl`. Table strategy: REVOKE ALL from browser roles and PUBLIC, then GRANT SELECT only. `public` schema grants USAGE but not CREATE to browser roles. All canonical finance RPCs are SECURITY DEFINER, owned by `postgres`, `search_path=""`. The Prompt-12 application cutover, POS coming-soon and Deferred Items contracts are preserved unchanged.
+PostgreSQL 17.6. TEMP granted to PUBLIC (`datacl` contains `=Tc/postgres`); `anon`, `authenticated`, `service_role` all return `true` for `has_database_privilege(..., 'TEMP')`. `has_permission(uuid,uuid,text)` oid 47231, SECURITY DEFINER, owner `postgres`, `proconfig` currently `{search_path=public}`, six unqualified relation references. Approved bounded correction: `SET search_path = public, pg_temp`, no body replacement. Eleven exact function identities confirmed. Seven-policy current RLS set. SELECT-only table strategy. `create_pos_sale` executable by anon + authenticated, not by PUBLIC. Application, POS and Deferred Items contracts preserved.
 
-## D. Prompt-13 Findings Rejected or Corrected
+## D. Proconfig Serialization Evidence
 
-All six correction points are upheld by evidence.
+Read-only evaluations, session-local only.
 
-1. **Rejected: "omitting `pg_temp` prevents temporary-schema shadowing."** The opposite is true. When `pg_temp` is not named in `search_path`, PostgreSQL still searches the session's temporary schema **first** for relations and data types. The Prompt-13 §I verdict `PUBLIC-SCHEMA HELPER SAFETY VERIFIED` is therefore withdrawn.
-2. **Confirmed:** `has_permission(uuid,uuid,text)` is SECURITY DEFINER (oid 47231), `proconfig = search_path=public`, `proacl` contains the PUBLIC entry `=X/postgres`, and its body references `tenant_members`, `member_permissions`, `tenant_role_permissions`, `tenant_role_bundles`, `bundle_permissions`, `member_permission_bundles` unqualified.
-3. **Confirmed and now measured:** TEMP is granted to PUBLIC on this database (`datacl` contains `=Tc/postgres`), so every browser role can create temporary relations. §E.
-4. **Confirmed:** the true total is **seven** policies, not eight. §I.
-5. **Confirmed:** Prompt-13 preconditions did not assert exact signatures. Corrected in §L via `to_regprocedure` plus a uniqueness check.
-6. **Confirmed:** PUBLIC EXECUTE on `create_pos_sale` was never asserted. Corrected in §L via a direct `proacl` grantee-0 check.
-
-Prompt-13's table-privilege strategy, column-ACL finding and application scope are **not** corrected — they stand.
-
-## E. Database TEMP Privilege Matrix
-
-Database: `postgres`. Owner: `postgres`. `datacl` = `{=Tc/postgres, postgres=CTc/postgres, supabase_etl_admin=C/postgres, supabase_storage_admin=C/postgres, dashboard_user=CTc/postgres, sandbox_exec_vhxglsvxwwpmoqjabfmj=c/postgres, sandbox_exec=c/postgres}`.
-
-| Role | TEMP privilege | Source | Can create temporary relations? | Security implication |
+| Source | Raw `proconfig` (array display) | Unnested element (`quote_literal`) | `array_to_string(...,'|')` | Meaning |
 |---|---|---|---|---|
-| PUBLIC | **Yes** (`=Tc`) | explicit PUBLIC grant in `datacl` | Yes | every role, including browser roles, may create temp relations |
-| anon | **Yes** (`has_database_privilege = t`) | inherited from PUBLIC grant | Yes | can create `pg_temp.tenant_members` |
-| authenticated | **Yes** (`t`) | inherited from PUBLIC grant | Yes | can create `pg_temp.tenant_members` |
-| service_role | **Yes** (`t`) | inherited from PUBLIC grant | Yes | trusted server role; not a browser surface |
-| postgres | Yes (`t`) | superuser / owner (`CTc`) | Yes | trusted |
+| Literal `ARRAY['search_path=public, pg_temp']::text[]` | `{"search_path=public, pg_temp"}` | — | `search_path=public, pg_temp` | quotes are array **display** only |
+| `public.complete_local_horse_record(uuid,uuid,jsonb)` (existing function already set to `public, pg_temp`) | `{"search_path=public, pg_temp"}` | — | `search_path=public, pg_temp` | element value contains **no** quote characters |
+| `public.has_permission(uuid,uuid,text)` | `{search_path=public}` | `'search_path=public'` | `search_path=public` | current helper state |
+| `public.is_tenant_member(uuid,uuid)` | `{search_path=public}` | `'search_path=public'` | `search_path=public` | current helper state |
+| `public.approve_invoice(uuid,uuid,uuid)` (empty search_path) | `{"search_path=\"\""}` | `'search_path=""'` | `search_path=""` | here the quotes **are** part of the value |
 
-Revoking TEMP from PUBLIC is **not** proposed: it is a database-level change on a Supabase-managed database, PostgREST and pooled sessions may rely on it, and it is far broader than the defect. The bounded helper correction in §K neutralises the risk without touching database-level privileges.
+Determination: after `ALTER FUNCTION … SET search_path = public, pg_temp`, the stored element is exactly
 
-## F. PostgreSQL Temporary-Schema Resolution Analysis
+```
+search_path=public, pg_temp
+```
 
-- PostgreSQL 17 searches the active temporary schema **implicitly first** for **relations and data types** when `pg_temp` is not written in `search_path`. Writing `pg_temp` explicitly is the only way to control its position; placing it last demotes it below `public`.
-- **Functions and operators are different**: they are never resolved from the temporary schema unless `pg_temp` is explicitly listed. So `has_permission`'s calls to built-in operators and `EXISTS` are safe regardless.
-- Consequence for `search_path = public`: the six unqualified **relation** references inside `has_permission` are shadowable by a temporary table created in the caller's session.
-- `is_tenant_member` and `is_active_tenant_member` reference `public.tenant_members` **schema-qualified**, so they are immune.
-- Binding time: `has_permission` is PL/pgSQL, so its SQL statements are parsed and planned at first execution in a session and cached per session. A temp table created *before* the first call in that session resolves first and is captured in the cached plan; a temp table created *after* triggers plan invalidation and re-resolution. Neither ordering rescues the function — caching does not change the conclusion.
-- Exploit shape, for completeness: an authenticated caller creates `CREATE TEMP TABLE tenant_members(...)` populated with a forged active `owner` row for an arbitrary `tenant_id`, then performs any RLS-gated write whose policy calls `has_permission`. Because the function is SECURITY DEFINER and returns `true` on the forged `owner` row before any other check, it grants cross-tenant write authority. This is a real, currently-reachable privilege-escalation path.
+— no surrounding double quotes in the value. The `{"…"}` in array display is PostgreSQL array-literal quoting triggered by the comma and space, not stored data. This is proven by four other existing project functions (`_trg_lock_horse_owner_tenant_change`, `_provision_stable_local_record_permissions`, `_trg_provision_stable_local_record_permissions`, `complete_local_horse_record`, `_lock_horse_authority_scope`) that already carry this exact configuration and whose unnested element joins to the unquoted string.
 
-Verdict: `TEMPORARY-SCHEMA CORRECTION REQUIRED`.
+The empty-search-path case is different and confirms the rule: `SET search_path = ''` stores the literal two-character quoted empty value `""`, which is why the existing pgTAP suites correctly compare against `'search_path=""'`.
 
-## G. Helper Ownership, Body and search_path Matrix
+`set_config('search_path','public, pg_temp',true)` round-trips through `current_setting` as `public, pg_temp`, confirming the ordered two-element resolution with `public` first.
 
-| Helper | oid | Owner | SECDEF | Full search_path | PUBLIC EXECUTE | Unqualified relations | Unqualified types / functions / operators | Temp-shadow risk | Required correction |
-|---|---|---|---|---|---|---|---|---|---|
-| `has_permission(uuid,uuid,text)` | 47231 | postgres | Yes | `search_path=public` | Yes (`=X/postgres`) | `tenant_members`, `member_permissions`, `tenant_role_permissions`, `tenant_role_bundles`, `bundle_permissions`, `member_permission_bundles` | none (built-ins only; functions/operators are not temp-resolved) | **HIGH** | add `pg_temp` last |
-| `is_tenant_member(uuid,uuid)` | 17622 | postgres | Yes | `search_path=public` | Yes | none — `public.tenant_members` qualified | none | None | add `pg_temp` last (defence in depth) |
-| `is_active_tenant_member(uuid,uuid)` | 66253 | postgres | Yes | `search_path=public` | Yes | none — `public.tenant_members` qualified | none | None | add `pg_temp` last (defence in depth) |
+## E. Prompt-14 Q7 Evaluation
 
-Per-reference detail for `has_permission` — every one of the six relations has intended schema `public`, would be resolved from `pg_temp` first under the current setting, is inside a PL/pgSQL body, is planned at execution time with per-session caching, and is fixed by the §K correction with no body change:
+Verdict: `PROMPT-14 Q7 FAILS`.
 
-| Reference | Intended schema | Temp resolves first today? | Language | Binding | Cached-plan effect |
+Prompt-14 asserted:
+
+```
+array_to_string(p.proconfig,'|') = 'search_path="public, pg_temp"'
+```
+
+Actual post-ALTER value: `search_path=public, pg_temp`
+Prompt-14 expected value: `search_path="public, pg_temp"`
+
+Character-by-character difference: both strings agree through the twelfth character `search_path=`. At position 13 the actual value has `p` (start of `public`) while the expected value has `"` (U+0022). The expected string also carries a second `"` at its final position, immediately after `pg_temp`. The actual value is 25 characters; the expected is 27. Two extra quote characters, at offsets 13 and 27.
+
+Consequence had it shipped: Q7 raises `STAGE_B_POST_HELPER_SEARCH_PATH_NOT_HARDENED` after a successful `ALTER FUNCTION`, aborting the entire Stage B migration transaction and rolling back every privilege, policy and comment change. The migration would have been unrunnable. This is corrected in §F and folded into §I.
+
+## F. Final Robust Helper Assertion
+
+Key-based, display-quoting-independent, whitespace-normalised, order-sensitive. Rejects `pg_temp, public`, bare `public`, a missing setting, caller-controlled search_path and any extra schema.
+
+Forward postcondition — all three helpers must equal `public,pg_temp` after normalisation:
+
+```sql
+IF (
+  SELECT count(*)
+  FROM pg_proc p
+  WHERE p.oid = ANY (ARRAY[
+          to_regprocedure('public.has_permission(uuid,uuid,text)'),
+          to_regprocedure('public.is_tenant_member(uuid,uuid)'),
+          to_regprocedure('public.is_active_tenant_member(uuid,uuid)')])
+    AND EXISTS (
+      SELECT 1
+      FROM unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+      WHERE split_part(cfg, '=', 1) = 'search_path'
+        AND replace(replace(substr(cfg, length('search_path=') + 1), '"', ''), ' ', '')
+            = 'public,pg_temp'
+    )
+) <> 3 THEN
+  RAISE EXCEPTION 'STAGE_B_POST_HELPER_SEARCH_PATH_NOT_HARDENED';
+END IF;
+```
+
+Notes on robustness: `substr(cfg, 13)` is used rather than `split_part(cfg,'=',2)` so a value that itself contained `=` could not be truncated; `replace` of `"` tolerates any future quoting; `replace` of spaces tolerates `public,pg_temp` and `public, pg_temp` alike; string equality against the full normalised value rejects `public,pg_temp,extra` and `pg_temp,public`.
+
+Rollback verification uses the identical method against `public`:
+
+```sql
+AND replace(replace(substr(cfg, length('search_path=') + 1), '"', ''), ' ', '') = 'public'
+```
+
+No `array_to_string` array-literal comparison remains anywhere in either script.
+
+## G. Exact Seven-Policy Matrix
+
+All seven are PERMISSIVE and role-unrestricted (`polroles` empty ⇒ PUBLIC). Expressions below are `pg_get_expr` normalised output.
+
+| Table | Name | Cmd | Roles | Normalized USING | Normalized WITH CHECK |
 |---|---|---|---|---|---|
-| `tenant_members` | public | Yes | PL/pgSQL | execution-time | none material |
-| `member_permissions` | public | Yes | PL/pgSQL | execution-time | none material |
-| `tenant_role_permissions` | public | Yes | PL/pgSQL | execution-time | none material |
-| `tenant_role_bundles` | public | Yes | PL/pgSQL | execution-time | none material |
-| `bundle_permissions` (×2 joins) | public | Yes | PL/pgSQL | execution-time | none material |
-| `member_permission_bundles` | public | Yes | PL/pgSQL | execution-time | none material |
+| customer_balances | Permission-based delete customer balances | `d` | PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | — |
+| customer_balances | Permission-based insert customer balances | `a` | PUBLIC | — | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
+| customer_balances | Permission-based update customer balances | `w` | PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
+| customer_balances | Tenant members can view balances | `r` | PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | — |
+| ledger_entries | Permission-based insert ledger entries | `a` | PUBLIC | — | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
+| ledger_entries | Tenant members can view ledger | `r` | PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | — |
+| ledger_entries | Tenant members can view ledger entries | `r` | PUBLIC | `(EXISTS ( SELECT 1`⏎`   FROM tenant_members tm`⏎`  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))` | — |
 
-## H. Exact Function-Identity Matrix
+## H. Final Policy Preconditions and Postconditions
 
-All resolved by `to_regprocedure` with exact argument-type vectors; each `proname` occurs exactly once in `public` (zero overload drift).
+Verification is by **stable fingerprint** rather than count, name list or substring matching. The fingerprint is `md5` over `relname|polname|polcmd|USING|WITH CHECK`, newline-joined, ordered by `relname||polname`, restricted to the two tables. Roles and permissiveness are asserted separately because they are not in the fingerprint.
 
-| Exact signature | oid | Exists | Unique | Owner | SECDEF | proconfig | EXECUTE ACL (excluding platform sandbox roles) |
-|---|---|---|---|---|---|---|---|
-| `public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)` | 157845 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, service_role |
-| `public.post_expense_with_ledger(uuid,uuid,uuid)` | 157951 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, authenticated, service_role |
-| `public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)` | 157946 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, authenticated, service_role |
-| `public.post_payment_session(uuid,uuid,jsonb)` | 161749 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, authenticated, service_role |
-| `public.approve_invoice(uuid,uuid,uuid)` | 157859 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, authenticated, service_role |
-| `public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)` | 157953 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, authenticated, service_role |
-| `public.create_source_checkout_invoice(uuid,uuid,jsonb)` | 159316 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, authenticated, service_role |
-| `public.create_pos_sale(uuid,uuid,jsonb)` | 159321 | Yes | Yes | postgres | Yes | `search_path=""` | postgres, **anon**, **authenticated**, service_role |
-| `public.has_permission(uuid,uuid,text)` | 47231 | Yes | Yes | postgres | Yes | `search_path=public` | **PUBLIC**, postgres, anon, authenticated, service_role |
-| `public.is_tenant_member(uuid,uuid)` | 17622 | Yes | Yes | postgres | Yes | `search_path=public` | **PUBLIC**, postgres, anon, authenticated, service_role |
-| `public.is_active_tenant_member(uuid,uuid)` | 66253 | Yes | Yes | postgres | Yes | `search_path=public` | **PUBLIC**, postgres, anon, authenticated, service_role |
+Measured values (read-only, this run):
 
-No body hash is asserted in the migration: bodies change legitimately across unrelated migrations, and identity plus `prosecdef`/`proconfig`/owner is the stable contract.
+- Pre-Stage-B full set (7 policies): `44770e308a526915fb301bc951601450`
+- Post-Stage-B expected set (3 read policies, `polcmd = 'r'`): `3244bb93d2e6b0594e322d4d26f796d6`
 
-## I. Exact Current RLS Policy Set
+The forward migration asserts the first before, the second after. The rollback asserts the first again at the end. A single character of drift in any policy name, command, USING or WITH CHECK expression, or the presence of any unexpected extra policy, changes the fingerprint and aborts. Role restriction and permissiveness are asserted with a separate `bool_and(polroles IS NULL OR cardinality(polroles) = 0)` and `bool_and(polpermissive)` check.
 
-Independently re-derived from `pg_policy`. Total = **7** (three on `ledger_entries`, four on `customer_balances`). Prompt-13's total-of-eight assertion is wrong; the correct named set is below. All policies are role-unrestricted (`polroles` = PUBLIC), i.e. they apply to whichever role holds the table privilege.
+## I. Final Exact Forward Migration SQL
 
-| Table | Policy name | Command | Roles | USING | WITH CHECK |
-|---|---|---|---|---|---|
-| ledger_entries | Permission-based insert ledger entries | INSERT (`a`) | PUBLIC | — | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
-| ledger_entries | Tenant members can view ledger | SELECT (`r`) | PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | — |
-| ledger_entries | Tenant members can view ledger entries | SELECT (`r`) | PUBLIC | `EXISTS (SELECT 1 FROM tenant_members tm WHERE tm.tenant_id = ledger_entries.tenant_id AND tm.user_id = auth.uid() AND tm.is_active = true)` | — |
-| customer_balances | Permission-based insert customer balances | INSERT (`a`) | PUBLIC | — | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
-| customer_balances | Permission-based update customer balances | UPDATE (`w`) | PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
-| customer_balances | Permission-based delete customer balances | DELETE (`d`) | PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | — |
-| customer_balances | Tenant members can view balances | SELECT (`r`) | PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | — |
-
-Post-Stage-B expected set: the same 7 minus the 4 write policies = **3 read policies**. Rollback restores the 4 write policies, returning exactly the 7 named above. The duplicate `ledger_entries` SELECT policy is pre-existing, harmless (policies OR together) and explicitly out of scope — noted in §P.
-
-Neither table currently carries a table comment (`obj_description` is NULL on both), which the migration asserts as a precondition and the rollback restores.
-
-## J. Effective `create_pos_sale` EXECUTE Matrix
-
-`proacl` = `{postgres=X/postgres, anon=X/postgres, authenticated=X/postgres, service_role=X/postgres, sandbox_exec…=X/postgres}`.
-
-| Grantee | EXECUTE today | Source | Required after Stage B |
-|---|---|---|---|
-| PUBLIC (grantee oid 0) | **No** — no `=X` entry present | non-null `proacl` without PUBLIC entry | No |
-| anon | **Yes** | explicit grant | **No — revoke** |
-| authenticated | **Yes** | explicit grant | **No — revoke** |
-| service_role | Yes | explicit grant | Yes — retain |
-| postgres | Yes | owner | Yes — retain |
-| inherited roles | none exist (`pg_auth_members` empty for browser roles) | — | — |
-
-Because PUBLIC currently holds nothing, `REVOKE … FROM PUBLIC` is a no-op safeguard; the forward migration asserts the PUBLIC-cannot-execute postcondition directly against `proacl`, and the rollback restores exactly anon + authenticated and nothing more.
-
-## K. Single Recommended Helper Strategy
-
-Recommendation: **`SET search_path = public, pg_temp`** — applied to all three helpers, via `ALTER FUNCTION … SET search_path`, with **no body replacement**.
-
-Why it is the smallest safe correction: naming `pg_temp` explicitly places the temporary schema **last**, so `public.tenant_members` and its five siblings always win over any forged temp relation. It is a single catalog attribute change per function, it does not recompile or rewrite any body, it cannot introduce a logic regression, and it is exactly reversible with one statement.
-
-Why the alternatives were rejected:
-- `SET search_path = '' AND SCHEMA-QUALIFY ALL REFERENCES` — equally safe but requires replacing the full `has_permission` body. That function is the evaluation core of essentially every RLS policy in the database; rewriting it inside the Stage B financial-authority migration multiplies blast radius for no additional security. Recorded as an optional later hygiene item, not Stage B.
-- `NO HELPER CHANGE REQUIRED` — refuted by §E and §F: TEMP is granted to PUBLIC and unqualified relations resolve from `pg_temp` first.
-- `INSUFFICIENT EVIDENCE` — refuted; the privilege, the `proconfig` and the unqualified references are all directly observed.
-
-Impact on dependent RLS policies: none functionally. `public` remains first in the path, so every reference resolves exactly as it does today for any session with no shadowing temp table. Policies are not recreated and no policy expression changes.
-
-Rollback implications: one `ALTER FUNCTION … SET search_path TO 'public'` per helper restores the prior configuration byte-for-byte. No body restoration is needed because no body is touched.
-
-Function body replacement required: **No.**
-
-## L. Final Exact Forward Migration SQL
-
-Proposed filename: `supabase/migrations/<timestamp>_stage_b_financial_write_authority.sql`. Executes inside the migration's implicit transaction; any assertion aborts the entire migration. Zero DML against any financial table.
+Proposed filename: `supabase/migrations/<timestamp>_stage_b_financial_write_authority.sql`. Runs inside the migration's implicit transaction; any raised exception aborts the whole migration. Zero DML against any financial table.
 
 ```sql
 -- Stage B — canonical financial write authority + SECURITY DEFINER temp-schema hardening.
@@ -206,26 +181,31 @@ BEGIN
              to_regprocedure('public.create_source_checkout_invoice(uuid,uuid,jsonb)'),
              to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)')])
        AND NOT EXISTS (
-         SELECT 1 FROM unnest(COALESCE(p.proconfig, ARRAY[]::text[])) s(v)
-          WHERE s.v IN ('search_path=', 'search_path=""')
+         SELECT 1 FROM unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+          WHERE split_part(cfg, '=', 1) = 'search_path'
+            AND replace(replace(substr(cfg, length('search_path=') + 1), '"', ''), ' ', '') = ''
        )
   ) THEN
     RAISE EXCEPTION 'STAGE_B_PRECOND_RPC_SEARCH_PATH_UNEXPECTED';
   END IF;
 
-  -- P3. Helpers must currently be pinned to bare 'public' (the state this migration corrects)
-  IF EXISTS (
-    SELECT 1 FROM pg_proc p
+  -- P3. Helpers must currently resolve to bare 'public' (the state this migration corrects)
+  IF (
+    SELECT count(*) FROM pg_proc p
      WHERE p.oid = ANY (ARRAY[
              to_regprocedure('public.has_permission(uuid,uuid,text)'),
              to_regprocedure('public.is_tenant_member(uuid,uuid)'),
              to_regprocedure('public.is_active_tenant_member(uuid,uuid)')])
-       AND COALESCE(array_to_string(p.proconfig, '|'), '') <> 'search_path=public'
-  ) THEN
+       AND EXISTS (
+         SELECT 1 FROM unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+          WHERE split_part(cfg, '=', 1) = 'search_path'
+            AND replace(replace(substr(cfg, length('search_path=') + 1), '"', ''), ' ', '') = 'public'
+       )
+  ) <> 3 THEN
     RAISE EXCEPTION 'STAGE_B_PRECOND_HELPER_SEARCH_PATH_UNEXPECTED';
   END IF;
 
-  -- P4. TEMP is granted to PUBLIC — the condition that makes the helper correction necessary
+  -- P4. TEMP is granted to browser roles — the condition making the helper correction necessary
   IF NOT has_database_privilege('authenticated', current_database(), 'TEMP') THEN
     RAISE EXCEPTION 'STAGE_B_PRECOND_TEMP_PRIVILEGE_UNEXPECTED';
   END IF;
@@ -255,31 +235,37 @@ BEGIN
     RAISE EXCEPTION 'STAGE_B_PRECOND_COLUMN_ACL_PRESENT';
   END IF;
 
-  -- P8. Exact current policy set: seven named policies, no more, no fewer
-  IF (SELECT count(*) FROM pg_policy
-       WHERE polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)) <> 7 THEN
-    RAISE EXCEPTION 'STAGE_B_PRECOND_POLICY_COUNT_NOT_SEVEN';
-  END IF;
-  IF (SELECT count(*) FROM pg_policy
-       WHERE (polrelid = 'public.ledger_entries'::regclass
-              AND polname IN ('Permission-based insert ledger entries',
-                              'Tenant members can view ledger',
-                              'Tenant members can view ledger entries'))
-          OR (polrelid = 'public.customer_balances'::regclass
-              AND polname IN ('Permission-based insert customer balances',
-                              'Permission-based update customer balances',
-                              'Permission-based delete customer balances',
-                              'Tenant members can view balances'))) <> 7 THEN
-    RAISE EXCEPTION 'STAGE_B_PRECOND_POLICY_NAMES_UNEXPECTED';
+  -- P8. Exact policy contract by stable fingerprint: names, commands and expressions,
+  --     with no additional policy present on either table.
+  IF (
+    SELECT md5(string_agg(
+             c.relname || '|' || p.polname || '|' || p.polcmd::text || '|'
+             || coalesce(pg_get_expr(p.polqual, p.polrelid), '-') || '|'
+             || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '-'),
+             E'\n' ORDER BY c.relname || p.polname))
+      FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+     WHERE p.polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
+  ) IS DISTINCT FROM '44770e308a526915fb301bc951601450' THEN
+    RAISE EXCEPTION 'STAGE_B_PRECOND_POLICY_CONTRACT_DRIFT';
   END IF;
 
-  -- P9. Neither table currently carries a comment
+  -- P9. Every policy is PERMISSIVE and role-unrestricted (applies to PUBLIC)
+  IF NOT (
+    SELECT bool_and(p.polpermissive
+                    AND (p.polroles IS NULL OR cardinality(p.polroles) = 0))
+      FROM pg_policy p
+     WHERE p.polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
+  ) THEN
+    RAISE EXCEPTION 'STAGE_B_PRECOND_POLICY_ROLE_OR_PERMISSIVE_DRIFT';
+  END IF;
+
+  -- P10. Neither table currently carries a comment
   IF obj_description('public.ledger_entries'::regclass, 'pg_class') IS NOT NULL
      OR obj_description('public.customer_balances'::regclass, 'pg_class') IS NOT NULL THEN
     RAISE EXCEPTION 'STAGE_B_PRECOND_TABLE_COMMENT_PRESENT';
   END IF;
 
-  -- P10. create_pos_sale currently executable by anon and authenticated, not by PUBLIC
+  -- P11. create_pos_sale currently executable by anon and authenticated, not by PUBLIC
   IF NOT (has_function_privilege('anon','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
           AND has_function_privilege('authenticated','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')) THEN
     RAISE EXCEPTION 'STAGE_B_PRECOND_POS_EXECUTE_UNEXPECTED';
@@ -399,13 +385,21 @@ BEGIN
     RAISE EXCEPTION 'STAGE_B_POST_POS_PUBLIC_EXECUTE_PRESENT';
   END IF;
 
-  -- Q7. Helper search_path is exactly 'public, pg_temp'
-  IF (SELECT count(*) FROM pg_proc p
-       WHERE p.oid = ANY (ARRAY[
-               to_regprocedure('public.has_permission(uuid,uuid,text)'),
-               to_regprocedure('public.is_tenant_member(uuid,uuid)'),
-               to_regprocedure('public.is_active_tenant_member(uuid,uuid)')])
-         AND array_to_string(p.proconfig,'|') = 'search_path="public, pg_temp"') <> 3 THEN
+  -- Q7. Helper search_path resolves, in order, to exactly public then pg_temp.
+  --     Key-based and quoting-independent; does not compare array literals.
+  IF (
+    SELECT count(*) FROM pg_proc p
+     WHERE p.oid = ANY (ARRAY[
+             to_regprocedure('public.has_permission(uuid,uuid,text)'),
+             to_regprocedure('public.is_tenant_member(uuid,uuid)'),
+             to_regprocedure('public.is_active_tenant_member(uuid,uuid)')])
+       AND EXISTS (
+         SELECT 1 FROM unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+          WHERE split_part(cfg, '=', 1) = 'search_path'
+            AND replace(replace(substr(cfg, length('search_path=') + 1), '"', ''), ' ', '')
+                = 'public,pg_temp'
+       )
+  ) <> 3 THEN
     RAISE EXCEPTION 'STAGE_B_POST_HELPER_SEARCH_PATH_NOT_HARDENED';
   END IF;
   IF (SELECT count(*) FROM pg_proc p
@@ -417,7 +411,18 @@ BEGIN
     RAISE EXCEPTION 'STAGE_B_POST_HELPER_IDENTITY_CHANGED';
   END IF;
 
-  -- Q8. Exactly the three named read policies remain; no write policy remains
+  -- Q8. Exact remaining policy contract: the three read policies, unchanged, nothing else
+  IF (
+    SELECT md5(string_agg(
+             c.relname || '|' || p.polname || '|' || p.polcmd::text || '|'
+             || coalesce(pg_get_expr(p.polqual, p.polrelid), '-') || '|'
+             || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '-'),
+             E'\n' ORDER BY c.relname || p.polname))
+      FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+     WHERE p.polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
+  ) IS DISTINCT FROM '3244bb93d2e6b0594e322d4d26f796d6' THEN
+    RAISE EXCEPTION 'STAGE_B_POST_POLICY_CONTRACT_DRIFT';
+  END IF;
   IF EXISTS (
     SELECT 1 FROM pg_policy
      WHERE polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
@@ -425,12 +430,13 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'STAGE_B_POST_WRITE_POLICY_REMAINS';
   END IF;
-  IF (SELECT count(*) FROM pg_policy
-       WHERE (polrelid = 'public.ledger_entries'::regclass
-              AND polname IN ('Tenant members can view ledger','Tenant members can view ledger entries'))
-          OR (polrelid = 'public.customer_balances'::regclass
-              AND polname = 'Tenant members can view balances')) <> 3 THEN
-    RAISE EXCEPTION 'STAGE_B_POST_READ_POLICY_SET_UNEXPECTED';
+  IF NOT (
+    SELECT bool_and(p.polpermissive
+                    AND (p.polroles IS NULL OR cardinality(p.polroles) = 0))
+      FROM pg_policy p
+     WHERE p.polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
+  ) THEN
+    RAISE EXCEPTION 'STAGE_B_POST_POLICY_ROLE_OR_PERMISSIVE_DRIFT';
   END IF;
 
   -- Q9. Table comments recorded
@@ -442,9 +448,9 @@ END
 $$;
 ```
 
-No `INSERT`, `UPDATE` or `DELETE` statement against any financial table appears anywhere in this migration, so the zero-financial-row-change postcondition holds by construction.
+No `INSERT`, `UPDATE` or `DELETE` against any financial table appears anywhere, so the zero-financial-row-change postcondition holds by construction.
 
-## M. Final Exact Rollback SQL
+## J. Final Exact Rollback SQL
 
 **Emergency use only. This rollback deliberately restores the prior unsafe state in which browser roles can write Ledger and Customer Balance truth directly through PostgREST, and restores the temporary-schema shadowing exposure in the SECURITY DEFINER permission helpers. Do not run it except to recover from a Stage B production incident.**
 
@@ -457,7 +463,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
   ON TABLE public.customer_balances TO anon, authenticated;
 
--- 2. Restore the exact four write policies (read policies were never dropped)
+-- 2. Restore the exact four write policies (the three read policies were never dropped)
 CREATE POLICY "Permission-based insert ledger entries"
   ON public.ledger_entries FOR INSERT
   WITH CHECK (has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text));
@@ -480,9 +486,9 @@ CREATE POLICY "Permission-based delete customer balances"
 GRANT EXECUTE ON FUNCTION public.create_pos_sale(uuid, uuid, jsonb) TO anon, authenticated;
 
 -- 4. Restore prior helper search_path (no body was altered, so no body restore is needed)
-ALTER FUNCTION public.has_permission(uuid, uuid, text)    SET search_path TO 'public';
-ALTER FUNCTION public.is_tenant_member(uuid, uuid)        SET search_path TO 'public';
-ALTER FUNCTION public.is_active_tenant_member(uuid, uuid) SET search_path TO 'public';
+ALTER FUNCTION public.has_permission(uuid, uuid, text)    SET search_path = public;
+ALTER FUNCTION public.is_tenant_member(uuid, uuid)        SET search_path = public;
+ALTER FUNCTION public.is_active_tenant_member(uuid, uuid) SET search_path = public;
 
 -- 5. Restore prior comments (both tables had none)
 COMMENT ON TABLE public.ledger_entries    IS NULL;
@@ -491,7 +497,7 @@ COMMENT ON TABLE public.customer_balances IS NULL;
 DO $$
 DECLARE r text; t text; p text;
 BEGIN
-  -- All eight privileges restored for both browser roles on both tables
+  -- R1. All eight privileges restored for both browser roles on both tables
   FOREACH r IN ARRAY ARRAY['anon','authenticated'] LOOP
     FOREACH t IN ARRAY ARRAY['public.ledger_entries','public.customer_balances'] LOOP
       FOREACH p IN ARRAY ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'] LOOP
@@ -502,44 +508,30 @@ BEGIN
     END LOOP;
   END LOOP;
 
-  -- Exact named seven-policy set restored (three read + four write), and nothing extra
-  IF (SELECT count(*) FROM pg_policy
-       WHERE (polrelid = 'public.ledger_entries'::regclass
-              AND polname IN ('Permission-based insert ledger entries',
-                              'Tenant members can view ledger',
-                              'Tenant members can view ledger entries'))
-          OR (polrelid = 'public.customer_balances'::regclass
-              AND polname IN ('Permission-based insert customer balances',
-                              'Permission-based update customer balances',
-                              'Permission-based delete customer balances',
-                              'Tenant members can view balances'))) <> 7 THEN
-    RAISE EXCEPTION 'ROLLBACK_NAMED_POLICY_SET_INCOMPLETE';
+  -- R2. Exact restored policy contract — names, commands and expressions, nothing extra
+  IF (
+    SELECT md5(string_agg(
+             c.relname || '|' || p.polname || '|' || p.polcmd::text || '|'
+             || coalesce(pg_get_expr(p.polqual, p.polrelid), '-') || '|'
+             || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '-'),
+             E'\n' ORDER BY c.relname || p.polname))
+      FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
+     WHERE p.polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
+  ) IS DISTINCT FROM '44770e308a526915fb301bc951601450' THEN
+    RAISE EXCEPTION 'ROLLBACK_POLICY_CONTRACT_NOT_RESTORED';
   END IF;
-  IF EXISTS (
-    SELECT 1 FROM pg_policy
-     WHERE polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
-       AND polname NOT IN ('Permission-based insert ledger entries',
-                           'Tenant members can view ledger',
-                           'Tenant members can view ledger entries',
-                           'Permission-based insert customer balances',
-                           'Permission-based update customer balances',
-                           'Permission-based delete customer balances',
-                           'Tenant members can view balances')
+
+  -- R3. Restored policies are PERMISSIVE and role-unrestricted, exactly as before
+  IF NOT (
+    SELECT bool_and(p.polpermissive
+                    AND (p.polroles IS NULL OR cardinality(p.polroles) = 0))
+      FROM pg_policy p
+     WHERE p.polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
   ) THEN
-    RAISE EXCEPTION 'ROLLBACK_UNEXPECTED_POLICY_PRESENT';
+    RAISE EXCEPTION 'ROLLBACK_POLICY_ROLE_OR_PERMISSIVE_DRIFT';
   END IF;
 
-  -- Exact policy expressions restored
-  IF (SELECT count(*) FROM pg_policy
-       WHERE polrelid IN ('public.ledger_entries'::regclass,'public.customer_balances'::regclass)
-         AND polcmd IN ('a','w','d')
-         AND coalesce(pg_get_expr(polqual, polrelid), '')
-             || coalesce(pg_get_expr(polwithcheck, polrelid), '')
-             LIKE '%finance.invoice.edit%') <> 4 THEN
-    RAISE EXCEPTION 'ROLLBACK_WRITE_POLICY_EXPRESSION_UNEXPECTED';
-  END IF;
-
-  -- POS EXECUTE restored exactly: anon + authenticated yes, PUBLIC still no
+  -- R4. POS EXECUTE restored exactly: anon + authenticated yes, PUBLIC still no
   IF NOT (has_function_privilege('anon','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
           AND has_function_privilege('authenticated','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')) THEN
     RAISE EXCEPTION 'ROLLBACK_POS_EXECUTE_NOT_RESTORED';
@@ -552,17 +544,24 @@ BEGIN
     RAISE EXCEPTION 'ROLLBACK_POS_PUBLIC_GRANT_OVERBROAD';
   END IF;
 
-  -- Helper search_path restored to the exact prior value
-  IF (SELECT count(*) FROM pg_proc p
-       WHERE p.oid = ANY (ARRAY[
-               to_regprocedure('public.has_permission(uuid,uuid,text)'),
-               to_regprocedure('public.is_tenant_member(uuid,uuid)'),
-               to_regprocedure('public.is_active_tenant_member(uuid,uuid)')])
-         AND array_to_string(p.proconfig,'|') = 'search_path=public') <> 3 THEN
+  -- R5. Helper search_path restored to the exact prior resolved value (quoting-independent)
+  IF (
+    SELECT count(*) FROM pg_proc p
+     WHERE p.oid = ANY (ARRAY[
+             to_regprocedure('public.has_permission(uuid,uuid,text)'),
+             to_regprocedure('public.is_tenant_member(uuid,uuid)'),
+             to_regprocedure('public.is_active_tenant_member(uuid,uuid)')])
+       AND EXISTS (
+         SELECT 1 FROM unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+          WHERE split_part(cfg, '=', 1) = 'search_path'
+            AND replace(replace(substr(cfg, length('search_path=') + 1), '"', ''), ' ', '')
+                = 'public'
+       )
+  ) <> 3 THEN
     RAISE EXCEPTION 'ROLLBACK_HELPER_SEARCH_PATH_NOT_RESTORED';
   END IF;
 
-  -- Comments restored to their prior null state
+  -- R6. Comments restored to their prior null state
   IF obj_description('public.ledger_entries'::regclass,'pg_class') IS NOT NULL
      OR obj_description('public.customer_balances'::regclass,'pg_class') IS NOT NULL THEN
     RAISE EXCEPTION 'ROLLBACK_TABLE_COMMENT_NOT_CLEARED';
@@ -571,62 +570,72 @@ END
 $$;
 ```
 
-The incorrect count-of-eight assertion from Prompt 13 is removed; the rollback now asserts the named seven-policy set plus an exclusion check for unexpected policies.
+Executability of the pair: forward and rollback are a closed loop. Every forward action has an exact inverse; the rollback's R2 fingerprint is the forward migration's P8 fingerprint, so a completed rollback restores precisely the state the forward migration required, and the forward migration can therefore be reapplied immediately afterwards. Both scripts are pure DDL and privilege statements plus assertion blocks — no financial DML in either direction.
 
-## N. Application Contract Confirmation
+## K. Application Contract Confirmation
 
-Unchanged and re-confirmed: Expense approval routes to `post_expense_with_ledger`; `postLedgerForExpense` deleted; `postLedgerForInvoice` deleted; `useLedger.createEntry` removed; automatic `backfillLedgerDescriptions` removed; POS remains visible in Navigation and Sidebar with a Coming Soon badge, non-clickable, non-keyboard-activatable, direct URL inert, no operational POS hook mounted, no `create_pos_sale` browser activation. This correction adds **no** application scope: the helper `search_path` change is a catalog attribute with no client surface, and SELECT is preserved for every read path (`useLedgerEntries`, `useCustomerBalances`, `useLedgerBalance`/`useLedgerBalances`, statements, PDF summaries, Realtime on `customer_balances`).
+Unchanged and re-confirmed: Expense Approval routes to `post_expense_with_ledger`; `postLedgerForExpense` deleted; `postLedgerForInvoice` deleted; dead `useLedger.createEntry` removed; automatic `backfillLedgerDescriptions` removed; POS visible in Navigation and Sidebar with a Coming Soon badge, non-clickable, non-keyboard-activatable, direct URL inert, no operational POS hook, no `create_pos_sale` browser activation. This closure audit adds no application scope. Read paths are unaffected because SELECT is preserved on both tables.
 
-## O. QA Additions
+## L. QA Additions
 
-**Helper safety.** Record effective TEMP privilege for `anon`, `authenticated`, `service_role`, PUBLIC. Assert `has_permission`, `is_tenant_member`, `is_active_tenant_member` each report `search_path="public, pg_temp"`. Negative shadowing test in an isolated transaction: as `authenticated`, `CREATE TEMP TABLE tenant_members(...)` containing a forged active `owner` row for a foreign tenant, then assert `has_permission()` still returns false for that tenant and true only for genuine membership; roll back. Assert authorized RLS-gated operations still succeed through the corrected helper, unauthorized permission keys are still rejected, and no cross-tenant permission regression appears in the existing permission suite.
+Carried from Prompt 14, plus the following, all now required:
 
-**Migration.** Every exact required signature exists and is unique (11 signatures). PUBLIC cannot execute `create_pos_sale` (grantee-0 check). anon cannot execute it. authenticated cannot execute it. service_role and owner remain functional. Rollback restores exactly the named seven-policy set with matching expressions. The rollback transaction completes successfully in an isolated test. The forward migration reapplies cleanly after rollback. Zero financial rows change in either direction — verified by row counts and checksums on `ledger_entries`, `customer_balances`, `invoices` and `expenses` before and after.
+- Assert `array_to_string` is used nowhere in Stage B assertions; helper checks are key-based on `unnest(proconfig)`.
+- Assert the three helpers normalise to `public,pg_temp` after the migration and to `public` after rollback.
+- Assert the pre-state policy fingerprint equals `44770e308a526915fb301bc951601450` before the forward migration.
+- Assert the post-state policy fingerprint equals `3244bb93d2e6b0594e322d4d26f796d6` after the forward migration.
+- Assert the restored fingerprint equals `44770e308a526915fb301bc951601450` after rollback.
+- Assert all policies remain PERMISSIVE and role-unrestricted at every stage.
+- Run the forward migration, then the rollback, then the forward migration again in an isolated environment; all three must complete without raising.
+- Temporary-relation shadowing negative test as specified in Prompt 14, in a rolled-back transaction.
+- Row counts and checksums on `ledger_entries`, `customer_balances`, `invoices` and `expenses` unchanged in both directions.
 
-Build and typecheck alone are not Acceptance. A separate QA pass and a read-only Acceptance Re-Audit remain mandatory.
+Build and typecheck alone are not Acceptance. A separate QA pass and read-only Acceptance Re-Audit remain mandatory.
 
-## P. Deferred Items Register
+## M. Deferred Items Register
 
-Promoted into Stage B by this audit: the `has_permission` / helper temporary-schema `search_path` correction, and the rollback policy-set correction. No other promotion.
+Promoted by this audit: the final proconfig assertion correction and the exact policy-contract assertion correction. No other promotion. All Prompt-12/13/14 entries preserved.
 
-| Item | Original evidence | Status | Current lane | Proposed future lane | Dependency | Owner decision needed? | Risk if forgotten | Next trigger |
-|---|---|---|---|---|---|---|---|---|
-| Expense browser writer cutover | `DashboardFinance.tsx` → `postLedgerForExpense` | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | `post_expense_with_ledger` | No | NULL Economic Dates persist | Stage B |
-| Dead Ledger mutation removal | `useLedger.createEntry` unreferenced | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | none | No | Latent unsafe writer | Stage B |
-| POS safety fencing | POS route and nav active | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | WS-DH-2026-0005 | none | No | Operational POS writes | Stage B |
-| Ledger / Customer Balance privilege hardening | full `arwdDxtm` to anon and authenticated | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | none | No | Direct PostgREST financial writes | Stage B |
-| `create_pos_sale` browser EXECUTE revocation | anon + authenticated EXECUTE present | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | WS-DH-2026-0005 | none | No | Anonymous POS sale invocation | Stage B |
-| `backfillLedgerDescriptions` removal | auto-run already RLS-rejected | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | none | No | Silent broken auto-run | Stage B |
-| **Helper temporary-schema `search_path` correction** | §E, §F, §G — TEMP granted to PUBLIC; `has_permission` unqualified under `search_path=public` | **PROMOTED TO CURRENT EXECUTION SCOPE** | Stage B | — | none | No | Cross-tenant privilege escalation via forged temp relation | Stage B |
-| **Rollback policy-set correction** | §I — true total is seven, not eight | **PROMOTED TO CURRENT EXECUTION SCOPE** | Stage B | — | none | No | Rollback aborts on a false assertion during an incident | Stage B |
-| `has_permission` full schema qualification (`search_path = ''`) | §K — optional stronger form | DEFERRED — TRACKED | none | security hardening lane | Stage B helper fix | Yes | None once `pg_temp` is pinned last | Later hardening pass |
-| Duplicate `ledger_entries` SELECT policy | §I — two equivalent read policies | DEFERRED — TRACKED | none | security hardening lane | none | Yes | Policy-set confusion only; no access impact | Later hardening pass |
-| Internal Cost terminology correction | Prompt 11 §G | DEFERRED — TRACKED | none | RM-DH-002 | D-B-6 | Yes | Wrong cross-account terminology | After Stage B |
-| Internal Cost Unknown vs Real Zero | 5/5 non-income rows `actual_cost = 0` | DEFERRED — TRACKED | none | RM-DH-002 | D-B-6 | Yes | Missing cost reported as zero | After Stage B |
-| Internal Cost contextual terminology by account type | stable wording on non-stable accounts | DEFERRED — TRACKED | none | RM-DH-002 | D-B-6 | Yes | Wrong labels per tenant type | Later |
-| HR Salary-to-Expense atomicity | `useSalaryPayments.ts` client double insert | DEFERRED — TRACKED | none | HR/Finance lane | `record_salary_payment` | Yes | Orphan rows | After Stage B |
-| HR Salary idempotency | no client key | DEFERRED — TRACKED | none | HR/Finance lane | same | Yes | Duplicate payroll | After Stage B |
-| HR Salary reversal | none exists | DEFERRED — TRACKED | none | HR/Finance lane | design | Yes | Uncorrectable payroll | After Stage B |
-| Generic Expense deletion of HR-linked records | `useExpenses` delete, no guard | DEFERRED — TRACKED | none | HR/Finance lane | same | Yes | Dangling `finance_expense_id` | After Stage B |
-| Expense unpost / reversal | no client path to `reverse_expense` | DEFERRED — TRACKED | none | RM-DH-004 later phase | Stage B | Yes | Posted expenses uncorrectable | After Stage B |
-| Supplier Payable payment / Expense / Ledger lifecycle | no path found | DEFERRED — TRACKED | none | RM-DH-002 | D-B-7 | Yes | Provider costs never reach finance | Later |
-| Supplier Payable-to-Expense authority | undefined | DEFERRED — TRACKED | none | RM-DH-002 | D-B-7 | Yes | Ambiguous cost authority | Later |
-| Full POS implementation | POS source retained | DEFERRED — TRACKED | WS-DH-2026-0005 | same | Stage B fencing | No | — | Owner activation |
-| Future `create_pos_sale` activation | RPC retained, browser EXECUTE revoked | DEFERRED — TRACKED | WS-DH-2026-0005 | same | Stage B | No | — | Owner activation |
-| Manual Ledger Adjustment product workflow | RPC exists, no UI | DEFERRED — TRACKED | none | future finance lane | D-B-1 forbids UI now | No | — | Owner request |
-| Residual financial-table hardening | broad grants on `expenses`, `financial_entries`, `hr_salary_payments`, `supplier_payables`, `invoices`, `invoice_items`, `billing_links` | DEFERRED — TRACKED | none | security hardening lane | none | Yes | Over-broad grants persist | After Stage B |
-| Database-level TEMP grant to PUBLIC | §E — `datacl` contains `=Tc` | DEFERRED — TRACKED | none | security hardening lane | platform constraints | Yes | Broad temp-table capability remains; neutralised for helpers by Stage B | Later platform review |
+| Item | Status | Current lane | Future lane | Owner decision needed? | Next trigger |
+|---|---|---|---|---|---|
+| Expense browser writer cutover | PROMOTED | Stage B | — | No | Stage B |
+| Dead Ledger mutation removal (`useLedger.createEntry`) | PROMOTED | Stage B | — | No | Stage B |
+| POS safety fencing | PROMOTED | Stage B | WS-DH-2026-0005 | No | Stage B |
+| Ledger / Customer Balance privilege hardening | PROMOTED | Stage B | — | No | Stage B |
+| `create_pos_sale` browser EXECUTE revocation | PROMOTED | Stage B | WS-DH-2026-0005 | No | Stage B |
+| `backfillLedgerDescriptions` removal | PROMOTED | Stage B | — | No | Stage B |
+| Helper temporary-schema `search_path` correction | PROMOTED (Prompt 14) | Stage B | — | No | Stage B |
+| Rollback policy-set correction | PROMOTED (Prompt 14) | Stage B | — | No | Stage B |
+| **Final proconfig assertion correction** | **PROMOTED (this audit)** | Stage B | — | No | Stage B |
+| **Exact policy-contract assertion correction** | **PROMOTED (this audit)** | Stage B | — | No | Stage B |
+| `has_permission` full schema qualification (`search_path = ''`) | DEFERRED — TRACKED | none | security hardening | Yes | Later hardening pass |
+| Duplicate `ledger_entries` SELECT policy | DEFERRED — TRACKED | none | security hardening | Yes | Later hardening pass |
+| Internal Cost terminology correction | DEFERRED — TRACKED | none | RM-DH-002 | Yes | After Stage B |
+| Internal Cost Unknown vs Real Zero | DEFERRED — TRACKED | none | RM-DH-002 | Yes | After Stage B |
+| Internal Cost contextual terminology by account type | DEFERRED — TRACKED | none | RM-DH-002 | Yes | Later |
+| HR Salary-to-Expense atomicity | DEFERRED — TRACKED | none | HR/Finance | Yes | After Stage B |
+| HR Salary idempotency | DEFERRED — TRACKED | none | HR/Finance | Yes | After Stage B |
+| HR Salary reversal | DEFERRED — TRACKED | none | HR/Finance | Yes | After Stage B |
+| Generic Expense deletion of HR-linked records | DEFERRED — TRACKED | none | HR/Finance | Yes | After Stage B |
+| Expense unpost / reversal | DEFERRED — TRACKED | none | RM-DH-004 later phase | Yes | After Stage B |
+| Supplier Payable payment / Expense / Ledger lifecycle | DEFERRED — TRACKED | none | RM-DH-002 | Yes | Later |
+| Supplier Payable-to-Expense authority | DEFERRED — TRACKED | none | RM-DH-002 | Yes | Later |
+| Full POS implementation | DEFERRED — TRACKED | WS-DH-2026-0005 | same | No | Owner activation |
+| Future `create_pos_sale` activation | DEFERRED — TRACKED | WS-DH-2026-0005 | same | No | Owner activation |
+| Manual Ledger Adjustment product workflow | DEFERRED — TRACKED | none | future finance lane | No | Owner request |
+| Residual financial-table hardening (expenses, financial_entries, hr_salary_payments, supplier_payables, invoices, invoice_items, billing_links) | DEFERRED — TRACKED | none | security hardening | Yes | After Stage B |
+| Database-level TEMP grant to PUBLIC | DEFERRED — TRACKED | none | security hardening | Yes | Later platform review |
 
-Internal Costs, HR Salary, Expense reversal, Supplier Payables and full POS implementation were **not** promoted.
+Internal Costs, HR Salary, Expense reversal, Supplier Payables and full POS implementation were not promoted.
 
-## Q. Blockers and Gaps
+## N. Blockers and Gaps
 
 None.
 
-## R. WORKSTREAM PERSISTENCE
+## O. WORKSTREAM PERSISTENCE
 
 WORKSTREAM PERSISTENCE:
-NONE — READ-ONLY PG_TEMP, SECURITY-DEFINER HELPER AND FINAL MIGRATION/ROLLBACK CORRECTION AUDIT ONLY.
+NONE — READ-ONLY FINAL PROCONFIG, POLICY-CONTRACT AND MIGRATION-EXECUTABILITY CLOSURE AUDIT ONLY.
 
 Stage A remains accepted, persisted and verified.
 
@@ -634,18 +643,18 @@ WS-DH-2026-0003 remains ACTIVE.
 
 Stage B implementation has not started.
 
-The Prompt-12 and Prompt-13 application, POS, SELECT-only privilege and Deferred-Item contracts remain preserved except for the explicitly corrected helper and rollback sections.
+The Prompt-12 through Prompt-14 application, POS, privilege, helper and Deferred-Item contracts remain preserved except for explicitly corrected assertions.
 
 Stage C and Stage D have not started.
 
 No Workstream Closure occurred.
 
-## S. ROADMAP IMPACT
+## P. ROADMAP IMPACT
 
 ROADMAP IMPACT:
 RM-DH-004 remains ACTIVE — PHASE 1.
 
-This correction audit does not complete Phase 1.
+This final correction audit does not complete Phase 1.
 
 WS-DH-2026-0005 remains DEFERRED.
 
@@ -653,54 +662,35 @@ No new Roadmap or Workstream ID was created.
 
 No Phase advancement, Phase Closure or Roadmap Closure occurred.
 
-## T. Run Metadata and Exact Stopping Point
+## Q. Run Metadata and Exact Stopping Point
 
 1. Mode: Plan/Chat — Read-Only.
-2. Operation: targeted temporary-schema safety, SECURITY DEFINER helper correction, exact function-identity preconditions, PUBLIC EXECUTE verification, and final migration/rollback correction audit.
-3. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-PG-TEMP-HELPER-SAFETY-AND-FINAL-MIGRATION-ROLLBACK-CORRECTION-AUDIT-14.
+2. Operation: function-proconfig serialization, robust helper search-path assertion, exact policy precondition, and final forward/rollback executability closure audit.
+3. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-PROCONFIG-ASSERTION-AND-MIGRATION-EXECUTABILITY-CLOSURE-AUDIT-15.
 4. Prompt status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED.
-5. Prompt Preparation Date: 03-08-2026.
-6. Prompt Preparation Time: 22:23.
-7. Prompt Preparation Timezone: Asia/Riyadh — UTC+03:00.
-8. Run Start: 03-08-2026 22:31 Asia/Riyadh.
-9. First evidenced activity: `pg_database` ACL and `has_database_privilege(..., 'TEMP')` inspection.
-10. Run End: Exact time not recorded.
-11. Last evidenced activity: `obj_description` check on both financial tables.
-12. Final Report: Exact time not recorded.
-13. Timestamp evidence source: platform message clock (prompt receipt time).
-14. PostgreSQL version: 17.6 (carried from Prompt 13; unchanged this run).
-15. Current database: `postgres`; owner `postgres`.
-16. TEMP privileges: granted to PUBLIC (`=Tc/postgres`); effective `true` for anon, authenticated, service_role, postgres.
-17. Branch: `edit/edt-11c853dc-c35b-46cf-ae79-a276c0999232`.
-18. Canonical/default branch evidence: Exact evidence not recorded.
-19. HEAD before and after: unchanged this run.
-20. Working tree before and after: clean apart from `.lovable/plan.md`.
-21. Repository paths read: `customer_balances.schema.txt`, `docs/aml_1_b_1/stage_j5_1/preflight/01_fn_post_payment.txt`, `docs/aml_1_b_1/stage_j5_1/preflight/10_all_finance_fns.txt`, `supabase/tests/database/n2_4_catalog_runtime.test.sql`, `supabase/tests/database/n2_5_invoice_catalog_runtime.test.sql`.
-22. Database objects read: `pg_database`, `pg_roles`, `pg_policy`, `pg_class`, `pg_proc`, `aclexplode`, `obj_description`; 2 target tables; 11 functions.
-23. Catalog queries: 1 exec call, 7 statements.
-24. Financial-row queries: 0.
-25. Database role: `sandbox_exec`.
-26. Helper definitions reviewed: `has_permission`, `is_tenant_member`, `is_active_tenant_member` (bodies from Prompt 13; configurations and ACLs re-read this run).
-27. Exact function signatures verified: 11 of 11 exist, each unique, each owned by `postgres`, each SECURITY DEFINER.
-28. Current policy names and count: 7 — three on `ledger_entries`, four on `customer_balances`, named in §I.
-29. EXECUTE results for `create_pos_sale`: PUBLIC no; anon yes; authenticated yes; service_role yes; postgres yes.
-30. Final helper strategy: `SET search_path = public, pg_temp` on all three helpers, no body replacement.
-31. Final forward-migration contract result: complete (§L).
-32. Final rollback contract result: complete and executable (§M).
-33. Deferred items preserved: 25 register rows.
-34. Deferred items promoted: 2 (helper temporary-schema correction; rollback policy-set correction), in addition to the 6 already promoted by Prompt 12/13.
-35. Repository changes: zero.
-36. Database changes: zero.
-37. Migration changes: zero.
-38. Knowledge / Skills / settings changes: zero.
-39. `.lovable/plan.md` disclosure: written by Plan Mode this run to hold this report; it is the only file touched.
-40. Five verdicts: as in §A.
-41. Stage B implementation: not started.
-42. Stage C: not started.
-43. Stage D: not started.
-44. Closure: none.
-45. Exact stopping point: the PostgreSQL temporary-schema contract, SECURITY DEFINER helper safety, exact function identities, PUBLIC function-execution state, final forward migration, executable rollback contract, preserved application scope and complete Deferred Items Register have been established. No implementation, migration, financial-data change, Stage C, Stage D or Closure has occurred.
-46. Recommended next step: issue the Stage B Agent/Build execution prompt combining the Prompt-12 application cutover with the single corrected migration in §L.
-47. Recommended next Mode: Agent/Build.
+5. Prompt Preparation: 03-08-2026, 22:36, Asia/Riyadh (UTC+03:00).
+6. Run Start: 03-08-2026 22:36 Asia/Riyadh. Run End: Exact time not recorded. Final Report: Exact time not recorded.
+7. Timestamp evidence source: platform message clock (prompt receipt time).
+8. PostgreSQL version: 17.6 (carried from Prompt 13; unchanged).
+9. Branch: `edit/edt-11c853dc-c35b-46cf-ae79-a276c0999232`. Canonical/default branch evidence: Exact evidence not recorded.
+10. HEAD before and after: unchanged. Working tree before and after: clean apart from `.lovable/plan.md`.
+11. Catalog expressions executed: `array_to_string` on a synthetic `text[]`; `unnest`/`quote_literal` over `pg_proc.proconfig`; `set_config`/`current_setting` round-trip (session-local, non-persistent); `pg_policy` × `pg_class` fingerprint with `md5(string_agg(...))`; normalised helper-value evaluation against an existing `public, pg_temp` function. 3 exec calls, 10 statements.
+12. Repository paths read: none new this run; Prompt-14 context carried.
+13. Database objects read: `pg_proc`, `pg_policy`, `pg_class`, `pg_roles`, `aclexplode`; 2 target tables; 5 reference functions with `pg_temp` configuration.
+14. Financial-row queries: 0.
+15. Database role: `sandbox_exec`.
+16. Raw proconfig evidence: `has_permission` and `is_tenant_member` → `{search_path=public}`, element `'search_path=public'`; `approve_invoice` → `{"search_path=\"\""}`, element `'search_path=""'`; `complete_local_horse_record` → `{"search_path=public, pg_temp"}`, `array_to_string` result `search_path=public, pg_temp`.
+17. Q7 result: `PROMPT-14 Q7 FAILS` — two spurious quote characters, at offsets 13 and 27.
+18. Final helper assertion: key-based `unnest(proconfig)` with `split_part(cfg,'=',1) = 'search_path'` and quote/space-normalised equality against `public,pg_temp` (forward) and `public` (rollback).
+19. Policies verified: 7 pre-state (fingerprint `44770e308a526915fb301bc951601450`); 3 expected post-state (fingerprint `3244bb93d2e6b0594e322d4d26f796d6`); all PERMISSIVE and role-unrestricted.
+20. Final Forward SQL result: executable. Final Rollback result: executable.
+21. Deferred items preserved: 26 register rows. Promoted this run: 2.
+22. Repository changes: zero. Database changes: zero. Migration changes: zero. Knowledge / Skills / settings changes: zero.
+23. `.lovable/plan.md` disclosure: written by Plan Mode this run to hold this report; the only file touched.
+24. Five verdicts: as in §A.
+25. Stage B implementation: not started. Stage C: not started. Stage D: not started. Closure: none.
+26. Exact stopping point: the final helper proconfig assertion, exact policy contract, executable forward migration, executable rollback, preserved application scope and complete Deferred Items Register have been established. No implementation, migration, financial-data change, Stage C, Stage D or Closure has occurred.
+27. One next step: issue the Stage B Agent/Build execution prompt pairing the Prompt-12 application cutover with the frozen migration in §I.
+28. Recommended next Mode: Agent/Build.
 
-This audit applied Skill dayli-05-rls-policy-safety.
+This audit applied Skill dayli-08-schema-and-migration-safety.
