@@ -1,267 +1,190 @@
-# STAGE B — FINAL POLROLES / PUBLIC REPRESENTATION, ROLE-AWARE POLICY FINGERPRINT, AND MIGRATION EXECUTABILITY CORRECTION AUDIT
+# STAGE B — CANONICAL FINANCE FUNCTION IDENTITY, THREE-HELPER PRESERVATION, AND FINAL ZERO-REGRESSION MIGRATION CORRECTION AUDIT
 
-Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-POLROLES-PUBLIC-REPRESENTATION-AND-POLICY-FINGERPRINT-CORRECTION-AUDIT-16
+Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-CANONICAL-FUNCTION-IDENTITY-THREE-HELPER-AND-FINAL-ZERO-REGRESSION-CORRECTION-AUDIT-17
 Mode: Plan/Chat — Read-Only. Repository changes: zero. Database changes: zero.
 
 ## A. Combined Verdicts
 
-1. Correction Acknowledgement — `PROMPT-15 POLROLES FINDING WITHDRAWN AND CORRECTED`
-2. Raw Catalog Representation — `PUBLIC POLICY ROLE REPRESENTATION VERIFIED`
-3. Prompt-15 Assertion — `PROMPT-15 POLROLES ASSERTION FAILS`
-4. Policy Contract — `FINAL ROLE-AWARE POLICY CONTRACT CLOSED`
-5. Forward Migration — `FINAL FORWARD MIGRATION SQL EXECUTABLE`
-6. Rollback — `FINAL ROLLBACK SQL EXECUTABLE`
-7. Zero Regression — `ZERO REGRESSION TO PRESERVED FINDINGS CONFIRMED`
-8. Stage B — `STAGE B READY FOR AGENT/BUILD EXECUTION PROMPT`
+1. Correction Acknowledgement — `PROMPT-16 FUNCTION-SET AND HELPER REGRESSION WITHDRAWN`
+2. Canonical Functions — `CANONICAL FINANCE FUNCTION IDENTITY CONTRACT CLOSED`
+3. Dependencies — `ADDITIONAL FINANCE DEPENDENCY SET CLOSED`
+4. Three Helpers — `THREE-HELPER SEARCH-PATH CONTRACT CLOSED`
+5. PUBLIC Table ACL — `PUBLIC TABLE-ACL PRECONDITION CONTRACT CLOSED`
+6. Forward Migration — `FINAL CORRECTED FORWARD MIGRATION SQL EXECUTABLE`
+7. Rollback — `FINAL CORRECTED ROLLBACK SQL EXECUTABLE`
+8. Zero Regression — `ZERO REGRESSION TO PROMPTS 14–16 CONFIRMED`
+9. Stage B — `STAGE B READY FOR AGENT/BUILD EXECUTION PROMPT`
 
 ## B. Roadmap and Workstream State
 
-- Roadmap: RM-DH-004 — ACTIVE — PHASE 1 (Economic Date Integrity).
-- Workstream: WS-DH-2026-0003 — ACTIVE — STAGE A ACCEPTED, PERSISTED AND VERIFIED; STAGE B NOT STARTED.
-- Related deferred Workstream: WS-DH-2026-0005 — POS Financial Isolation — DEFERRED.
+- RM-DH-004 — ACTIVE — PHASE 1 (Economic Date Integrity).
+- WS-DH-2026-0003 — ACTIVE — STAGE A ACCEPTED, PERSISTED AND VERIFIED; STAGE B NOT STARTED.
+- WS-DH-2026-0005 — POS Financial Isolation — DEFERRED.
 - No Roadmap, Phase, Workstream or Decision ID created or advanced.
 
 ## C. Lovable Correction Acknowledgement
 
 `LOVABLE CORRECTION ACKNOWLEDGEMENT:
-The Prompt-15 NULL/empty-polroles representation of PUBLIC is withdrawn.
-Only the policy-role representation, role-aware fingerprints,
-and dependent Forward/Rollback assertions are reopened.
-All findings listed under PRESERVED AND STILL AUTHORITATIVE remain unchanged.`
+The Prompt-16 canonical-function substitution and two-helper-only
+migration contract are withdrawn.
 
-Error Correction Protocol, all eight points:
+The original Prompt-14/15 exact eleven-function contract and the
+three-helper public,pg_temp correction contract are restored.
 
-1. **Prior Prompt.** `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-PROCONFIG-ASSERTION-AND-MIGRATION-EXECUTABILITY-CLOSURE-AUDIT-15`.
-2. **Prior claim and affected sections.** Prompt 15 asserted that a PUBLIC policy is represented by `polroles IS NULL` or `cardinality(polroles) = 0`, stated "polroles empty implies PUBLIC", and used the predicate `p.polroles IS NULL OR cardinality(p.polroles) = 0` in its Forward precondition, Forward postcondition, Rollback postcondition and seven-policy fingerprint.
-3. **Technical error.** `pg_policy.polroles` is `oid[]` and is never NULL or empty for a live policy. `PUBLIC` is stored as the single OID zero — the array `{0}`, cardinality 1. An empty or NULL array is not the PUBLIC representation; it is a state PostgreSQL does not produce for `CREATE POLICY`.
-4. **Execution impact.** Confirmed against the live catalog: the predicate evaluates FALSE for all seven policies. Every Prompt-15 block depending on it would abort or mis-report. Impacts confirmed below in §I.
-5. **Replacement contract.** `p.polpermissive AND p.polroles = ARRAY[0::oid]` — proven TRUE for all seven live policies.
-6. **Withdrawal.** The Prompt-15 role assertion is explicitly withdrawn and is not used anywhere in the SQL below.
-7. **No preserved finding reopened.** Confirmed — see §E.
-8. **Zero regression.** Confirmed — see §R.
+Prompt-16 polroles, PUBLIC representation and role-aware fingerprint
+findings remain authoritative and are not reopened.`
+
+Protocol points:
+
+1. **Incorrect Prompt-16 claims identified.** Prompt 16 returned `ZERO REGRESSION TO PRESERVED FINDINGS CONFIRMED` and `FINAL FORWARD MIGRATION SQL EXECUTABLE` while its exact-function precondition list substituted a different set, and its ALTER/postcondition blocks covered only two helpers.
+2. **Preserved set that was regressed.** The Prompt-14/15 eleven-function contract, and the three-helper `search_path = public, pg_temp` contract including `is_active_tenant_member(uuid,uuid)`.
+3. **Technical error.** Four accepted functions (`_finance_ledger_insert`, `approve_invoice`, `post_manual_ledger_adjustment`, `is_active_tenant_member`) were omitted, and four unrelated or dependency functions were substituted in their place. `is_active_tenant_member` was also dropped from the helper ALTER and postcondition blocks.
+4. **Impact.** The Prompt-16 migration could pass without proving the canonical internal Ledger writer, invoice approval, and manual Ledger adjustment remained present and safe, and would have left the third accepted helper on the unsafe `search_path=public`, retaining `pg_temp` shadow exposure in a SECURITY DEFINER function that every RLS policy depends on.
+5. **Replacement contract.** The eleven accepted signatures are restored in full; proven nested dependencies are added, never substituted; horse-identity functions are removed from the Finance contract; all three helpers are altered and verified.
+6. **Withdrawal.** Issued verbatim above.
 
 ## D. Evidence Boundary
 
 **OFFICIAL POSTGRESQL DOCUMENTATION FACT**
-- `pg_policy.polroles` is `oid[]`; role OID zero means PUBLIC and normally appears alone (docs/17 catalog-pg-policy).
-- Omitting `TO role_name` in `CREATE POLICY` makes the policy apply to PUBLIC (docs/17 sql-createpolicy).
+- `regprocedure` / `to_regprocedure` identify a function by name plus exact argument vector; `proname` alone is ambiguous under overloading (docs/17 datatype-oid, functions-info).
+- `pg_proc` exposes `oid`, `proowner`, `prosecdef`, `proconfig`, `proacl`, `prolang` (docs/17 catalog-pg-proc).
+- A SECURITY DEFINER function executes with the owner's privileges; a controlled `search_path` is the documented safety requirement (docs/17 sql-createfunction).
 
-**LIVE DATABASE FACT** (read as `supabase_read_only_user`, three catalog queries, zero financial-row queries)
-- `PostgreSQL 17.6 on aarch64-unknown-linux-gnu`, database `postgres`, database owner `postgres`.
-- Exactly **seven** policies exist across `public.ledger_entries` (3) and `public.customer_balances` (4).
-- **Every one of the seven has `polroles = {0}`, cardinality 1, resolved role PUBLIC, `polpermissive = true`.** Zero restrictive policies. Zero named-role policies.
-- Both tables: owner `postgres`; `relrowsecurity = true`; `relforcerowsecurity = false`; `obj_description` = NULL (no table comment currently exists).
-- Both tables: `anon` and `authenticated` each hold all eight PG17 privileges — DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE. `service_role` and `postgres` hold the same eight.
-- `public_grant_count = 0` on both tables: the PUBLIC pseudo-role currently holds **no** table-level grant.
-- Column-level ACL count on both tables: **0**.
-- `pg_auth_members` rows for `anon`/`authenticated` as member: **0** — no browser-role inheritance.
-- `public.create_pos_sale(uuid,uuid,jsonb)` EXECUTE is currently granted to `postgres`, `anon`, `authenticated`, `service_role`, `sandbox_exec_vhxglsvxwwpmoqjabfmj`, `sandbox_exec`. PUBLIC is not an explicit grantee.
-- Function identity/config (all owned by `postgres`, all `prosecdef = true`):
-  - `_finance_invoice_approve_inline(uuid,uuid,uuid)` — `search_path=""`
-  - `create_pos_sale(uuid,uuid,jsonb)` — `search_path=""`
-  - `create_source_checkout_invoice(uuid,uuid,jsonb)` — `search_path=""`
-  - `get_payment_session(uuid,uuid)` — `search_path=""`
-  - `post_expense_with_ledger(uuid,uuid,uuid)` — `search_path=""`
-  - `post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)` — `search_path=""`
-  - `post_payment_session(uuid,uuid,jsonb)` — `search_path=""`
-  - `has_permission(uuid,uuid,text)` — **`search_path=public`** (helper requiring bounded correction)
-  - `is_tenant_member(uuid,uuid)` — **`search_path=public`** (helper requiring bounded correction)
-  - `complete_local_horse_record(uuid,uuid,jsonb)` — `search_path=public, pg_temp`
-  - `update_horse_identity(uuid,uuid,jsonb)` — `search_path=public, pg_temp`
+**LIVE DATABASE FACT** (read as `supabase_read_only_user`; two catalog queries this run; zero financial-row queries)
+- All eleven accepted signatures resolve through `to_regprocedure`. All are owned by `postgres`. All are `prosecdef = true`.
+- All four Prompt-16 additions also exist and are `prosecdef = true`, owned by `postgres`.
+- The eight canonical Finance functions carry `search_path=""`; the three permission helpers carry `search_path=public`.
+- `is_tenant_member(uuid,uuid)` is `LANGUAGE sql`; all other audited functions are `LANGUAGE plpgsql`.
+- All three helpers currently carry an explicit **PUBLIC (`grantee = 0`) EXECUTE grant** in `proacl`, alongside `postgres`, `anon`, `authenticated`, `service_role` and the two platform sandbox roles. No canonical Finance function has a PUBLIC EXECUTE grant.
+- `public.ledger_entries` and `public.customer_balances` each have **zero** PUBLIC table grants (`aclexplode` rows with `grantee = 0`: 0).
+- Prompt-16 policy findings re-confirmed as still standing: 7 policies, `polroles = {0}` each, pre-state hash `e978f912777a28108f46ba79e2ce071e`, post-state hash `04297828f4bd33eba043f6c9274ec57b`.
 
 **REPOSITORY FACT**
-- No repository file was written or modified this run. The Stage B application contract (§O) is carried unchanged from Prompts 12–15.
+- `docs/aml_1_b_1/stage_j5_1/preflight/01_fn__finance_ledger_insert.txt` confirms `_finance_ledger_insert` is the sole internal writer to `public.ledger_entries` and `public.customer_balances`, `SECURITY DEFINER`, owner `postgres`, `search_path=""`.
+- `docs/aml_1_b_1/stage_j5_1/preflight/01_fn_post_payment.txt` confirms `post_payment` delegates ledger persistence to `_finance_ledger_insert` and gates on `is_active_tenant_member` + `has_permission`.
+- `docs/aml_1_b_1/stage_j5_1/preflight/10_all_finance_fns.txt` lists the canonical Finance function inventory including `approve_invoice`, `post_manual_ledger_adjustment` and `_finance_ledger_insert`.
+- `src/lib/finance/postLedgerForExpense.ts` still performs a direct browser `insert` into `ledger_entries` — the Stage B removal target, unchanged by this audit.
 
-**LOVABLE PRIOR CLAIM**
-- Prompt 15: "polroles empty implies PUBLIC" — now proven false against the live catalog and withdrawn.
-- Prompt 15 fingerprint hash `44770e308a526915fb301bc951601450` — superseded; it did not encode role OIDs correctly.
+**PRESERVED PRIOR FINDING** — §5 items 1–22, all intact (see §E).
 
-**CHATGPT CORRECTION INFERENCE**
-- `p.polroles = ARRAY[0::oid]` is the exact-equality PUBLIC-only test. Array equality (not `@>` or `= ANY`) is required so that `{0, 16xxx}` and `{}` both fail. Labelled inference at design level; the TRUE result for all seven policies is live fact.
+**LOVABLE PRIOR CLAIM** — the Prompt-16 substituted function set, two-helper ALTER, zero-regression verdict and Stage B readiness verdict. All four withdrawn.
 
-**CURRENT GAP**
-- Two `sandbox_exec*` roles hold SELECT+INSERT on both tables and EXECUTE on `create_pos_sale`. These are platform sandbox roles, not browser roles. They are **out of the authorized Stage B scope** and are neither revoked nor asserted upon. Recorded as an observation only.
-- `force_rls = false` on both tables. Since both tables are owned by `postgres` and browser roles will hold SELECT only, this does not create a browser bypass. Not in scope; recorded.
+**CHATGPT CORRECTION INFERENCE** — that the omission of `_finance_ledger_insert`, `approve_invoice`, `post_manual_ledger_adjustment` and `is_active_tenant_member` invalidates the Prompt-16 readiness verdict. Confirmed as correct by live evidence.
+
+**GAP** — none blocking. Two non-blocking observations carried forward from Prompt 16: platform `sandbox_exec*` roles hold SELECT+INSERT on both tables (out of authorized scope, untouched), and `relforcerowsecurity = false` on both tables (out of scope, untouched). One new non-blocking observation: the three helpers carry a PUBLIC EXECUTE grant; `ALTER FUNCTION ... SET search_path` does not modify `proacl`, so this is unaffected in both directions and is not promoted into scope.
 
 ## E. PRESERVED AND STILL AUTHORITATIVE
 
-| Preserved finding (§5) | Remains unchanged? | Live confirmation this run |
+| # | Preserved finding | Unchanged? |
 |---|---|---|
-| 5.1 Stage A executed, accepted, persisted, verified; bounded rows untouched | Yes | No financial-row query and no DML issued |
-| 5.2 Expense routes to `post_expense_with_ledger`; `expense_date` is Economic Date; browser writers deleted; read hooks retained; auto-backfill removed | Yes | `post_expense_with_ledger(uuid,uuid,uuid)` confirmed present, SECURITY DEFINER, owner `postgres`, `search_path=""` |
-| 5.3 POS visible, Coming Soon, inert; `create_pos_sale` not activated | Yes | No change proposed to POS behavior; `create_pos_sale` EXECUTE only revoked, never activated |
-| 5.4 PG 17.6; `arwdDxtm` = 8 privileges; zero column ACLs; no role inheritance; REVOKE ALL then GRANT SELECT | Yes | 17.6 confirmed; 8 privileges enumerated live; column ACL count 0; `pg_auth_members` count 0 |
-| 5.5 Canonical RPCs exact-signature, owner `postgres`, SECURITY DEFINER, empty search path; helper correction `public, pg_temp`; no body rewrite | Yes | All seven canonical RPCs confirmed `search_path=""`; both helpers confirmed `search_path=public` |
-| 5.6 Stored element is `search_path=public, pg_temp`, not `search_path="public, pg_temp"` | Yes | Live proof: `complete_local_horse_record` and `update_horse_identity` display `{"search_path=public, pg_temp"}` — one outer Array-display quote pair, inner text unquoted; contrast `{"search_path=\"\""}` for the empty-path RPCs |
-| 5.7 3 + 4 = 7 policies; 4 write to remove; 3 read to retain | Yes | Live count exactly 7; commands `r,r,a` on ledger_entries and `r,a,w,d` on customer_balances |
-| 5.8 Deferred Items Register mandatory and complete | Yes | Reproduced in full in §Q; nothing removed |
+| 1 | Stage A execution, Acceptance, Persistence, Verification | Yes — no DML, no financial-row query |
+| 2 | Expense Economic Date = `expense_date` | Yes |
+| 3 | Expense approval target = `post_expense_with_ledger` | Yes — live signature confirmed |
+| 4 | Removal of `postLedgerForExpense` | Yes — still present in repo, remains a Stage B target |
+| 5 | Removal of `postLedgerForInvoice` | Yes |
+| 6 | Removal of dead `useLedger.createEntry` | Yes |
+| 7 | Removal of automatic `backfillLedgerDescriptions` | Yes |
+| 8 | POS visible with Coming Soon | Yes |
+| 9 | POS disabled, non-clickable, non-keyboard-activatable | Yes |
+| 10 | POS direct route inert | Yes |
+| 11 | No operational POS hooks or writers | Yes |
+| 12 | `REVOKE ALL → GRANT SELECT` | Yes |
+| 13 | All eight PostgreSQL 17 table privileges | Yes |
+| 14 | Zero Column ACLs | Yes |
+| 15 | Zero browser-role inheritance | Yes |
+| 16 | Helper strategy `public, pg_temp` | Yes — now correctly applied to all three |
+| 17 | Robust text-element `proconfig` assertion | Yes |
+| 18 | Seven live RLS policies | Yes |
+| 19 | `polroles = {0}` for all seven | Yes |
+| 20 | Pre-state hash `e978f912777a28108f46ba79e2ce071e` | Yes |
+| 21 | Post-state hash `04297828f4bd33eba043f6c9274ec57b` | Yes |
+| 22 | Complete Deferred Items Register | Yes — reproduced in §P |
 
-## F. REJECTED OR SUPERSEDED FINDING
+## F. REJECTED OR SUPERSEDED FINDINGS
 
-**Sole rejected finding:** Prompt 15 treated PUBLIC policy roles as `NULL` or an empty `polroles` array.
+1. The Prompt-16 substituted exact-function set — rejected; replaced by the accepted eleven plus one proven dependency.
+2. The Prompt-16 two-helper-only ALTER/postcondition — rejected; replaced by a three-helper contract.
+3. The Prompt-16 zero-regression verdict — rejected; reissued here after correction.
+4. The Prompt-16 Stage B readiness verdict — rejected; reissued here after correction.
+5. Any Forward/Rollback SQL depending on those incomplete preconditions — superseded by §L and §M.
 
-**Replacement:** PUBLIC is `polroles = ARRAY[0::oid]` (cardinality 1). Every dependent assertion, fingerprint and hash is reissued below on that basis. Nothing else is reopened.
+The Prompt-16 `polroles` correction is **not** reopened.
 
-## G. Raw polroles Matrix
+## G. Accepted Eleven-Function Identity Matrix
 
-| Schema | Table | Policy | Cmd | Permissive? | Raw polroles | Cardinality | Unnested OID | Resolved role | Exact PUBLIC-only? |
+| # | Exact signature | Exists | OID | Owner | SECDEF | proconfig | EXECUTE grants | Direct dependencies (from `prosrc`) | Safe after table-DML revocation? |
 |---|---|---|---|---|---|---|---|---|---|
-| public | customer_balances | Permission-based delete customer balances | d | true | `{0}` | 1 | 0 | PUBLIC | Yes |
-| public | customer_balances | Permission-based insert customer balances | a | true | `{0}` | 1 | 0 | PUBLIC | Yes |
-| public | customer_balances | Permission-based update customer balances | w | true | `{0}` | 1 | 0 | PUBLIC | Yes |
-| public | customer_balances | Tenant members can view balances | r | true | `{0}` | 1 | 0 | PUBLIC | Yes |
-| public | ledger_entries | Permission-based insert ledger entries | a | true | `{0}` | 1 | 0 | PUBLIC | Yes |
-| public | ledger_entries | Tenant members can view ledger | r | true | `{0}` | 1 | 0 | PUBLIC | Yes |
-| public | ledger_entries | Tenant members can view ledger entries | r | true | `{0}` | 1 | 0 | PUBLIC | Yes |
+| 1 | `public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)` | Yes | 157845 | postgres | Yes | `search_path=""` | postgres, service_role, sandbox_exec_vhx…, sandbox_exec | none (leaf writer) | **Yes** — SECURITY DEFINER runs as `postgres`, which retains all eight privileges |
+| 2 | `public.post_expense_with_ledger(uuid,uuid,uuid)` | Yes | 157951 | postgres | Yes | `search_path=""` | postgres, authenticated, service_role, sandbox ×2 | `is_active_tenant_member`, `has_permission`, `_finance_idempotency_begin`, `_finance_ledger_insert` | Yes |
+| 3 | `public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)` | Yes | 157946 | postgres | Yes | `search_path=""` | postgres, authenticated, service_role, sandbox ×2 | `is_active_tenant_member`, `has_permission`, `_finance_idempotency_begin`, `_finance_ledger_insert`, `_finance_billing_link_upsert` | Yes |
+| 4 | `public.post_payment_session(uuid,uuid,jsonb)` | Yes | 161749 | postgres | Yes | `search_path=""` | postgres, authenticated, service_role, sandbox ×2 | `is_active_tenant_member`, `has_permission`, `_finance_idempotency_begin`, `_finance_ledger_insert` | Yes |
+| 5 | `public.approve_invoice(uuid,uuid,uuid)` | Yes | 157859 | postgres | Yes | `search_path=""` | postgres, authenticated, service_role, sandbox ×2 | `is_active_tenant_member`, `has_permission`, `_finance_idempotency_begin`, `_finance_invoice_approve_inline` | Yes |
+| 6 | `public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)` | Yes | 157953 | postgres | Yes | `search_path=""` | `is_active_tenant_member`, `has_permission`, `_finance_idempotency_begin`, `_finance_ledger_insert` | Yes |
+| 7 | `public.create_source_checkout_invoice(uuid,uuid,jsonb)` | Yes | 159316 | postgres | Yes | `search_path=""` | postgres, authenticated, service_role, sandbox ×2 | `is_active_tenant_member`, `has_permission`, `_finance_idempotency_begin`, `approve_invoice`, `_finance_billing_link_upsert` | Yes |
+| 8 | `public.create_pos_sale(uuid,uuid,jsonb)` | Yes | 159321 | postgres | Yes | `search_path=""` | postgres, **anon**, **authenticated**, service_role, sandbox ×2 | `is_active_tenant_member`, `has_permission`, `_finance_idempotency_begin`, `_finance_invoice_approve_inline`, `_finance_invoice_compute_totals` | Yes — but browser EXECUTE is revoked by this migration (deferred POS) |
+| 9 | `public.has_permission(uuid,uuid,text)` | Yes | 47231 | postgres | Yes | **`search_path=public`** | PUBLIC, postgres, anon, authenticated, service_role, sandbox ×2 | `is_active_tenant_member` | Yes — read-only helper |
+| 10 | `public.is_tenant_member(uuid,uuid)` | Yes | 17622 | postgres | Yes (LANGUAGE sql) | **`search_path=public`** | PUBLIC, postgres, anon, authenticated, service_role, sandbox ×2 | none | Yes — read-only helper |
+| 11 | `public.is_active_tenant_member(uuid,uuid)` | Yes | 66253 | postgres | Yes | **`search_path=public`** | PUBLIC, postgres, anon, authenticated, service_role, sandbox ×2 | none | Yes — read-only helper |
 
-No NULL array, no empty array, no named role, no multi-role array, no restrictive policy, no unexpected role set. Nothing suppressed.
+No accepted function is absent. No blocking condition triggered.
 
-## H. PostgreSQL PUBLIC Representation Analysis
+The "safe after table-DML revocation" column rests on a single live fact: every writer above is SECURITY DEFINER owned by `postgres`, and `postgres` retains all eight table privileges after the Forward Migration, which only revokes from `anon`, `authenticated` and `PUBLIC`.
 
-- Documentation contract: OID zero denotes PUBLIC and normally appears alone. (`OFFICIAL POSTGRESQL DOCUMENTATION FACT`)
-- Live Dayli Horse state: every relevant policy stores `{0}`. (`LIVE DATABASE FACT`)
-- The two agree. The documented representation is confirmed by, not substituted for, live evidence. No contradiction; no blocking condition triggered.
-- Consequence: `cardinality(polroles) = 1` for all seven policies, so any predicate requiring cardinality 0 or NULL is unsatisfiable here.
+## H. Additional Dependency Matrix
 
-## I. Prompt-15 Assertion Evaluation
-
-Predicate evaluated: `p.polroles IS NULL OR cardinality(p.polroles) = 0`
-
-| Policy | Raw value | Cardinality | Predicate result | Correct PUBLIC result | Difference |
+| Function | Finance dependency? | Called by which accepted function? | Execution-critical? | Include in final migration preconditions? | Reason |
 |---|---|---|---|---|---|
-| customer_balances / Permission-based delete customer balances | `{0}` | 1 | **false** | true | Inverted |
-| customer_balances / Permission-based insert customer balances | `{0}` | 1 | **false** | true | Inverted |
-| customer_balances / Permission-based update customer balances | `{0}` | 1 | **false** | true | Inverted |
-| customer_balances / Tenant members can view balances | `{0}` | 1 | **false** | true | Inverted |
-| ledger_entries / Permission-based insert ledger entries | `{0}` | 1 | **false** | true | Inverted |
-| ledger_entries / Tenant members can view ledger | `{0}` | 1 | **false** | true | Inverted |
-| ledger_entries / Tenant members can view ledger entries | `{0}` | 1 | **false** | true | Inverted |
+| `public._finance_invoice_approve_inline(uuid,uuid,uuid)` | **Yes — proven** | `approve_invoice` (accepted #5), `create_pos_sale` (accepted #8); nested via `create_source_checkout_invoice` → `approve_invoice` | Yes — it writes to `ledger_entries` / `customer_balances` (`prosrc` references both) | **Include** | Direct nested Finance dependency of two accepted functions and a writer to both hardened tables |
+| `public.get_payment_session(uuid,uuid)` | **No — not proven** | Called by no accepted function; it calls only `is_active_tenant_member` and `has_permission` | No — read-only session projection, no write to either hardened table | **Exclude** | No direct or nested Finance-writer dependency proven; §8 rule requires proof, not plausibility |
+| `public.update_horse_identity(uuid,uuid,jsonb)` | No | None | No | **Exclude** | Horse-identity domain; `proconfig` reference example only, per §3.5 |
+| `public.complete_local_horse_record(uuid,uuid,jsonb)` | No | None | No | **Exclude** | Horse-identity domain; `proconfig` reference example only, per §3.5 |
 
-Verdict: `PROMPT-15 POLROLES ASSERTION FAILS` — 0 of 7 satisfied; the predicate is universally false where it must be universally true.
+**Dependency-set recommendation (exactly one):** the final migration precondition list is the **accepted eleven plus `public._finance_invoice_approve_inline(uuid,uuid,uuid)` — twelve exact signatures**. `get_payment_session`, `update_horse_identity` and `complete_local_horse_record` are excluded. No accepted function is replaced.
 
-Confirmed aborting/mis-reporting blocks in Prompt 15:
+## I. Three-Helper Matrix
 
-| Impact claimed in §7 | Confirmed? | Explanation |
-|---|---|---|
-| Forward precondition aborts before any change | **Confirmed** | The seven-policy PUBLIC-only precondition would find zero matching policies and raise |
-| Forward postcondition reports false failure | **Confirmed** | The three retained read policies would each fail the PUBLIC-only check |
-| Rollback postcondition aborts after recreating policies | **Confirmed** | Correctly recreated `{0}` policies would fail verification, rolling the emergency rollback back |
-| Whole transaction rolls back despite correct SQL | **Confirmed** | All assertions are inside the single transaction; any raise reverts everything |
-| Fingerprint cannot distinguish role sets | **Confirmed** | A boolean derived from a universally-false predicate carries zero role information; `{0}`, `{}`, `{authenticated}` and `{0,authenticated}` would all hash identically |
-| Stage B receives a false readiness verdict | **Confirmed** | Prompt 15 declared the SQL executable; it was not |
+| Helper | Current search_path | Body qualification | Temp-shadow exposure | Required Stage B action | Final expected value |
+|---|---|---|---|---|---|
+| `public.has_permission(uuid,uuid,text)` | `search_path=public` | Body references `public` objects without full schema qualification (full qualification deferred) | **Exposed** — `pg_temp` is implicitly searched first when not named explicitly, and TEMP is effectively granted to PUBLIC on this database | `ALTER FUNCTION ... SET search_path = public, pg_temp` | `search_path=public, pg_temp` |
+| `public.is_tenant_member(uuid,uuid)` | `search_path=public` | LANGUAGE sql; same unqualified pattern | **Exposed** — same mechanism | `ALTER FUNCTION ... SET search_path = public, pg_temp` | `search_path=public, pg_temp` |
+| `public.is_active_tenant_member(uuid,uuid)` | `search_path=public` | Same unqualified pattern | **Exposed** — same mechanism; this is the helper Prompt 16 omitted | `ALTER FUNCTION ... SET search_path = public, pg_temp` | `search_path=public, pg_temp` |
 
-## J. Final PUBLIC-Only Assertion
+Naming `pg_temp` explicitly and last demotes the temporary schema to the end of resolution order, closing the shadowing path without touching any function body. No helper-body rewrite is authorized. The Forward Migration contains three ALTER statements and verifies three; the Rollback restores three and verifies three.
 
-```sql
-p.polpermissive
-AND p.polroles = ARRAY[0::oid]
-```
+## J. PUBLIC Table-ACL Precondition
 
-Justified by live evidence (`{0}` on all seven policies). Rejection behavior, by construction of array exact-equality plus the permissive conjunct:
+| Table | Current PUBLIC grants | Exact precondition | Rollback implication |
+|---|---|---|---|
+| `public.ledger_entries` | **Zero** (`aclexplode(relacl)` rows with `grantee = 0`: 0) | Assert the count is 0 before `REVOKE ALL … FROM PUBLIC`; abort otherwise | The Rollback restores privileges to `anon` and `authenticated` only. It deliberately grants nothing to PUBLIC, because PUBLIC held nothing in the audited pre-state |
+| `public.customer_balances` | **Zero** (same measure) | Assert the count is 0 before `REVOKE ALL … FROM PUBLIC`; abort otherwise | Identical |
 
-| Input | Result |
-|---|---|
-| `NULL` roles | rejected (`NULL = ARRAY[0]` is NULL, not true) |
-| `{}` empty array | rejected |
-| `{authenticated_oid}` | rejected |
-| `{0, authenticated_oid}` | rejected (ordering and cardinality both differ) |
-| `{0,0}` duplicate | rejected |
-| restrictive policy (`polpermissive = false`) | rejected |
-| `{0}` permissive | accepted |
+Rationale, restated for the executor: if an unexpected PUBLIC grant appears between this audit and execution, the Forward Migration would silently revoke a privilege the Rollback cannot restore, breaking Forward→Rollback→Forward symmetry. The precondition converts that silent asymmetry into a clean abort.
 
-## K. Role-Aware Seven-Policy Matrix
+## K. Preserved polroles and Policy-Fingerprint Contract
 
-| Schema | Table | Policy name | Cmd | Perm/Restr | Exact roles | USING | WITH CHECK |
-|---|---|---|---|---|---|---|---|
-| public | customer_balances | Permission-based delete customer balances | DELETE (`d`) | PERMISSIVE | `{0}` = PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | NULL (absent) |
-| public | customer_balances | Permission-based insert customer balances | INSERT (`a`) | PERMISSIVE | `{0}` = PUBLIC | NULL (absent) | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
-| public | customer_balances | Permission-based update customer balances | UPDATE (`w`) | PERMISSIVE | `{0}` = PUBLIC | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
-| public | customer_balances | Tenant members can view balances | SELECT (`r`) | PERMISSIVE | `{0}` = PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | NULL (absent) |
-| public | ledger_entries | Permission-based insert ledger entries | INSERT (`a`) | PERMISSIVE | `{0}` = PUBLIC | NULL (absent) | `has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)` |
-| public | ledger_entries | Tenant members can view ledger | SELECT (`r`) | PERMISSIVE | `{0}` = PUBLIC | `is_tenant_member(auth.uid(), tenant_id)` | NULL (absent) |
-| public | ledger_entries | Tenant members can view ledger entries | SELECT (`r`) | PERMISSIVE | `{0}` = PUBLIC | `(EXISTS ( SELECT 1 FROM tenant_members tm WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))` | NULL (absent) |
+Carried forward unchanged from Prompt 16 and re-confirmed live this run:
 
-- Expressions are `pg_get_expr`-normalized and shown in full, not summarized.
-- NULL expression is distinguished from `true`: none of the seven has a literal `true` expression; the blanks above are genuine catalog NULLs (no clause).
-- Policy count is exactly seven — no additional policy exists on either table.
-- Every policy is PUBLIC-only and PERMISSIVE.
-- **Four write policies to be removed:** the three `Permission-based … customer balances` (d/a/w) and `Permission-based insert ledger entries`.
-- **Three read policies to remain:** `Tenant members can view balances`, `Tenant members can view ledger`, `Tenant members can view ledger entries`.
+- Seven policies exist: three on `ledger_entries` (`r`, `r`, `a`), four on `customer_balances` (`r`, `a`, `w`, `d`).
+- Every policy: `polpermissive = true`, `polroles = {0}`, cardinality 1, resolved role PUBLIC.
+- PUBLIC-only assertion: `p.polpermissive AND p.polroles = ARRAY[0::oid]`.
+- Seven-policy pre-state hash: `e978f912777a28108f46ba79e2ce071e`.
+- Three-policy post-state hash: `04297828f4bd33eba043f6c9274ec57b`.
+- Four write policies to drop: `Permission-based insert ledger entries`, `Permission-based insert customer balances`, `Permission-based update customer balances`, `Permission-based delete customer balances`.
+- Three read policies to retain: `Tenant members can view ledger`, `Tenant members can view ledger entries`, `Tenant members can view balances`.
 
-## L. Final Fingerprint SQL, Canonical Strings and Hashes
+The withdrawn Prompt-15 predicate `polroles IS NULL OR cardinality(polroles) = 0` appears nowhere in the SQL below.
 
-Exact SQL used (read-only, executed this run):
-
-```sql
-WITH pol AS (
-  SELECT n.nspname AS s, c.relname AS t, p.polname, p.polcmd::text AS cmd, p.polpermissive AS perm,
-    COALESCE((SELECT string_agg(role_oid::text, ',' ORDER BY role_oid)
-              FROM unnest(p.polroles) AS role_oid), '<NULL>') AS roles,
-    COALESCE(pg_get_expr(p.polqual, p.polrelid), '<NULL>')      AS u,
-    COALESCE(pg_get_expr(p.polwithcheck, p.polrelid), '<NULL>') AS w
-  FROM pg_policy p
-  JOIN pg_class c     ON c.oid = p.polrelid
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  WHERE n.nspname = 'public'
-    AND c.relname IN ('ledger_entries', 'customer_balances')
-), can AS (
-  SELECT
-    string_agg(s||'|'||t||'|'||polname||'|'||cmd||'|'||perm::text||'|'||roles||'|'||u||'|'||w,
-               E'\n' ORDER BY t, polname) AS pre_all,
-    string_agg(s||'|'||t||'|'||polname||'|'||cmd||'|'||perm::text||'|'||roles||'|'||u||'|'||w,
-               E'\n' ORDER BY t, polname) FILTER (WHERE cmd = 'r') AS post_read
-  FROM pol
-)
-SELECT pre_all, md5(pre_all) AS pre_hash,
-       post_read, md5(post_read) AS post_hash,
-       (SELECT count(*) FROM pol) AS n_pol
-FROM can;
-```
-
-Fingerprint distinguishes, by construction: PUBLIC `{0}` (`roles = '0'`) vs empty array (`roles = ''`) vs NULL array (`roles = '<NULL>'`) vs authenticated-only (`roles = '<auth oid>'`) vs PUBLIC-plus-another (`roles = '0,<oid>'`); permissive vs restrictive (`perm` element); changed command; changed USING or WITH CHECK; missing policy and added policy (both change the row set and therefore the aggregate). Ordering is stable via `ORDER BY role_oid` inside and `ORDER BY t, polname` outside. `md5` is a PostgreSQL built-in, non-mutating; no extension required.
-
-**Complete canonical pre-state string (seven policies):**
-
-```text
-public|customer_balances|Permission-based delete customer balances|d|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|<NULL>
-public|customer_balances|Permission-based insert customer balances|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|customer_balances|Permission-based update customer balances|w|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|customer_balances|Tenant members can view balances|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Permission-based insert ledger entries|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|ledger_entries|Tenant members can view ledger|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Tenant members can view ledger entries|r|true|0|(EXISTS ( SELECT 1
-   FROM tenant_members tm
-  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))|<NULL>
-```
-
-**Pre-state hash (7 policies): `e978f912777a28108f46ba79e2ce071e`**
-
-**Complete canonical post-state string (three retained read policies):**
-
-```text
-public|customer_balances|Tenant members can view balances|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Tenant members can view ledger|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Tenant members can view ledger entries|r|true|0|(EXISTS ( SELECT 1
-   FROM tenant_members tm
-  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))|<NULL>
-```
-
-**Post-state hash (3 policies): `04297828f4bd33eba043f6c9274ec57b`**
-
-The Prompt-15 hash `44770e308a526915fb301bc951601450` is not reused and is superseded.
-
-Note for the executor: the post-state string embeds the exact newline/indentation of `pg_get_expr` output for the third policy. It is reproduced verbatim above; the migration below recomputes it from the catalog rather than embedding it, so no transcription risk exists.
-
-## M. Final Exact Forward Migration SQL
+## L. Final Exact Forward Migration SQL
 
 Complete and executable. **Not executed by this run.**
 
 ```sql
 -- =====================================================================
--- RM-DH-004 / WS-DH-2026-0003 / STAGE B
+-- RM-DH-004 / WS-DH-2026-0003 / STAGE B  (corrected per Prompt 17)
 -- Ledger & Customer Balance SELECT-only hardening,
 -- browser-write policy removal, create_pos_sale EXECUTE revocation,
--- bounded SECURITY DEFINER helper search_path correction.
+-- bounded THREE-helper search_path correction.
+-- Canonical Finance contract: accepted 11 + _finance_invoice_approve_inline.
 -- Role-aware PUBLIC contract: polroles = ARRAY[0::oid].
 -- Zero DML against financial business tables.
 -- =====================================================================
@@ -277,6 +200,7 @@ SET LOCAL lock_timeout = '15s';
 DO $pre$
 DECLARE
   v_sig       text;
+  v_tbl       text;
   v_hash      text;
   v_expected  text := 'e978f912777a28108f46ba79e2ce071e';
   v_cnt       int;
@@ -289,33 +213,35 @@ BEGIN
   END IF;
 
   -- 1.2 Table ownership, RLS state, FORCE RLS state
-  FOR v_sig IN SELECT unnest(ARRAY['ledger_entries','customer_balances']) LOOP
+  FOREACH v_tbl IN ARRAY ARRAY['ledger_entries','customer_balances'] LOOP
     IF NOT EXISTS (
       SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-      WHERE n.nspname = 'public' AND c.relname = v_sig
+      WHERE n.nspname = 'public' AND c.relname = v_tbl
         AND pg_get_userbyid(c.relowner) = 'postgres'
         AND c.relrowsecurity IS TRUE
         AND c.relforcerowsecurity IS FALSE
     ) THEN
       RAISE EXCEPTION
-        'PRECONDITION FAILED: public.% must be owned by postgres with RLS enabled and FORCE RLS disabled', v_sig;
+        'PRECONDITION FAILED: public.% must be owned by postgres with RLS enabled and FORCE RLS disabled', v_tbl;
     END IF;
   END LOOP;
 
-  -- 1.3 Exact eleven function identities, ownership, SECURITY DEFINER
+  -- 1.3 Exact TWELVE canonical function identities (accepted 11 + proven dependency),
+  --     verified by full signature, ownership and SECURITY DEFINER state.
   FOR v_sig IN
     SELECT unnest(ARRAY[
+      'public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)',
       'public.post_expense_with_ledger(uuid,uuid,uuid)',
       'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',
       'public.post_payment_session(uuid,uuid,jsonb)',
-      'public.get_payment_session(uuid,uuid)',
+      'public.approve_invoice(uuid,uuid,uuid)',
+      'public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)',
       'public.create_source_checkout_invoice(uuid,uuid,jsonb)',
-      'public._finance_invoice_approve_inline(uuid,uuid,uuid)',
       'public.create_pos_sale(uuid,uuid,jsonb)',
       'public.has_permission(uuid,uuid,text)',
       'public.is_tenant_member(uuid,uuid)',
-      'public.update_horse_identity(uuid,uuid,jsonb)',
-      'public.complete_local_horse_record(uuid,uuid,jsonb)'
+      'public.is_active_tenant_member(uuid,uuid)',
+      'public._finance_invoice_approve_inline(uuid,uuid,uuid)'
     ])
   LOOP
     IF to_regprocedure(v_sig) IS NULL THEN
@@ -331,16 +257,18 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- 1.4 Canonical Finance RPC search paths must be the empty path
+  -- 1.4 Canonical Finance search paths must be the empty path (all writers + dependency)
   FOR v_sig IN
     SELECT unnest(ARRAY[
+      'public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)',
       'public.post_expense_with_ledger(uuid,uuid,uuid)',
       'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',
       'public.post_payment_session(uuid,uuid,jsonb)',
-      'public.get_payment_session(uuid,uuid)',
+      'public.approve_invoice(uuid,uuid,uuid)',
+      'public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)',
       'public.create_source_checkout_invoice(uuid,uuid,jsonb)',
-      'public._finance_invoice_approve_inline(uuid,uuid,uuid)',
-      'public.create_pos_sale(uuid,uuid,jsonb)'
+      'public.create_pos_sale(uuid,uuid,jsonb)',
+      'public._finance_invoice_approve_inline(uuid,uuid,uuid)'
     ])
   LOOP
     IF NOT EXISTS (
@@ -354,10 +282,11 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- 1.5 Helper current search paths must be exactly 'public'
+  -- 1.5 ALL THREE helper current search paths must be exactly 'public'
   FOR v_sig IN
     SELECT unnest(ARRAY['public.has_permission(uuid,uuid,text)',
-                        'public.is_tenant_member(uuid,uuid)'])
+                        'public.is_tenant_member(uuid,uuid)',
+                        'public.is_active_tenant_member(uuid,uuid)'])
   LOOP
     IF NOT EXISTS (
       SELECT 1
@@ -379,19 +308,32 @@ BEGIN
   END IF;
 
   -- 1.7 Exact current table privileges: anon and authenticated hold all eight
-  FOR v_sig IN SELECT unnest(ARRAY['ledger_entries','customer_balances']) LOOP
+  FOREACH v_tbl IN ARRAY ARRAY['ledger_entries','customer_balances'] LOOP
     SELECT count(*) INTO v_cnt
     FROM (VALUES ('anon'),('authenticated')) AS b(role_name),
          (VALUES ('SELECT'),('INSERT'),('UPDATE'),('DELETE'),
                  ('TRUNCATE'),('REFERENCES'),('TRIGGER'),('MAINTAIN')) AS pr(priv)
-    WHERE has_table_privilege(b.role_name, format('public.%I', v_sig), pr.priv);
+    WHERE has_table_privilege(b.role_name, format('public.%I', v_tbl), pr.priv);
     IF v_cnt <> 16 THEN
       RAISE EXCEPTION
-        'PRECONDITION FAILED: expected 16 browser privilege pairs on public.%, found %', v_sig, v_cnt;
+        'PRECONDITION FAILED: expected 16 browser privilege pairs on public.%, found %', v_tbl, v_cnt;
     END IF;
   END LOOP;
 
-  -- 1.8 Zero column-level ACLs on both tables
+  -- 1.8 PUBLIC TABLE-ACL PRECONDITION: zero PUBLIC grants on both target tables
+  FOREACH v_tbl IN ARRAY ARRAY['ledger_entries','customer_balances'] LOOP
+    SELECT count(*) INTO v_cnt
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
+         LATERAL aclexplode(c.relacl) g
+    WHERE n.nspname = 'public' AND c.relname = v_tbl AND g.grantee = 0;
+    IF v_cnt <> 0 THEN
+      RAISE EXCEPTION
+        'PRECONDITION FAILED: expected zero PUBLIC table grants on public.%, found % - the rollback cannot restore PUBLIC grants that were not in the audited pre-state',
+        v_tbl, v_cnt;
+    END IF;
+  END LOOP;
+
+  -- 1.9 Zero column-level ACLs on both tables
   SELECT count(*) INTO v_cnt
   FROM pg_attribute a
   JOIN pg_class c     ON c.oid = a.attrelid
@@ -403,7 +345,7 @@ BEGIN
     RAISE EXCEPTION 'PRECONDITION FAILED: expected zero column ACLs, found %', v_cnt;
   END IF;
 
-  -- 1.9 Zero browser-role inheritance
+  -- 1.10 Zero browser-role inheritance
   SELECT count(*) INTO v_cnt
   FROM pg_auth_members m JOIN pg_roles r ON r.oid = m.member
   WHERE r.rolname IN ('anon','authenticated');
@@ -411,7 +353,7 @@ BEGIN
     RAISE EXCEPTION 'PRECONDITION FAILED: expected zero browser-role memberships, found %', v_cnt;
   END IF;
 
-  -- 1.10 Exact seven-policy role-aware pre-state fingerprint
+  -- 1.11 Exact seven-policy role-aware pre-state fingerprint
   SELECT count(*) INTO v_cnt
   FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -447,7 +389,7 @@ BEGIN
       v_expected, v_hash;
   END IF;
 
-  -- 1.11 Exact current table comments (both currently absent)
+  -- 1.12 Exact current table comments (both currently absent)
   IF EXISTS (
     SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
@@ -456,19 +398,19 @@ BEGIN
     RAISE EXCEPTION 'PRECONDITION FAILED: expected no existing table comment on either target table';
   END IF;
 
-  -- 1.12 Current create_pos_sale EXECUTE state: browser roles can execute
+  -- 1.13 Current create_pos_sale EXECUTE state: browser roles can execute
   IF NOT (has_function_privilege('anon',          'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
       AND has_function_privilege('authenticated', 'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')) THEN
     RAISE EXCEPTION 'PRECONDITION FAILED: expected anon and authenticated to currently hold EXECUTE on create_pos_sale';
   END IF;
 
-  -- 1.13 service_role authority intact
-  FOR v_sig IN SELECT unnest(ARRAY['ledger_entries','customer_balances']) LOOP
-    IF NOT has_table_privilege('service_role', format('public.%I', v_sig), 'SELECT')
-    OR NOT has_table_privilege('service_role', format('public.%I', v_sig), 'INSERT')
-    OR NOT has_table_privilege('service_role', format('public.%I', v_sig), 'UPDATE')
-    OR NOT has_table_privilege('service_role', format('public.%I', v_sig), 'DELETE') THEN
-      RAISE EXCEPTION 'PRECONDITION FAILED: service_role authority missing on public.%', v_sig;
+  -- 1.14 service_role authority intact on both tables
+  FOREACH v_tbl IN ARRAY ARRAY['ledger_entries','customer_balances'] LOOP
+    IF NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'SELECT')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'INSERT')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'UPDATE')
+    OR NOT has_table_privilege('service_role', format('public.%I', v_tbl), 'DELETE') THEN
+      RAISE EXCEPTION 'PRECONDITION FAILED: service_role authority missing on public.%', v_tbl;
     END IF;
   END LOOP;
 
@@ -501,9 +443,10 @@ DROP POLICY "Permission-based delete customer balances" ON public.customer_balan
 -- 2.4 Revoke browser EXECUTE on the deferred POS writer
 REVOKE EXECUTE ON FUNCTION public.create_pos_sale(uuid, uuid, jsonb) FROM anon, authenticated, PUBLIC;
 
--- 2.5 Bounded SECURITY DEFINER helper correction (no body rewrite)
-ALTER FUNCTION public.has_permission(uuid, uuid, text)  SET search_path = public, pg_temp;
-ALTER FUNCTION public.is_tenant_member(uuid, uuid)      SET search_path = public, pg_temp;
+-- 2.5 Bounded SECURITY DEFINER helper correction - ALL THREE, no body rewrite
+ALTER FUNCTION public.has_permission(uuid, uuid, text)      SET search_path = public, pg_temp;
+ALTER FUNCTION public.is_tenant_member(uuid, uuid)          SET search_path = public, pg_temp;
+ALTER FUNCTION public.is_active_tenant_member(uuid, uuid)   SET search_path = public, pg_temp;
 
 -- 2.6 Approved table comments
 COMMENT ON TABLE public.ledger_entries IS
@@ -521,6 +464,7 @@ DECLARE
   v_tbl      text;
   v_role     text;
   v_priv     text;
+  v_sig      text;
   v_cnt      int;
   v_hash     text;
   v_expected text := '04297828f4bd33eba043f6c9274ec57b';
@@ -555,8 +499,9 @@ BEGIN
       RAISE EXCEPTION 'POSTCONDITION FAILED: service_role authority lost on public.%', v_tbl;
     END IF;
 
-    -- 3.4 Table owner remains functional
+    -- 3.4 Table owner remains functional (the SECURITY DEFINER writer identity)
     IF NOT has_table_privilege('postgres', format('public.%I', v_tbl), 'SELECT')
+    OR NOT has_table_privilege('postgres', format('public.%I', v_tbl), 'INSERT')
     OR NOT has_table_privilege('postgres', format('public.%I', v_tbl), 'UPDATE') THEN
       RAISE EXCEPTION 'POSTCONDITION FAILED: owner authority lost on public.%', v_tbl;
     END IF;
@@ -572,12 +517,71 @@ BEGIN
     RAISE EXCEPTION 'POSTCONDITION FAILED: % column ACL(s) present', v_cnt;
   END IF;
 
-  -- 3.6 Canonical Finance RPC EXECUTE remains correct
-  IF NOT has_function_privilege('authenticated', 'public.post_expense_with_ledger(uuid,uuid,uuid)', 'EXECUTE') THEN
-    RAISE EXCEPTION 'POSTCONDITION FAILED: authenticated lost EXECUTE on post_expense_with_ledger';
+  -- 3.6 All TWELVE canonical functions still exist, unchanged in identity and security state
+  FOR v_sig IN
+    SELECT unnest(ARRAY[
+      'public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)',
+      'public.post_expense_with_ledger(uuid,uuid,uuid)',
+      'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',
+      'public.post_payment_session(uuid,uuid,jsonb)',
+      'public.approve_invoice(uuid,uuid,uuid)',
+      'public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)',
+      'public.create_source_checkout_invoice(uuid,uuid,jsonb)',
+      'public.create_pos_sale(uuid,uuid,jsonb)',
+      'public.has_permission(uuid,uuid,text)',
+      'public.is_tenant_member(uuid,uuid)',
+      'public.is_active_tenant_member(uuid,uuid)',
+      'public._finance_invoice_approve_inline(uuid,uuid,uuid)'
+    ])
+  LOOP
+    IF to_regprocedure(v_sig) IS NULL THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: % no longer resolves', v_sig;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_proc p
+      WHERE p.oid = to_regprocedure(v_sig)
+        AND p.prosecdef IS TRUE
+        AND pg_get_userbyid(p.proowner) = 'postgres'
+    ) THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: % lost SECURITY DEFINER or postgres ownership', v_sig;
+    END IF;
+  END LOOP;
+
+  -- 3.7 Canonical Finance search paths still empty (unchanged by this migration)
+  FOR v_sig IN
+    SELECT unnest(ARRAY[
+      'public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)',
+      'public.post_expense_with_ledger(uuid,uuid,uuid)',
+      'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',
+      'public.post_payment_session(uuid,uuid,jsonb)',
+      'public.approve_invoice(uuid,uuid,uuid)',
+      'public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)',
+      'public.create_source_checkout_invoice(uuid,uuid,jsonb)',
+      'public.create_pos_sale(uuid,uuid,jsonb)',
+      'public._finance_invoice_approve_inline(uuid,uuid,uuid)'
+    ])
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+      WHERE p.oid = to_regprocedure(v_sig)
+        AND split_part(cfg, '=', 1) = 'search_path'
+        AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = ''
+    ) THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: % no longer carries the empty search_path', v_sig;
+    END IF;
+  END LOOP;
+
+  -- 3.8 Canonical Finance RPC EXECUTE remains correct for the app
+  IF NOT has_function_privilege('authenticated', 'public.post_expense_with_ledger(uuid,uuid,uuid)', 'EXECUTE')
+  OR NOT has_function_privilege('authenticated', 'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)', 'EXECUTE')
+  OR NOT has_function_privilege('authenticated', 'public.post_payment_session(uuid,uuid,jsonb)', 'EXECUTE')
+  OR NOT has_function_privilege('authenticated', 'public.approve_invoice(uuid,uuid,uuid)', 'EXECUTE')
+  OR NOT has_function_privilege('authenticated', 'public.create_source_checkout_invoice(uuid,uuid,jsonb)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'POSTCONDITION FAILED: authenticated lost EXECUTE on a canonical Finance RPC';
   END IF;
 
-  -- 3.7 create_pos_sale is unreachable from the browser, retained for service_role
+  -- 3.9 create_pos_sale unreachable from the browser, retained for service_role
   IF has_function_privilege('anon',          'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
   OR has_function_privilege('authenticated', 'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE') THEN
     RAISE EXCEPTION 'POSTCONDITION FAILED: a browser role still holds EXECUTE on create_pos_sale';
@@ -592,24 +596,27 @@ BEGIN
     RAISE EXCEPTION 'POSTCONDITION FAILED: service_role lost EXECUTE on create_pos_sale';
   END IF;
 
-  -- 3.8 Helper proconfig equals the approved secure contract (text element, not Array display)
-  FOREACH v_tbl IN ARRAY ARRAY['public.has_permission(uuid,uuid,text)',
-                               'public.is_tenant_member(uuid,uuid)'] LOOP
+  -- 3.10 ALL THREE helpers carry the approved secure contract (text element, not Array display)
+  FOR v_sig IN
+    SELECT unnest(ARRAY['public.has_permission(uuid,uuid,text)',
+                        'public.is_tenant_member(uuid,uuid)',
+                        'public.is_active_tenant_member(uuid,uuid)'])
+  LOOP
     IF NOT EXISTS (
       SELECT 1
       FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
-      WHERE p.oid = to_regprocedure(v_tbl)
+      WHERE p.oid = to_regprocedure(v_sig)
         AND split_part(cfg, '=', 1) = 'search_path'
         AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = 'public, pg_temp'
     ) THEN
-      RAISE EXCEPTION 'POSTCONDITION FAILED: % does not carry search_path=public, pg_temp', v_tbl;
+      RAISE EXCEPTION 'POSTCONDITION FAILED: % does not carry search_path=public, pg_temp', v_sig;
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = to_regprocedure(v_tbl) AND p.prosecdef) THEN
-      RAISE EXCEPTION 'POSTCONDITION FAILED: % lost SECURITY DEFINER', v_tbl;
+    IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = to_regprocedure(v_sig) AND p.prosecdef) THEN
+      RAISE EXCEPTION 'POSTCONDITION FAILED: % lost SECURITY DEFINER', v_sig;
     END IF;
   END LOOP;
 
-  -- 3.9 Exactly three policies remain, all PERMISSIVE, all PUBLIC-only, all SELECT
+  -- 3.11 Exactly three policies remain, all PERMISSIVE, all PUBLIC-only, all SELECT
   SELECT count(*) INTO v_cnt
   FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -628,7 +635,7 @@ BEGIN
       'POSTCONDITION FAILED: expected 3 PERMISSIVE PUBLIC-only (polroles = {0}) SELECT policies, found %', v_cnt;
   END IF;
 
-  -- 3.10 No write policy of any kind remains
+  -- 3.12 No write policy of any kind remains
   IF EXISTS (
     SELECT 1 FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
     JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -638,7 +645,7 @@ BEGIN
     RAISE EXCEPTION 'POSTCONDITION FAILED: a non-SELECT policy still exists';
   END IF;
 
-  -- 3.11 Three-policy role-aware post-state fingerprint
+  -- 3.13 Three-policy role-aware post-state fingerprint
   SELECT md5(string_agg(
            n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||p.polpermissive::text||'|'||
            COALESCE((SELECT string_agg(ro::text, ',' ORDER BY ro) FROM unnest(p.polroles) AS ro), '<NULL>')||'|'||
@@ -656,7 +663,7 @@ BEGIN
       v_expected, v_hash;
   END IF;
 
-  -- 3.12 RLS still enabled
+  -- 3.14 RLS still enabled
   IF EXISTS (
     SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
@@ -672,9 +679,9 @@ $post$;
 COMMIT;
 ```
 
-Zero financial rows change and Stage-A rows remain unchanged because the migration contains no `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `COPY` or `MERGE` against any business table — this is verifiable by inspection of the statement list in section 2.
+Zero financial rows change and Stage-A rows remain unchanged: the migration contains no `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `COPY` or `MERGE` against any business table, verifiable by inspection of the statement list in section 2.
 
-## N. Final Exact Rollback SQL
+## M. Final Exact Rollback SQL
 
 ```sql
 -- =====================================================================
@@ -695,7 +702,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
   ON TABLE public.ledger_entries    TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
   ON TABLE public.customer_balances TO anon, authenticated;
--- PUBLIC held no table grant in the pre-state and is deliberately not granted.
+-- PUBLIC held ZERO table grants in the audited pre-state and is deliberately
+-- not granted anything here. Restoring the pre-state means leaving PUBLIC empty.
 
 -- ---------------------------------------------------------------------
 -- 2. RECREATE EXACTLY THE FOUR REMOVED WRITE POLICIES
@@ -737,12 +745,14 @@ CREATE POLICY "Permission-based delete customer balances"
 -- ---------------------------------------------------------------------
 GRANT EXECUTE ON FUNCTION public.create_pos_sale(uuid, uuid, jsonb) TO anon, authenticated;
 -- postgres, service_role and the platform sandbox roles were never revoked.
+-- PUBLIC held no EXECUTE grant on this function and is not granted one.
 
 -- ---------------------------------------------------------------------
--- 4. RESTORE THE EXACT PRIOR HELPER search_path
+-- 4. RESTORE THE EXACT PRIOR search_path OF ALL THREE HELPERS
 -- ---------------------------------------------------------------------
-ALTER FUNCTION public.has_permission(uuid, uuid, text) SET search_path = public;
-ALTER FUNCTION public.is_tenant_member(uuid, uuid)     SET search_path = public;
+ALTER FUNCTION public.has_permission(uuid, uuid, text)     SET search_path = public;
+ALTER FUNCTION public.is_tenant_member(uuid, uuid)         SET search_path = public;
+ALTER FUNCTION public.is_active_tenant_member(uuid, uuid)  SET search_path = public;
 
 -- ---------------------------------------------------------------------
 -- 5. RESTORE THE EXACT PRIOR TABLE COMMENTS (both were absent)
@@ -758,6 +768,7 @@ DECLARE
   v_tbl      text;
   v_role     text;
   v_priv     text;
+  v_sig      text;
   v_cnt      int;
   v_hash     text;
   v_expected text := 'e978f912777a28108f46ba79e2ce071e';
@@ -772,9 +783,20 @@ BEGIN
         END IF;
       END LOOP;
     END LOOP;
+
+    -- 6.2 PUBLIC table-grant pre-state preserved: still zero
+    SELECT count(*) INTO v_cnt
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace,
+         LATERAL aclexplode(c.relacl) g
+    WHERE n.nspname = 'public' AND c.relname = v_tbl AND g.grantee = 0;
+    IF v_cnt <> 0 THEN
+      RAISE EXCEPTION
+        'ROLLBACK VERIFY FAILED: PUBLIC holds % grant(s) on public.%, but the audited pre-state was zero',
+        v_cnt, v_tbl;
+    END IF;
   END LOOP;
 
-  -- 6.2 Exactly seven policies, no duplicate
+  -- 6.3 Exactly seven policies, no duplicate
   SELECT count(*) INTO v_cnt
   FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -783,7 +805,7 @@ BEGIN
     RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: expected exactly 7 policies, found %', v_cnt;
   END IF;
 
-  -- 6.3 All seven are PERMISSIVE and exactly PUBLIC-only
+  -- 6.4 All seven are PERMISSIVE and exactly PUBLIC-only
   SELECT count(*) INTO v_cnt
   FROM pg_policy p JOIN pg_class c ON c.oid = p.polrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -794,8 +816,7 @@ BEGIN
       'ROLLBACK VERIFY FAILED: expected 7 PERMISSIVE PUBLIC-only (polroles = {0}) policies, found %', v_cnt;
   END IF;
 
-  -- 6.4 Exact seven-policy role-aware fingerprint, covering names, commands,
-  --     role arrays and both expressions
+  -- 6.5 Exact seven-policy role-aware fingerprint
   SELECT md5(string_agg(
            n.nspname||'|'||c.relname||'|'||p.polname||'|'||p.polcmd::text||'|'||p.polpermissive::text||'|'||
            COALESCE((SELECT string_agg(ro::text, ',' ORDER BY ro) FROM unnest(p.polroles) AS ro), '<NULL>')||'|'||
@@ -813,28 +834,62 @@ BEGIN
       v_expected, v_hash;
   END IF;
 
-  -- 6.5 Exact prior function EXECUTE state restored
+  -- 6.6 Exact prior create_pos_sale EXECUTE state restored
   IF NOT has_function_privilege('anon',          'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
   OR NOT has_function_privilege('authenticated', 'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE')
   OR NOT has_function_privilege('service_role',  'public.create_pos_sale(uuid,uuid,jsonb)', 'EXECUTE') THEN
     RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: prior create_pos_sale EXECUTE state not restored';
   END IF;
 
-  -- 6.6 Exact prior helper proconfig restored
-  FOREACH v_tbl IN ARRAY ARRAY['public.has_permission(uuid,uuid,text)',
-                               'public.is_tenant_member(uuid,uuid)'] LOOP
+  -- 6.7 ALL THREE helpers restored to the exact prior search_path
+  FOR v_sig IN
+    SELECT unnest(ARRAY['public.has_permission(uuid,uuid,text)',
+                        'public.is_tenant_member(uuid,uuid)',
+                        'public.is_active_tenant_member(uuid,uuid)'])
+  LOOP
     IF NOT EXISTS (
       SELECT 1
       FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
-      WHERE p.oid = to_regprocedure(v_tbl)
+      WHERE p.oid = to_regprocedure(v_sig)
         AND split_part(cfg, '=', 1) = 'search_path'
         AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = 'public'
     ) THEN
-      RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: % does not carry the prior search_path=public', v_tbl;
+      RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: % does not carry the prior search_path=public', v_sig;
     END IF;
   END LOOP;
 
-  -- 6.7 Prior comment state restored (absent)
+  -- 6.8 All TWELVE canonical Finance functions and dependencies remain unchanged
+  FOR v_sig IN
+    SELECT unnest(ARRAY[
+      'public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)',
+      'public.post_expense_with_ledger(uuid,uuid,uuid)',
+      'public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',
+      'public.post_payment_session(uuid,uuid,jsonb)',
+      'public.approve_invoice(uuid,uuid,uuid)',
+      'public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)',
+      'public.create_source_checkout_invoice(uuid,uuid,jsonb)',
+      'public.create_pos_sale(uuid,uuid,jsonb)',
+      'public._finance_invoice_approve_inline(uuid,uuid,uuid)'
+    ])
+  LOOP
+    IF to_regprocedure(v_sig) IS NULL THEN
+      RAISE EXCEPTION 'ROLLBACK VERIFY FAILED: % no longer resolves', v_sig;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_proc p, LATERAL unnest(COALESCE(p.proconfig, ARRAY[]::text[])) AS cfg
+      WHERE p.oid = to_regprocedure(v_sig)
+        AND p.prosecdef IS TRUE
+        AND pg_get_userbyid(p.proowner) = 'postgres'
+        AND split_part(cfg, '=', 1) = 'search_path'
+        AND btrim(substr(cfg, strpos(cfg, '=') + 1)) = ''
+    ) THEN
+      RAISE EXCEPTION
+        'ROLLBACK VERIFY FAILED: % lost SECURITY DEFINER, postgres ownership, or the empty search_path', v_sig;
+    END IF;
+  END LOOP;
+
+  -- 6.9 Prior comment state restored (absent)
   IF EXISTS (
     SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
@@ -850,39 +905,53 @@ $rb$;
 COMMIT;
 ```
 
-The rollback verification uses no total-count-alone check, no name-only check, no `polroles IS NULL`, no empty-array assumption, no substring check and no role-insensitive hash. It issues zero DML against financial business tables.
+No total-count-alone check, no name-only check, no `polroles IS NULL`, no empty-array assumption, no substring check, no role-insensitive hash. Zero DML against financial business tables.
 
-## O. Application Contract Confirmation
+## N. Application Contract Confirmation
 
-This audit introduces **no** change to the settled application execution contract. The future Stage B Agent/Build scope remains exactly: typed frontend wrapper for `post_expense_with_ledger`; Expense approval routed through the RPC; `expense_date` mapped as Economic Date; idempotency key; canonical RPC error-code handling; removal of `postLedgerForExpense`, `postLedgerForInvoice` and dead `useLedger.createEntry`; retention of `useLedgerEntries` and `useCustomerBalances` as read-only; removal of automatic runtime execution of `backfillLedgerDescriptions`; POS visible, Coming Soon, non-clickable, non-keyboard-activatable, inert direct route, no operational POS hook or writer mounted, `create_pos_sale` not activated. No additional application change is proposed; none is authorized.
+Unchanged and confirmed:
 
-## P. QA Additions
+- Expense approval uses `post_expense_with_ledger`.
+- Economic Date is `expense_date`.
+- Idempotency is preserved (idempotency key passed to the canonical RPC).
+- Legacy Expense and POS Ledger writers are removed (`postLedgerForExpense`, `postLedgerForInvoice`, dead `useLedger.createEntry`).
+- Ledger/Balance hooks (`useLedgerEntries`, `useCustomerBalances`) remain read-only.
+- Automatic Description backfill (`backfillLedgerDescriptions`) runtime execution is removed.
+- POS visible with Coming Soon; inert and non-invokable; no operational POS hook or writer mounted.
+- Full POS remains deferred to WS-DH-2026-0005; `create_pos_sale` is not activated.
 
-**17.1 Raw Catalog Verification** — all seven `polroles` values recorded (`{0}` ×7); all cardinalities recorded (1 ×7); all role OIDs resolved (0 → PUBLIC); PUBLIC represented exactly as `ARRAY[0::oid]`; no named role unexpectedly present.
+No new application scope is introduced by this audit.
 
-**17.2 Forward Migration** — pre-state role-aware fingerprint matches `e978f912777a28108f46ba79e2ce071e`; post-state matches `04297828f4bd33eba043f6c9274ec57b`; all three retained policies PUBLIC-only; all PERMISSIVE; no write policy remains; no restrictive policy appears; migration transaction completes in an isolated test; no financial row changes.
+## O. QA Additions
 
-**17.3 Rollback** — recreates exactly four write policies; creates no read-policy duplicate (verified by the 7-count plus fingerprint); all seven match the exact pre-state fingerprint; commands and expressions as expected; exact proven PUBLIC representation; transaction completes in isolation; Forward Migration reapplies successfully after Rollback; no financial row changes in either direction.
+**Functions** — all eleven accepted exact signatures exist before and after; the one proven additional dependency (`_finance_invoice_approve_inline`) exists before and after; all retain owner `postgres` and SECURITY DEFINER; all nine canonical Finance search paths remain the empty path; no accepted function was silently substituted (verify by exact signature list, not by count).
 
-**17.4 Regression** — Expense RPC cutover unchanged; SELECT surfaces functional; Realtime reads functional; POS visible but inert; no operational POS request generated; helper permission checks remain tenant-safe after the `pg_temp` demotion; no Stage-A data changes.
+**Helpers** — all three final search paths equal `public, pg_temp`; rollback restores all three to `public`; authorized RLS checks still succeed; unauthorized and cross-tenant checks still fail (regression test on `has_permission` and `is_active_tenant_member` behavior after the path change).
+
+**Privileges and Policies** — PUBLIC pre-state table grants equal zero on both tables; browser post-state is SELECT only; pre-state hash `e978f912777a28108f46ba79e2ce071e` and post-state hash `04297828f4bd33eba043f6c9274ec57b` match; no write policy remains; Forward→Rollback→Forward completes in isolation.
+
+**Data** — no financial rows change; no Stage-A rows change; balances remain reconciled.
 
 Build and Typecheck alone are not Acceptance. Separate QA and a read-only Acceptance Re-Audit remain mandatory.
 
-## Q. Deferred Items Register
+## P. Deferred Items Register
 
 | Item | Original evidence | Current status | Current lane | Future lane | Dependency | Risk if forgotten | Next trigger |
 |---|---|---|---|---|---|---|---|
-| Expense Browser Writer cutover | Prompt 11–12 writer audit | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | `post_expense_with_ledger` | Browser keeps writing financial truth | Stage B Agent/Build |
+| Expense Browser Writer cutover | Prompt 11–12 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | `post_expense_with_ledger` | Browser keeps writing financial truth | Stage B Agent/Build |
 | Dead `useLedger.createEntry` removal | Prompt 11 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | None | Dead writer can be revived | Stage B Agent/Build |
 | POS Safety Fencing | Prompt 11–12 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | WS-DH-2026-0005 | None | Non-atomic POS writes reachable | Stage B Agent/Build |
-| Ledger / Customer Balance SELECT-only hardening | Prompt 13 privilege audit | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | Policy drop | Direct-DML bypass of RPCs | Stage B migration |
+| Ledger / Customer Balance SELECT-only hardening | Prompt 13 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | Policy drop | Direct-DML bypass of RPCs | Stage B migration |
 | `create_pos_sale` browser EXECUTE revocation | Prompt 12 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | WS-DH-2026-0005 | None | Deferred POS writer callable | Stage B migration |
 | `backfillLedgerDescriptions` automatic-run removal | Prompt 11 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | None | Unattended historical mutation | Stage B Agent/Build |
 | Helper `public, pg_temp` correction | Prompt 14 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | TEMP-to-PUBLIC evidence | `pg_temp` shadowing in SECURITY DEFINER | Stage B migration |
 | Seven-policy Rollback correction | Prompt 14 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | Pre-state fingerprint | Rollback cannot restore pre-state | Stage B migration |
 | Robust proconfig assertion | Prompt 15 | PROMOTED TO CURRENT EXECUTION SCOPE | Stage B | — | None | False assertion failure on Array quoting | Stage B migration |
-| `polroles` / PUBLIC representation correction | This Prompt 16 | PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE | Stage B | — | Live catalog | Migration aborts despite correct SQL | Stage B migration |
-| Role-aware Policy fingerprint correction | This Prompt 16 | PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE | Stage B | — | Live catalog | Role changes undetected | Stage B migration |
+| `polroles` / PUBLIC representation correction | Prompt 16 | PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE | Stage B | — | Live catalog | Migration aborts despite correct SQL | Stage B migration |
+| Role-aware Policy fingerprint correction | Prompt 16 | PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE | Stage B | — | Live catalog | Role changes undetected | Stage B migration |
+| **Canonical Finance function identity restoration** | **This Prompt 17** | **PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE** | Stage B | — | Live `pg_proc` | Migration passes without proving the Ledger writer, approval and adjustment paths survive | Stage B migration |
+| **Third-helper (`is_active_tenant_member`) restoration** | **This Prompt 17** | **PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE** | Stage B | — | Live `pg_proc` | A SECURITY DEFINER helper used by every canonical RPC keeps `pg_temp` shadow exposure | Stage B migration |
+| **PUBLIC table-ACL precondition completion** | **This Prompt 17** | **PROMOTED TO CURRENT CONTRACT-CORRECTION SCOPE** | Stage B | — | Live `relacl` | Forward silently revokes a PUBLIC grant the Rollback cannot restore | Stage B migration |
 | Internal Cost terminology correction | Prompt 11 | DEFERRED — TRACKED | — | Later Phase | Terminology decision | Misleading cost labels | Owner terminology decision |
 | Internal Cost Unknown vs Real Zero | Prompt 11 | DEFERRED — TRACKED | — | Later Phase | Data model | Zero read as truth | Internal Cost workstream |
 | Internal Cost contextual terminology by account type | Prompt 11 | DEFERRED — TRACKED | — | Later Phase | Account-type model | Wrong wording per account type | Internal Cost workstream |
@@ -895,38 +964,36 @@ Build and Typecheck alone are not Acceptance. Separate QA and a read-only Accept
 | Supplier Payable-to-Expense authority | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | Payables model | Unclear write authority | Payables workstream |
 | Full POS implementation | Prompt 11–12 | DEFERRED — TRACKED | — | WS-DH-2026-0005 | Stage B fencing | POS never delivered | WS-DH-2026-0005 start |
 | Future `create_pos_sale` activation | Prompt 12 | DEFERRED — TRACKED | — | WS-DH-2026-0005 | POS implementation | Premature activation | WS-DH-2026-0005 start |
-| Manual Ledger Adjustment product workflow | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | SELECT-only hardening | No adjustment path after hardening | Adjustment workstream |
+| Manual Ledger Adjustment product workflow | Prompt 12 | DEFERRED — TRACKED | — | Later Phase | SELECT-only hardening | No adjustment UI path after hardening | Adjustment workstream |
 | Residual financial-table privilege hardening | Prompt 13 | DEFERRED — TRACKED | — | Later Phase | Stage B precedent | Other finance tables stay open | Follow-on privilege audit |
 | Full schema qualification of `has_permission` | Prompt 14 | DEFERRED — TRACKED | — | Later Phase | Body rewrite authorization | Residual resolution risk | Helper-body workstream |
 | Duplicate Ledger SELECT policy review | Prompt 14 | DEFERRED — TRACKED | — | Later Phase | Policy consolidation | Two overlapping read policies persist | Policy cleanup workstream |
 | Database-level TEMP grant to PUBLIC review | Prompt 14 | DEFERRED — TRACKED | — | Later Phase | Platform constraints | Broad TEMP remains | Platform hardening review |
+| PUBLIC EXECUTE grant on the three permission helpers | This Prompt 17 (observation) | DEFERRED — TRACKED | — | Later Phase | Platform grant model | Helpers callable by any role, though read-only and tenant-gated | Follow-on privilege audit |
 
-No item removed. No item promoted beyond what is directly required to correct the `polroles` contract.
+No item removed. Only the three items required by this correction were promoted. Internal Costs, HR Salary, Expense reversal, Supplier Payables, Manual Adjustment UI, full POS and residual platform hardening remain deferred.
 
-## R. Zero-Regression Confirmation
+## Q. Zero-Regression Confirmation
 
-- **Stage A** — no financial-row query, no DML, no Stage-A row touched. No regression.
-- **Expense cutover** — unchanged; `post_expense_with_ledger` confirmed present and correctly configured. No regression.
-- **POS contract** — unchanged; POS remains visible/inert and `create_pos_sale` remains deactivated. No regression.
-- **SELECT-only strategy** — unchanged; REVOKE ALL then GRANT SELECT preserved verbatim. No regression.
-- **Helper strategy** — unchanged; bounded `SET search_path = public, pg_temp`, no body rewrite. No regression.
-- **proconfig contract** — unchanged; robust text-element assertion retained and independently re-confirmed by live evidence. No regression.
-- **Deferred Items Register** — complete and unchanged apart from two additions required by this correction. No regression.
+- **Prompt 14** — eleven-function contract restored in full; three-helper `public, pg_temp` contract restored in full; seven-policy Rollback intact. No regression.
+- **Prompt 15** — robust text-element `proconfig` assertion retained verbatim in both preconditions and postconditions; the withdrawn NULL/empty predicate appears nowhere. No regression.
+- **Prompt 16** — `polroles = {0}`, the `ARRAY[0::oid]` PUBLIC-only assertion, and both policy hashes are preserved byte-for-byte. Only the function set, helper count and the two dependent verdicts were reopened. No regression to the policy findings.
+- **Stage A, Expense cutover, POS contract, SELECT-only strategy, helper strategy, Deferred Items Register** — all intact.
 
-`ZERO REGRESSION TO PRESERVED FINDINGS CONFIRMED`
+`ZERO REGRESSION TO PROMPTS 14–16 CONFIRMED`
 
-## S. Blockers and Gaps
+## R. Blockers and Gaps
 
 None.
 
-Two non-blocking observations, recorded and explicitly out of scope: platform `sandbox_exec*` roles hold SELECT+INSERT on both tables and EXECUTE on `create_pos_sale`; `relforcerowsecurity` is false on both tables.
+Three non-blocking observations, recorded and out of scope: platform `sandbox_exec*` roles hold SELECT+INSERT on both tables; `relforcerowsecurity` is false on both tables; the three permission helpers carry a PUBLIC EXECUTE grant that `ALTER FUNCTION ... SET search_path` neither reads nor changes.
 
-## T. WORKSTREAM PERSISTENCE
+## S. WORKSTREAM PERSISTENCE
 
 `WORKSTREAM PERSISTENCE:
-NONE — READ-ONLY POLROLES, PUBLIC-ROLE,
-ROLE-AWARE POLICY-FINGERPRINT AND FINAL MIGRATION-EXECUTABILITY
-CORRECTION AUDIT ONLY.
+NONE — READ-ONLY CANONICAL-FUNCTION,
+THREE-HELPER AND FINAL ZERO-REGRESSION
+MIGRATION-CORRECTION AUDIT ONLY.
 
 Stage A remains accepted, persisted and verified.
 
@@ -934,9 +1001,8 @@ WS-DH-2026-0003 remains ACTIVE.
 
 Stage B implementation has not started.
 
-The Prompt-12 through Prompt-15 application, POS, privilege,
-helper, proconfig and Deferred-Item contracts remain preserved,
-except for the explicitly withdrawn Prompt-15 policy-role assertion.
+Prompt-16 polroles, PUBLIC representation and role-aware
+Policy-fingerprint findings remain preserved.
 
 No governance file was modified.
 
@@ -944,7 +1010,7 @@ Stage C and Stage D have not started.
 
 No Workstream Closure occurred.`
 
-## U. ROADMAP IMPACT
+## T. ROADMAP IMPACT
 
 `ROADMAP IMPACT:
 RM-DH-004 remains ACTIVE — PHASE 1.
@@ -957,45 +1023,35 @@ No new Roadmap, Phase, Workstream or Decision ID was created.
 
 No Phase advancement, Phase Closure or Roadmap Closure occurred.`
 
-## V. Run Metadata and Exact Stopping Point
+## U. Run Metadata and Exact Stopping Point
 
 1. Mode: Plan/Chat — Read-Only.
-2. Operation: Targeted `pg_policy.polroles` live representation audit, PUBLIC-role contract correction, role-aware policy fingerprint completion, final Forward/Rollback executability closure, Stage B execution readiness determination.
-3. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-FINAL-POLROLES-PUBLIC-REPRESENTATION-AND-POLICY-FINGERPRINT-CORRECTION-AUDIT-16.
+2. Operation: Canonical Finance function identity restoration, nested dependency classification, three-helper `search_path` preservation, PUBLIC table-ACL precondition completion, final Forward/Rollback reissue, Stage B readiness determination.
+3. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-CANONICAL-FUNCTION-IDENTITY-THREE-HELPER-AND-FINAL-ZERO-REGRESSION-CORRECTION-AUDIT-17.
 4. Prompt status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED.
-5. Prompt Preparation Date: 03-08-2026. 6. Time: 23:38. 7. Timezone: Asia/Riyadh — UTC+03:00.
-8. Run Start Date and Time: 03-08-2026, 23:38 Asia/Riyadh (message receipt).
-9. First evidenced activity: raw `pg_policy` catalog query on `public.ledger_entries` and `public.customer_balances`.
-10. Run End Date and Time: Exact time not recorded.
-11. Last evidenced activity: table-level privilege, ownership, RLS and comment query.
-12. Final Report Date and Time: Exact time not recorded.
-13. Timestamp evidence source: platform message clock.
-14. PostgreSQL version: PostgreSQL 17.6 on aarch64-unknown-linux-gnu.
-15. Current database name: `postgres`. 16. Database owner: `postgres`.
-17. Branch: `edit/edt-1629dbca-22c7-427d-83d9-b7df3324659e`.
-18. Canonical/default branch evidence: `refs/remotes/origin/HEAD` → `refs/remotes/origin/main`.
-19. HEAD before: `2133b5f3413e7ab97be739a07332087e9a9ec54e`. 20. HEAD after: unchanged.
-21. Working tree before: clean. 22. Working tree after: clean.
-23. Staged paths before/after: none / none. 24. Unstaged: none / none. 25. Untracked non-ignored: none / none.
-26. Repository paths read: none this run — all evidence came from the live catalog.
-27. Database objects read: `pg_policy`, `pg_class`, `pg_namespace`, `pg_roles`, `pg_auth_members`, `pg_proc`, `pg_attribute`, `pg_database`, `aclexplode`, `pg_get_expr`, `obj_description`, `md5`.
-28. Catalog queries executed: three, all read-only SELECT.
-29. Financial-row queries: zero. 30. Database role: `supabase_read_only_user`.
-31. Raw `polroles` values: `{0}` for all seven policies.
-32. Policy cardinalities: 1 for all seven.
-33. Resolved role OIDs: 0 → PUBLIC for all seven.
-34. Prompt-15 predicate results: false for all seven — assertion fails.
-35. Final PUBLIC-only assertion: `p.polpermissive AND p.polroles = ARRAY[0::oid]`.
-36. Seven-policy pre-state canonical string: §L. 37. Pre-state hash: `e978f912777a28108f46ba79e2ce071e`.
-38. Three-policy post-state canonical string: §L. 39. Post-state hash: `04297828f4bd33eba043f6c9274ec57b`.
-40. Exact Forward Migration result: `FINAL FORWARD MIGRATION SQL EXECUTABLE` (authored, not executed).
-41. Exact Rollback result: `FINAL ROLLBACK SQL EXECUTABLE` (authored, not executed).
-42. Deferred items preserved: all 17 deferred entries. 43. Deferred items promoted: 11 current-scope items, of which 2 are new contract corrections from this Prompt.
-44. Repository changes: zero. 45. Database changes: zero. 46. Migration changes: zero. 47. Financial-row changes: zero.
-48. Project Knowledge changes: zero. 49. Workspace Knowledge changes: zero. 50. Skill changes: zero. 51. Settings changes: zero.
-52. `.lovable/plan.md` disclosure: this report is held in `.lovable/plan.md`, the platform-generated planning artifact governed by `docs/CONVENTIONS.md` §11.10. It is the only file touched this run and it is not governance persistence.
-53. Eight required verdicts: §A.
-54. Stage B implementation: not started. 55. Stage C: not started. 56. Stage D: not started. 57. QA: not started. 58. Acceptance: not started. 59. Closure: none.
-60. **Exact stopping point:** The prior Prompt-15 PUBLIC-role error has been explicitly withdrawn. The live `pg_policy.polroles` representation, exact PUBLIC-only contract, role-aware seven-policy pre-state, three-policy post-state, executable Forward Migration, executable Rollback, preserved application scope, zero-regression confirmation, and complete Deferred Items Register have been established. No implementation, migration, financial-data change, Stage C, Stage D, QA, Acceptance or Closure has occurred.
-61. **One recommended next step:** Issue the complete Stage B Agent/Build Execution Prompt carrying the §M Forward Migration, the §N Rollback and the §O application contract verbatim.
-62. **Recommended next Mode:** Agent/Build.
+5. Prompt Preparation Date: 03-08-2026. Time: 23:57. Timezone: Asia/Riyadh — UTC+03:00.
+6. Run Start: 03-08-2026, 23:57 Asia/Riyadh (message receipt). Run End: Exact time not recorded. Final Report: Exact time not recorded.
+7. Timestamp evidence source: platform message clock.
+8. PostgreSQL version: PostgreSQL 17.6 on aarch64-unknown-linux-gnu. Database: `postgres`. Owner: `postgres`.
+9. Branch: `edit/edt-1629dbca-22c7-427d-83d9-b7df3324659e`; default-branch evidence `refs/remotes/origin/HEAD` → `refs/remotes/origin/main`.
+10. HEAD before: `2133b5f3413e7ab97be739a07332087e9a9ec54e`. HEAD after: unchanged.
+11. Working tree before: clean. Working tree after: clean (only `.lovable/plan.md`, the platform planning artifact, is written).
+12. Repository paths read: `docs/aml_1_b_1/stage_j5_1/preflight/01_fn__finance_ledger_insert.txt`, `.../01_fn_post_payment.txt`, `.../10_all_finance_fns.txt`, `src/lib/finance/postLedgerForExpense.ts`, `src/lib/finance/postPaymentSession.ts`, `src/lib/finance/approveInvoice.ts`, `src/hooks/finance/index.ts`.
+13. Database objects read: `pg_proc`, `pg_language`, `pg_class`, `pg_namespace`, `pg_policy`, `pg_roles`, `pg_auth_members`, `pg_attribute`, `aclexplode`, `to_regprocedure`, `pg_get_expr`, `obj_description`, `md5`.
+14. Catalog queries executed this run: two, both read-only SELECT. Financial-row queries: zero. Database role: `supabase_read_only_user`.
+15. Accepted eleven functions: all present, all owned by `postgres`, all SECURITY DEFINER (§G).
+16. Additional dependencies included: `public._finance_invoice_approve_inline(uuid,uuid,uuid)` — one.
+17. Functions rejected as unrelated or unproven: `get_payment_session(uuid,uuid)`, `update_horse_identity(uuid,uuid,jsonb)`, `complete_local_horse_record(uuid,uuid,jsonb)`.
+18. Three-helper current values: `search_path=public` for all three. Target values: `search_path=public, pg_temp` for all three.
+19. PUBLIC table grants: zero on `public.ledger_entries`; zero on `public.customer_balances`.
+20. Pre-state Policy hash: `e978f912777a28108f46ba79e2ce071e`. Post-state Policy hash: `04297828f4bd33eba043f6c9274ec57b`.
+21. Final Forward SQL result: `FINAL CORRECTED FORWARD MIGRATION SQL EXECUTABLE` (authored, not executed).
+22. Final Rollback result: `FINAL CORRECTED ROLLBACK SQL EXECUTABLE` (authored, not executed).
+23. Deferred items preserved: 18. Deferred items promoted this Prompt: 3.
+24. Repository changes: zero. Database changes: zero. Migration changes: zero. Financial-row changes: zero. Project Knowledge, Workspace Knowledge, Skills and settings changes: zero.
+25. `.lovable/plan.md` disclosure: this report is held in `.lovable/plan.md`, the platform-generated planning artifact governed by `docs/CONVENTIONS.md` §11.10. It is the only file touched this run and it is not governance persistence.
+26. Nine required verdicts: §A.
+27. Stage B implementation: not started. Stage C: not started. Stage D: not started. QA: not started. Acceptance: not started. Closure: none.
+28. **Exact stopping point:** The Prompt-16 function-set and helper regression has been withdrawn. The accepted canonical Finance-function identities, proven additional dependencies, three-helper search-path contract, PUBLIC table-ACL precondition, preserved role-aware Policy hashes, executable Forward Migration, executable Rollback and complete Deferred Items Register have been established. No implementation, migration, financial-data change, Stage C, Stage D, QA, Acceptance or Closure has occurred.
+29. **One next step:** Issue the Stage B Agent/Build Execution Prompt carrying the §L Forward Migration, the §M Rollback and the §N application contract verbatim.
+30. **Recommended next Mode:** Agent/Build.
