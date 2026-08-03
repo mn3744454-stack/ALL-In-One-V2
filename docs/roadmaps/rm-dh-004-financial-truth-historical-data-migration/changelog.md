@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-004-CHANGELOG
 title: RM-DH-004 — Changelog
-version: 1.0.1
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-03
 last-verified: 2026-08-03
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Append-oriented; no Acceptance and no Closure recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04: appends one new chronological entry recording the passed Acceptance Re-Audit, the explicit Owner Acceptance and the completed Acceptance Persistence. All earlier entries are preserved byte-identical, the earlier rounded package-creation timestamp is not altered, OBS-01 is not corrected, and no Closure entry is recorded.
+source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Append-oriented; no Acceptance and no Closure recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04: appends one new chronological entry recording the passed Acceptance Re-Audit, the explicit Owner Acceptance and the completed Acceptance Persistence. All earlier entries are preserved byte-identical, the earlier rounded package-creation timestamp is not altered, OBS-01 is not corrected, and no Closure entry is recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends three new chronological entries recording the Prompt 05 Acceptance Persistence Verification and Phase 0 readiness verdict, the explicit Owner Phase advancement decision of 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), and the executed Phase Advancement Persistence. All earlier entries are preserved byte-identical, OBS-01 is not edited, no prior timestamp is altered, and no Closure entry is recorded.
 source-sha256: n/a
 -->
 
@@ -58,3 +58,33 @@ Append-oriented chronological record. New entries are added at the bottom.
 - No Closure occurred.
 - Phase advancement remains pending explicit Owner approval.
 - The exact wall-clock time of this persistence run is not recorded.
+
+### Exact time not recorded — Acceptance Persistence Verified and Phase 0 Declared Ready for Owner Decision
+
+- Prompt `PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-VERIFICATION-05` completed.
+- Acceptance Persistence was verified: `ACCEPTANCE PERSISTENCE VERIFIED`.
+- Phase 0 was declared ready for the owner advancement decision: `PHASE 0 READY FOR EXPLICIT OWNER ADVANCEMENT DECISION`.
+- Fifteen of fifteen readiness conditions passed.
+- Phase 0 did not advance during Prompt 05.
+- No technical work occurred.
+
+### 2026-08-03T11:42:00+03:00 — Owner Approved Advancement from Phase 0 to Phase 1
+
+- The owner, Mohamed Nour, approved Option A.
+- Advancement from Phase 0 — Governance, Baseline & Execution Contract to Phase 1 — Economic Date Integrity.
+- Phase Advancement Persistence only.
+- WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
+- No authorization for technical investigation or implementation in the same run.
+
+### Exact time not recorded — Phase Advancement Persistence Executed
+
+- RM-DH-004 current Phase updated to Phase 1 — Economic Date Integrity.
+- Phase 0 recorded as completed by owner decision and persistence, subject to read-only verification.
+- `DEC-RM-DH-004-002` created.
+- Roadmap and central registries synchronized.
+- WS-DH-2026-0003 package updated only for governance progression and next-step sequencing.
+- No application, database, migration, test, Knowledge, Skill or setting change.
+- No Economic Date Investigative Audit.
+- No technical Acceptance.
+- No Closure.
+- Read-only Phase Advancement Persistence Acceptance Re-Audit pending.

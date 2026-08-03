@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0003
 title: WS-DH-2026-0003 — Economic Date Integrity
-version: 1.0.1
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-03
 last-verified: 2026-08-03
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 0 — Governance Persistence, under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02 and Decision DEC-RM-DH-004-001. Initial package persistence only; the Investigative Audit has not started and no financial or technical work is authorized by this file.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04, following the passed read-only Acceptance Re-Audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03 and the explicit Owner Acceptance granted by Mohamed Nour: records the governance-package Acceptance and its persistence only. The Workstream Status remains ACTIVE — INVESTIGATIVE AUDIT PENDING and the Stage remains INVESTIGATIVE AUDIT PENDING. Governance-package Acceptance is not technical Workstream Acceptance; the Economic Date Investigative Audit has not started and no code, SQL, migration, backfill, QA, technical Acceptance or Closure is authorized or recorded.
+source: authored during RM-DH-004 / Phase 0 — Governance Persistence, under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02 and Decision DEC-RM-DH-004-001. Initial package persistence only; the Investigative Audit has not started and no financial or technical work is authorized by this file.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04, following the passed read-only Acceptance Re-Audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03 and the explicit Owner Acceptance granted by Mohamed Nour: records the governance-package Acceptance and its persistence only. The Workstream Status remains ACTIVE — INVESTIGATIVE AUDIT PENDING and the Stage remains INVESTIGATIVE AUDIT PENDING. Governance-package Acceptance is not technical Workstream Acceptance; the Economic Date Investigative Audit has not started and no code, SQL, migration, backfill, QA, technical Acceptance or Closure is authorized or recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06 and Decision DEC-RM-DH-004-002: records that RM-DH-004 Phase 1 — Economic Date Integrity is now the active Phase, extends the Stage History with the Acceptance Persistence Verification, the Owner Phase advancement decision and the Phase Advancement Persistence, and updates the Current State, Final Stopping Point and Next Permitted Step. The Workstream Status remains ACTIVE — INVESTIGATIVE AUDIT PENDING and the Stage remains INVESTIGATIVE AUDIT PENDING; the Economic Date Investigative Audit has not started and no code, SQL, migration, backfill, QA, technical Acceptance or Closure is authorized or recorded.
 source-sha256: n/a
 -->
 
@@ -27,6 +27,9 @@ RM-DH-004
 
 Roadmap Phase:
 Phase 1 — Economic Date Integrity
+
+Roadmap Phase State:
+ACTIVE — advancement approved by the owner and persisted
 
 Track:
 Track 1 — Financial Core Truth & Write Safety
@@ -108,22 +111,26 @@ The twenty-eight rows were not re-audited or reinterpreted in this execution.
 | 4 | Governance Persistence Acceptance Re-Audit | Complete — Passed |
 | 5 | Owner Acceptance of the governance package | Complete |
 | 6 | Governance Acceptance Persistence | Complete |
-| 7 | Economic Date Investigative Audit | Pending — not started |
-| 8 | Owner Alignment on the technical contract | Pending |
-| 9 | Technical Agent/Build Execution | Not started |
-| 10 | QA | Not started |
-| 11 | Technical Acceptance Re-Audit | Not started |
-| 12 | Technical Acceptance Persistence | Not started |
-| 13 | Owner Closure | Not started |
-| 14 | Closure Persistence | Not started |
+| 7 | Acceptance Persistence Verification | Complete — Verified |
+| 8 | Owner Phase advancement decision (Phase 0 to Phase 1) | Complete — Approved |
+| 9 | Phase Advancement Persistence | Complete — Acceptance Re-Audit pending |
+| 10 | Economic Date Investigative Audit | Pending — not started |
+| 11 | Owner Alignment on the technical contract | Pending |
+| 12 | Technical Agent/Build Execution | Not started |
+| 13 | QA | Not started |
+| 14 | Technical Acceptance Re-Audit | Not started |
+| 15 | Technical Acceptance Persistence | Not started |
+| 16 | Owner Closure | Not started |
+| 17 | Closure Persistence | Not started |
 
-Stages 1 to 6 concern the governance package only. Stages 7 to 14 concern the technical Workstream and have not begun.
+Stages 1 to 9 concern governance only. Stages 10 to 17 concern the technical Workstream and have not begun.
 
 ## Current State
 
-- The Workstream is governance-active.
+- The Workstream is governance-active under RM-DH-004 Phase 1.
 - The package exists, is persisted and is governance-accepted.
 - Governance-package Acceptance does **not** constitute technical Workstream Acceptance.
+- Phase 1 activation does **not** start the Economic Date Investigative Audit.
 - The Economic Date Investigative Audit has not started.
 - No re-audit or reinterpretation of the twenty-eight Ledger rows has occurred.
 - There is no accepted row-level or row-by-row backfill contract.
@@ -150,7 +157,7 @@ No financial rollback is described because no financial change is authorized.
 
 ## Final Stopping Point
 
-WS-DH-2026-0003 governance registration and package persistence are accepted and persisted.
+WS-DH-2026-0003 governance registration and package persistence are accepted and persisted, and RM-DH-004 has advanced to Phase 1 — Economic Date Integrity.
 
 The Workstream remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
 
@@ -160,10 +167,10 @@ No technical execution, QA, technical Acceptance or Closure has occurred.
 
 ## Next Permitted Step
 
-Plan/Chat — Read-Only Acceptance Persistence Verification and Phase 0 Advancement Readiness Review
+Plan/Chat — Read-Only Phase Advancement Persistence Acceptance Re-Audit
 
-Stated separately: after explicit Owner approval of Phase 0 advancement and any required advancement persistence, the Workstream-specific next step will be:
+Stated separately: after successful Phase Advancement Persistence verification, the Workstream-specific next step will be:
 
 Plan/Chat — Read-Only Economic Date Integrity Investigative Audit
 
-That audit must not begin before those governance actions are complete, and it is not started by this execution.
+That audit must not begin before that verification is complete, and it is not started by this execution.

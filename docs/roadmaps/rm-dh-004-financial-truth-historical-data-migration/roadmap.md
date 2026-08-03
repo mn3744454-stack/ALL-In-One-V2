@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-004-ROADMAP
 title: RM-DH-004 — Authoritative Current State
-version: 1.0.1
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-03
 last-verified: 2026-08-03
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under approved Decision DEC-RM-DH-004-001 and execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Records the owner-approved four Tracks, sixteen problems, nine Phases and nine Workstreams. No Acceptance and no Closure are recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04, following the passed read-only Acceptance Re-Audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03 (verdict ACCEPTANCE PASSED — READY FOR OWNER ACCEPTANCE, zero blockers, non-blocking observation OBS-01 accepted without correction) and the explicit Owner Acceptance granted by Mohamed Nour. Persists the Governance Persistence Acceptance state, the updated ten-row Phase 0 Stage Register, the satisfied Phase 0 exit criteria, the updated stopping point and the next permitted action. RM-DH-004 remains ACTIVE — PHASE 0; Phase 0 was not advanced; WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING; no Tracks, problems, Phases, Workstreams or dependencies were changed; no technical Acceptance and no Closure are recorded.
+source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under approved Decision DEC-RM-DH-004-001 and execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Records the owner-approved four Tracks, sixteen problems, nine Phases and nine Workstreams. No Acceptance and no Closure are recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04, following the passed read-only Acceptance Re-Audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03 (verdict ACCEPTANCE PASSED — READY FOR OWNER ACCEPTANCE, zero blockers, non-blocking observation OBS-01 accepted without correction) and the explicit Owner Acceptance granted by Mohamed Nour. Persists the Governance Persistence Acceptance state, the updated ten-row Phase 0 Stage Register, the satisfied Phase 0 exit criteria, the updated stopping point and the next permitted action. RM-DH-004 remains ACTIVE — PHASE 0; Phase 0 was not advanced; WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING; no Tracks, problems, Phases, Workstreams or dependencies were changed; no technical Acceptance and no Closure are recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06 and approved Decision DEC-RM-DH-004-002, following the passed read-only verification PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-VERIFICATION-05 (verdicts ACCEPTANCE PERSISTENCE VERIFIED and PHASE 0 READY FOR EXPLICIT OWNER ADVANCEMENT DECISION, fifteen of fifteen readiness conditions passed) and the explicit Owner advancement decision granted by Mohamed Nour on 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00): sets the current Phase to Phase 1 — Economic Date Integrity, records Phase 0 as completed by owner decision and persistence subject to read-only verification, expands the Phase 0 Stage Register to twelve stages, marks all ten Phase 0 exit criteria satisfied, and updates the Phase Register, remaining work, stopping point and next permitted action. WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING; the Economic Date Investigative Audit has not started; no Tracks, problems, Workstreams or dependencies were changed; no technical Acceptance and no Closure are recorded; the Phase Advancement Persistence Acceptance Re-Audit is pending.
 source-sha256: n/a
 -->
 
@@ -28,7 +28,7 @@ Roadmap Title:
 Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap
 
 Roadmap Status:
-ACTIVE — PHASE 0
+ACTIVE — PHASE 1
 
 Priority:
 P0 — CONTROLLING FINANCE PRIORITY
@@ -39,8 +39,11 @@ Mohamed Nour
 Owner Approval:
 03-08-2026 — 02:04 — Asia/Riyadh — UTC+03:00
 
+Owner Phase Advancement Approval:
+03-08-2026 — 11:42 — Asia/Riyadh — UTC+03:00
+
 Current Phase:
-RM-DH-004 / Phase 0 — Governance, Baseline & Execution Contract
+RM-DH-004 / Phase 1 — Economic Date Integrity
 
 Current Workstream:
 WS-DH-2026-0003 — Economic Date Integrity
@@ -55,7 +58,22 @@ Technical Environment:
 Lovable only unless explicitly changed by the owner
 
 Repository Persistence State:
-RM-DH-004 governance package persisted; Acceptance Re-Audit passed; explicit Owner Acceptance approved; Acceptance Persistence completed. Phase 0 advancement remains pending.
+RM-DH-004 governance package persisted; Acceptance Re-Audit passed; explicit Owner Acceptance approved; Acceptance Persistence completed and independently verified; owner-approved Phase 0 to Phase 1 advancement persisted. The Phase Advancement Persistence Acceptance Re-Audit is pending.
+
+Phase 0 Status:
+COMPLETED — OWNER ADVANCEMENT APPROVED AND PERSISTED
+
+Phase 1 Status:
+ACTIVE — PHASE ADVANCEMENT PERSISTED; READ-ONLY VERIFICATION PENDING
+
+Phase Advancement Decision:
+APPROVED BY OWNER
+
+Phase Advancement Persistence:
+EXECUTED — ACCEPTANCE RE-AUDIT PENDING
+
+Economic Date Investigative Audit:
+NOT STARTED
 
 Governance Persistence Acceptance:
 PASSED — OWNER ACCEPTED — PERSISTED
@@ -67,7 +85,7 @@ Workstream Technical Acceptance:
 NOT STARTED
 
 Closure:
-None — Phase 0 is not closed, WS-DH-2026-0003 is not closed, and RM-DH-004 is not closed
+None — Phase 1 is not closed, WS-DH-2026-0003 is not closed, and RM-DH-004 is not closed
 ```
 
 ## Track Register
@@ -153,20 +171,22 @@ Workstreams:
 ### Phase 0 — Governance, Baseline & Execution Contract
 
 Status:
-ACTIVE
+COMPLETED — ADVANCEMENT APPROVED AND PERSISTED; VERIFICATION PENDING
 
-Current scope:
+Completed scope:
 
 - persist the RM-DH-004 governance package;
 - persist the active WS-DH-2026-0003 package;
 - complete read-only Acceptance Re-Audit;
 - preserve all approved Tracks, Workstreams, statuses and dependencies;
-- prepare the first Workstream Investigative Audit after Persistence Acceptance.
+- record Owner Acceptance and Acceptance Persistence;
+- independently verify Acceptance Persistence;
+- record the explicit Owner Phase advancement decision and persist the advancement.
 
 ### Phase 1 — Economic Date Integrity
 
 Status:
-Not entered
+ACTIVE — ECONOMIC DATE INTEGRITY; INVESTIGATIVE AUDIT NOT STARTED
 
 Primary Workstream:
 WS-DH-2026-0003
@@ -265,20 +285,22 @@ Stated separately:
 |---:|---|---|
 | 1 | Owner Roadmap Creation Approval | COMPLETE |
 | 2 | ChatGPT Master Register Registration | COMPLETE |
-| 3 | Plan/Chat Governance Persistence Planning Audit | COMPLETE |
+| 3 | Governance Persistence Planning Audit | COMPLETE |
 | 4 | Owner Alignment on Persistence Scope | COMPLETE |
-| 5 | Agent/Build Governance Persistence | COMPLETE |
-| 6 | Read-Only Governance Persistence Acceptance Re-Audit | COMPLETE — PASSED |
+| 5 | Governance Persistence Execution | COMPLETE |
+| 6 | Governance Persistence Acceptance Re-Audit | COMPLETE — PASSED |
 | 7 | Owner Acceptance | COMPLETE — APPROVED BY MOHAMED NOUR |
 | 8 | Acceptance Persistence | COMPLETE |
-| 9 | Phase 0 Advancement Decision | PENDING EXPLICIT OWNER APPROVAL |
-| 10 | WS-DH-2026-0003 Economic Date Investigative Audit | NOT STARTED |
+| 9 | Acceptance Persistence Verification and Phase 0 Readiness Review | COMPLETE — VERIFIED / READY |
+| 10 | Owner Phase Advancement Decision | COMPLETE — APPROVED BY MOHAMED NOUR |
+| 11 | Phase Advancement Persistence | COMPLETE BY THIS RUN — ACCEPTANCE RE-AUDIT PENDING |
+| 12 | WS-DH-2026-0003 Economic Date Investigative Audit | NOT STARTED |
 
-Owner Acceptance, Acceptance Persistence and Phase advancement are three separate stages and must not be conflated.
+Owner Acceptance, Acceptance Persistence, Acceptance Persistence Verification, the Owner Phase advancement decision and Phase Advancement Persistence are separate stages and must not be conflated.
 
 ## Phase 0 Exit Criteria
 
-Phase 0 must not exit until all ten criteria below are satisfied.
+All ten criteria below are satisfied.
 
 | # | Criterion | State |
 |---:|---|---|
@@ -289,34 +311,41 @@ Phase 0 must not exit until all ten criteria below are satisfied.
 | 5 | the RM-DH-004 package passes a read-only Acceptance Re-Audit | Satisfied |
 | 6 | the WS-DH-2026-0003 package passes the same Re-Audit | Satisfied |
 | 7 | the owner explicitly accepts the governance persistence | Satisfied |
-| 8 | any required Acceptance Persistence is completed | Satisfied |
-| 9 | the owner explicitly approves Phase advancement | Not satisfied |
-| 10 | any required Phase advancement persistence is completed | Not satisfied |
+| 8 | any required Acceptance Persistence is completed and verified | Satisfied |
+| 9 | the owner explicitly approves Phase advancement | Satisfied |
+| 10 | any required Phase advancement persistence is completed | Satisfied |
 
-Phase 0 is **not** exited and **not** closed. Criteria 9 and 10 remain outstanding.
+Phase 0 exit requirements are satisfied by owner decision and persistence, subject only to the read-only Acceptance Re-Audit of this Phase Advancement Persistence.
 
-## Remaining Work in Phase 0
+Phase 1 technical scope is **not** accepted. No technical Acceptance and no Closure exist.
 
-1. read-only verification of this Acceptance Persistence, if required by the repository governance pattern;
-2. explicit Owner decision on Phase 0 advancement;
-3. Phase advancement persistence only if the owner approves advancement;
-4. preparation of the WS-DH-2026-0003 Economic Date Integrity Investigative Audit Prompt;
-5. no Economic Date work of any kind before those governance actions are complete.
+## Remaining Work
+
+1. read-only Phase Advancement Persistence Acceptance Re-Audit;
+2. correction of any proven Phase Advancement Persistence defects;
+3. after successful verification, preparation of the WS-DH-2026-0003 Economic Date Integrity Investigative Audit;
+4. no technical execution before that investigation and later Owner Alignment.
 
 ## Current Stopping Point
 
-RM-DH-004 Governance Persistence has passed Acceptance Re-Audit, has been explicitly accepted by the owner, and the Acceptance has been persisted.
+The owner approved RM-DH-004 advancement from Phase 0 to Phase 1, and the Phase Advancement has been persisted.
 
-RM-DH-004 remains ACTIVE — PHASE 0.
+RM-DH-004 is now ACTIVE — PHASE 1.
+
+Phase 0 governance requirements are completed, subject to read-only verification of this persistence.
 
 WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING.
 
-No Phase advancement, Economic Date investigation, technical execution, QA, technical Acceptance or Closure has occurred.
+The Economic Date Investigative Audit has not started.
 
 All nine Workstreams remain registered and only WS-DH-2026-0003 has a dedicated package.
 
-No application, database, migration or test work has been performed.
+No application, database, migration, financial-data, QA, technical Acceptance or Closure work has occurred.
 
 ## Next Permitted Action
 
-Plan/Chat — Read-Only Acceptance Persistence Verification and Phase 0 Advancement Readiness Review
+Plan/Chat — Read-Only Phase Advancement Persistence Acceptance Re-Audit
+
+Stated separately: after successful Phase Advancement Persistence verification, the next Workstream-specific action may be:
+
+Plan/Chat — Read-Only Economic Date Integrity Investigative Audit
