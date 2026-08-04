@@ -101,67 +101,11 @@ export function useLedgerEntries(tenantId?: string, clientId?: string) {
     enabled: !!tenantId,
   });
 
-  const createEntry = useMutation({
-    mutationFn: async (input: CreateLedgerEntryInput) => {
-      const { data: user } = await supabase.auth.getUser();
-      
-      // Get current balance for the client
-      const { data: currentBalance } = await supabase
-        .from("customer_balances" as any)
-        .select("balance")
-        .eq("tenant_id", input.tenant_id)
-        .eq("client_id", input.client_id)
-        .single();
-
-      const balanceRecord = currentBalance as unknown as { balance: number } | null;
-      const previousBalance = balanceRecord?.balance || 0;
-      const newBalance = previousBalance + input.amount;
-
-      // Create ledger entry
-      const { data, error } = await supabase
-        .from("ledger_entries" as any)
-        .insert({
-          ...input,
-          balance_after: newBalance,
-          created_by: user?.user?.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Upsert customer balance
-      const { error: balanceError } = await supabase
-        .from("customer_balances" as any)
-        .upsert({
-          tenant_id: input.tenant_id,
-          client_id: input.client_id,
-          balance: newBalance,
-          last_updated: new Date().toISOString(),
-        }, {
-          onConflict: "tenant_id,client_id",
-        });
-
-      if (balanceError) {
-        console.error("Error updating balance:", balanceError);
-      }
-
-      return data as unknown as LedgerEntry;
-    },
-    onSuccess: () => {
-      invalidateFinanceQueries(queryClient, tenantId);
-      toast({ title: "Ledger entry created" });
-    },
-    onError: (error) => {
-      console.error("Error creating ledger entry:", error);
-      toast({ title: "Failed to create entry", variant: "destructive" });
-    },
-  });
-
+  // Stage B: browser-side ledger mutation removed. Ledger writes are performed
+  // exclusively by canonical backend RPCs. This hook is read-only.
   return {
     entries,
     isLoading,
-    createEntry: createEntry.mutateAsync,
-    isCreating: createEntry.isPending,
   };
 }
+
