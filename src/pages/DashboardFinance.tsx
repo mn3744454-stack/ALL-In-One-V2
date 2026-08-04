@@ -32,7 +32,7 @@ import { isThisMonth, format } from "date-fns";
 import { enrichLedgerDescriptions, type EnrichedDescription } from "@/lib/finance/enrichLedgerDescriptions";
 import { printLedgerEntries, exportLedgerCSV } from "@/components/clients/StatementPrintUtils";
 import { LedgerRowPreview } from "@/components/finance/LedgerRowPreview";
-import { postLedgerForExpense } from "@/lib/finance/postLedgerForExpense";
+
 import { approveInvoice } from "@/lib/finance/approveInvoice";
 import { approveInvoiceErrorMessage } from "@/lib/finance/approveInvoiceErrorMap";
 import { toast } from "sonner";
@@ -227,6 +227,7 @@ function ExpensesTab() {
   const { expenses, isLoading, updateExpense, deleteExpense } = useExpenses(
     activeTenant?.tenant.id
   );
+  const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // TODO: Replace with hasPermission("finance.expenses.manage") once permission key is defined
@@ -305,14 +306,25 @@ function ExpensesTab() {
         loading={isLoading}
         onDelete={deleteExpense}
         onUpdateStatus={async (id, status) => {
-          await updateExpense({ id, status: status as any });
-          if (status === "approved" && activeTenant?.tenant?.id) {
-            try {
-              await postLedgerForExpense(id, activeTenant.tenant.id);
-            } catch (err) {
-              console.error("Failed to post expense to ledger:", err);
+          const tenantId = activeTenant?.tenant?.id;
+          // Stage B: approval is performed atomically by the canonical
+          // post_expense_with_ledger RPC (expense status + ledger posting).
+          if (status === "approved") {
+            if (!tenantId) return;
+            const { error } = await supabase.rpc("post_expense_with_ledger", {
+              p_tenant_id: tenantId,
+              p_idempotency_key: crypto.randomUUID(),
+              p_expense_id: id,
+            });
+            if (error) {
+              console.error("post_expense_with_ledger failed:", error);
+              toast.error(t("finance.expenses.approveFailed"));
+              return;
             }
+            invalidateFinanceQueries(queryClient, tenantId);
+            return;
           }
+          await updateExpense({ id, status: status as any });
         }}
         canManage={canManage}
       />
@@ -335,30 +347,9 @@ function LedgerTab() {
   const [dateTo, setDateTo] = useState("");
   const [enrichedDescs, setEnrichedDescs] = useState<Map<string, EnrichedDescription>>(new Map());
 
-  // Auto-run backfill once per tenant (owner only)
-  useEffect(() => {
-    if (!tenantId || !isOwner) return;
-    const key = `ledgerBackfillDone:${tenantId}`;
-    if (localStorage.getItem(key) === "true") return;
+  // Stage B: automatic ledger description backfill removed — browser-side
+  // ledger writes are no longer permitted. Backfill is a governed operation.
 
-    let cancelled = false;
-    (async () => {
-      try {
-        const { backfillLedgerDescriptions } = await import("@/lib/finance/backfillLedgerDescriptions");
-        const result = await backfillLedgerDescriptions(tenantId);
-        if (!cancelled) {
-          localStorage.setItem(key, "true");
-          if (result.updated > 0) {
-            const { toast } = await import("sonner");
-            toast.success(`Ledger enrichment: ${result.updated} updated`);
-          }
-        }
-      } catch (err) {
-        console.error("Backfill error:", err);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [tenantId, isOwner]);
 
   // Display-level enrichment for old entries (Gate 3 Option B)
   useEffect(() => {

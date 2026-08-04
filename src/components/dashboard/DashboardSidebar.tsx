@@ -269,7 +269,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: CreditCard, label: t('finance.expenses.title'), href: "/dashboard/finance/expenses" },
     { icon: Banknote, label: t('finance.tabs.payments'), href: "/dashboard/finance/payments" },
     { icon: UsersIcon, label: t('finance.customerBalances.title'), href: "/dashboard/finance/customer-balances" },
-    { icon: ShoppingCart, label: t('sidebar.pos'), href: "/dashboard/finance/pos" },
+    { icon: ShoppingCart, label: t('sidebar.pos'), href: "/dashboard/finance/pos", comingSoon: true, comingSoonLabel: t('common.comingSoon') },
   ], [t]);
 
   // Build Settings nav items (owner-only sub-pages)

@@ -36,6 +36,8 @@ export interface NavModuleChild {
   labelKey: string;
   route: string;
   permissionKey?: string;
+  /** If true, the item is shown but disabled with a "Coming Soon" state */
+  comingSoon?: boolean;
   /** If true, only show when module is enabled */
   moduleKey?: "breeding" | "vet" | "lab" | "movement" | "housing";
 }
@@ -278,6 +280,7 @@ export const NAV_MODULES: NavModule[] = [
         icon: ShoppingCart,
         labelKey: "finance.pos.title",
         route: "/dashboard/finance/pos",
+        comingSoon: true,
       },
       {
         key: "categories",

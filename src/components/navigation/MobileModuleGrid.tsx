@@ -50,6 +50,7 @@ export function MobileModuleGrid({ moduleKey, className }: MobileModuleGridProps
   });
 
   const handleChildClick = (child: NavModuleChild) => {
+    if (child.comingSoon) return;
     if (child.route) {
       navigate(child.route);
     }
@@ -68,6 +69,8 @@ export function MobileModuleGrid({ moduleKey, className }: MobileModuleGridProps
               label={t(child.labelKey)}
               colorScheme={getModuleColorScheme(child.key)}
               onClick={() => handleChildClick(child)}
+              comingSoon={child.comingSoon}
+              comingSoonLabel={child.comingSoon ? t("common.comingSoon") : undefined}
               index={index}
             />
           ))}

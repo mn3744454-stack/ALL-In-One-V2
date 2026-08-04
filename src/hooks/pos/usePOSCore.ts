@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+
 
 export interface POSCartItem {
   id: string;
@@ -158,10 +158,9 @@ export function usePOSCore() {
 
       if (itemsError) throw itemsError;
 
-      // Post to ledger if client exists
-      if (input.client_id) {
-        await postLedgerForInvoice(invoice.id, input.tenant_id);
-      }
+      // Stage B: browser-side ledger posting removed. POS is inert and
+      // deferred to WS-DH-2026-0005; ledger authority belongs to the backend.
+
 
       return invoice;
     },

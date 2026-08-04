@@ -3991,6 +3991,7 @@ export const en = {
     },
     expenses: {
       title: "Expenses",
+      approveFailed: "Failed to approve expense",
       create: "Add Expense",
       category: "Category",
       description: "Description",
