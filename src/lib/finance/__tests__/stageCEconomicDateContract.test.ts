@@ -107,7 +107,7 @@ describe("opening and running balance", () => {
   it("12. preserves decimal precision with no cent drift", () => {
     const amounts = Array.from({ length: 300 }, () => 0.1);
     expect(sumMoney(amounts)).toBe(30);
-    expect(sumMoney(["0.1", "0.2"])).toBe(0.30000000000000004 === 0.3 ? 0.3 : 0.3);
+    expect(sumMoney(["0.1", "0.2"])).toBe(0.3);
   });
 
   it("21. empty statement yields the opening balance unchanged", () => {
