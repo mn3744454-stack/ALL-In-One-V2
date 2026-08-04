@@ -94,6 +94,9 @@ interface ModuleIconCardProps {
   colorScheme: ModuleColorScheme;
   onClick: () => void;
   index?: number;
+  /** Renders the card disabled with a "Coming Soon" chip */
+  comingSoon?: boolean;
+  comingSoonLabel?: string;
 }
 
 // Trigger haptic feedback on supported devices
