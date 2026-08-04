@@ -81,7 +81,8 @@ SET LOCAL search_path = "$user", public;
 --   filter : grantee IN (PUBLIC, anon, authenticated, service_role, postgres)
 --   order  : ascending complete line text; separator E'\n'; no terminal newline
 -- ---------------------------------------------------------------------
-CREATE TEMP VIEW rb_fn_acl_rows ON COMMIT DROP AS
+-- (temporary view; dropped automatically with the session temp schema)
+CREATE TEMP VIEW rb_fn_acl_rows AS
 WITH fns AS (
   SELECT o AS oid FROM unnest(ARRAY[
     to_regprocedure('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)'),
