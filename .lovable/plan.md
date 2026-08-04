@@ -1,70 +1,183 @@
-# STAGE B — PROMPT-27 OPTION-B CONTRACT PERSISTENCE — HALTED AT STAGE 2
+# PROMPT 31 — FINAL SHA-BINDING VERIFICATION AND CONDITIONAL STAGE-B ACCEPTANCE RE-AUDIT
 
-Mode executed: Agent/Build — Repository-Write Only. **No repository artifact was written.** No SQL DDL/DML, no migration, no grant change, no rollback execution, no Acceptance, no Closure. The only file written this run is this platform-managed `.lovable/plan.md` (disclosed separately; not part of the authorized artifact set and not RM-DH-004 governance persistence).
+Mode: Plan/Chat — Read-Only. Zero repository, database, migration, financial-row, source and test writes. Emergency Rollback not executed. This file is the platform-managed plan artifact only.
 
-## Stage 0 — Preflight (PASSED)
+## A. Combined Verification and Acceptance Verdicts
 
-- Branch `edit/edt-07019b93-5c1c-4ecf-81b9-295b21a6f164`; HEAD `ec30e1c943c1b50634713e6121274bd8d4d2f646`; working tree clean.
-- Forward migration `supabase/migrations/20260804083738_3d2d0ddf-5f5f-42f8-9bd0-832bc4430b78.sql`, version `20260804083738`, SHA-256 `602804b939876ee3a2a19114296de3ff080aafc574a3b0913bed1fa6e80baa5f` — MATCHES §7.4.
-- Existing rollback artifact: `…/stage-b-database-authority/rollback.sql`, 17,396 bytes, 390 lines, SHA-256 `62be2f2773dddc0b8e1aab33aaef4b70c9ba304df5cc8879f616e32c74460baa`.
-- `stable-function-acl-contract-v1.md` does not exist — no path collision.
-- Database `vhxglsvxwwpmoqjabfmj`, PostgreSQL 17.6; read role `supabase_read_only_user`; evidence time 04-08-2026 15:2x Asia/Riyadh.
+- Prompt Identity: PROMPT 31 SUBMITTED — RUN — CONSUMED
+- Scope: CONDITIONAL VERIFICATION-THEN-ACCEPTANCE SCOPE STRICTLY PRESERVED
+- Repository HEAD: FINAL PROMPT-30 REPOSITORY HEAD VERIFIED
+- Prompt-30 Commit: PROMPT-30 SINGLE-FILE TWO-LINE COMMIT EXACTLY VERIFIED
+- Artifact Identities: PROMPT-30 FINAL ARTIFACT IDENTITIES EXACTLY MATCH
+- SHA Binding: PROMPT-30 SHA-BINDING CORRECTION INDEPENDENTLY VERIFIED
+- Acceptance Entry Gate: STAGE-B ACCEPTANCE RE-AUDIT ENTRY GATE PASSED
+- Minimal Live Guard: STAGE-B MINIMAL GOVERNED LIVE-STATE NO-DRIFT GUARD PASSED
+- Application Execution: STAGE-B APPLICATION EXECUTION EVIDENCE COMPLETE
+- Application QA: STAGE-B APPLICATION QA PRESERVED AS PASSED
+- Database Execution: STAGE-B DATABASE AUTHORITY EXECUTION EVIDENCE COMPLETE
+- Database QA: STAGE-B DATABASE AUTHORITY QA RESOLVED
+- Stable Contract: STAGE-B STABLE CONTRACT EVIDENCE COMPLETE
+- Emergency Rollback: **STAGE-B EMERGENCY ROLLBACK EVIDENCE INCOMPLETE — NOT EXECUTED**
+- Zero Regression: STAGE-B ZERO-REGRESSION CONTRACT PASSED
+- Zero Write: ZERO REPOSITORY-DATABASE-MIGRATION WRITE CONFIRMED
+- Contract Reopening: NO ACCEPTED CONTRACT WAS REOPENED
+- Rollback Execution: EMERGENCY ROLLBACK NOT EXECUTED
+- Acceptance Re-Audit: **STAGE-B ACCEPTANCE RE-AUDIT FAILED — EXACT BLOCKER REMAINS**
+- Acceptance Boundary: OWNER ACCEPTANCE NOT YET GIVEN
+- Persistence Boundary: STAGE-B ACCEPTANCE PERSISTENCE NOT STARTED
+- Closure Boundary: NO STAGE-B WORKSTREAM-PHASE-ROADMAP CLOSURE CLAIMED
 
-## Stage 1 — State-B stable contract
+## B. Complete Simple Roadmap
 
-`OPTION-B STATE-B STABLE FINGERPRINT EXACTLY REPRODUCED`
+Mission — safe historical financial migration system, then Laboratory Historical Import pilot. Status: active.
 
-| Field | Value |
-| --- | --- |
-| Rows | 35 (expected 35) |
-| Byte length | 5277 |
-| MD5 | `31a3c711f72f419e75f89a234a9923cc` (expected — MATCH) |
-| SHA-256 | `67128e3269272e695b4452247eed409378b5f30d10c5df54a9d6b617abeea404` (MATCH) |
+- Phase 0 Governance — COMPLETED. Remains: none. Trigger: n/a.
+- Phase 1 Economic Date Integrity — ACTIVE.
+  - Stage A Historical Data Repair — COMPLETED, ACCEPTED, PERSISTED, VERIFIED (28 effective-date corrections, 69 balance_after updates, 87 canonical rows). Remains: none.
+  - Stage B Financial Write Authority — Application execution complete; Application QA passed; Forward migration 20260804083738 applied; Stable Contract V1 persisted; Rollback reissued and SHA-bound. Remains: one Rollback precondition defect (below), then Owner Acceptance and Acceptance Persistence. Trigger: corrected Rollback preconditions.
+  - Stage C Read-Path Cutover — NOT STARTED. Trigger: verified Stage-B Acceptance Persistence.
+  - Stage D Constraint Enforcement — NOT STARTED. Trigger: Stage C acceptance.
+- Phases 2–8 (Canonical Write Authority, Import Control Plane, Provenance/Idempotency, Historical Semantics, Matching Integrity, Laboratory Pilot, Expansion/Closure) — NOT STARTED; each triggered by acceptance of its predecessor.
 
-## Stage 2 — State-A synthetic stable contract
+## C. Evidence Boundary
 
-`OPTION-B STATE-A STABLE FINGERPRINT REPRODUCTION FAILED`
+- LIVE REPOSITORY FACT: branch `edit/edt-20ab1fdb-4a4a-493f-a38d-683425bc677f`; HEAD `0843d12203f38519a805680a892327d31a384ee8` (merge of `5b7264f1f` + `98344efcc`); working tree clean; no staged/unstaged/untracked paths.
+- COMMIT FACT: `98344efcc` — one path, 2 insertions, 2 deletions, comments only; ancestor of HEAD. HEAD merge commit carries the identical 2/2 diff versus first parent.
+- ARTIFACT FACT: rollback.sql 29176 bytes / 640 lines / SHA-256 `3a95fa33b3f755cf762c6ed52e01a8105c3f2b3b643b017af50290bbad76f451` / blob `26ebba46b70f522c7dc4fcd3bd21f3ec590c4e7b` / final newline present. Stable Contract 39951 bytes / 453 lines / SHA-256 `63bac3c945cc676fa565727367e1b41a0e3e243981223ef252a6576ed8b5178b` / blob `0570c9966e98dd05d5da7d8975bc9e159bb3831a`.
+- LIVE DATABASE FACT: see Section N.
+- PRESERVED ACCEPTED EVIDENCE: Prompts 21–29 contracts, unmodified and unreopened.
+- PROMPT-30 CLAIM: fully corroborated.
+- INFERENCE: none material.
+- GAP: PostgreSQL parser tooling unavailable (non-blocking, pre-execution gate).
+- CONTRADICTION: Rollback preconditions 12 and 13 contradict live State B (Section T).
 
-Reproducing State A strictly under §9 + §11 (function identity taken from `format('%I.%I(%s)', nspname, proname, pg_get_function_identity_arguments(oid))`, never a hand-typed signature) yields:
+## D. Cumulative Prompt Lineage — Prompts 01–30
 
-| Candidate | Rows | Bytes | MD5 | SHA-256 |
-| --- | ---: | ---: | --- | --- |
-| Prompt-26 approved value (§2.4) | 37 | 5422 | `bb59784870a414bfae5a18914453d5d4` | `460c8e0e…7353` |
-| Recomputed, synthetic rows rendered `false` | 37 | 5506 | `fbe1be955a2df27a8025d4f5b732cbd6` | `c4ec5e90964a6f1065f2ea9c8df890a247ff4bb12296a1f9e5933f73790d2619` |
-| Recomputed, fully live-consistent rendering `f` | 37 | 5498 | `36da554aef9a68d2acfbe9e1663c5def` | `5a7c4fa94cc44fc330503b58a13dde678a83206270e79f681a295988cdd63db2` |
+All Prompts 01–30 remain SUBMITTED — RUN — CONSUMED with the authoritative treatments listed in the Prompt-31 Section 8 ledger; no entry is altered by this run. Prompt 30 is now independently verified.
 
-### Exact cause (proven, not inferred)
+## E. Conditional Scope Compliance
 
-Byte delta 5506 − 5422 = 84 = 2 × 42. The Prompt-26 synthetic rows used the abbreviated type-only signature `public.create_pos_sale(uuid,uuid,jsonb)` instead of the live canonical identity
-`public.create_pos_sale(p_tenant_id uuid, p_idempotency_key uuid, p_payload jsonb)` (42 characters longer per line). §11 explicitly forbids a differently formatted signature, so the Prompt-26 State-A candidate is defective; State B and the observation are unaffected because both derive every identity from the live expression.
+Gate 1 executed first and passed in full; Gate 2 entered only afterwards and limited to preserved evidence plus the minimal governed live-state guard. No implementation, design or accepted contract was reperformed.
 
-### Second, independent rendering defect
+## F. Final Repository HEAD
 
-State-B lines render `is_grantable` through the boolean text output, i.e. `…|EXECUTE|f`. The Prompt-26 synthetic rows render `…|EXECUTE|false`. Any State-A postcondition computed from a live post-rollback catalogue can only produce `f`, so the `false` variant (`fbe1be95…`) is not reproducible from live state either. Only the third candidate (`36da554a…`, 5498 bytes) is both canonical-identity correct and live-reproducible, and it is therefore the recommended replacement State-A postcondition.
+Branch `edit/edt-20ab1fdb-4a4a-493f-a38d-683425bc677f`; HEAD `0843d12203f38519a805680a892327d31a384ee8`; first parent `5b7264f1fd86968d0c98b2598749d1230d46d9de`; second parent `98344efcc314d23a1d0f5a967b11a805bf34a9cb`. Latest commit affecting either artifact: the Prompt-30 change; no later commit modifies either file. Working tree clean before and after.
 
-## Stage 3 — Platform sandbox observation
+Disclosure (no scope reopening): the branch name differs from the Prompt-30 reported branch and HEAD is a merge commit rather than the plain Prompt-30 commit. Both are platform branch/merge topology; content is byte-identical to the expected Prompt-30 result.
 
-`PLATFORM SANDBOX OBSERVATION REPRODUCED` — 14 rows, 2449 bytes, MD5 `9fa9afcfb207e5911f8b17eafc8e9adb`, SHA-256 `398631e3b7093b600e1faf37a1468b76b5522acee141659ec90cfb33a45fdd4b`. All 14 rows belong to `sandbox_exec_vhxglsvxwwpmoqjabfmj` (OID 123688); `sandbox_exec` (OID 127690) contributes zero rows. Non-blocking.
+## G. Prompt-30 Commit Verification
 
-## Stages 4–8 — not performed
+`98344efcc` — author gpt-engineer-app[bot], authored/committed 2026-08-04T13:27:29Z, message "Changes"; single path `docs/workstreams/ws-dh-2026-0003-economic-date-integrity/evidence/stage-b-database-authority/rollback.sql`; +2 / −2; comment lines only; no SQL statement changed; Stable Contract, source, tests, migrations, packages, governance and plan files absent from the commit.
 
-`STOP — OPTION-B FINGERPRINT REPRODUCTION FAILED` (§2.4, §11, §18.2). Zero repository artifact writes: no `stable-function-acl-contract-v1.md`, no rollback reissue. The existing `rollback.sql` remains byte-identical and remains non-executable under its stale 63-row precondition.
+## H. Stable Contract Final Identity — unchanged, matches required SHA-256 and blob exactly.
 
-## Required verdicts
+## I. Rollback Final Identity — matches required bytes, lines, SHA-256, blob and final-newline state exactly.
 
-- Preflight: `PREFLIGHT PASSED`
-- State-B reproduction: `OPTION-B STATE-B STABLE FINGERPRINT EXACTLY REPRODUCED`
-- State-A reproduction: `OPTION-B STATE-A STABLE FINGERPRINT REPRODUCTION FAILED`
-- Platform observation: `PLATFORM SANDBOX OBSERVATION REPRODUCED`
-- Stable contract artifact: `NOT CREATED`
-- Emergency rollback: `EMERGENCY ROLLBACK OPTION-B REISSUE FAILED` (not attempted; artifact unchanged and unexecuted)
-- Acceptance: not claimed. Closure: not claimed. Prompt-25 Database QA remains FAILED.
+## J. Exact Final SHA-Binding Block (lines 25–28)
 
-## Owner decision required before any write
+```sql
+-- Bound Stable Contract artifact:
+--   docs/workstreams/ws-dh-2026-0003-economic-date-integrity/evidence/stage-b-database-authority/stable-function-acl-contract-v1.md
+--   Stable Contract SHA-256:
+--   63bac3c945cc676fa565727367e1b41a0e3e243981223ef252a6576ed8b5178b
+```
 
-Approve the corrected State-A stable postcondition value to be used in place of the defective §2.4 value:
+SHA occurrence count: exactly 1. Old Prompt-28-report explanatory text: absent. Bound SHA equals the actual live Stable Contract SHA.
 
-- Option 1 (recommended): `37 / 5498 bytes / MD5 36da554aef9a68d2acfbe9e1663c5def / SHA-256 5a7c4fa94cc44fc330503b58a13dde678a83206270e79f681a295988cdd63db2` — canonical identity, live-reproducible rendering.
-- Option 2: `37 / 5506 bytes / MD5 fbe1be955a2df27a8025d4f5b732cbd6 / SHA-256 c4ec5e90…2619` — canonical identity but `false` literal; not reproducible from a live catalogue without a special-case rule.
+## K. Stable Contract No-Change Proof — file did not enter the Prompt-30 commit; recomputed SHA and blob equal the pre-correction values.
 
-On approval, a corrected Prompt-27 run can create the stable contract artifact and completely reissue the rollback with State-B precondition `35 / 31a3c711…` and the approved State-A postcondition.
+## L. Prompt-30 Correction Verification Verdict — PROMPT-30 SHA-BINDING CORRECTION INDEPENDENTLY VERIFIED.
+
+## M. Acceptance Re-Audit Entry Gate — PASSED.
+
+## N. Minimal Governed Live-State No-Drift Guard — PASSED
+
+Migration: `20260804083738` present exactly once and is the latest version. Policy: 3 / `04297828f4bd33eba043f6c9274ec57b`. Table ACL: 44 / `204017a1207bc68a246c3415e3975478`. Stable Function ACL State B: 35 rows / 5277 bytes / MD5 `31a3c711f72f419e75f89a234a9923cc` / SHA-256 `67128e3269272e695b4452247eed409378b5f30d10c5df54a9d6b617abeea404`. Ledger: 88 / `23e73fd58f9308913ac978acee94b2f2`. Customer Balances: 8 / `22e38d161b126cca31f4c26830084012`.
+
+Governed authority: authenticated has SELECT and no INSERT on ledger_entries; anon has no UPDATE on customer_balances; internal-writer browser grants 0; create_pos_sale EXECUTE false for anon and authenticated; helpers 3/3 at `search_path=public, pg_temp`; comments exact; column ACL 0; browser inheritance 0; RLS true and FORCE RLS false with postgres owners on both tables; CREATE on schema public false for browser roles; governed grant-option rows 0.
+
+## O–Q. Application Execution, Application QA, Database Authority Execution — evidence complete and preserved as accepted; live guard shows no regression.
+
+## R. Database Authority QA Resolution — the Prompt-25 all-role failure is resolved by the Owner-approved Option-B stable-role contract, which reproduces exactly against live state.
+
+## S. Stable Contract Evidence — complete: identity, State-B canonical string, corrected State-A canonical string, algorithms, bindings, historical 65/63/49 classification, Option-B role scope, artifact QA passed.
+
+## T. Emergency Rollback Evidence — INCOMPLETE (blocking)
+
+Identity, complete reissue, SHA binding, mutation core, State-A postconditions, financial invariants, sandbox observation, BEGIN/COMMIT and structural validation are all present. One defect makes the artifact non-executable against the very State B it binds:
+
+- Precondition 12 requires `authenticated` EXECUTE rows = 10; live State B has 11.
+- Precondition 13 requires `service_role` rows = 11; live State B has 10.
+
+The two expected values are transposed. The aggregate Stable Function-ACL fingerprint (35 / 5277 / `31a3c711…`) matches exactly, so live state is correct and the artifact's per-role assertions are wrong. Running the Rollback today would raise `RB_AUTHENTICATED_WRAPPER_DRIFT: 11` before reaching any mutation.
+
+## U. Financial Invariance — Ledger and Customer Balances unchanged; zero financial-row writes.
+
+## V. Zero-Regression Assessment — PASSED; no governed value regressed.
+
+## W. No-Contract-Reopening Assessment — no accepted contract was reopened; the finding in Section T is direct new live evidence against a required Emergency-Rollback Acceptance criterion.
+
+## X. Blocking Findings
+
+1. Emergency Rollback preconditions 12 and 13 assert transposed per-role counts (10 authenticated / 11 service_role) versus live accepted State B (11 authenticated / 10 service_role), rendering the active Rollback non-executable.
+
+## Y. Non-Blocking Residuals
+
+PostgreSQL parser tooling unavailable (mandatory gate before any real Rollback execution); Rollback never executed; no Forward→Rollback→Forward drill; platform sandbox roles may change; historical all-role fingerprints differ from Option-B; Invoice-PDF RTL test failure pre-existing and non-scope; deferred Finance, HR, POS and Import work; Stage C and Stage D not started.
+
+## Z. Final Verdict — STAGE-B ACCEPTANCE RE-AUDIT FAILED — EXACT BLOCKER REMAINS.
+
+## AA. Owner Decision Required
+
+OWNER DECISION REQUIRED:
+
+Authorize a minimal, repository-only correction of the two transposed per-role counts in the active Emergency Rollback (preconditions 12 and 13), or accept Stage B with the Rollback formally recorded as non-executable.
+
+No Acceptance Persistence, Stage-C start or Closure is authorized.
+
+## AB. Recommendation
+
+One exact blocker: transposed per-role Rollback preconditions. One exact next action: prepare Prompt 32 — Minimal Emergency-Rollback Per-Role Precondition Correction (Agent/Build, repository-write only, one file, two numeric literals), then re-run the Stage-B Acceptance Re-Audit.
+
+## AC. WORKSTREAM PERSISTENCE
+
+STAGE-A ACCEPTANCE: PERSISTED AND VERIFIED. STAGE-B APPLICATION EXECUTION EVIDENCE: PERSISTED. STAGE-B DATABASE AUTHORITY FORWARD EXECUTION: APPLIED AND EVIDENCED. STAGE-B STABLE CONTRACT: PERSISTED. STAGE-B EMERGENCY ROLLBACK: PERSISTED — NOT EXECUTED. PROMPT-30 SHA-BINDING CORRECTION: PERSISTED AND VERIFIED. PROMPT-31 PERSISTENCE: NONE — READ-ONLY. STAGE-B OWNER ACCEPTANCE: NOT YET GIVEN. STAGE-B ACCEPTANCE PERSISTENCE: NOT STARTED. CLOSURE PERSISTENCE: NONE. WS-DH-2026-0003 remains ACTIVE. No Stage-C work occurred. No Closure occurred.
+
+## AD. ROADMAP IMPACT
+
+MISSION: safe historical financial migration and Laboratory pilot. PHASE 0: COMPLETED. PHASE 1: ACTIVE. STAGE A: COMPLETED — ACCEPTED — PERSISTED — VERIFIED. STAGE B: ACCEPTANCE RE-AUDIT UNDER PROMPT 31 — FAILED, ONE BLOCKER. STAGE C: NOT STARTED. STAGE D: NOT STARTED. PHASES 2–8: NOT STARTED. A Stage-B Acceptance Re-Audit result does not itself constitute Owner Acceptance, Acceptance Persistence, Stage-B completion, Stage-C start, Phase advancement or Closure.
+
+## AE. Complete Deferred Items Register
+
+| # | Item | Origin | Current status | Lane | Dependency | Risk if forgotten | Next trigger |
+|---|---|---|---|---|---|---|---|
+| 1 | Repository HEAD, Prompt-30 ancestry, path membership, 2/2 diff, Stable Contract no-change, Rollback identity, SHA binding, old-text absence, zero unauthorized path | Prompt 31 | Verified | Gate 1 | none | Unverified correction | Complete |
+| 2 | Migration / Policy / Table-ACL / Stable Function-ACL / financial / governed-authority guards | Prompt 31 | Passed | Gate 2 | none | Undetected drift | Complete |
+| 3 | Application execution, Application QA, Database execution, Database QA, Stable Contract evidence | Prompts 21–29 | Complete | Gate 2 | none | Acceptance without evidence | Complete |
+| 4 | Emergency Rollback evidence | Prompt 28–31 | INCOMPLETE — transposed per-role preconditions | Gate 2 | Prompt 32 | Non-executable rollback in an incident | Owner authorization |
+| 5 | Zero-regression, no-contract-reopening, Owner decision package | Prompt 31 | Complete | Gate 2 | none | — | Complete |
+| 6 | Stage-B Owner Acceptance, Acceptance Persistence and its verification, Stage-B completion status | Prompt 31 | Blocked | Governance | Item 4 | Premature acceptance | Owner acceptance |
+| 7 | Stage-C Investigative Audit and start, Phase-1 advancement, Workstream Closure and Closure Persistence | Roadmap | Blocked | Governance | Item 6 | Out-of-order execution | Verified persistence |
+| 8 | Forward → Rollback → Forward drill | Prompt 29 | Deferred | QA | Item 4 + parser gate | Untested rollback | Separate authorization |
+| 9 | PostgreSQL parser or disposable-environment validation gate | Prompt 29 | Deferred — mandatory pre-execution | QA | tooling | Unsafe rollback execution | Before any real rollback |
+| 10 | Internal Cost terminology; Unknown vs Real Zero; contextual labels | Earlier prompts | Deferred | Finance UX | — | Misleading cost truth | Finance workstream |
+| 11 | HR Salary-to-Expense atomicity, idempotency, reversal; HR-linked Expense deletion protection | Earlier prompts | Deferred | HR Finance | — | Duplicate or unreversible payroll | HR workstream |
+| 12 | Expense unpost/reversal; Supplier Payable lifecycle and Payable-to-Expense authority | Earlier prompts | Deferred | Finance | — | Unreversible postings | Finance workstream |
+| 13 | Full POS implementation; future create_pos_sale activation | WS-DH-2026-0005 | Deferred | POS | Stage B authority | POS reactivation without authority | POS workstream |
+| 14 | Manual Ledger Adjustment UI | Earlier prompts | Deferred | Finance UX | — | No governed manual path | Finance workstream |
+| 15 | Residual Finance-table privilege hardening; full schema qualification of has_permission; duplicate Ledger SELECT policy review; database TEMP grant to PUBLIC; PUBLIC EXECUTE on permission helpers; sandbox_exec* financial privilege review | Prompts 13–26 | Deferred | Security | — | Residual privilege exposure | Security workstream |
+| 16 | Historical Import batch/provenance objects; owner_id identity binding | Prompt 04 | Deferred | Import | Phase 3 | Unsafe import | Phase 3 |
+| 17 | Account Statement effective_date cutover | Stage C | Deferred | Read paths | Stage B acceptance | Wrong economic dates displayed | Stage C |
+| 18 | Shadow draft-invoice remediation; Doctor billing / tenant_services unification | Earlier audits | Deferred | Finance | — | Financial noise and split catalogs | Finance workstream |
+
+## AF. Run Metadata and Exact Stopping Point
+
+Mode Plan/Chat read-only; Operation conditional verification then Stage-B Acceptance Re-Audit; Prompt ID …-FINAL-SHA-BINDING-VERIFICATION-AND-CONDITIONAL-ACCEPTANCE-REAUDIT-31; Status SUBMITTED — RUN — CONSUMED; prepared 04-08-2026 16:33 Asia/Riyadh. Run Start 2026-08-04T13:46Z; Gate-1 completion Exact time not recorded; Gate-2 start Exact time not recorded; Gate-2 completion 2026-08-04T13:48Z; Run End 2026-08-04T13:48Z; Final Report 2026-08-04T13:48Z (UTC clock evidence).
+
+Branch, HEAD, parents, working tree, commit metadata, artifact identities, SHA-binding occurrence count (1), old-text absence, migration, Policy, Table-ACL, Stable Function-ACL, Ledger, Customer Balance and governed-authority results are as stated in Sections F–N. Repository writes ZERO; database writes ZERO; migration writes ZERO; financial-row writes ZERO; source writes ZERO; test writes ZERO; Emergency Rollback NOT EXECUTED; accepted-contract reopening NONE.
+
+Stage-B Acceptance Re-Audit: FAILED — one blocker. Owner Acceptance NOT YET GIVEN. Acceptance Persistence NOT STARTED. Stage C NOT STARTED. Closure NONE.
+
+Exact stopping point: the Prompt-30 one-file SHA-binding correction is independently verified on the final repository HEAD, the Stable Contract is unchanged, the minimal governed live-state guard passed, and all Stage-B lanes except Emergency Rollback are complete; the run stops at the transposed per-role Rollback preconditions.
+
+Recommended next Prompt and Mode: Prompt 32 — Minimal Emergency-Rollback Per-Role Precondition Correction, Agent/Build Repository-Write-Only.
