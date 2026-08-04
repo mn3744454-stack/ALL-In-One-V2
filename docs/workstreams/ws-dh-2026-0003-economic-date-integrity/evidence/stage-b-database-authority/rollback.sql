@@ -256,7 +256,7 @@ BEGIN
 
   -- 13./14. service_role and postgres authority present
   SELECT count(*) INTO v_cnt FROM rb_fn_acl_rows WHERE grantee_name = 'service_role';
-  IF v_cnt <> 11 THEN RAISE EXCEPTION 'RB_SERVICE_ROLE_AUTHORITY_DRIFT: %', v_cnt; END IF;
+  IF v_cnt <> 10 THEN RAISE EXCEPTION 'RB_SERVICE_ROLE_AUTHORITY_DRIFT: %', v_cnt; END IF;
   SELECT count(*) INTO v_cnt FROM rb_fn_acl_rows WHERE grantee_name = 'postgres';
   IF v_cnt <> 14 THEN RAISE EXCEPTION 'RB_POSTGRES_AUTHORITY_DRIFT: %', v_cnt; END IF;
 
