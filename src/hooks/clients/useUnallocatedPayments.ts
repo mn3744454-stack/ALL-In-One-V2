@@ -71,16 +71,19 @@ export function useUnallocatedPayments(
       let q = supabase
         .from("ledger_entries")
         .select(
-          "id, created_at, entry_type, description, amount, reference_type, reference_id, payment_method"
+          "id, effective_date, created_at, entry_type, description, amount, reference_type, reference_id, payment_method"
         )
         .eq("tenant_id", tenantId)
         .eq("client_id", clientId)
         .neq("reference_type", "invoice_cancellation")
-        .order("created_at", { ascending: true });
-      // 2QA-A · Finding 2 — same canonical local-day → UTC contract as the
-      // main statement query so unallocated activity respects identical bounds.
-      if (dateFrom) q = q.gte("created_at", localDateFromToUtcIso(dateFrom));
-      if (dateTo) q = q.lte("created_at", localDateToToUtcIso(dateTo));
+        // Stage C · Slice B — deterministic economic order.
+        .order("effective_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
+      // Stage C · Slice B — date-only inclusive bounds on the business date.
+      // effective_date is a `date` column, so no UTC-window conversion applies.
+      if (dateFrom) q = q.gte("effective_date", toEconomicDateString(dateFrom));
+      if (dateTo) q = q.lte("effective_date", toEconomicDateString(dateTo));
       const { data: rows, error } = await q;
       if (error || !rows) return { count: 0, totalAmount: 0, entries: [] };
 
