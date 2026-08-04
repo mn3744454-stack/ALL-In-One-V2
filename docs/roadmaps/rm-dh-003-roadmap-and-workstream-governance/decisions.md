@@ -303,3 +303,56 @@ Dayli Horse spans many account types whose capabilities overlap. Without a fixed
 2. **Allow free per-Feature selection** — rejected by D4. Dependency-blind selection produces incomplete and unsafe workflows.
 3. **Approve pack names, composition and pricing in the same decision** — rejected by D10. That design has not been investigated and would bind commercial terms without evidence.
 
+
+---
+
+## DEC-RM-DH-003-007
+
+**Alias:** None.
+**Subject:** Acceptance-Defect Correction and Narrow Execution-Contract Supersession
+**العنوان العربي:** تصحيح عيوب القبول والاستبدال المحدود لعقد التنفيذ
+**Status:** Approved
+**Owner alignment decided at:** 2026-08-04T05:27:00+03:00 (Asia/Riyadh — UTC+03:00) — Owner approved **Option B — Explicit Narrow Supersession**.
+**Persisted at:** 2026-08-04T05:41:41+03:00 (Asia/Riyadh — UTC+03:00), by execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04`. The Owner alignment time and this repository write time are distinct events and are not interchangeable.
+
+### Decision
+
+The Owner approved a **narrow, scope-limited supersession** of four prior contract points, and a three-file governance correction. Nothing else is superseded.
+
+**1. Central Roadmap index version target superseded.** The previously approved target for `docs/roadmaps/README.md` was 1.2.1 → 1.2.2. The Execution-02 result was 1.2.1 → **1.3.0**. The live version **1.3.0 is preserved**. Downgrading it is prohibited. This supersedes the target version only and authorizes no other content change to that file.
+
+**2. Central Workstream index version target superseded.** The previously approved target for `docs/workstreams/README.md` was 1.4.1 → 1.4.2. The Execution-02 result was 1.4.1 → **1.5.0**. The live version **1.5.0 is preserved**. Downgrading it is prohibited. This supersedes the target version only and authorizes no other content change to that file.
+
+**3. Execution-02 commit topology superseded.** The original contract required one bounded governance content commit. Execution 02 produced **15 content commits plus one merge commit**. Execution 02 is accepted as **one bounded multi-commit governance execution artifact** (`ART-RM-DH-003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02`), conditional on — and only on — the completed verification evidence recorded at the time of this decision:
+
+   - pre-execution anchor `9633edfd7cf2e70f32f8afac9dbc73e3a308f65b`;
+   - final execution HEAD `ee1ee63ef6f0ec442ca44aeaf04ba3060747beaa`;
+   - exactly 15 content commits, first `18fc781a6f15dd32c14fd479ff35ed63f529b57f`, last `01c8b89ca2feda74276c2e59dd3a80c94ecf874d`;
+   - exactly one merge commit `ee1ee63ef6f0ec442ca44aeaf04ba3060747beaa`, whose diff against its second parent is empty, so the merge introduced no additional content;
+   - every content commit confined to the seven approved governance paths; no content commit touched `.lovable/plan.md`, `docs/CONVENTIONS.md`, application code, database paths, another Roadmap or any Workstream package;
+   - the aggregate pre-execution-to-final diff contains **exactly** the seven approved paths and no eighth path.
+
+   This supersession applies **only** to this exact Execution-02 artifact. It is not a general rule and must not be reused as proof for another execution, Roadmap, Workstream, branch, environment, Acceptance or Closure.
+
+**4. Prompt-03 verdict superseded.** The verdict `CONDITIONAL PASS` reported by `PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03` was not an allowed Acceptance verdict and is replaced by the authoritative status **`GOVERNANCE PERSISTENCE ACCEPTANCE RE-AUDIT FAILED — PERSISTENCE OR ZERO-REGRESSION DEFECTS REQUIRE CORRECTION`**. This does not structurally reject the seven-file Execution-02 content; it means Owner Acceptance remains blocked until this correction is complete, the commit set is proven, and a targeted Acceptance Re-Verification passes.
+
+**5. Canonical Decision-ID note corrected.** The Decision ID numbering note previously stated the canonical repository Decision IDs as consecutive `-001` through `-004`, which was not synchronized when `-005` and `-006` were appended. It now states the consecutive canonical range `DEC-RM-DH-003-001` through `DEC-RM-DH-003-007`, with `DEC-RM-DH-003-008` as the next free ID.
+
+**6. Prohibitions.** Downgrading `docs/roadmaps/README.md` below 1.3.0 or `docs/workstreams/README.md` below 1.5.0 is prohibited. Rewriting, rebasing, squashing or amending Execution-02 Git history is prohibited.
+
+**7. Preservation.** All other contracts remain authoritative and unchanged: Phase 0, Phase 1 and CLOSED Phase 2; the Phase 3 identity, state `ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE`, Tracks A–E and Sub-phases 3.0–3.7; Workstreams `WS-DH-2026-0012` through `WS-DH-2026-0020` and the Option C registration model; Decisions `-001` through `-006` including the D1–D10 package, which is not modified by this decision; the Memory boundary; the complete 16-item Deferred Items Register; and the exact-file restoration rollback strategy.
+
+**8. Mandatory next action.** A separate **targeted Acceptance Re-Verification** is mandatory before any Acceptance can be granted.
+
+**9. Explicitly absent.** This decision grants **no** Owner Acceptance, **no** Acceptance persistence, **no** Sub-phase 3.1 advancement, **no** Workstream package creation or investigation, **no** Project Knowledge installation and **no** Closure.
+
+### Rationale
+
+Two independent defects blocked Owner Acceptance: an execution artifact whose commit topology did not match its contract, and a governance file that misreported its own canonical Decision-ID range. Downgrading already-published index versions would have falsified the version history to satisfy a superseded target, and rewriting Git history would have destroyed the very evidence the audit relies on. An explicit, narrowly scoped supersession records the divergence truthfully, preserves all evidence, and repairs the truthfulness defect without weakening any other contract.
+
+### Rejected alternatives
+
+1. **Downgrade `docs/roadmaps/README.md` to 1.2.2 and `docs/workstreams/README.md` to 1.4.2** — rejected. It would rewrite already-published version history to match a superseded target and would make the version ledger untruthful.
+2. **Rewrite, squash or amend Execution-02 into a single commit** — rejected. It would destroy the audit evidence that proves the execution stayed inside the seven-path allowlist.
+3. **Accept the Prompt-03 `CONDITIONAL PASS` verdict and proceed to Owner Acceptance** — rejected. `CONDITIONAL PASS` is not an allowed Acceptance verdict, and proceeding would grant Acceptance over unproven and uncorrected defects.
+4. **Correct the canonical-ID note silently without a recorded decision** — rejected. A truthfulness repair to an authoritative governance file must itself be governed and traceable.
