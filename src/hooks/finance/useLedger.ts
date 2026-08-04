@@ -80,9 +80,13 @@ export function useLedgerEntries(tenantId?: string, clientId?: string) {
 
       let query = supabase
         .from("ledger_entries" as any)
-        .select("id, tenant_id, client_id, entry_type, reference_type, reference_id, amount, balance_after, description, payment_method, created_by, created_at")
+        .select("id, tenant_id, client_id, entry_type, reference_type, reference_id, amount, balance_after, description, payment_method, created_by, effective_date, created_at")
         .eq("tenant_id", tenantId)
-        .order("created_at", { ascending: false });
+        // Stage C · Slice B — deterministic economic order (business date first,
+        // created_at then id purely as tie-breakers) so pagination is stable.
+        .order("effective_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
 
       if (clientId) {
         query = query.eq("client_id", clientId);
