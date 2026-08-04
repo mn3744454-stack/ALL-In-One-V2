@@ -67,8 +67,6 @@ export function useCustomerBalances(tenantId?: string) {
 }
 
 export function useLedgerEntries(tenantId?: string, clientId?: string) {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["ledger-entries", tenantId, clientId],
