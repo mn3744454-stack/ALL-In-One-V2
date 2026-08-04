@@ -1,11 +1,12 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.2.2
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-07-31
+last-verified: 2026-08-04
+
 supersedes: []
 superseded-by: null
 source: v1.2.2 — records the explicit owner Closure decision: RM-DH-003 / Phase 2 is CLOSED and WS-DH-2026-0002 is CLOSED. QA is Complete, satisfied by the passed Final Targeted Acceptance Re-Audit under the owner's approved interpretation for this documentation-only correction; Acceptance remains accepted and persisted; the planning-artifact finding remains resolved by narrow exception and was not resolved by successful untracking. RM-DH-003 itself remains Active, no Phase 3 or later Phase was created or approved, no Phase advance occurred, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). No status, Phase, stopping point, next step, or closure state was changed; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Roadmap status, Phase state, Acceptance state, QA, stopping point, next step, and closure state are unchanged; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the finding is resolved by narrow exception rather than by successful untracking, the current Workstream status becomes EXECUTED_AWAITING_REAUDIT, the earlier Acceptance is preserved as historical evidence, no Phase advanced, and closure remains not approved; v1.2.1 — records the passed final targeted Acceptance Re-Audit of the seven-file planning-artifact exception-documentation correction, including EV-DEF-01, and persists that Acceptance. Verified Acceptance Re-Audit repository HEAD acd831767c235771b145dfeda4612a7ec51c32d4; latest governance-content HEAD 589ec1d1272d5ded131956b98e512831b71ec55a; working tree clean; no tracked file changed during the Re-Audit. The Workstream status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. QA remains Pending, owner closure remains not approved, and no Phase advanced.
