@@ -1287,7 +1287,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       {unallocated.entries.map((e) => (
                         <TableRow key={e.id}>
                           <TableCell className="whitespace-nowrap text-xs" dir="ltr">
-                            {formatDateTime12h(e.date)}
+                            {formatEconomicDate(e.date)}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1326,7 +1326,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                             : t(`finance.ledger.entryTypes.${e.entry_type}`) || e.entry_type}
                         </Badge>
                         <span className="text-[11px] text-muted-foreground" dir="ltr">
-                          {formatDateTime12h(e.date)}
+                          {formatEconomicDate(e.date)}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground">
