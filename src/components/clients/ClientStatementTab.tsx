@@ -30,6 +30,7 @@ import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } fr
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
 import { summarizeStatement } from "@/lib/finance/statementSemantics";
+import { compareEconomicOrder, toCents, fromCents } from "@/lib/finance/effectiveDate";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
 
@@ -831,26 +832,29 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     };
   }, [domainFilteredEntries]);
 
-  // Running balance: recompute from visible rows, skipping neutralized rows.
+  // Stage C · Slice A — DISPLAY-DERIVED running balance (Owner Option A).
+  // Seeded from the pre-range opening balance and accumulated in integer cents
+  // over the canonically ordered rows. Stored `balance_after` is never used as
+  // the display authority.
   const runningBalances = useMemo(() => {
     const balances = new Map<string, number>();
-    let balance = 0;
+    let cents = toCents(statement?.openingBalance ?? 0);
     for (const row of flatRows) {
       const neutralized = scopedSummary.neutralizedRowIds.has(row.entry.id);
       if (neutralized) {
         // Show the row but do not shift the running balance.
-        balances.set(row.key, balance);
+        balances.set(row.key, fromCents(cents));
         continue;
       }
       if (row.isSegment && row.segment) {
-        balance += row.segment.amount;
+        cents += toCents(row.segment.amount);
       } else if (!row.isSegment) {
-        balance += row.entry.debit - row.entry.credit;
+        cents += toCents(row.entry.debit) - toCents(row.entry.credit);
       }
-      balances.set(row.key, balance);
+      balances.set(row.key, fromCents(cents));
     }
     return balances;
-  }, [flatRows, scopedSummary.neutralizedRowIds]);
+  }, [flatRows, scopedSummary.neutralizedRowIds, statement?.openingBalance]);
 
   // Build scope context strings
   const scopeContextHorses = useMemo(() => {
