@@ -541,15 +541,15 @@ BEGIN
     RAISE EXCEPTION 'RB_INTERNAL_WRITER_BROWSER_EXECUTE_APPEARED';
   END IF;
 
-  -- 10. authenticated Wrapper authority preserved (10 wrappers + restored POS)
+  -- 10. authenticated Wrapper authority preserved (11 wrappers + restored POS)
   SELECT count(*) INTO v_cnt
   FROM rb_fn_acl_rows
   WHERE grantee_name = 'authenticated' AND privilege_type = 'EXECUTE';
-  IF v_cnt <> 11 THEN RAISE EXCEPTION 'RB_AUTHENTICATED_WRAPPER_RESTORE_DRIFT: %', v_cnt; END IF;
+  IF v_cnt <> 12 THEN RAISE EXCEPTION 'RB_AUTHENTICATED_WRAPPER_RESTORE_DRIFT: %', v_cnt; END IF;
 
   -- 11./12. service_role and postgres authority preserved
   SELECT count(*) INTO v_cnt FROM rb_fn_acl_rows WHERE grantee_name = 'service_role';
-  IF v_cnt <> 11 THEN RAISE EXCEPTION 'RB_SERVICE_ROLE_AUTHORITY_LOST: %', v_cnt; END IF;
+  IF v_cnt <> 10 THEN RAISE EXCEPTION 'RB_SERVICE_ROLE_AUTHORITY_LOST: %', v_cnt; END IF;
   SELECT count(*) INTO v_cnt FROM rb_fn_acl_rows WHERE grantee_name = 'postgres';
   IF v_cnt <> 14 THEN RAISE EXCEPTION 'RB_POSTGRES_AUTHORITY_LOST: %', v_cnt; END IF;
 
