@@ -1,483 +1,385 @@
-# PROMPT-23 — STAGE B APPLICATION QA EVIDENCE CLOSURE
+# PROMPT-07 — RM-DH-003 / PHASE 3 — PROMPT-06 VERIFICATION AND ACCOUNT-TYPE COUNT DEFECT SCOPING AUDIT
 
-Read-only. Zero source, test, migration, database, governance, Knowledge, Skill or settings write.
+Read-only. Zero repository, application, database, Knowledge or Skill write.
 
-## A. Combined Verdicts
+## 1. Executive Verdict
 
-| Category | Verdict |
-| --- | --- |
-| Prompt-22 Correction | **PROMPT-22 PREMATURE DATABASE-AND-ZERO-REGRESSION VERDICTS WITHDRAWN** |
-| Commit Lineage | **PROMPT-21 PRE-AND-POST COMMIT LINEAGE PROVEN** |
-| Test Environment | **BASELINE AND CURRENT TEST ENVIRONMENTS EQUIVALENT** |
-| Invoice-PDF Baseline | **INVOICE-PDF RTL FAILURE PROVEN PRE-EXISTING AND NON-SCOPE** |
-| Temporary Cleanup | **TEMPORARY BASELINE ENVIRONMENT FULLY REMOVED** |
-| Policy Fingerprint | **POLICY PRE-STATE FINGERPRINT EXACTLY MATCHES** |
-| Table-ACL Fingerprint | **TABLE-ACL PRE-STATE FINGERPRINT EXACTLY MATCHES** |
-| Function-ACL Fingerprint | **FUNCTION-ACL PRE-STATE FINGERPRINT EXACTLY MATCHES** |
-| No-Write Boundary | **ZERO SOURCE-TEST-DATABASE WRITE CONFIRMED** |
-| Application Zero Regression | **ZERO REGRESSION TO PROMPTS 01–22 CONFIRMED FOR APPLICATION PHASE** |
-| Final Application QA | **APPLICATION QA PASSED — READY FOR DATABASE AUTHORITY EXECUTION PROMPT** |
+**ACCOUNT-TYPE PLAYBOOK COUNT CORRECTION AUDIT COMPLETED — FIXED-COUNT DEFECT CONFIRMED AND EXACT REPAIR SCOPE IDENTIFIED — OWNER REVIEW REQUIRED**
 
-## B. Roadmap and Workstream State
+Prompt 06 is independently verified: four content commits plus one merge, aggregate scope exactly the three allowlisted paths, no denied path, no `.lovable/plan.md` in any content commit, no history rewrite, all eight target versions correct, `DEC-RM-DH-003-008` present once, canonical range ends at `-008`, next free `-009`, Prompt-05 FAILED verdict persisted, `05:41:41` labelled correction run start only.
 
-RM-DH-004 ACTIVE — PHASE 1. WS-DH-2026-0003 ACTIVE (Stage A accepted/persisted/verified; Stage B application executed and now QA-closed; Database Authority Migration not started). WS-DH-2026-0005 DEFERRED. No Acceptance, no Closure.
+The fixed Account-Type count defect **is** present as current repository truth, in **exactly two lines of one file**: `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` lines **109** and **132**, both reading "the 13 Account-Type Module Playbooks". No Decision, no changelog, no central index and no RM-DH-003 README carries it.
 
-## C. Lovable Correction Acknowledgement
+## 2. Complete Cumulative Prompt Lineage Ledger
 
-LOVABLE CORRECTION ACKNOWLEDGEMENT:
-The Prompt-22 ZERO DATABASE CONTRACT CHANGE CONFIRMED
-and ZERO REGRESSION TO PROMPTS 01–21 CONFIRMED FOR APPLICATION
-PHASE verdicts are withdrawn because the exact three preserved
-database fingerprints were not recomputed and the invoice-PDF RTL
-failure lacked a proven pre-execution baseline.
+| # | Prompt ID | Status | Accepted | Defect | Current treatment |
+| --- | --- | --- | --- | --- | --- |
+| 01 | PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01 | SUBMITTED — RUN — CONSUMED | Phase 3 structure, Option C, seven-file bound, 16-item register; HEAD `2133b5f3` | private-artifact scope error; wrong Parent status | Corrected by C1 |
+| 01·C1 | Correction Continuation C1 (no new number) | SUBMITTED — RUN — CONSUMED | private governance out of Lovable scope; HEAD `134c0d41` | altered accepted Phase/Track/Workstream/Option C contracts | Regression rejected; corrected by C2 |
+| 01·C2 | Correction Continuation C2 (no new number) | SUBMITTED — RUN — CONSUMED | FULL-LINEAGE CONTRACT RESTORED, 42/42 PASS; HEAD `aa169aaa` | retained fixed Account-Type Playbook wording; not in its ZR matrix | **Defect source — this audit** |
+| 02 | …GOVERNANCE-PERSISTENCE-EXECUTION-02 | SUBMITTED — RUN — CONSUMED | `9633edfd` → `ee1ee63e`, 15 content + 1 merge, seven paths | persisted the fixed count into `roadmap.md` | Confirmed at commit `d5bfc066` |
+| 03 | …GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03 | CONSUMED — FAILED | seven-file scope, stale Decision summary, index version delta | CONDITIONAL PASS rejected; did not detect the fixed count | FAILED — correction required |
+| — | Owner Alignment Option B | OWNER APPROVED | preserve 1.3.0 / 1.5.0, accept Execution-02 commit set, correct Decision truth | — | Authoritative |
+| 04 | …GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04 | SUBMITTED — RUN — CONSUMED | DEC-007; 1.3.0 / 1.3.1 / 1.14.1 | five content commits + merge vs one-commit contract | Superseded by DEC-008 |
+| 05 | …TARGETED-ACCEPTANCE-REVERIFICATION-05 | CONSUMED — FAILED | three-file scope, DEC-007 present, topology observed | PASSED verdict rejected; did not detect the fixed count | FAILED — persisted in DEC-008 |
+| — | Owner Alignment Option B2 | OWNER APPROVED | preserve Prompt-04 history, narrow topology supersession, DEC-008 | — | Authoritative |
+| 06 | …PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06 | SUBMITTED — RUN — CONSUMED | DEC-008; 1.4.0 / 1.3.2 / 1.14.2 | evidence gap in supplied summary | **Closed by §6–§8 below** |
+| 07 | PROMPT-DH-RM003-P3-ACCOUNT-TYPE-COUNT-CORRECTION-SCOPING-AUDIT-07 | SUBMITTED — RUN — CONSUMED | this report | — | Current |
 
-Prompt-22 Expense cutover, legacy-writer removal,
-browser-DML absence, POS inertness, authorized path scope,
-typecheck, production build, changed-path attribution,
-database component-level observations and no-write findings
-remain authoritative and are not reopened.
+## 3. Preserved and Still Authoritative
 
-This Prompt closes only the exact pre-execution test baseline
-and the three exact database fingerprint gates.
+RM-DH-003 ACTIVE · Phase 0/1 preserved · Phase 2 CLOSED · Phase 3 at Sub-phase 3.0 · Sub-phases 3.0–3.7 (no 3.8) · Tracks A–E · WS-DH-2026-0012…0020 registered, permanently reserved, not created · D1–D10 authoritative (owned solely by DEC-006) · Option C · no Workstream package for 0012–0020 · no Workstream investigation started · MEM-079/084/090/095 permanently reserved · 104 Memory objects are an inventory, not approved Project Knowledge · Persistent Knowledge Stage B not started · Project Knowledge not installed · exact-file restoration remains the rollback strategy · 16-item Deferred Items Register authoritative · Owner Acceptance not granted · Acceptance persistence not performed · Sub-phase 3.1 not started · no Closure.
 
-## D. Evidence Boundary
+All of the above were re-observed in the current files and none is reopened by this audit.
 
-- **LIVE REPOSITORY FACT** — branch, HEAD, clean tree, commit lineage, blob identities, drift set (§I, §J).
-- **TEMPORARY BASELINE FACT** — three isolated Vitest runs and their results (§K–§O).
-- **LIVE DATABASE FACT** — three canonical strings, three MD5 hashes, component state (§R–§U).
-- **PRESERVED PRIOR FINDING** — Prompt-22 §3.1 items 1–30; Prompts 04–20 contracts.
-- **LOVABLE PRIOR CLAIM (withdrawn)** — Prompt-22 database-contract and zero-regression verdicts.
-- **INFERENCE** — none load-bearing; every verdict rests on a direct observation in this run.
-- **GAP** — Prompt 01/02/03 exact IDs remain unavailable in verified evidence.
-- **CONTRADICTION** — none.
+## 4. Rejected or Superseded Finding
 
-## E. Complete Cumulative Prompt Lineage — Prompts 01–22
+REJECTED OR SUPERSEDED FINDING: any Lineage statement that freezes, approves or implies a fixed current or final number of Account-Type Module Playbooks — including "13 Account-Type Module Playbooks", a fixed current-plus-planned equation, a claim that a specific total is the approved final architecture, a claim that every named target account type is already implemented, or a claim that all target account types have equal maturity.
 
-| # | Exact ID / status | Status | Accepted findings | Superseded / defect | Current treatment | Evidence boundary | Exact stopping point |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Unavailable in verified evidence | SUBMITTED — RUN — CONSUMED | Historical shared-finance evidence | none recorded | Historical only | Prior-run report | Superseded by later audits |
-| 02 | Unavailable in verified evidence | SUBMITTED — RUN — CONSUMED | Historical shared-finance evidence; Continuation A consumed no number | none recorded | Historical only | Prior-run report | Superseded by later audits |
-| 03 | Not fully established | SUBMITTED — RUN — CONSUMED | Partial finance evidence | Incomplete for Owner Alignment | Superseded by Prompt 04 | Prior-run report | Handover to 04 |
-| 04 | …HISTORICAL-IMPORT-CONTRACT-AND-COMPLETE-DRIFT-INVESTIGATIVE-AUDIT-04 | SUBMITTED — RUN — CONSUMED | Historical Import contract, drift boundary, Economic-Date principles, writer-cutover-before-removal | none | Authoritative | Read-only audit | Stage-A definition |
-| 05 | …ECONOMIC-DATE-AND-28-ROW-DEMO-BACKFILL-MINI-AUDIT-05 | SUBMITTED — RUN — CONSUMED | Economic-Date scope; exact 28-row classification | none | Authoritative | Read-only audit | Stage-A preview |
-| 06 | …STAGE-A-BACKFILL-PREVIEW-06 | SUBMITTED — RUN — CONSUMED | 88 inspected, 28 targets, 87-row chain, 7 Clients, 3 Tenants, rollback preview | none | Authoritative | Read-only preview | Execution authorization |
-| 07 | …STAGE-A-BACKFILL-EXECUTION-07 | SUBMITTED — RUN — CONSUMED | 28 dates, 69 balances, 87 resequenced, zero monetary delta | none | Authoritative | Guarded DB write | Acceptance Re-Audit |
-| 08 | …STAGE-A-ACCEPTANCE-REAUDIT-08 | SUBMITTED — RUN — CONSUMED | Stage-A Acceptance Re-Audit passed | none | Authoritative | Read-only | Acceptance Persistence |
-| 09 | …STAGE-A-ACCEPTANCE-PERSISTENCE-09 | SUBMITTED — RUN — CONSUMED | Owner Acceptance persisted | none | Authoritative | Governance write | Persistence verification |
-| 10 | …STAGE-A-ACCEPTANCE-PERSISTENCE-VERIFICATION-AND-STAGE-B-READINESS-10 | SUBMITTED — RUN — CONSUMED | Stage-A persistence verified; Stage-A complete | none | Authoritative | Read-only | Stage-B contract |
-| 11 | …STAGE-B-WRITER-EXPENSE-INTERNAL-COST-POS-FREEZE-CONTRACT-CLOSURE-MINI-AUDIT-11 | SUBMITTED — RUN — CONSUMED | Expense RPC target, legacy writer removals, read-only hooks, inert POS target | Application-only closure rejected as database closure | Authoritative with rejection | Read-only | Database-authority split |
-| 12 | …STAGE-B-DATABASE-WRITE-AUTHORITY-AND-RPC-CUTOVER-CLOSURE-AUDIT-12 | SUBMITTED — RUN — CONSUMED | Database authority is a separate execution scope | Incomplete privilege set | Corrected by 13 | Read-only | Privilege completeness |
-| 13 | …STAGE-B-PRIVILEGE-COMPLETENESS-AND-HELPER-SEARCH-PATH-CORRECTION-AUDIT-13 | SUBMITTED — RUN — CONSUMED | Eight PG17 privileges, zero Column ACL, zero browser-role inheritance, REVOKE ALL → GRANT SELECT, trusted public schema | none | Authoritative | Read-only catalog | pg_temp safety |
-| 14 | …STAGE-B-PG-TEMP-HELPER-SAFETY-AND-FINAL-MIGRATION-ROLLBACK-CORRECTION-AUDIT-14 | SUBMITTED — RUN — CONSUMED | Three Helpers, `public, pg_temp`, seven Policies, exact signatures | none | Authoritative | Read-only catalog | proconfig assertion |
-| 15 | …STAGE-B-FINAL-PROCONFIG-ASSERTION-AND-MIGRATION-EXECUTABILITY-CLOSURE-AUDIT-15 | SUBMITTED — RUN — CONSUMED | Robust `proconfig` text-element comparison | none | Authoritative | Read-only catalog | polroles representation |
-| 16 | …STAGE-B-FINAL-POLROLES-PUBLIC-REPRESENTATION-AND-POLICY-FINGERPRINT-CORRECTION-AUDIT-16 | SUBMITTED — RUN — CONSUMED | PUBLIC OID 0, PERMISSIVE policies, exact Policy algorithm, pre-state and target hash | none | Authoritative — algorithm reused in §R | Read-only catalog | Function identity |
-| 17 | …STAGE-B-CANONICAL-FUNCTION-IDENTITY-THREE-HELPER-AND-FINAL-ZERO-REGRESSION-CORRECTION-AUDIT-17 | SUBMITTED — RUN — CONSUMED | Original canonical eleven + separate `_finance_invoice_approve_inline` dependency | none | Authoritative | Read-only catalog | Execute authority |
-| 18 | …STAGE-B-INTERNAL-WRITER-EXECUTE-AUTHORITY-TRUSTED-SCHEMA-AND-FINAL-EXECUTION-FREEZE-AUDIT-18 | SUBMITTED — RUN — CONSUMED | Internal-writer ACLs, six wrapper ACLs, trusted schema, current-vs-target | Policy-name/body and fingerprint-algorithm regressions rejected | Partially superseded by 19 | Read-only catalog | Exact policy identity |
-| 19 | …STAGE-B-EXACT-LIVE-POLICY-IDENTITY-PRESERVED-FINGERPRINT-AND-FINAL-SYMMETRY-CORRECTION-AUDIT-19 | SUBMITTED — RUN — CONSUMED | Seven Policy identities and bodies, original algorithm, both Policy hashes | Incomplete final migration invariants | Authoritative for policy identity | Read-only catalog | Final invariants |
-| 20 | …STAGE-B-FINAL-MIGRATION-INVARIANT-COMMENTS-EXACT-ACL-FORCE-RLS-AND-METADATA-CORRECTION-AUDIT-20 | SUBMITTED — RUN — CONSUMED | Live table state, FORCE RLS, ACL matrices and hashes, function security, Helper OIDs, approved comments | Replacement canonical-eleven classification and premature execution readiness rejected | Authoritative — ACL algorithms reused in §S/§T | Read-only catalog | Application execution |
-| 21 | …STAGE-B-CANONICAL-ELEVEN-POLICY-HASH-COLUMN-ACL-INHERITANCE-AND-CUMULATIVE-GOVERNANCE-CORRECTION-AUDIT-21 | SUBMITTED — RUN — CONSUMED | Agent/Build Application Execution Phase 1: Expense cutover, legacy writer removal, backfill removal, POS inert fencing, typecheck | none | Authoritative — commit `095aed91` | Application write | Post-execution QA |
-| 22 | …STAGE-B-APPLICATION-POST-EXECUTION-QA-22 | SUBMITTED — RUN — CONSUMED | §3.1 items 1–30 | Database-contract and application zero-regression verdicts premature | Preserved except the two withdrawn verdicts | Read-only | Prompt-23 evidence closure |
+Reason: no completed organizational blueprint, source-mapping investigation, live `tenant_type` verification and Owner Alignment package has yet proved the exact final roster and count.
 
-## F. Preserved and Still Authoritative
+Impact: may misstate the current product baseline; confuse current live account types with planned ones; confuse `tenant_type` values with commercial account concepts; constrain `WS-DH-2026-0014` before its investigation begins; create false Project Knowledge; cause later Playbooks to be omitted or wrongly merged; create silent regression against the investigatory purpose of Phase 3.
 
-Prompt-22 §3.1 items 1–30 in full, plus Prompts 04–20 contract items listed in §E. Nothing in this run contradicts them.
+## 5. Exact Authoritative Replacement
 
-## G. Rejected or Superseded Findings
+Account-Type Module Playbooks, with the exact roster and count remaining provisional until the organizational-blueprint and source-mapping investigations verify:
 
-1. Prompt-22 `ZERO DATABASE CONTRACT CHANGE CONFIRMED` — withdrawn, now **re-established** on exact-hash evidence (§R–§T).
-2. Prompt-22 `ZERO REGRESSION TO PROMPTS 01–21 CONFIRMED FOR APPLICATION PHASE` — withdrawn, now **re-established and extended to 01–22** (§X).
-3. Prompt-22 classification `TEST SUITE HAS UNVERIFIED BASELINE FAILURE` — superseded by §P.
+1. the current live tenant_type labels;
+2. current account-type behavior and maturity;
+3. planned account types approved by the Owner;
+4. the target Playbook architecture;
+5. relationships between tenant identity, organization subtype, Module identity and commercial packaging.
 
-## H. Sole Evidence-Closure Scope
+No fixed count is approved by this replacement. No current, planned or target roster may be silently treated as equivalent to another.
 
-Executed exactly the ten items of §5. No implementation, design, POS, navigation, typecheck or build scope was reopened.
+This replacement does not add or remove an account type, approve a final roster, change D1–D10, begin WS-DH-2026-0014, query or modify the live database, change commercial packaging, or change application behavior.
 
-## I. Live Repository Preflight
+## 6. Prompt-06 Live-State and Artifact Verification
+
+All seven historical anchors are reachable: `2133b5f3`, `134c0d41`, `aa169aaa`, `9633edfd`, `ee1ee63e`, `095aed91`, `944ea916`.
+
+| Version check | Expected | Observed | Result |
+| --- | --- | --- | --- |
+| RM-DH-003 `README.md` | 1.1.0 | 1.1.0 | PASS |
+| RM-DH-003 `roadmap.md` | 1.3.0 | 1.3.0 | PASS |
+| RM-DH-003 `decisions.md` | 1.4.0 | 1.4.0 | PASS |
+| RM-DH-003 `changelog.md` | 1.3.2 | 1.3.2 | PASS |
+| `docs/roadmaps/README.md` | 1.3.0 | 1.3.0 | PASS |
+| `docs/workstreams/README.md` | 1.5.0 | 1.5.0 | PASS |
+| `docs/README.md` | 1.14.2 | 1.14.2 | PASS |
+| `docs/CONVENTIONS.md` | 1.2.0 | 1.2.0 | PASS |
+
+`DEC-RM-DH-003-008` heading exists exactly once (line 363). Canonical range note (line 26) states consecutive `-001` through `-008`, next free `-009`. DEC-008 §4 records the Prompt-04-only topology supersession and the Prompt-05 FAILED verdict. DEC-007 line 316 labels `2026-08-04T05:41:41+03:00` as **correction run start only**, explicitly not the final content-write, final-commit or completion time.
+
+## 7. Current Git and Environment Evidence
 
 | Item | Value |
 | --- | --- |
-| Branch | `edit/edt-28351c0e-b21c-4a26-ac9c-06d2ac20c983` |
-| HEAD before | `41902826d1a74a3ffaa0f500e17bdaedfe6179df` |
-| Working Tree before | clean (`git status --porcelain` empty) |
-| Staged / unstaged / untracked before | none / none / none |
-| Node | v22.22.0 |
-| Bun | 1.3.3 |
-| Vitest | 4.1.8 (linux-x64, node-v22.22.0) |
-| Lockfiles present | `bun.lock`, `bun.lockb`, `package-lock.json` |
-| `bun.lock` blob | `90a806549a547e65af11232469e4214970860835` (identical at all three commits) |
+| Branch | `edit/edt-c60ac01e-54c2-4774-9137-f6250694b71f` |
+| HEAD | `5dc6de73ceba270ba8836212fb84639a4472852a` |
+| Working Tree | clean |
+| Staged / unstaged / untracked | none / none / none |
+| Canonical/default branch evidence | not recorded in this run |
+| Timestamp evidence source | Git committer timestamps (`%ci`, UTC) |
 
-Preflight passed; no STOP condition triggered.
+## 8. Prompt-06 Commit-Set Verification
 
-## J. Commit-Lineage Proof
+| Role | SHA | Parent(s) | Time (UTC) | Paths |
+| --- | --- | --- | --- | --- |
+| Pre-write HEAD | `19d9c6174dfc9f149590e55408c019d6ef527687` | `a43b9552`, `37dfc21f` | 03:07:57 | — |
+| Content 1 | `348b070dc88fd4db24be8bb7ef43f69c69069cc5` | `19d9c617` | 07:17:22 | `…rm-dh-003…/decisions.md` |
+| Content 2 | `4cf75bef5bfb656c8281e688ce245500f33e4643` | `348b070d` | 07:18:36 | `…rm-dh-003…/decisions.md` |
+| Content 3 | `4e8c4554402ed03c661c9fabd0b2cb06535545ca` | `4cf75bef` | 07:18:55 | `docs/README.md`, `…rm-dh-003…/changelog.md` |
+| Content 4 | `617baf906947d3b5bed8d66c0536662aebcfd2a6` | `4e8c4554` | 07:19:26 | `…rm-dh-003…/changelog.md` |
+| Merge / post-write HEAD | `41902826d1a74a3ffaa0f500e17bdaedfe6179df` | `19d9c617`, `617baf90` | 07:19:42 | — (merge commit, no own path set) |
 
-- `git cat-file -e ee1ee63e^{commit}` → success.
-- `git cat-file -e 095aed91^{commit}` → success.
-- `git rev-parse 095aed91^` → `ee1ee63ef6f0ec442ca44aeaf04ba3060747beaa` — **equals** `ee1ee63e`.
-- `git merge-base --is-ancestor 095aed91 HEAD` → true; HEAD descends from the execution commit.
-- Drift `095aed91..HEAD` (`git diff --name-status`): `.lovable/plan.md`, `docs/README.md`, `docs/roadmaps/rm-dh-003-…/changelog.md`, `docs/roadmaps/rm-dh-003-…/decisions.md` — all platform/governance paths from the parallel RM-DH-003 lineage. **Zero application-source drift.**
+Aggregate `19d9c617..41902826` changed paths: exactly
 
-## K. Test-Environment Equivalence
+1. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md`
+2. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`
+3. `docs/README.md`
 
-| Artifact | `ee1ee63e` | `095aed91` | HEAD |
-| --- | --- | --- | --- |
-| `package.json` blob | `35071ecb` | `35071ecb` | `35071ecb` |
-| `bun.lock` blob | `90a80654` | `90a80654` | `90a80654` |
-| `vitest.config.ts` blob | `a74c46aa` | `a74c46aa` | `a74c46aa` |
-| test file blob | `2e3bd6c3` | `2e3bd6c3` | `2e3bd6c3` |
-| `InvoicePDFGenerator.tsx` blob | `5b7b5e31` | `5b7b5e31` | `5b7b5e31` |
+`.lovable/plan.md` entered **no** Prompt-06 content commit. No denied path changed. All anchors remain reachable, so prior history was not rewritten.
 
-Dependency method: the single installed `node_modules` tree was symlinked read-only into each detached worktree — permitted because the lockfile and manifest blobs are byte-identical across all three commits, so a per-worktree frozen install would resolve the same tree. No lockfile written. Runtime, package manager, Vitest version and command identical across all three runs.
+Note for the record: Prompt 06 used **four** content commits plus one merge, not one content commit. This is the same class of topology deviation that DEC-008 superseded for Prompt 04, and DEC-008 explicitly states it "creates no general multi-commit rule … and authorizes no multi-commit behaviour for future Prompts." This is reported as a finding for Owner review; it is **not** repaired by this read-only audit.
 
-Verdict: **BASELINE AND CURRENT TEST ENVIRONMENTS EQUIVALENT**.
+## 9. Post-Prompt-06 Drift Analysis
 
-## L/M/N. Test Results — three states
+`41902826..HEAD`: two commits — `97be1f05` (content, `.lovable/plan.md`) and merge `5dc6de73`. Aggregate changed path: `.lovable/plan.md` only.
 
-Command at each state: `npx vitest run src/components/finance/__tests__/InvoicePDFGenerator.test.ts`
+Classification: **platform-managed `.lovable/plan.md`** (covered by `DEC-RM-DH-003-004`). Zero protected-governance drift, zero application drift, zero database drift, zero unknown.
 
-| Evidence | Baseline `ee1ee63e` | Post-execution `095aed91` | Current HEAD `41902826` |
-| --- | --- | --- | --- |
-| Worktree | `/tmp/qa23/ee1ee63e` (detached) | `/tmp/qa23/095aed91` (detached) | active `/dev-server` |
-| Exit code | 1 | 1 | 1 |
-| Test files | 1 (1 failed) | 1 (1 failed) | 1 (1 failed) |
-| Tests total | 17 | 17 | 17 |
-| Passed | 16 | 16 | 16 |
-| Failed | 1 | 1 | 1 |
-| Skipped | 0 | 0 | 0 |
-| Failing test | `createInvoiceHTML — Arabic direction & bidi isolation > emits lang=ar and dir=rtl on the root` | identical | identical |
-| Assertion | `expect(html).toMatch(/dir="rtl"/)` | identical | identical |
-| Expected | rendered HTML contains `dir="rtl"` | identical | identical |
-| Actual | root markup carries no `dir="rtl"`; inner nodes carry only `dir="auto"` / `dir="ltr"` bdi isolation | identical | identical |
-| Stack | `src/components/finance/__tests__/InvoicePDFGenerator.test.ts:151:18` | identical | identical |
-| Duration | 1.75 s | 1.78 s | 2.05 s |
+## 10. Repository Paths Inspected
 
-## O. Normalized Failure-Signature Comparison
+All eight mandated files read or version-checked in full: RM-DH-003 `README.md`, `roadmap.md`, `decisions.md`, `changelog.md`; `docs/roadmaps/README.md`; `docs/workstreams/README.md`; `docs/README.md`; `docs/CONVENTIONS.md`. Full-repository case-insensitive sweep of all fifteen mandated search terms across `docs/`, `src/`, `supabase/`, `scripts/`. `docs/historical/documentation-01-13` excluded by filter; no private ChatGPT artifact inspected; no database query issued.
 
-Signature (volatile timing and temp-path prefixes excluded):
+## 11. Complete Account-Type Count Occurrence Register
 
-```text
-file=src/components/finance/__tests__/InvoicePDFGenerator.test.ts
-test=createInvoiceHTML — Arabic direction & bidi isolation > emits lang=ar and dir=rtl on the root
-matcher=toMatch(/dir="rtl"/)
-expected=root HTML declares dir="rtl"
-actual=root HTML omits dir="rtl"; only bdi dir="auto"/dir="ltr" present
-impl=src/components/finance/InvoicePDFGenerator.tsx (createInvoiceHTML root element)
-test-loc=151:18
-```
+**Group 1 — RM-DH-003 governance, current authoritative truth (correction required):**
 
-The signature is **byte-identical** at all three states.
+| # | Path | Line | Heading | Current text (fragment) |
+| --- | --- | --- | --- | --- |
+| 1 | `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` | 109 | `### Phase 3 purpose` | "…organize the Shared Platform Foundation, **the 13 Account-Type Module Playbooks**, the Cross-Module Journey Registry…" |
+| 2 | same file | 132 | `### Phase 3 Track register` → row Track **C** | "Organize the Shared Platform Foundation, **the 13 Account-Type Module Playbooks**, the Cross-Module Journey Registry…" |
 
-## P. Invoice-PDF Baseline Classification
+Both introduced by commit `d5bfc0662bfffee948524276ba0b681e8837cf26` (2026-08-04 02:04:06 UTC / 05:04 Riyadh), an Execution-02 content commit.
 
-**INVOICE-PDF RTL FAILURE PROVEN PRE-EXISTING AND NON-SCOPE** — baseline fails, post-execution fails, current HEAD fails, identical normalized signature; test file and implementation blobs unchanged by Prompt 21; Prompt-21 paths (expense writer, ledger writers, backfill, POS) share no import edge with the PDF generator.
+**Group 2 — RM-DH-003 governance, zero occurrences (verified):** `decisions.md` 0, `changelog.md` 0, RM-DH-003 `README.md` 0, `docs/roadmaps/README.md` 0, `docs/workstreams/README.md` 0, `docs/CONVENTIONS.md` 0.
 
-## Q. Temporary-Worktree Cleanup
+**Group 3 — central index, accepted 10/3/13 account-type contract (different contract, no correction required):** `docs/README.md` lines 34, 67, 68 — index rows describing the accepted Round-1 internal reference and the two accepted architecture references. These describe **account/workspace types**, evidence-backed against the live `tenant_type` enum, and explicitly separate 10 current implemented / 3 planned / 13 approved target. They do **not** state a Playbook count.
 
-| Worktree | Created (UTC) | Removed (UTC) |
+**Group 4 — accepted architecture current-truth documents (no correction required):** `docs/architecture/account-types-and-identity-model.md`, `…/account-types-and-module-reality.md`, `…/commercial-plans-entitlements-platform-billing-and-monetization.md`, `…/cross-account-integrations-consent-and-shared-access.md`, `…/core-user-flows-and-operational-lifecycles.md`. Each states the 10-value enum as authoritative, names the 3 planned types as not implemented, and forbids describing 13 as currently implemented.
+
+**Group 5 — Round-1 handoff package, historical accepted record (no correction required):** `docs/handoff/rounds/round-01/*` — developer handoff, internal reference §13.1, acceptance, README, raw audit output.
+
+**Group 6 — benign technical `tenant_type` references (no correction required):** `docs/aml_1_b_1/stage_j5_1/preflight/14_source_fixture_catalog_evidence.txt` (enum/index dumps) and all application/schema references.
+
+## 12. Occurrence Classification
+
+| # | Occurrence | Classification | Correction required | Proposed replacement | Version change | Changelog / Decision |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | `roadmap.md:109` | authoritative dynamic contract | **YES** | "…organize the Shared Platform Foundation, the Account-Type Module Playbooks — with the exact roster and count remaining provisional until the organizational-blueprint and source-mapping investigations verify them — the Cross-Module Journey Registry…" | YES | both |
+| 2 | `roadmap.md:132` (Track C) | authoritative dynamic contract | **YES** | same provisional wording inside the Track C purpose cell | YES (same file) | both |
+| 3 | `docs/README.md:34` | central-index navigation | No | — | No | No |
+| 4 | `docs/README.md:67` | central-index navigation | No | — | No | No |
+| 5 | `docs/README.md:68` | central-index navigation | No | — | No | No |
+| 6 | architecture docs (Group 4) | architecture current-truth, evidence-backed | No | — | No | No |
+| 7 | Round-1 package (Group 5) | superseded/historical accepted record | No | — | No | No |
+| 8 | preflight evidence + app/schema (Group 6) | benign technical reference | No | — | No | No |
+
+## 13. First Introduction and Propagation Analysis
+
+1. **First introduced in the current Lineage:** Correction Continuation **C2** (04-08-2026 02:11 Riyadh), which retained fixed Account-Type Playbook wording instead of a provisional roster-and-count contract. Its 42/42 Zero-Regression matrix did not cover the item.
+2. **Repeated by:** the Execution-02 Prompt instruction set (Track C wording).
+3. **Persisted by:** Execution-02, commit `d5bfc066`, into `roadmap.md` lines 109 and 132.
+4. **Acceptance reports that failed to reject it:** Prompt 03 and Prompt 05. Neither matrix contained an account-type-count check.
+5. **Current repository files presenting it as current truth:** `roadmap.md` only, lines 109 and 132.
+6. **Files preserving it only as historical evidence:** the Round-1 handoff package (Group 5) — and even there it is the 10/3/13 account-type contract, not a Playbook count.
+
+## 14. Current-Truth Versus Historical-Evidence Analysis
+
+The only live, unqualified, forward-binding assertion is in `roadmap.md`, where "the 13 Account-Type Module Playbooks" appears inside the **Phase 3 purpose** statement and the **Track C purpose** cell — both authoritative dynamic contract surfaces that pre-commit `WS-DH-2026-0014` to a count before its investigation begins.
+
+Every other 10/3/13 occurrence is a **different contract** (account/workspace types, not Playbooks), is evidence-backed against the live enum, and is explicitly qualified as 10 current implemented / 3 planned / 13 approved target with a standing prohibition against calling 13 implemented. Those must not be deleted.
+
+## 15. Decision-by-Decision Impact
+
+| Decision | Contains the fixed count | Impact |
 | --- | --- | --- |
-| `/tmp/qa23/ee1ee63e` | 07:35:25Z | 07:35:49Z |
-| `/tmp/qa23/095aed91` | 07:35:26Z | 07:35:49Z |
+| DEC-RM-DH-003-005 (Phase 3 Governance Approval) | **No** | none |
+| DEC-RM-DH-003-006 (D1–D10 package) | **No** | none — D1–D10 need no edit |
+| DEC-RM-DH-003-007 | **No** | none |
+| DEC-RM-DH-003-008 | **No** | none |
 
-`git worktree remove --force` for both, `git worktree prune`, `/tmp/qa23` deleted. `git worktree list` now shows only the bare pool repo and `/dev-server`. Active Working Tree after: clean; HEAD after: `41902826d1a74a3ffaa0f500e17bdaedfe6179df` — unchanged.
+No prior Decision body requires rewriting. The correction is achievable by appending `DEC-RM-DH-003-009`.
 
-Verdict: **TEMPORARY BASELINE ENVIRONMENT FULLY REMOVED**.
+## 16. Roadmap and Track-C Impact
 
-## R. Complete Policy Canonical String and Hash
+`roadmap.md` v1.3.0 requires exactly two in-place text corrections (lines 109 and 132). Track C's identity, title, assigned Workstreams (`WS-DH-2026-0014`, `WS-DH-2026-0015`), Sub-phase mapping and status are unaffected. Tracks A, B, D, E, the Sub-phase register, the Workstream register, the Deferred Items Register, the Memory boundary and the Phase 3 stopping point are unaffected.
 
-Algorithm: exact Prompt-16/17/19 SQL, unmodified.
+## 17. Central-Index Impact
 
-```text
-public|customer_balances|Permission-based delete customer balances|d|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|<NULL>
-public|customer_balances|Permission-based insert customer balances|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|customer_balances|Permission-based update customer balances|w|true|0|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|customer_balances|Tenant members can view balances|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Permission-based insert ledger entries|a|true|0|<NULL>|has_permission(auth.uid(), tenant_id, 'finance.invoice.edit'::text)
-public|ledger_entries|Tenant members can view ledger|r|true|0|is_tenant_member(auth.uid(), tenant_id)|<NULL>
-public|ledger_entries|Tenant members can view ledger entries|r|true|0|(EXISTS ( SELECT 1
-   FROM tenant_members tm
-  WHERE ((tm.tenant_id = ledger_entries.tenant_id) AND (tm.user_id = auth.uid()) AND (tm.is_active = true))))|<NULL>
-```
+`docs/roadmaps/README.md` (1.3.0) and `docs/workstreams/README.md` (1.5.0) contain zero occurrences and must be preserved unchanged per Owner-approved Option B. `docs/README.md` (1.14.2) requires a row-version synchronization for `roadmap.md` only if the future correction bumps that file's version — its own 10/3/13 prose is correct and must not be altered.
 
-Byte length: **1113**. Row count: **7**. MD5: **`e978f912777a28108f46ba79e2ce071e`**. Expected: `e978f912777a28108f46ba79e2ce071e`. Comparison: **EXACT MATCH**.
+## 18. Application and tenant_type Reference Boundary
 
-Verdict: **POLICY PRE-STATE FINGERPRINT EXACTLY MATCHES**.
+The live enum is referenced throughout `src/` and `supabase/` and in the architecture documents as exactly ten values: `stable, clinic, lab, academy, pharmacy, transport, auction, horse_owner, trainer, doctor`. No application or schema file contains a Playbook count. This audit performed **no** database query; the enum content above is quoted from repository documents, not from a live catalog read. No application or schema file is in scope for correction.
 
-## S. Complete Table-ACL Canonical String and Hash
+## 19. Exact Future Correction Allowlist
 
-Algorithm: exact Prompt-20 SQL, unmodified. Canonical string (72 entries, `;`-joined, ordered by line):
+1. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` — lines 109 and 132 only.
+2. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md` — append `DEC-RM-DH-003-009` only.
+3. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` — append one entry only.
+4. `docs/README.md` — row-version synchronization only, no prose change.
 
-```text
-public.customer_balances|16384|123688|INSERT|f;public.customer_balances|16384|123688|SELECT|f;public.customer_balances|16384|127690|INSERT|f;public.customer_balances|16384|127690|SELECT|f;public.customer_balances|16384|16384|DELETE|f;public.customer_balances|16384|16384|INSERT|f;public.customer_balances|16384|16384|MAINTAIN|f;public.customer_balances|16384|16384|REFERENCES|f;public.customer_balances|16384|16384|SELECT|f;public.customer_balances|16384|16384|TRIGGER|f;public.customer_balances|16384|16384|TRUNCATE|f;public.customer_balances|16384|16384|UPDATE|f;public.customer_balances|16384|16480|DELETE|f;public.customer_balances|16384|16480|INSERT|f;public.customer_balances|16384|16480|MAINTAIN|f;public.customer_balances|16384|16480|REFERENCES|f;public.customer_balances|16384|16480|SELECT|f;public.customer_balances|16384|16480|TRIGGER|f;public.customer_balances|16384|16480|TRUNCATE|f;public.customer_balances|16384|16480|UPDATE|f;public.customer_balances|16384|16481|DELETE|f;public.customer_balances|16384|16481|INSERT|f;public.customer_balances|16384|16481|MAINTAIN|f;public.customer_balances|16384|16481|REFERENCES|f;public.customer_balances|16384|16481|SELECT|f;public.customer_balances|16384|16481|TRIGGER|f;public.customer_balances|16384|16481|TRUNCATE|f;public.customer_balances|16384|16481|UPDATE|f;public.customer_balances|16384|16482|DELETE|f;public.customer_balances|16384|16482|INSERT|f;public.customer_balances|16384|16482|MAINTAIN|f;public.customer_balances|16384|16482|REFERENCES|f;public.customer_balances|16384|16482|SELECT|f;public.customer_balances|16384|16482|TRIGGER|f;public.customer_balances|16384|16482|TRUNCATE|f;public.customer_balances|16384|16482|UPDATE|f;public.ledger_entries|16384|123688|INSERT|f;public.ledger_entries|16384|123688|SELECT|f;public.ledger_entries|16384|127690|INSERT|f;public.ledger_entries|16384|127690|SELECT|f;public.ledger_entries|16384|16384|DELETE|f;public.ledger_entries|16384|16384|INSERT|f;public.ledger_entries|16384|16384|MAINTAIN|f;public.ledger_entries|16384|16384|REFERENCES|f;public.ledger_entries|16384|16384|SELECT|f;public.ledger_entries|16384|16384|TRIGGER|f;public.ledger_entries|16384|16384|TRUNCATE|f;public.ledger_entries|16384|16384|UPDATE|f;public.ledger_entries|16384|16480|DELETE|f;public.ledger_entries|16384|16480|INSERT|f;public.ledger_entries|16384|16480|MAINTAIN|f;public.ledger_entries|16384|16480|REFERENCES|f;public.ledger_entries|16384|16480|SELECT|f;public.ledger_entries|16384|16480|TRIGGER|f;public.ledger_entries|16384|16480|TRUNCATE|f;public.ledger_entries|16384|16480|UPDATE|f;public.ledger_entries|16384|16481|DELETE|f;public.ledger_entries|16384|16481|INSERT|f;public.ledger_entries|16384|16481|MAINTAIN|f;public.ledger_entries|16384|16481|REFERENCES|f;public.ledger_entries|16384|16481|SELECT|f;public.ledger_entries|16384|16481|TRIGGER|f;public.ledger_entries|16384|16481|TRUNCATE|f;public.ledger_entries|16384|16481|UPDATE|f;public.ledger_entries|16384|16482|DELETE|f;public.ledger_entries|16384|16482|INSERT|f;public.ledger_entries|16384|16482|MAINTAIN|f;public.ledger_entries|16384|16482|REFERENCES|f;public.ledger_entries|16384|16482|SELECT|f;public.ledger_entries|16384|16482|TRIGGER|f;public.ledger_entries|16384|16482|TRUNCATE|f;public.ledger_entries|16384|16482|UPDATE|f
-```
+Nothing else.
 
-Byte length: **3283**. Row count: **72** (expected 72). MD5: **`f1567096c582eaaea20a816cc99cd269`**. Expected: `f1567096c582eaaea20a816cc99cd269`. Comparison: **EXACT MATCH**.
+## 20. Exact Future Denylist
 
-- Distinct grantors: `16384` (postgres) only.
-- Distinct grantees: `16384` postgres, `16480` anon, `16481` authenticated, `16482` service_role, `123688` sandbox_exec_vhxglsvxwwpmoqjabfmj, `127690` sandbox_exec.
-- Distinct privileges: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN.
-- All `is_grantable` values: `f` — **no Grant Option anywhere**.
-- Zero PUBLIC table grant (grantee OID 0 absent). Zero Column ACL (`pg_attribute.attacl` count = 0 on both tables). Browser-role inheritance unchanged from the Prompt-13/22 finding.
+Application code · database, migrations, RLS, RPCs, Edge Functions · unrelated Roadmaps (RM-DH-001, -002, -004) · unrelated Workstreams · D1–D10 text · `docs/roadmaps/README.md` · `docs/workstreams/README.md` · `docs/CONVENTIONS.md` · RM-DH-003 `README.md` · all Workstream packages · `docs/architecture/*` · `docs/handoff/*` · Documentation 01–13 · Project Knowledge · Workspace Knowledge · Skills · `AGENTS.md` · settings · cross-project sharing.
 
-Verdict: **TABLE-ACL PRE-STATE FINGERPRINT EXACTLY MATCHES**.
+## 21. Future Version Matrix
 
-## T. Complete Function-ACL Canonical String and Hash
-
-Artifact: EXPANDED STAGE-B FUNCTION-ACL FREEZE SET (fourteen functions, not the original canonical eleven).
-
-Session rendering context: `search_path = "$user", public`; user `supabase_read_only_user`; database `postgres`. This is the accepted Prompt-20 rendering context and it reproduced the preserved hash on the first computation, so no alternative `SET LOCAL` variant was needed or selected.
-
-Canonical string (65 entries, `;`-joined, ordered by line):
-
-```text
-_finance_invoice_approve_inline(uuid,uuid,uuid)|16384|123688|EXECUTE|f;_finance_invoice_approve_inline(uuid,uuid,uuid)|16384|127690|EXECUTE|f;_finance_invoice_approve_inline(uuid,uuid,uuid)|16384|16384|EXECUTE|f;_finance_invoice_approve_inline(uuid,uuid,uuid)|16384|16482|EXECUTE|f;_finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)|16384|123688|EXECUTE|f;_finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)|16384|127690|EXECUTE|f;_finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)|16384|16384|EXECUTE|f;_finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)|16384|16482|EXECUTE|f;approve_invoice(uuid,uuid,uuid)|16384|123688|EXECUTE|f;approve_invoice(uuid,uuid,uuid)|16384|127690|EXECUTE|f;approve_invoice(uuid,uuid,uuid)|16384|16384|EXECUTE|f;approve_invoice(uuid,uuid,uuid)|16384|16481|EXECUTE|f;approve_invoice(uuid,uuid,uuid)|16384|16482|EXECUTE|f;cancel_invoice(uuid,uuid,uuid,date,text)|16384|123688|EXECUTE|f;cancel_invoice(uuid,uuid,uuid,date,text)|16384|127690|EXECUTE|f;cancel_invoice(uuid,uuid,uuid,date,text)|16384|16384|EXECUTE|f;cancel_invoice(uuid,uuid,uuid,date,text)|16384|16481|EXECUTE|f;create_invoice_with_items(uuid,uuid,jsonb)|16384|123688|EXECUTE|f;create_invoice_with_items(uuid,uuid,jsonb)|16384|127690|EXECUTE|f;create_invoice_with_items(uuid,uuid,jsonb)|16384|16384|EXECUTE|f;create_invoice_with_items(uuid,uuid,jsonb)|16384|16481|EXECUTE|f;create_pos_sale(uuid,uuid,jsonb)|16384|123688|EXECUTE|f;create_pos_sale(uuid,uuid,jsonb)|16384|127690|EXECUTE|f;create_pos_sale(uuid,uuid,jsonb)|16384|16384|EXECUTE|f;create_pos_sale(uuid,uuid,jsonb)|16384|16480|EXECUTE|f;create_pos_sale(uuid,uuid,jsonb)|16384|16481|EXECUTE|f;create_pos_sale(uuid,uuid,jsonb)|16384|16482|EXECUTE|f;create_source_checkout_invoice(uuid,uuid,jsonb)|16384|123688|EXECUTE|f;create_source_checkout_invoice(uuid,uuid,jsonb)|16384|127690|EXECUTE|f;create_source_checkout_invoice(uuid,uuid,jsonb)|16384|16384|EXECUTE|f;create_source_checkout_invoice(uuid,uuid,jsonb)|16384|16481|EXECUTE|f;create_source_checkout_invoice(uuid,uuid,jsonb)|16384|16482|EXECUTE|f;delete_draft_invoice(uuid,uuid,uuid)|16384|123688|EXECUTE|f;delete_draft_invoice(uuid,uuid,uuid)|16384|127690|EXECUTE|f;delete_draft_invoice(uuid,uuid,uuid)|16384|16384|EXECUTE|f;delete_draft_invoice(uuid,uuid,uuid)|16384|16481|EXECUTE|f;delete_draft_invoice(uuid,uuid,uuid)|16384|16482|EXECUTE|f;post_expense_with_ledger(uuid,uuid,uuid)|16384|123688|EXECUTE|f;post_expense_with_ledger(uuid,uuid,uuid)|16384|127690|EXECUTE|f;post_expense_with_ledger(uuid,uuid,uuid)|16384|16384|EXECUTE|f;post_expense_with_ledger(uuid,uuid,uuid)|16384|16481|EXECUTE|f;post_expense_with_ledger(uuid,uuid,uuid)|16384|16482|EXECUTE|f;post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)|16384|123688|EXECUTE|f;post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)|16384|127690|EXECUTE|f;post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)|16384|16384|EXECUTE|f;post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)|16384|16481|EXECUTE|f;post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)|16384|123688|EXECUTE|f;post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)|16384|127690|EXECUTE|f;post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)|16384|16384|EXECUTE|f;post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)|16384|16481|EXECUTE|f;post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)|16384|16482|EXECUTE|f;post_payment_session(uuid,uuid,jsonb)|16384|123688|EXECUTE|f;post_payment_session(uuid,uuid,jsonb)|16384|127690|EXECUTE|f;post_payment_session(uuid,uuid,jsonb)|16384|16384|EXECUTE|f;post_payment_session(uuid,uuid,jsonb)|16384|16481|EXECUTE|f;post_payment_session(uuid,uuid,jsonb)|16384|16482|EXECUTE|f;post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)|16384|123688|EXECUTE|f;post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)|16384|127690|EXECUTE|f;post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)|16384|16384|EXECUTE|f;post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)|16384|16481|EXECUTE|f;post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)|16384|16482|EXECUTE|f;update_invoice_with_items(uuid,uuid,jsonb)…
-```
-
-(Full string as returned; final three entries are `update_invoice_with_items(uuid,uuid,uuid,jsonb)|16384|123688|EXECUTE|f;…|127690|…;…|16384|…;…|16481|…`.)
-
-Row count: **65** (expected 65). MD5: **`b4138d2f6c8bf2ca01c41d437976d116`**. Expected: `b4138d2f6c8bf2ca01c41d437976d116`. Comparison: **EXACT MATCH**.
-
-- All fourteen signatures resolved — zero unresolved.
-- All fourteen owned by `postgres`; all fourteen `SECURITY DEFINER`.
-- Distinct grantors: `16384` only. Distinct grantees: `16384`, `16480`, `16481`, `16482`, `123688`, `127690`.
-- All `is_grantable` = `f` — no Grant Option.
-- The only expected future ACL delta remains the POS browser revocation (`create_pos_sale` grantees `16480` anon and `16481` authenticated). No ACL change performed here.
-
-Verdict: **FUNCTION-ACL PRE-STATE FINGERPRINT EXACTLY MATCHES**.
-
-## U. Current Database Component State
-
-| Object | Property | Observed | Expected |
+| File | Current | Recommended target | Rationale |
 | --- | --- | --- | --- |
-| `public.ledger_entries` | owner / RLS / FORCE RLS / comment / column ACL | postgres / true / false / NULL / 0 | match |
-| `public.customer_balances` | owner / RLS / FORCE RLS / comment / column ACL | postgres / true / false / NULL / 0 | match |
-| both tables | PUBLIC table grants | 0 | match |
-| `has_permission(uuid,uuid,text)` | SECDEF / proconfig / owner | true / `search_path=public` / postgres | match |
-| `is_tenant_member(uuid,uuid)` | SECDEF / proconfig / owner | true / `search_path=public` / postgres | match |
-| `is_active_tenant_member(uuid,uuid)` | SECDEF / proconfig / owner | true / `search_path=public` / postgres | match |
-| `create_pos_sale(uuid,uuid,jsonb)` | PUBLIC / anon / authenticated EXECUTE | false / true / true | match (pre-migration) |
-| `create_pos_sale` | service/server/platform grants | service_role, postgres, sandbox_exec, sandbox_exec_<ref> preserved | match |
+| `…rm-dh-003…/roadmap.md` | 1.3.0 | **1.4.0** | minor — an authoritative dynamic contract statement changes meaning (fixed count → provisional roster) |
+| `…rm-dh-003…/decisions.md` | 1.4.0 | **1.5.0** | minor — appends a new Decision `-009` |
+| `…rm-dh-003…/changelog.md` | 1.3.2 | **1.3.3** | patch — append-only record of an existing correction |
+| `docs/README.md` | 1.14.2 | **1.14.3** | patch — index row-version synchronization only |
 
-No value altered.
+## 22. Future Decision and Changelog Strategy
 
-## V. No-Write Verification
+Recommended default: append **`DEC-RM-DH-003-009` — Account-Type Module Playbook Count Provisional-Contract Correction** using the verified next free ID. It should reproduce §5 verbatim as the replacement contract, explicitly supersede the fixed-count interpretation persisted by Execution-02 at `d5bfc066`, name C2 as the origin, record that Prompts 03 and 05 failed to detect it, preserve DEC-005 through DEC-008 unchanged and unrenumbered, state that no account type is added or removed, state that D1–D10 are untouched, and state that `WS-DH-2026-0014` remains not started. Update the canonical range note to `-001` through `-009` with `-010` next free. Append one changelog entry. Correct `roadmap.md` lines 109 and 132 in place. Synchronize `docs/README.md` row versions. No prior Decision body is rewritten.
 
-Source writes 0 · test writes 0 · snapshot updates 0 · migrations 0 · SQL DDL 0 · SQL DML 0 · mutating RPC 0 · financial-row changes 0 · Stage-A row changes 0 · governance-file changes 0 · Knowledge 0 · Skills 0 · settings 0. All six SQL statements were `SELECT`-only through the read-only reader (`supabase_read_only_user`). Only `.lovable/plan.md` was written (platform artifact, covered by `DEC-RM-DH-003-004`). Working Tree and HEAD identical before and after.
+The Prompt-06 four-commit topology finding (§8) should be placed before the Owner in the same review, since DEC-008 authorized no general multi-commit behaviour.
 
-Verdict: **ZERO SOURCE-TEST-DATABASE WRITE CONFIRMED**.
+## 23. Future Rollback Plan
 
-## W. Complete Deferred Items Register
+Exact-file restoration bound to the future correction pre-write HEAD, restricted to the four allowlisted paths, reversing the future correction commit set. No history rewrite, no force push, no database action.
 
-### W.1 PROMOTED — EVIDENCE CLOSURE (now closed by this Prompt)
+## 24. Full-Lineage Zero-Regression Matrix
 
-| # | Item | Origin | Current status | Lane | Dependency | Risk if forgotten | Next trigger |
-| 1 | Prompt-21 pre-execution commit verification | P22 | CLOSED — `ee1ee63e` exists | Evidence | Git | false lineage | none |
-| 2 | Prompt-21 execution commit verification | P22 | CLOSED — `095aed91` exists | Evidence | Git | false lineage | none |
-| 3 | Baseline test at `ee1ee63e` | P22 | CLOSED — 16/1/17 | Evidence | Vitest | unproven baseline | none |
-| 4 | Post-execution test at `095aed91` | P22 | CLOSED — 16/1/17 | Evidence | Vitest | unproven baseline | none |
-| 5 | Current-HEAD targeted test | P22 | CLOSED — 16/1/17 | Evidence | Vitest | undetected drift | none |
-| 6 | Failure-signature comparison | P22 | CLOSED — identical | Evidence | §O | misattributed regression | none |
-| 7 | Temporary-worktree cleanup | P23 | CLOSED — removed | Evidence | Git | repo pollution | none |
-| 8 | Exact Policy fingerprint recomputation | P22 | CLOSED — exact match | Evidence | DB read | undetected policy drift | none |
-| 9 | Exact Table-ACL fingerprint recomputation | P22 | CLOSED — exact match | Evidence | DB read | undetected ACL drift | none |
-| 10 | Exact Function-ACL fingerprint recomputation | P22 | CLOSED — exact match | Evidence | DB read | undetected ACL drift | none |
-| 11 | Final Application QA verdict | P22 | CLOSED — PASSED | Evidence | 1–10 | blocked migration | Database Authority Execution Prompt |
+| ID | Check | Result |
+| --- | --- | --- |
+| ACCT-ZR-01 | Parent Prompt 01 remains consumed | PASS |
+| ACCT-ZR-02 | C1 consumed without a new local number | PASS |
+| ACCT-ZR-03 | C2 consumed without a new local number | PASS |
+| ACCT-ZR-04 | Execution Prompt 02 remains consumed | PASS |
+| ACCT-ZR-05 | Acceptance Prompt 03 remains failed | PASS |
+| ACCT-ZR-06 | Correction Prompt 04 remains consumed | PASS |
+| ACCT-ZR-07 | Acceptance Prompt 05 remains failed | PASS |
+| ACCT-ZR-08 | Correction Prompt 06 remains consumed | PASS |
+| ACCT-ZR-09 | Prompt 07 becomes consumed | PASS |
+| ACCT-ZR-10 | Local sequence remains 01 through 07 | PASS |
+| ACCT-ZR-11 | Prompt-06 exact pre-write HEAD proven (`19d9c617`) | PASS |
+| ACCT-ZR-12 | Prompt-06 full content-commit set proven (4 + 1 merge) | PASS |
+| ACCT-ZR-13 | Prompt-06 aggregate scope is exactly three paths | PASS |
+| ACCT-ZR-14 | No denied path entered Prompt 06 | PASS |
+| ACCT-ZR-15 | No `.lovable/plan.md` in Prompt-06 content commits | PASS |
+| ACCT-ZR-16 | `DEC-RM-DH-003-008` exists once | PASS |
+| ACCT-ZR-17 | Canonical Decision range ends at `-008` | PASS |
+| ACCT-ZR-18 | Next free Decision ID is `-009` | PASS |
+| ACCT-ZR-19 | Prompt-05 failed verdict persisted | PASS |
+| ACCT-ZR-20 | Timestamp truth corrected (`05:41:41` = run start) | PASS |
+| ACCT-ZR-21 | RM-DH-003 remains ACTIVE | PASS |
+| ACCT-ZR-22 | Phase 2 remains CLOSED | PASS |
+| ACCT-ZR-23 | Phase 3 remains at Sub-phase 3.0 | PASS |
+| ACCT-ZR-24 | Sub-phases remain 3.0–3.7 | PASS |
+| ACCT-ZR-25 | Tracks A–E structurally preserved | PASS |
+| ACCT-ZR-26 | Workstreams 0012–0020 registered and not created | PASS |
+| ACCT-ZR-27 | No Workstream investigation started | PASS |
+| ACCT-ZR-28 | No Owner Acceptance occurred | PASS |
+| ACCT-ZR-29 | No Acceptance persistence occurred | PASS |
+| ACCT-ZR-30 | No Closure occurred | PASS |
+| ACCT-ZR-31 | Every fixed-count occurrence listed | PASS |
+| ACCT-ZR-32 | Every occurrence has exact path and line range | PASS |
+| ACCT-ZR-33 | Current truth separated from historical evidence | PASS |
+| ACCT-ZR-34 | No fixed Playbook count treated as authoritative | PASS |
+| ACCT-ZR-35 | Current `tenant_type` labels not equated with final Playbooks | PASS |
+| ACCT-ZR-36 | Planned types not equated with current implementation | PASS |
+| ACCT-ZR-37 | Target architecture not equated with current maturity | PASS |
+| ACCT-ZR-38 | Provisional replacement contract reproduced exactly (§5) | PASS |
+| ACCT-ZR-39 | `WS-DH-2026-0014` remains not started | PASS |
+| ACCT-ZR-40 | Audit does not attempt to determine the final count | PASS |
+| ACCT-ZR-41 | No repository write occurred | PASS |
+| ACCT-ZR-42 | No database access occurred | PASS |
+| ACCT-ZR-43 | No application change occurred | PASS |
+| ACCT-ZR-44 | No Knowledge change occurred | PASS |
+| ACCT-ZR-45 | No Skill change occurred | PASS |
+| ACCT-ZR-46 | No `AGENTS.md` created | PASS |
+| ACCT-ZR-47 | Documentation 01–13 not inspected | PASS |
+| ACCT-ZR-48 | Private governance artifacts not inspected | PASS |
+| ACCT-ZR-49 | Complete Deferred Items Register remains authoritative | PASS |
 
-### W.2 EXECUTED — QA PASSED, RETAIN UNTIL ACCEPTANCE
+49 of 49 PASS. Zero FAIL.
 
-| # | Item | Origin | Current status | Lane | Dependency | Risk if forgotten | Next trigger |
-| 12 | Expense Browser Writer cutover | P21 | EXECUTED — QA passed | Application | `post_expense_with_ledger` | silent regression | Acceptance |
-| 13 | `postLedgerForExpense` removal | P21 | EXECUTED — QA passed | Application | item 12 | writer resurrection | Acceptance |
-| 14 | `postLedgerForInvoice` removal | P21 | EXECUTED — QA passed | Application | RPC path | writer resurrection | Acceptance |
-| 15 | Dead `useLedger.createEntry` removal | P21 | EXECUTED — QA passed | Application | none | writer resurrection | Acceptance |
-| 16 | Automatic `backfillLedgerDescriptions` removal | P21 | EXECUTED — QA passed | Application | none | uncontrolled mutation | Acceptance |
-| 17 | Active browser-DML elimination in source | P21 | EXECUTED — QA passed | Application | 12–16 | privilege closure breaks app | DB migration |
-| 18 | POS Coming Soon / inert fencing | P21 | EXECUTED — QA passed | Application | WS-0005 | POS financial leakage | Acceptance |
-| 19 | Direct POS-route inertness | P21 | EXECUTED — QA passed | Application | item 18 | POS leakage | Acceptance |
-| 20 | Operational POS-hook isolation | P21 | EXECUTED — QA passed | Application | item 18 | POS leakage | Acceptance |
-| 21 | Authorized changed-path scope | P21 | EXECUTED — verified | Governance | Git | scope creep | Acceptance |
-| 22 | TypeScript typecheck | P22 | PASSED | Quality | none | type regression | Acceptance |
-| 23 | Production build | P22 | PASSED | Quality | none | build regression | Acceptance |
+## 25. Gaps and Contradictions
 
-### W.3 BLOCKED — DATABASE EXECUTION PHASE
+- **Gap:** canonical/default branch evidence was not captured; only the working branch is recorded.
+- **Gap:** the exact commit that first introduced the wording into the C2 planning artifact is not separately recoverable, because C2 wrote only `.lovable/plan.md`, which the platform overwrites.
+- **Contradiction (reported, not repaired):** Prompt 06 used four content commits plus one merge while DEC-008 authorizes no general multi-commit behaviour for future Prompts.
 
-| # | Item | Origin | Current status | Lane | Dependency | Risk if forgotten | Next trigger |
-| 24 | Browser Table-DML privilege closure | P12/13 | BLOCKED — now unblocked for prompting | Database | §S | unauthorized writes persist | DB Authority Prompt |
-| 25 | Exact four write-Policy removal | P19 | BLOCKED | Database | §R | policy drift | DB Authority Prompt |
-| 26 | `create_pos_sale` PUBLIC/anon/authenticated revocation | P20 | BLOCKED | Database | §T | POS financial exposure | DB Authority Prompt |
-| 27 | Three-Helper `public, pg_temp` hardening | P14 | BLOCKED | Database | §U | search_path attack | DB Authority Prompt |
-| 28 | Internal Writer EXECUTE freeze | P18 | BLOCKED | Database | §T | privilege creep | DB Authority Prompt |
-| 29 | External Wrapper ACL preservation | P18 | BLOCKED | Database | §T | app breakage | DB Authority Prompt |
-| 30 | Trusted public-schema guard | P13 | BLOCKED | Database | §U | hijack risk | DB Authority Prompt |
-| 31 | `post_manual_ledger_adjustment` ACL preservation | P20 | BLOCKED | Database | §T | admin path loss | DB Authority Prompt |
-| 32 | Exact Policy pre/target hash execution assertions | P16/19 | BLOCKED — pre-state hash re-proven | Database | §R | unsafe migration | DB Authority Prompt |
-| 33 | Exact Rollback Policy reconstruction | P19 | BLOCKED | Database | §R | unrecoverable state | DB Authority Prompt |
-| 34 | Approved Table comments | P20 | BLOCKED | Database | §U | provenance loss | DB Authority Prompt |
-| 35 | FORCE-RLS assertions | P20 | BLOCKED | Database | §U | owner bypass | DB Authority Prompt |
-| 36 | Exact Function owner/SECDEF/proconfig assertions | P15/20 | BLOCKED | Database | §U | privilege drift | DB Authority Prompt |
-| 37 | Exact Table ACL and Grant Option assertions | P20 | BLOCKED | Database | §S | privilege drift | DB Authority Prompt |
-| 38 | Exact Function ACL and Grant Option assertions | P20 | BLOCKED | Database | §T | privilege drift | DB Authority Prompt |
-| 39 | Exact Helper OID assertions | P20 | BLOCKED | Database | §U | wrong helper bound | DB Authority Prompt |
-| 40 | Service-role and owner-authority assertions | P20 | BLOCKED | Database | §S/§T | server breakage | DB Authority Prompt |
-| 41 | Zero Column-ACL assertions | P13 | BLOCKED — re-observed 0 | Database | §S | hidden grant | DB Authority Prompt |
-| 42 | Zero browser-role-inheritance assertions | P13 | BLOCKED | Database | roles | privilege leak | DB Authority Prompt |
-| 43 | `REVOKE ALL` → `GRANT SELECT` | P13 | BLOCKED | Database | 24 | writes remain open | DB Authority Prompt |
-| 44 | Forward Migration | P20 | BLOCKED | Database | 24–43 | Stage B incomplete | DB Authority Prompt |
-| 45 | Emergency Rollback artifact | P20 | BLOCKED | Database | 44 | unrecoverable | DB Authority Prompt |
-| 46 | Forward → Rollback → Forward drill | P20 | BLOCKED | Database | 44/45 | untested rollback | DB Authority Prompt |
-| 47 | Database Authority QA | P20 | BLOCKED | Database | 44 | unverified migration | after 44 |
-| 48 | Database Authority Acceptance Re-Audit | P20 | BLOCKED | Governance | 47 | premature Acceptance | after 47 |
+## 26. Pre-Existing Defects Discovered but Excluded
 
-### W.4 DEFERRED — TRACKED
+1. **OBS-1 (carried from Prompt 05):** `docs/README.md` row-129 prose still describes only the Phase 3 Governance Persistence entry and its status cells still read "Executed — awaiting Acceptance Re-Audit". Versions and paths are correct. Excluded from this scope.
+2. **Prompt-06 topology deviation** (§8, §25). Excluded from this scope; requires Owner decision.
 
-| # | Item | Origin | Current status | Lane | Dependency | Risk if forgotten | Next trigger |
-| 49 | Internal Cost terminology | P11 | DEFERRED | Product | none | user confusion | Stage C |
-| 50 | Internal Cost Unknown vs Real Zero | P11 | DEFERRED | Product | 49 | false zero cost | Stage C |
-| 51 | Contextual Internal Cost labels | P11 | DEFERRED | Product | 49 | ambiguity | Stage C |
-| 52 | HR Salary-to-Expense atomicity | P11 | DEFERRED | Finance | RPC | partial writes | Stage C |
-| 53 | HR Salary idempotency | P11 | DEFERRED | Finance | 52 | duplicate expense | Stage C |
-| 54 | HR Salary reversal | P11 | DEFERRED | Finance | 52 | no correction path | Stage C |
-| 55 | HR-linked Expense deletion protection | P11 | DEFERRED | Finance | 52 | orphan ledger | Stage C |
-| 56 | Expense unpost/reversal | P11 | DEFERRED | Finance | RPC | no correction path | Stage C |
-| 57 | Supplier Payable lifecycle | P11 | DEFERRED | Finance | none | payable drift | Stage C |
-| 58 | Supplier Payable-to-Expense authority | P11 | DEFERRED | Finance | 57 | double counting | Stage C |
-| 59 | Full POS implementation | P11 | DEFERRED — WS-DH-2026-0005 | Product | 26 | POS unusable | WS-0005 |
-| 60 | Future `create_pos_sale` activation | P20 | DEFERRED | Database | 26/59 | premature exposure | WS-0005 |
-| 61 | Manual Ledger Adjustment UI | P11 | DEFERRED | Product | 31 | no admin path | Stage C |
-| 62 | Residual Finance-table privilege hardening | P13 | DEFERRED | Database | 44 | residual exposure | Stage C |
-| 63 | Full schema qualification of `has_permission` | P14 | DEFERRED | Database | 27 | resolution ambiguity | Stage C |
-| 64 | Duplicate Ledger SELECT Policy review | P19 | DEFERRED — 2 SELECT policies confirmed present | Database | §R | policy confusion | Stage C |
-| 65 | Database-level TEMP grant to PUBLIC | P14 | DEFERRED | Database | none | temp-schema abuse | Stage C |
-| 66 | PUBLIC EXECUTE on permission Helpers | P18 | DEFERRED | Database | none | enumeration | Stage C |
-| 67 | Platform `sandbox_exec*` financial privileges | P20 | DEFERRED — grantees 123688/127690 confirmed | Database | platform | platform-role exposure | Stage C |
-| 68 | Historical Import batch/provenance objects | P04 | DEFERRED | Migration | RM-DH-004 Ph2 | no provenance | Phase 2 |
-| 69 | `owner_id` identity binding | P04 | DEFERRED | Security | schema | weak identity | Phase 2 |
-| 70 | Account Statement `effective_date` cutover | P05 | DEFERRED | Finance | Stage A | wrong statement order | Stage C |
-| 71 | Shadow draft-invoice remediation | P03 | DEFERRED | Finance | none | phantom revenue | Stage C |
-| 72 | Doctor billing / `tenant_services` unification | prior | DEFERRED | Architecture | none | pricing divergence | Stage D |
+## 27. Complete Deferred Items Register
 
-No item removed.
+| # | Item | Status |
+| --- | --- | --- |
+| 1 | Actual code Refactoring | DEFERRED |
+| 2 | Feature Pack implementation | DEFERRED |
+| 3 | Module activation implementation | DEFERRED |
+| 4 | Subscription and pricing implementation | DEFERRED |
+| 5 | New Feature implementation | DEFERRED |
+| 6 | Missing Module implementation | DEFERRED |
+| 7 | Skills revision | DEFERRED |
+| 8 | Root `AGENTS.md` creation | DEFERRED |
+| 9 | Workspace Knowledge use | DEFERRED |
+| 10 | Documentation 01–13 historical recovery | DEFERRED |
+| 11 | Cross-project sharing changes | DEFERRED |
+| 12 | RM-DH-004 financial execution | DEFERRED |
+| 13 | Any technical defect discovered by a later Stage B audit | DEFERRED |
+| 14 | Project Knowledge installation | DEFERRED |
+| 15 | Memory Genesis investigation | DEFERRED |
+| 16 | Refactoring Baseline investigation | DEFERRED |
+| + | Account-Type fixed-count defect | **PROMOTED TO CURRENT INVESTIGATIVE SCOPE** — visible until correction Acceptance, Owner cancellation, or approved supersession |
 
-## X. Application Zero-Regression Assessment
+## 28. Workstream Persistence
 
-The single failing test is proven pre-existing and outside Prompt-21 scope; the three preserved database fingerprints reproduce bit-exactly; drift since `095aed91` is confined to platform/governance paths with zero application-source change; typecheck and production build remain passing (Prompt-22, preserved).
+WORKSTREAM REGISTRY PERSISTENCE: UNCHANGED
 
-Verdict: **ZERO REGRESSION TO PROMPTS 01–22 CONFIRMED FOR APPLICATION PHASE**.
+WORKSTREAM IDS: WS-DH-2026-0012 THROUGH WS-DH-2026-0020 REMAIN REGISTERED — PERMANENTLY RESERVED — ID CONSUMED
 
-## Y. Final Application-QA Verdict
+WORKSTREAM PACKAGES: NONE CREATED
 
-**APPLICATION QA PASSED — READY FOR DATABASE AUTHORITY EXECUTION PROMPT**
+WORKSTREAM INVESTIGATIONS: NOT STARTED
 
-## Z. Blockers and Gaps
+WS-DH-2026-0014: NOT STARTED
 
-Gap (non-blocking, informational): the exact IDs of Prompts 01, 02 and 03 remain unavailable in verified evidence. No blocker.
+SUB-PHASE 3.1: NOT STARTED
 
-## AA. Recommendation
+## 29. Roadmap Impact
 
-Prepare `PROMPT-…-ECONOMIC-DATE-STAGE-B-DATABASE-AUTHORITY-MIGRATION-EXECUTION-24` — the guarded Forward Migration with hash-pinned pre-state assertions (`e978f912777a28108f46ba79e2ce071e`, `f1567096c582eaaea20a816cc99cd269`, `b4138d2f6c8bf2ca01c41d437976d116`) and the symmetric Emergency Rollback artifact.
+RM-DH-003 remains ACTIVE. Phase 2 remains CLOSED. Phase 3 remains at Sub-phase 3.0. Prompt 06 is verified, with the four-commit topology deviation reported. Technical Acceptance remains blocked. Owner Acceptance remains not granted. Acceptance persistence remains not performed. No Phase advancement occurs. The fixed-count defect is promoted to current investigative scope. WS-DH-2026-0014 remains not started. Project Knowledge remains not installed. Closure is not claimed.
 
-## AB. Workstream Persistence
+## 30. No-Change Attestation
 
-WORKSTREAM PERSISTENCE:
-NONE — READ-ONLY APPLICATION-QA EVIDENCE CLOSURE ONLY.
+Zero intentional change to repository files, application code, database schema or data, migrations, RLS, RPCs, Edge Functions, Roadmaps, Workstreams, central indexes, Project Knowledge, Workspace Knowledge, Skills, `AGENTS.md`, settings and cross-project sharing. Working Tree clean before and after; HEAD unchanged.
 
-Stage A remains accepted, persisted and verified.
+`.lovable/plan.md` disclosure: this report is written to `.lovable/plan.md`, the platform-managed planning artifact governed by `DEC-RM-DH-003-004`. It was not manually edited outside this report and is not implementation or Acceptance evidence.
 
-WS-DH-2026-0003 remains ACTIVE.
+## 31. Acceptance Status
 
-Prompt-21 Application Execution remains implemented.
+TECHNICAL ACCEPTANCE: BLOCKED PENDING ACCOUNT-TYPE FIXED-COUNT CORRECTION
 
-Prompt-22 Application code findings remain preserved.
+OWNER ACCEPTANCE: NOT GRANTED
 
-No Application Acceptance has occurred.
+ACCEPTANCE PERSISTENCE: NOT PERFORMED
 
-Database Authority Migration has not started.
+PHASE ADVANCEMENT: NONE
 
-No Policy, ACL, Function, Helper, Comment, Schema,
-financial-row or Stage-A change was authorized or performed.
+CLOSURE: NONE
 
-No governance file was modified.
+## 32. Run Metadata and Exact Stopping Point
 
-Stage C and Stage D have not started.
+| # | Field | Value |
+| --- | --- | --- |
+| 1 | Mode / operation | Plan/Chat — Read-only; Prompt-06 verification and fixed-count defect scoping |
+| 2 | Prompt ID | PROMPT-DH-RM003-P3-ACCOUNT-TYPE-COUNT-CORRECTION-SCOPING-AUDIT-07 |
+| 3 | Prompt status | SUBMITTED — RUN — CONSUMED |
+| 4 | Local number | 07 |
+| 5 | Prior statuses | 01 consumed · C1 consumed (no new number) · C2 consumed (no new number) · 02 consumed · 03 consumed and failed · 04 consumed · 05 consumed and failed · 06 consumed |
+| 6 | Prompt preparation | 04-08-2026 — August, 10:24, Asia/Riyadh (UTC+03:00) |
+| 7 | Run start | 2026-08-04T07:41Z / 10:41 Riyadh |
+| 8 | Evidence inspection start | 2026-08-04T07:41Z |
+| 9 | Evidence inspection end | 2026-08-04T07:44Z |
+| 10 | Report time | 2026-08-04T07:45Z / 10:45 Riyadh |
+| 11 | Timestamp evidence source | Git committer timestamps and exec-call wall clock |
+| 12 | Current branch | `edit/edt-c60ac01e-54c2-4774-9137-f6250694b71f` |
+| 13 | Current HEAD | `5dc6de73ceba270ba8836212fb84639a4472852a` |
+| 14 | Prompt-06 pre-write HEAD | `19d9c6174dfc9f149590e55408c019d6ef527687` |
+| 15 | Prompt-06 commit set | `348b070d`, `4cf75bef`, `4e8c4554`, `617baf90` + merge `41902826` |
+| 16 | Prompt-06 post-write HEAD | `41902826d1a74a3ffaa0f500e17bdaedfe6179df` |
+| 17 | Prompt-06 aggregate paths | `decisions.md`, `changelog.md`, `docs/README.md` |
+| 18 | Paths changed after Prompt 06 | `.lovable/plan.md` only |
+| 19 | Working Tree | clean |
+| 20–22 | Staged / unstaged / untracked | none / none / none |
+| 23 | Versions observed | 1.1.0 · 1.3.0 · 1.4.0 · 1.3.2 · 1.3.0 · 1.5.0 · 1.14.2 · 1.2.0 |
+| 24 | Decisions observed | `-001` … `-008`, next free `-009` |
+| 25 | Fixed-count occurrence count | 2 requiring correction (plus 6 classified non-correcting groups) |
+| 26 | Exact affected paths | `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` |
+| 27 | Future correction allowlist | `roadmap.md`, `decisions.md`, `changelog.md`, `docs/README.md` |
+| 28 | Future version matrix | 1.3.0→1.4.0 · 1.4.0→1.5.0 · 1.3.2→1.3.3 · 1.14.2→1.14.3 |
+| 29–35 | Database / repository / application / Project Knowledge / Workspace Knowledge / Skill / AGENTS.md changes | None |
+| 36 | Zero-Regression result | 49 of 49 PASS |
+| 37 | Technical Acceptance | BLOCKED |
+| 38 | Owner Acceptance | NOT GRANTED |
+| 39 | Acceptance persistence | NOT PERFORMED |
+| 40 | Phase advancement | NONE |
+| 41 | Closure | NONE |
+| 42 | Exact stopping point | Audit complete; stopped before any repository write, Decision append, version change or Acceptance |
+| 43 | Exact next permitted action | ChatGPT and Owner review of the exact defect scope, after which an Agent/Build fixed-count correction execution Prompt may be prepared |
 
-No Workstream Closure occurred.
-
-## AC. Roadmap Impact
-
-ROADMAP IMPACT:
-RM-DH-004 remains ACTIVE — PHASE 1.
-
-This evidence closure does not complete Phase 1.
-
-WS-DH-2026-0005 remains DEFERRED.
-
-No new Roadmap, Phase, Workstream or Decision ID was created.
-
-No Phase advancement, Phase Closure or Roadmap Closure occurred.
-
-## AD. Run Metadata and Exact Stopping Point
-
-| Field | Value |
-| --- | --- |
-| Mode | Plan/Chat — Read-Only |
-| Operation | Application-QA Evidence Closure |
-| Prompt ID | PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-APPLICATION-QA-EVIDENCE-CLOSURE-23 |
-| Prompt status received | UNSENT DRAFT — NUMBER NOT YET CONSUMED |
-| Prompt prepared | 04-08-2026 10:23 Asia/Riyadh (UTC+03:00) |
-| Run start | 2026-08-04T07:34Z / 10:34 Riyadh |
-| Run end | 2026-08-04T07:37Z / 10:37 Riyadh |
-| Final report time | 2026-08-04T07:37Z / 10:37 Riyadh |
-| Timestamp evidence | exec-call wall clock; worktree create/remove stamps captured in-run |
-| Active branch | `edit/edt-28351c0e-b21c-4a26-ac9c-06d2ac20c983` |
-| Default/canonical branch evidence | not recorded in this run (Exact value not recorded) |
-| HEAD before / after | `41902826d1a74a3ffaa0f500e17bdaedfe6179df` / identical |
-| Working Tree before / after | clean / clean |
-| Staged before / after | none / none |
-| Unstaged before / after | none / none |
-| Untracked before / after | none / none |
-| Pre-execution commit | `ee1ee63ef6f0ec442ca44aeaf04ba3060747beaa` |
-| Execution commit | `095aed918…` |
-| Parent proof | `git rev-parse 095aed91^` = `ee1ee63ef6f0…` |
-| Current-HEAD ancestry proof | `git merge-base --is-ancestor 095aed91 HEAD` → true |
-| Temporary worktrees | `/tmp/qa23/ee1ee63e`, `/tmp/qa23/095aed91` |
-| Created / removed | 07:35:25Z, 07:35:26Z / both 07:35:49Z |
-| Node / Bun / Vitest | v22.22.0 / 1.3.3 / 4.1.8 |
-| Package manager | bun 1.3.3 (npx used to invoke vitest) |
-| Lockfile identity | `bun.lock` blob `90a806549a547e65af11232469e4214970860835` at all three commits |
-| Dependency-equivalence method | shared read-only `node_modules` symlink, justified by identical manifest+lockfile blobs |
-| Baseline / post-exec / HEAD test | same command; all exit 1; all 16 passed, 1 failed, 17 total |
-| Normalized failure signatures | identical at all three states |
-| Test-baseline classification | PROVEN PRE-EXISTING AND NON-SCOPE |
-| Policy canonical string / hash | 1113 bytes, 7 rows / `e978f912777a28108f46ba79e2ce071e` |
-| Table-ACL canonical string / hash | 3283 bytes, 72 rows / `f1567096c582eaaea20a816cc99cd269` |
-| Function-ACL canonical string / hash | 65 rows / `b4138d2f6c8bf2ca01c41d437976d116` |
-| Function fingerprint session search path | `"$user", public` |
-| Current table state | see §U |
-| Current Helper state | see §U |
-| Current POS ACL | PUBLIC false, anon true, authenticated true |
-| Database queries executed | 6 read-only SELECTs |
-| Writes | database 0 · source 0 · test 0 · repository 0 · migration 0 · financial rows 0 · Stage-A rows 0 · Knowledge 0 · Skills 0 · settings 0 |
-| `.lovable/plan.md` disclosure | this report only; platform artifact under `DEC-RM-DH-003-004` |
-| Verdicts returned | eleven (§A) |
-| Final Application-QA verdict | APPLICATION QA PASSED — READY FOR DATABASE AUTHORITY EXECUTION PROMPT |
-| Database Authority Migration | not started |
-| Acceptance | not started |
-| Closure | none |
-| Exact stopping point | evidence closure complete; stop before any database write |
-| Recommended next step | Prepare Prompt 24 — Database Authority Migration Execution |
-| Recommended next Mode | Plan/Chat for Prompt-24 authoring; Agent/Build only after Owner authorization |
-
----
-
-The Prompt-22 evidence gaps have been closed.
-
-The invoice-PDF RTL test result has been compared at the exact
-Prompt-21 pre-execution commit, Prompt-21 execution commit and
-current live HEAD using equivalent isolated environments.
-
-The exact preserved Policy, Table-ACL and Function-ACL fingerprints
-have been recomputed using their accepted algorithms and complete
-canonical strings.
-
-The active repository and database remain unchanged.
-
-No source, test, migration, Policy, ACL, Function, Helper, Comment,
-financial-row, Stage-A, Acceptance or Closure change has occurred.
+Audit does not equal correction. Correction does not equal Acceptance. Technical Acceptance does not equal Owner Acceptance. Owner Acceptance does not automatically equal persistence. Persistence does not automatically equal Phase advancement.
