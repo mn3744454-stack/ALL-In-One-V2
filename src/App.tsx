@@ -81,7 +81,7 @@ import DashboardDoctorConsultations from "./pages/DashboardDoctorConsultations";
 import DashboardDoctorConsultationDetail from "./pages/DashboardDoctorConsultationDetail";
 import DashboardDoctorServices from "./pages/DashboardDoctorServices";
 // Finance child pages
-import { DashboardFinancePOS, DashboardFinanceCategories, FinanceCustomerBalances } from "./pages/finance";
+import { POSComingSoon, DashboardFinanceCategories, FinanceCustomerBalances } from "./pages/finance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
