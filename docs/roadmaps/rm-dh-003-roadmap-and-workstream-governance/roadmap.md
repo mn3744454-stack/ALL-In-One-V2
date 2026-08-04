@@ -91,7 +91,7 @@ No later Phase is created or named here. Later Phases require owner approval bef
 ## Current status
 
 ```text
-Workstream Status:
+Phase 2 Workstream Status (WS-DH-2026-0002):
 CLOSED
 
 Phase 2 Status:
@@ -103,18 +103,31 @@ Accepted and persisted
 Previous baseline Acceptance:
 Preserved as historical evidence
 
-QA:
+Phase 2 QA:
 Complete — satisfied by the passed Final Targeted Acceptance Re-Audit
 
-Closure:
+Phase 2 Closure:
 Approved and persisted
 
 Roadmap Status:
 Active
 
-Phase advance:
-None — no Phase 3 or later Phase exists or is owner-approved
+Current Phase:
+RM-DH-003 / Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
+
+Phase 3 Execution Checkpoint:
+GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING
+
+Phase 3 Acceptance:
+Not performed
+
+Phase 3 Closure:
+None
+
+Sub-phase advance:
+None — Sub-phase 3.1 has not started
 ```
+
 
 ## Final Phase 2 stopping point
 
