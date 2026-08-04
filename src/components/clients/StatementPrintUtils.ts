@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 import { classifyLedgerEntry, semanticClassLabel } from "@/lib/finance/statementSemantics";
+import { formatEconomicDate } from "@/lib/finance/effectiveDate";
 
 /**
  * Escape user-controlled strings before interpolating into HTML written to a
