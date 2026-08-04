@@ -541,7 +541,7 @@ BEGIN
     RAISE EXCEPTION 'RB_INTERNAL_WRITER_BROWSER_EXECUTE_APPEARED';
   END IF;
 
-  -- 10. authenticated Wrapper authority preserved (10 wrappers + restored POS)
+  -- 10. authenticated Wrapper authority preserved (11 wrappers + restored POS)
   SELECT count(*) INTO v_cnt
   FROM rb_fn_acl_rows
   WHERE grantee_name = 'authenticated' AND privilege_type = 'EXECUTE';
