@@ -212,9 +212,13 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
             <button
               key={child.key}
               onClick={() => handleChildClick(child)}
+              disabled={child.comingSoon}
+              aria-disabled={child.comingSoon || undefined}
               className={cn(
-                "flex items-center gap-4 w-full p-4 rounded-xl bg-muted/50 hover:bg-muted transition-all",
-                "active:scale-[0.98]"
+                "flex items-center gap-4 w-full p-4 rounded-xl bg-muted/50 transition-all",
+                child.comingSoon
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-muted active:scale-[0.98]"
               )}
             >
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -223,7 +227,13 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
               <span className="flex-1 text-start font-medium">
                 {t(child.labelKey)}
               </span>
-              <ChevronIcon className="w-5 h-5 text-muted-foreground" />
+              {child.comingSoon ? (
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {t("common.comingSoon")}
+                </span>
+              ) : (
+                <ChevronIcon className="w-5 h-5 text-muted-foreground" />
+              )}
             </button>
           );
         })}
