@@ -372,7 +372,7 @@ Phase 1 technical scope is **not** accepted. No technical Acceptance and no Clos
 | Stage A Technical Acceptance | PASSED — OWNER ACCEPTED — PERSISTED FOR STAGE A ONLY |
 | Workstream-wide Technical Acceptance | NOT COMPLETE |
 | Phase 1 Acceptance | NOT COMPLETE |
-| Stage B — Writer Contract | NOT STARTED |
+| Stage B — Financial Write Authority | ACCEPTED — PERSISTED — VERIFICATION PENDING |
 | Stage C — Read-Path Cutover | NOT STARTED |
 | Stage D — Constraint Enforcement | NOT STARTED |
 | Closure | NONE |
@@ -392,6 +392,41 @@ Accepted Stage A aggregate evidence:
 - OBS-A-01 accepted as a non-blocking timestamp observation requiring no independent correction path.
 
 No private Client names or private financial details are recorded here.
+
+## Stage B Register — WS-DH-2026-0003 Financial Write Authority
+
+| Item | State |
+|---|---|
+| Stage B Application Execution and QA | EXECUTED AND PASSED |
+| Stage B Database Authority Forward Migration | APPLIED |
+| Stage B Acceptance Re-Audit | PASSED |
+| Stage B Owner Acceptance | GRANTED BY MOHAMED NOUR — 04-08-2026 — 20:49 — Asia/Riyadh — UTC+03:00 |
+| Stage B Acceptance Persistence | EXECUTED — READ-ONLY VERIFICATION PENDING |
+| Stage B Technical Acceptance | ACCEPTED — PERSISTED — VERIFICATION PENDING — BOUNDED TO STAGE B ONLY |
+| Emergency Rollback | NOT EXECUTED |
+| Workstream-wide Technical Acceptance | NOT COMPLETE |
+| Phase 1 Acceptance | NOT COMPLETE |
+| Closure | NONE |
+
+Accepted Stage B aggregate evidence (recorded, not re-audited by this run):
+
+- canonical expense RPC cutover completed and legacy browser financial writers removed;
+- automatic runtime backfill removed and Ledger hooks read-only;
+- POS route inert (Coming Soon);
+- Application QA passed, with the pre-existing Invoice-PDF RTL failure recorded as non-blocking and outside Stage B scope;
+- Forward migration `20260804083738_3d2d0ddf-5f5f-42f8-9bd0-832bc4430b78.sql`, SHA-256 `602804b939876ee3a2a19114296de3ff080aafc574a3b0913bed1fa6e80baa5f`;
+- Policy State B `3 / 04297828f4bd33eba043f6c9274ec57b`;
+- Table-ACL State B `44 / 204017a1207bc68a246c3415e3975478`;
+- Stable Function-ACL State B rows `35`, bytes `5277`, MD5 `31a3c711f72f419e75f89a234a9923cc`, SHA-256 `67128e3269272e695b4452247eed409378b5f30d10c5df54a9d6b617abeea404`;
+- corrected accepted State A rows `37`, bytes `5498`, MD5 `36da554aef9a68d2acfbe9e1663c5def`, SHA-256 `5a7c4fa94cc44fc330503b58a13dde678a83206270e79f681a295988cdd63db2`, authenticated `12`, service_role `10`, postgres `14`, anon `1`;
+- Owner-approved Option-B Stable Contract, SHA-256 `63bac3c945cc676fa565727367e1b41a0e3e243981223ef252a6576ed8b5178b`;
+- final Emergency Rollback artifact, `29176` bytes, `640` lines, SHA-256 `5a58404e026395ad866fe6b28a8a996fc54a48659077640b05541f25c993981e`, not executed;
+- financial invariants unchanged — Ledger `88 / 23e73fd58f9308913ac978acee94b2f2`, Customer Balances `8 / 22e38d161b126cca31f4c26830084012`, zero monetary regression.
+
+Before any real Emergency Rollback execution, explicit Owner authorization and independent PostgreSQL parser or disposable-environment validation are required.
+
+No private Client names or private financial details are recorded here.
+
 
 ## Remaining Work
 
