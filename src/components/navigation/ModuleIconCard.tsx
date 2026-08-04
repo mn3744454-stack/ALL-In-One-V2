@@ -204,6 +204,11 @@ export function ModuleIconCard({
       >
         {label}
       </span>
+      {comingSoon && comingSoonLabel && (
+        <span className="text-[10px] font-medium text-muted-foreground">
+          {comingSoonLabel}
+        </span>
+      )}
     </button>
   );
 }
