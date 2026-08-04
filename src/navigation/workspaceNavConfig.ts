@@ -290,6 +290,7 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
         icon: ShoppingCart,
         labelKey: "finance.pos.title",
         route: "/dashboard/finance/pos",
+        comingSoon: true,
       },
       {
         key: "categories",
