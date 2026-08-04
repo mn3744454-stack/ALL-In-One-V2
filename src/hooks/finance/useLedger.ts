@@ -22,8 +22,15 @@ export interface LedgerEntry {
   description?: string;
   payment_method?: string;
   created_by?: string;
+  /**
+   * Stage C · Slice B — business (economic) date, date-only `yyyy-MM-dd`.
+   * Drives ledger list filtering, ordering and display.
+   */
+  effective_date: string;
+  /** Audit timestamp — tie-break only, never the displayed business date. */
   created_at: string;
 }
+
 
 export interface CreateLedgerEntryInput {
   tenant_id: string;
