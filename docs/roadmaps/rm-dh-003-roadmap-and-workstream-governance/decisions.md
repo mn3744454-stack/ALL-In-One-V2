@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-003-DECISIONS
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (decisions)
-version: 1.3.0
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-07-30
@@ -9,7 +9,7 @@ last-verified: 2026-08-04
 
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.; v1.3.0 — RM-DH-003 / Phase 3 — Acceptance-Defect Correction Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04, persisted 2026-08-04T05:41:41+03:00 (Asia/Riyadh — UTC+03:00) under Owner-approved Option B: corrects the stale canonical Decision-ID summary so it states the consecutive canonical range DEC-RM-DH-003-001 through DEC-RM-DH-003-007, and appends exactly one decision, DEC-RM-DH-003-007 (Acceptance-Defect Correction and Narrow Execution-Contract Supersession). Decisions 001 through 006 and the D1–D10 text are preserved unchanged and unrenumbered.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.; v1.3.0 — RM-DH-003 / Phase 3 — Acceptance-Defect Correction Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04, correction run start 2026-08-04T05:41:41+03:00 with final content commit 2026-08-04T05:43:36+03:00 (Asia/Riyadh — UTC+03:00) under Owner-approved Option B: corrects the stale canonical Decision-ID summary so it states the consecutive canonical range DEC-RM-DH-003-001 through DEC-RM-DH-003-007, and appends exactly one decision, DEC-RM-DH-003-007 (Acceptance-Defect Correction and Narrow Execution-Contract Supersession). Decisions 001 through 006 and the D1–D10 text are preserved unchanged and unrenumbered.; v1.4.0 — RM-DH-003 / Phase 3 — Prompt-04 Commit-Topology Supersession and Prompt-05 Acceptance-Verdict Correction under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06 and Owner-approved Option B2, written 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly one decision, DEC-RM-DH-003-008, updates the canonical Decision-ID range to DEC-RM-DH-003-001 through DEC-RM-DH-003-008 with DEC-RM-DH-003-009 as next free, and corrects the mislabelled 2026-08-04T05:41:41+03:00 timestamp to correction run start. Decisions 001 through 007 and the D1–D10 text are otherwise preserved unchanged and unrenumbered.
 source-sha256: n/a
 -->
 
@@ -23,7 +23,7 @@ This file owns approved decisions, options, rationale, rejected alternatives, an
 
 - The original owner-alignment session used the labels **D-01**, **D-02**, and **D-04**. The label **D-03** was skipped during that session.
 - A repository check found **no evidence** of an omitted decision named D-03. Nothing was removed, lost, or hidden.
-- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-007`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`. The next free Decision ID is `DEC-RM-DH-003-008`.
+- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-008`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`, `DEC-RM-DH-003-008`. The next free Decision ID is `DEC-RM-DH-003-009`.
 - Each of `DEC-RM-DH-003-001` to `-003` retains its original owner-alignment label as an alias. `DEC-RM-DH-003-004` has **no alias**: it was approved later, in a separate owner decision, and it is **not** the historical owner-alignment label `D-04` (that label is the alias of `DEC-RM-DH-003-003`).
 - **No decision content was fabricated** to fill the D-03 gap.
 
@@ -313,7 +313,8 @@ Dayli Horse spans many account types whose capabilities overlap. Without a fixed
 **العنوان العربي:** تصحيح عيوب القبول والاستبدال المحدود لعقد التنفيذ
 **Status:** Approved
 **Owner alignment decided at:** 2026-08-04T05:27:00+03:00 (Asia/Riyadh — UTC+03:00) — Owner approved **Option B — Explicit Narrow Supersession**.
-**Persisted at:** 2026-08-04T05:41:41+03:00 (Asia/Riyadh — UTC+03:00), by execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04`. The Owner alignment time and this repository write time are distinct events and are not interchangeable.
+**Correction run start:** 2026-08-04T05:41:41+03:00 (Asia/Riyadh — UTC+03:00) — execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04`. This value is the correction run start only; it is not the final content-write, final-commit or completion time (timestamp-label corrected under `DEC-RM-DH-003-008`).
+**First content commit:** 2026-08-04T05:41:49+03:00. **Final content commit:** 2026-08-04T05:43:36+03:00. **Merge:** 2026-08-04T05:43:55+03:00. The Owner alignment time and these repository write times are distinct events and are not interchangeable.
 
 ### Decision
 
@@ -356,3 +357,70 @@ Two independent defects blocked Owner Acceptance: an execution artifact whose co
 2. **Rewrite, squash or amend Execution-02 into a single commit** — rejected. It would destroy the audit evidence that proves the execution stayed inside the seven-path allowlist.
 3. **Accept the Prompt-03 `CONDITIONAL PASS` verdict and proceed to Owner Acceptance** — rejected. `CONDITIONAL PASS` is not an allowed Acceptance verdict, and proceeding would grant Acceptance over unproven and uncorrected defects.
 4. **Correct the canonical-ID note silently without a recorded decision** — rejected. A truthfulness repair to an authoritative governance file must itself be governed and traceable.
+
+---
+
+## DEC-RM-DH-003-008
+
+**Alias:** None.
+**Subject:** Prompt-04 Commit-Topology Supersession and Prompt-05 Acceptance-Verdict Correction
+**العنوان العربي:** الاستبدال المحدود لبنية تنفيذ Prompt 04 وتصحيح حكم قبول Prompt 05
+**Status:** Approved
+**Owner alignment decided at:** 2026-08-04T08:41:00+03:00 (Asia/Riyadh — UTC+03:00) — Owner approved **Option B2 — Prompt-04 Narrow Commit-Topology Supersession**.
+**Repository write (Prompt 06):** 2026-08-04T10:16:00+03:00 (Asia/Riyadh — UTC+03:00), under execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06`. Owner approval time and this repository write time are distinct events and are not interchangeable.
+
+### Decision
+
+**1. Prior Prompt-04 commit contract.** `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04` required exactly **one bounded correction content commit** containing the three allowlisted files.
+
+**2. Independently verified Prompt-04 topology.** Git evidence read during this execution proves the correction used **five content commits plus one merge commit**:
+
+- pre-correction HEAD `095aed9184a0753eebdda3dc73ba5aecc541f722`;
+- content commit 1 `4a76805f856042a7da939c0c0f7aa10209829658` — 2026-08-04T05:41:49+03:00 — `decisions.md`;
+- content commit 2 `04c2b2d72824854cce75e8aac423585685df5e59` — 2026-08-04T05:42:12+03:00 — `decisions.md`;
+- content commit 3 `856e767d3c4c6e8f082eb12ce6b08541b7cbca7f` — 2026-08-04T05:42:51+03:00 — `decisions.md`;
+- content commit 4 `fc389ab14bf4983c5912c3ad5565f64e954624a8` — 2026-08-04T05:43:20+03:00 — `changelog.md`;
+- content commit 5 `17759761c4277bed76fbc719f6914cb3b430b2c7` — 2026-08-04T05:43:36+03:00 — `docs/README.md`;
+- merge commit `944ea916cd9a000204b0c54f309ebf2828e60b42` — 2026-08-04T05:43:55+03:00, parents `095aed9184a0753eebdda3dc73ba5aecc541f722` and `17759761c4277bed76fbc719f6914cb3b430b2c7`; its diff against the second parent is **empty**, so the merge introduced no additional content;
+- final correction HEAD `944ea916cd9a000204b0c54f309ebf2828e60b42`.
+
+**3. Exact three-path aggregate scope.** The aggregate pre-correction-to-final diff contains exactly:
+
+- `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md`;
+- `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`;
+- `docs/README.md`.
+
+No content commit touched `.lovable/plan.md`, a denied path, application code, database paths, another Roadmap or any Workstream package. Prompt-04 history is intact and was not rewritten, rebased, squashed or amended.
+
+**4. Supersession granted.** Prompt 04 is accepted as **one bounded correction artifact** `ART-RM-DH-003-P3-GOVERNANCE-PROMPT04-CORRECTION` composed of the five verified content commits plus one verified merge, conditional on — and only on — the evidence above. This supersession applies **only** to `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04`. It creates no general multi-commit rule, does not modify the separate Execution-02 supersession recorded in `DEC-RM-DH-003-007`, and authorizes no multi-commit behaviour for future Prompts.
+
+**5. Prompt-05 verdict rejected and replaced.** The verdict `TARGETED ACCEPTANCE RE-VERIFICATION PASSED — READY FOR OWNER ACCEPTANCE` reported by `PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-TARGETED-ACCEPTANCE-REVERIFICATION-05` contradicted its own evidence: mandatory check TA-ZR-17 (one Prompt-04 correction content commit) could not pass while five content commits plus one merge were observed. The authoritative verdict is:
+
+`GOVERNANCE PERSISTENCE TARGETED ACCEPTANCE RE-VERIFICATION FAILED — PROMPT-04 COMMIT-TOPOLOGY CONTRACT REMAINS UNSATISFIED`
+
+This replacement remains authoritative until a later targeted Acceptance Re-Verification passes.
+
+**6. Timestamp-truth correction.** `2026-08-04T05:41:41+03:00` was described as the persistence / execution time of the Prompt-04 correction. Git evidence shows the first content commit at 05:41:49 and the final content commit at 05:43:36, so the value is retained **only as the correction run start**. The distinct times are:
+
+- correction run start — 2026-08-04T05:41:41+03:00;
+- first Prompt-04 content commit — 2026-08-04T05:41:49+03:00;
+- final Prompt-04 content commit — 2026-08-04T05:43:36+03:00;
+- Prompt-04 merge — 2026-08-04T05:43:55+03:00;
+- Prompt-04 final report time — Exact time not recorded.
+
+**7. Preservation.** All other contracts remain authoritative and unchanged: Phase 0, Phase 1 and CLOSED Phase 2; Phase 3 identity and state `ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE`; Tracks A–E; Sub-phases 3.0–3.7; Workstreams `WS-DH-2026-0012` through `WS-DH-2026-0020` and the Option C registration model; Decisions `-001` through `-007`, including the D1–D10 package, which is not modified by this decision; the Memory boundary; the complete 16-item Deferred Items Register; and the exact-file restoration rollback strategy.
+
+**8. Mandatory next action.** A separate **targeted Acceptance Re-Verification (Prompt 07)** is required before any Acceptance can be granted.
+
+**9. Explicitly absent.** This decision grants **no** Technical Acceptance by Prompt 06, **no** Owner Acceptance, **no** Acceptance persistence, **no** Sub-phase 3.1 advancement, **no** Workstream package creation or investigation, **no** Project Knowledge installation and **no** Closure.
+
+### Rationale
+
+Prompt 05 granted a passing Acceptance verdict over evidence that its own mandatory commit-topology check had failed. Rewriting Prompt-04 history to satisfy the original one-commit contract would destroy the audit evidence that proves the correction stayed inside its three-path allowlist, and leaving the mislabelled timestamp in place would keep an untruthful claim in an authoritative governance file. A narrow, evidence-bound supersession records the actual topology, restores the correct failed verdict, and repairs the timestamp description without weakening any other contract.
+
+### Rejected alternatives
+
+1. **Retain the Prompt-05 `PASSED` verdict** — rejected. It contradicts the recorded evidence and would advance governance toward Owner Acceptance over an unsatisfied mandatory check.
+2. **Rewrite, squash or amend Prompt-04 into a single commit** — rejected. It would destroy the audit evidence and violate the prohibition on rewriting governance history.
+3. **Delete or silently re-date the 05:41:41 timestamp** — rejected. The value is evidenced as the run start; removing it would lose provenance, and re-dating it would create a new untruth.
+4. **Adopt a general multi-commit allowance for all governance executions** — rejected. The topology contract is a control; only a Prompt-scoped, evidence-conditional exception is authorized.
