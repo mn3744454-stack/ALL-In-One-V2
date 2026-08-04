@@ -75,7 +75,12 @@ export function useInvoices(tenantId?: string) {
         .from("invoices" as any)
         .select("*")
         .eq("tenant_id", tenantId)
-        .order("created_at", { ascending: false });
+        // Stage C · Slice B — invoice document chronology is issue_date.
+        // created_at and id remain deterministic tie-breakers only.
+        // due_date continues to drive due/overdue behavior elsewhere.
+        .order("issue_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
 
       if (error) {
         if (error.code === "42P01") {
