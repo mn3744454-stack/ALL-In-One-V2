@@ -32,7 +32,7 @@ Recovery Status:
 Not applicable
 
 Current Roadmap position:
-Phase 2 closed; next Roadmap structure or Phase has not been owner-approved.
+Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE; Acceptance Re-Audit pending.
 ```
 
 ## Phase register
@@ -42,8 +42,10 @@ Phase 2 closed; next Roadmap structure or Phase has not been owner-approved.
 | `RM-DH-003 / Phase 0` | ChatGPT Governance Foundation | Completed |
 | `RM-DH-003 / Phase 1` | Lovable Repository Investigation | Completed |
 | `RM-DH-003 / Phase 2` | Governance Foundation Execution | CLOSED |
+| `RM-DH-003 / Phase 3` | Persistent Knowledge Architecture, Verification, Organization and Installation — هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها | ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE |
 
-No later Phase is created or named here. Later Phases require owner approval before they exist.
+No Phase after Phase 3 is created or named here. Later Phases require owner approval before they exist.
+
 
 ## Inside RM-DH-003 / Phase 2
 
