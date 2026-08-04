@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+
 
 export interface POSCartItem {
   id: string;
