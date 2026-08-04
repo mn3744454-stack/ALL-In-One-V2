@@ -135,8 +135,24 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tool
             {items.map((item) => {
               const ItemIcon = item.icon;
               const isActive = isHrefActive(location.pathname, fullSearch, item.href);
+              if (item.comingSoon) {
+                return (
+                  <div
+                    key={item.href}
+                    aria-disabled="true"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-navy/35 cursor-not-allowed select-none"
+                  >
+                    <ItemIcon className="w-4 h-4" />
+                    <span className="flex-1">{item.label}</span>
+                    {item.comingSoonLabel && (
+                      <span className="px-2 py-0.5 text-[10px] rounded-full font-medium bg-navy/5 text-navy/50">
+                        {item.comingSoonLabel}
+                      </span>
+                    )}
+                  </div>
+                );
+              }
               return (
-                <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => {
