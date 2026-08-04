@@ -430,34 +430,40 @@ No private Client names or private financial details are recorded here.
 
 ## Remaining Work
 
-1. read-only Stage A Acceptance Persistence Verification and Stage B Readiness Review;
-2. read-only Phase Advancement Persistence Acceptance Re-Audit;
-3. correction of any proven persistence defects;
-4. after successful verification, the Stage B Writer Contract investigation for WS-DH-2026-0003;
-5. no Stage B, Stage C or Stage D technical execution before that investigation and later Owner Alignment.
+1. read-only Stage B Acceptance Persistence Verification (Prompt 37);
+2. read-only Stage A Acceptance Persistence Verification;
+3. read-only Phase Advancement Persistence Acceptance Re-Audit;
+4. correction of any proven persistence defects;
+5. after verified Stage B Acceptance Persistence and separate Owner authorization, the Stage C Read-Path Cutover investigation for WS-DH-2026-0003;
+6. no Stage C or Stage D technical execution before that investigation and later Owner Alignment.
 
 ## Current Stopping Point
 
 Stage A of WS-DH-2026-0003 has been executed, independently re-audited, explicitly accepted by the Owner and persisted for its bounded scope.
 
+Stage B of WS-DH-2026-0003 has been executed, independently re-audited, explicitly accepted by the Owner on 04-08-2026 at 20:49 Asia/Riyadh (UTC+03:00) and persisted by this run for its bounded scope. Stage B is ACCEPTED — PERSISTED — VERIFICATION PENDING and is not yet marked verified or completed.
+
 RM-DH-004 remains ACTIVE — PHASE 1.
 
 WS-DH-2026-0003 remains ACTIVE.
 
-Stage B, Stage C and Stage D have not started.
+Stage C and Stage D have not started.
+
+The Emergency Rollback was not executed.
 
 Workstream-wide Technical Acceptance, Phase 1 completion and all Closure states remain incomplete.
 
-Stage A Acceptance Persistence requires a separate read-only verification before Stage B investigation may begin.
-
+Stage A and Stage B Acceptance Persistence each require a separate read-only verification.
 
 ## Next Permitted Action
 
-Plan/Chat — Read-Only Stage A Acceptance Persistence Verification and Stage B Readiness Review
+Plan/Chat — Read-Only Stage B Acceptance Persistence Verification (Prompt 37)
 
-Stated separately: that verification must stop before Stage B implementation, before any Writer change, before any Statement change and before any database change.
+Stated separately: that verification must stop before Stage C, before any Statement or read-path change, before any Emergency Rollback execution and before any database change.
 
-Also stated separately: the read-only Phase Advancement Persistence Acceptance Re-Audit remains an open governance item, and after successful verification the next Workstream-specific action may be:
+Also stated separately: the read-only Stage A Acceptance Persistence Verification and the read-only Phase Advancement Persistence Acceptance Re-Audit remain open governance items, and after Prompt 37 passes and the Owner separately authorizes it, the next Workstream-specific action may be:
 
-Plan/Chat — Read-Only Economic Date Integrity Investigative Audit for Stage B
+Plan/Chat — Read-Only Stage C Read-Path Cutover Investigative Audit
+
+
 
