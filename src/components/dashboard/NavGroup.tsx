@@ -9,6 +9,9 @@ interface NavSubItem {
   label: string;
   href: string;
   badge?: number;
+  /** Renders the item disabled with a "Coming Soon" chip */
+  comingSoon?: boolean;
+  comingSoonLabel?: string;
 }
 
 interface NavGroupProps {
