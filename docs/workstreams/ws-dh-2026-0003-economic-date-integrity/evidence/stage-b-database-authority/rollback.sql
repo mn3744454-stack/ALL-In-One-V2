@@ -252,7 +252,7 @@ BEGIN
   SELECT count(*) INTO v_cnt
   FROM rb_fn_acl_rows
   WHERE grantee_name = 'authenticated' AND privilege_type = 'EXECUTE';
-  IF v_cnt <> 10 THEN RAISE EXCEPTION 'RB_AUTHENTICATED_WRAPPER_DRIFT: %', v_cnt; END IF;
+  IF v_cnt <> 11 THEN RAISE EXCEPTION 'RB_AUTHENTICATED_WRAPPER_DRIFT: %', v_cnt; END IF;
 
   -- 13./14. service_role and postgres authority present
   SELECT count(*) INTO v_cnt FROM rb_fn_acl_rows WHERE grantee_name = 'service_role';
