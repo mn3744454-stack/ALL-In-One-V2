@@ -122,10 +122,26 @@ None — no Phase 3 or later Phase exists or is owner-approved
 Phase 2 closed after successful Acceptance and explicit owner Closure approval.
 ```
 
+That Phase 2 Closure was the explicit owner decision. This Roadmap may not accept or close itself.
+
+## Current Phase 3 stopping point
+
+```text
+Phase 3 governance is persisted in the repository.
+Sub-phase 3.0 remains the current position.
+Governance Persistence Execution is complete.
+Acceptance Re-Audit is pending and is the next permitted operation.
+No Workstream investigation has started.
+No dedicated Workstream package exists for WS-DH-2026-0012 through WS-DH-2026-0020.
+No Project Knowledge is installed.
+No advancement to Sub-phase 3.1 has occurred.
+```
+
 ## Next permitted Roadmap action
 
 ```text
-Owner-approved classification and read-only investigation of the Lovable Persistent Instructions Architecture.
+Prepare and run a separate Plan/Chat — Read-only Governance Persistence Acceptance Re-Audit Prompt.
 ```
 
-That investigation was not classified or begun by this Closure execution. This Roadmap may not accept or close itself; the Closure recorded here is the explicit owner decision.
+Execution is not Acceptance, and Acceptance is not Closure.
+
