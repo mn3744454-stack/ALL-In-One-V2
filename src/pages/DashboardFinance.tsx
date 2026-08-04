@@ -335,30 +335,9 @@ function LedgerTab() {
   const [dateTo, setDateTo] = useState("");
   const [enrichedDescs, setEnrichedDescs] = useState<Map<string, EnrichedDescription>>(new Map());
 
-  // Auto-run backfill once per tenant (owner only)
-  useEffect(() => {
-    if (!tenantId || !isOwner) return;
-    const key = `ledgerBackfillDone:${tenantId}`;
-    if (localStorage.getItem(key) === "true") return;
+  // Stage B: automatic ledger description backfill removed — browser-side
+  // ledger writes are no longer permitted. Backfill is a governed operation.
 
-    let cancelled = false;
-    (async () => {
-      try {
-        const { backfillLedgerDescriptions } = await import("@/lib/finance/backfillLedgerDescriptions");
-        const result = await backfillLedgerDescriptions(tenantId);
-        if (!cancelled) {
-          localStorage.setItem(key, "true");
-          if (result.updated > 0) {
-            const { toast } = await import("sonner");
-            toast.success(`Ledger enrichment: ${result.updated} updated`);
-          }
-        }
-      } catch (err) {
-        console.error("Backfill error:", err);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [tenantId, isOwner]);
 
   // Display-level enrichment for old entries (Gate 3 Option B)
   useEffect(() => {
