@@ -125,6 +125,7 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   };
 
   const handleChildClick = (child: NavModuleChild) => {
+    if (child.comingSoon) return;
     navigate(child.route);
     onOpenChange(false);
     setSelectedModule(null);
