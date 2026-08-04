@@ -1,11 +1,12 @@
 <!--
 id: DHB-RM-003-DECISIONS
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (decisions)
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-07-31
+last-verified: 2026-08-04
+
 supersedes: []
 superseded-by: null
 source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.
