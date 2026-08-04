@@ -1,5 +1,4 @@
 import { formatCurrency } from "@/lib/formatters";
-import { format } from "date-fns";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 import { classifyLedgerEntry, semanticClassLabel } from "@/lib/finance/statementSemantics";

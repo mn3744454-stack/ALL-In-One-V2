@@ -1388,7 +1388,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                               <TableRow key={row.key} className="align-top bg-muted/20">
                                 <TableCell className="text-center font-mono text-xs tabular-nums whitespace-nowrap text-muted-foreground" dir="ltr">
                                   {/* 2QA-A · Finding 2 — segment rows show the parent posting date */}
-                                  {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                                  {formatEconomicDate(row.entry.date)}
                                 </TableCell>
                                 <TableCell>
                                   <RowDescription row={row} isRTL={isRTL} t={t} />
@@ -1408,7 +1408,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                           return (
                             <TableRow key={row.key} className={cn("align-top", isNeutralized && "opacity-60")}>
                               <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
-                                {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                                {formatEconomicDate(row.entry.date)}
                               </TableCell>
                               <TableCell>
                                 <RowDescription row={row} isRTL={isRTL} t={t} />
@@ -1448,7 +1448,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                           <div key={row.key} className="p-3 space-y-1 bg-muted/20">
                             <span className="font-mono text-xs text-muted-foreground" dir="ltr">
                               {/* 2QA-A · Finding 2 — mobile segment rows show the parent posting date */}
-                              {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                              {formatEconomicDate(row.entry.date)}
                             </span>
                             <RowDescription row={row} isRTL={isRTL} t={t} />
                             <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
@@ -1462,7 +1462,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       return (
                         <div key={row.key} className="p-3 space-y-2">
                           <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                            {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                            {formatEconomicDate(row.entry.date)}
                           </span>
                           <RowDescription row={row} isRTL={isRTL} t={t} />
                           <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
