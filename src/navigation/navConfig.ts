@@ -36,6 +36,8 @@ export interface NavModuleChild {
   labelKey: string;
   route: string;
   permissionKey?: string;
+  /** If true, the item is shown but disabled with a "Coming Soon" state */
+  comingSoon?: boolean;
   /** If true, only show when module is enabled */
   moduleKey?: "breeding" | "vet" | "lab" | "movement" | "housing";
 }
