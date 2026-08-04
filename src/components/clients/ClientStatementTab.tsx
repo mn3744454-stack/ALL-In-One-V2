@@ -30,7 +30,7 @@ import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } fr
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
 import { summarizeStatement } from "@/lib/finance/statementSemantics";
-import { compareEconomicOrder, toCents, fromCents } from "@/lib/finance/effectiveDate";
+import { compareEconomicOrder, toCents, fromCents, formatEconomicDate } from "@/lib/finance/effectiveDate";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
 
