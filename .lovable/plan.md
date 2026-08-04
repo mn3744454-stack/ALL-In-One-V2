@@ -1,179 +1,158 @@
-# PROMPT 39 — STAGE-C SLICE-A INDEPENDENT QA (READ-ONLY)
+# PROMPT 40 — STAGE-C SLICE-A ACCEPTANCE RE-AUDIT (READ-ONLY)
 
 ## A. Executive Verdicts
 
-- Scope: STAGE-C SLICE-A READ-ONLY QA SCOPE PRESERVED
-- Lineage: PROMPT-38 SLICE-A IMPLEMENTATION LINEAGE VERIFIED
-- Code: STAGE-C SLICE-A CODE CONTRACT VERIFIED
-- Function: FIRST-ACTIVITY LIVE FUNCTION CONTRACT VERIFIED
-- Chronology: LIVE ECONOMIC CHRONOLOGY VERIFIED ON DIVERGENT ROWS
-- Opening: PRE-RANGE OPENING-BALANCE QA PASSED
-- Running: DISPLAY-DERIVED RUNNING-BALANCE QA PASSED
-- Parity: VISUAL PREVIEW UNAVAILABLE — STRUCTURAL PARITY VERIFIED
-- First activity: FIRST FINANCIAL ACTIVITY QA PASSED
-- Tests: STAGE-C SLICE-A TARGETED TESTS INDEPENDENTLY PASSED
-- Typecheck: STAGE-C SLICE-A TYPECHECK INDEPENDENTLY PASSED
-- Build: STAGE-C SLICE-A BUILD INDEPENDENTLY PASSED
-- Regression: STAGE-C SLICE-A ZERO-REGRESSION QA PASSED
+- Prompt: PROMPT 40 SUBMITTED — RUN — CONSUMED
+- Scope: STAGE-C SLICE-A ACCEPTANCE SCOPE PRESERVED
+- Drift: CURRENT SLICE-A REPOSITORY STATE UNCHANGED SINCE PROMPT 39
+- Completeness: SLICE-A AUTHORIZED SCOPE COMPLETE
+- Correctness: SLICE-A ECONOMIC-DATE CORRECTNESS ACCEPTED
+- Security: SLICE-A TENANT AND PERMISSION CONTRACT ACCEPTED
+- Regression: SLICE-A ZERO-REGRESSION CONTRACT ACCEPTED
+- Testing: SLICE-A TEST AND BUILD EVIDENCE ACCEPTED
+- Residuals: SLICE-A RESIDUALS CORRECTLY CLASSIFIED AS NON-BLOCKING
 - Writes: ZERO REPOSITORY AND DATABASE WRITE CONFIRMED
 - Prior stages: STAGE A AND STAGE B REMAINED CLOSED
-- Final: STAGE-C SLICE-A INDEPENDENT QA PASSED — READY FOR SLICE-A ACCEPTANCE RE-AUDIT
+- Stage boundary: STAGE C REMAINS ACTIVE — SLICE-A OWNER ACCEPTANCE PENDING
+- Final: STAGE-C SLICE-A ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE
 
-## B. Roadmap
+## B. Complete Roadmap
 
-RM-DH-004 Phase 1 (Economic Date Integrity) active. Stage A closed, Stage B closed, Stage C active at Slice A. Stage D not started. Phases 2–8 not started. No Closure.
+Mission: build a safe historical financial migration system, then execute the Laboratory Historical Import as the first controlled Pilot.
 
-## C. Preflight and Lineage
+Phase 0 completed. Phase 1 (Economic Date Integrity) active — Stage A closed, Stage B closed, Stage C active, Stage D not started. Phases 2–8 not started. Current position: Stage C · Slice A, implemented and independently QA-passed, awaiting Owner Acceptance. No Workstream, Phase or Roadmap Closure.
 
-- Branch: `edit/edt-5fa38a4e-cf33-4c29-b457-f2e06dbdf0c7`
-- HEAD: `302ec9118d37ca487c3cb2db3765ff82d3437b2e` ("Implemented effective date slice")
-- HEAD parents: `21e5113b49d7a90ca13b91ca15976e4becb4ee57`, `c4a213a9c2189f6696fd216a1afb778e5724fdb4`
-- Prompt-38 implementation chain (all reachable from HEAD): `c4a213a9c2189f6696fd216a1afb778e5724fdb4` → `b3c14992a672f8acd9b935cf0532d95a5fe87262` → `e2be0a96a794d61b0e2c8fa01c0f189c7b16ab18` → `acfc7d1d3884f1858fa73d271159a1cffb4fc309` → `72adfc2e6fb494327cf0786bbe8e2fa01ac9fa6a` → `c452bd651b6ed39267bbda1224335e0edd781ccd`
-- Working Tree before and after QA: clean (`git status --porcelain` empty both times)
-- Later drift on Slice-A paths after the Prompt-38 chain: none (latest commit touching those paths is `c4a213a9…`)
-- Expected migration present: `supabase/migrations/20260804182812_4b8065f5-a507-4d24-a17c-6674f7c98ee3.sql` (newest migration in tree)
+## C. Current Repository Drift Gate
+
+- Branch: `edit/edt-7392a2bb-e621-4715-b010-e4698f74aed6`
+- HEAD: `a141a53ff05e2a99ebee38340a4f127ab0affe3a` ("Update plan")
+- HEAD parents: `302ec9118d37ca487c3cb2db3765ff82d3437b2e`, `4bd7643bcf990e14579c477daff37772d761f529`
+- Working Tree: clean — staged paths none, unstaged paths none, untracked paths none
+- Diff `302ec9118d37ca487c3cb2db3765ff82d3437b2e` → `a141a53ff05e2a99ebee38340a4f127ab0affe3a`: `.lovable/plan.md` only (147 insertions, 86 deletions) — the Prompt-39 QA report, a platform-managed governance artifact under DEC-RM-DH-003-004
+
+Latest commit per Slice-A path:
+
+| Slice-A path | Latest commit | Date (UTC) |
+|---|---|---|
+| `src/lib/finance/effectiveDate.ts` | `d321d850b2714d56896322374f2ed43bad128c24` | 2026-08-04 18:26:32 |
+| `src/hooks/clients/useClientStatement.ts` | `d321d850b2714d56896322374f2ed43bad128c24` | 2026-08-04 18:26:32 |
+| `src/components/clients/ClientStatementTab.tsx` | `acfc7d1d3884f1858fa73d271159a1cffb4fc309` | 2026-08-04 18:27:44 |
+| `src/components/clients/StatementPrintUtils.ts` | `72adfc2e6fb494327cf0786bbe8e2fa01ac9fa6a` | 2026-08-04 18:27:38 |
+| `src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` | `c4a213a9c2189f6696fd216a1afb778e5724fdb4` | 2026-08-04 18:29:04 |
+| `supabase/migrations/20260804182812_4b8065f5-a507-4d24-a17c-6674f7c98ee3.sql` | `e2be0a96a794d61b0e2c8fa01c0f189c7b16ab18` | 2026-08-04 18:28:19 |
+
+Every Slice-A path's newest commit belongs to the Prompt-38 implementation chain. No substantive commit after Prompt 39 changed any Slice-A path. **CURRENT SLICE-A REPOSITORY STATE UNCHANGED SINCE PROMPT 39** — no narrow drift re-check was triggered and no completed technical QA was rerun.
 
 ## D. Evidence Boundary
 
-- Facts: repository inspection, Git lineage, read-only `psql` SELECTs, live `pg_proc` definition, test/typecheck/build runs.
-- Prompt-38 claims verified: 88 ledger rows, 0 NULL `effective_date`, 27 divergent rows, targeted 14/14 pass, typecheck pass, build pass.
-- Prompt-38 claim not reproducible as stated: "254 finance tests". The `src/lib/finance` glob yields 217 passing tests across 12 files; the InvoicePDFGenerator RTL test lives outside that path and was not executed here, so its pre-existing status is neither confirmed nor contradicted by this run.
-- Gap: no interactive browser session was used; parity is verified structurally from code, not visually.
+**Repository facts measured in Prompt 40**: branch, HEAD, parents, clean Working Tree, per-path latest commits, and the single-file `.lovable/plan.md` diff since the Prompt-39 HEAD. Nothing else was measured.
 
-## E. Code-Contract QA
+**Prompt-38 evidence (implementation, authoritative)**: helper contract, statement query cutover, opening balance, derived running balance, first-activity migration, date-only rendering, zero historical financial-row writes.
 
-**Helper — `src/lib/finance/effectiveDate.ts`**: declares `effective_date` as the sole economic chronology, keeps `created_at` explicitly as audit/tie-breaker, provides `compareEconomicOrder` with asc/desc mirroring across `date → createdAt → id`, string-based `formatEconomicDate` (no `new Date("yyyy-MM-dd")`, no UTC shift), inclusive `isWithinEconomicRange`, and integer-cent `toCents`/`fromCents`/`sumMoney`. Legacy UTC-window helpers retained but marked `@deprecated` and scoped to non-financial/audit paths. VERIFIED.
+**Prompt-39 QA evidence (independent, authoritative)**: lineage verified; code contract verified; live function definition verified byte-equivalent to the migration; 88 rows / 0 NULLs / 27 divergent rows; per-client ordering comparison; four opening-balance and four running-balance cases at zero difference; eight first-activity cases at zero difference; structural Screen/Print/CSV parity; 14/14 targeted, 217/217 finance, typecheck and build all passing; zero repository and database writes.
 
-**Query — `src/hooks/clients/useClientStatement.ts`**: selects `effective_date` plus `created_at` (audit only); orders `effective_date ASC, created_at ASC, id ASC` matching `ledger_entries_effective_composite_idx`; filters `.gte`/`.lte` on `effective_date` with `toEconomicDateString` (plain `yyyy-MM-dd`, both bounds inclusive, no UTC helper); sets `StatementEntry.date` from `effective_date`; retains `balance_after` only as `balance` with an explicit "audit metadata only" contract; preserves `.eq("tenant_id")` and `.eq("client_id")`. VERIFIED.
+**Acceptance inference (Prompt 40)**: because the Slice-A paths, the applied migration and the live function are unchanged since QA, the Prompt-39 measurements remain currently valid without re-execution.
 
-**Opening balance**: separate pre-range read, `lt("effective_date", cutoff)`, tenant- and client-scoped, paginated at 1000 rows with an explicit `.range()` loop so a default row cap cannot truncate the sum, accumulated in integer cents, returns 0 when `dateFrom` is absent, never sourced from the first visible row or from `balance_after`. VERIFIED.
+**Gaps**: no interactive browser preview was ever performed (Residual 2); the live database was not re-queried in Prompt 40 by design, so live values are accepted as of the Prompt-39 run rather than re-measured now.
 
-**Running balance**: `ClientStatementTab.tsx` seeds `runningBalances` from `statement.openingBalance` (line 841), accumulates over `flatRows` already sorted by `compareEconomicOrder` (line 809), uses `toCents`/`fromCents`, holds the prior balance for neutralized rows (`scopedSummary.neutralizedRowIds`), and never writes or displays `balance_after` as authority. VERIFIED.
+**Contradictions**: none. The single Prompt-38/39 numeric divergence (254 vs 217 finance tests) is a reporting-scope difference, already classified as Residual 3.
 
-**Rendering**: statement rows use `formatEconomicDate` (lines 1391, 1411, 1451, 1465); Print and CSV both route through `formatDateForPrint` → `formatEconomicDate` (StatementPrintUtils lines 57–58, 151, 163, 237, 281, 315). Arabic and English share the identical underlying `yyyy-MM-dd` string. Generic ledger printing (`printLedgerEntries`, `exportLedgerCSV`) unchanged. VERIFIED.
+## E. Scope Completeness
 
-## F. Migration and Live Function QA
+| # | Authorized Slice-A outcome | Evidence | Status |
+|---:|---|---|---|
+| 1 | Canonical effective-date helper | `effectiveDate.ts` contract, comparator, date-only formatter, cent helpers | COMPLETE |
+| 2 | Statement selects `effective_date` | `useClientStatement.ts` select list | COMPLETE |
+| 3 | Inclusive date-only filters | `.gte`/`.lte` on `effective_date` via `toEconomicDateString` | COMPLETE |
+| 4 | Deterministic ordering | `effective_date, created_at, id` in SQL and `compareEconomicOrder` | COMPLETE |
+| 5 | Opening-balance correction | pre-range `effective_date < from`, tenant+client scoped, paginated | COMPLETE |
+| 6 | Display-derived running balance | seeded from `openingBalance` in `ClientStatementTab.tsx` | COMPLETE |
+| 7 | Monetary-safe accumulation | `toCents`/`fromCents` throughout | COMPLETE |
+| 8 | First-activity RPC cutover | migration `20260804182812…`, live definition matches | COMPLETE |
+| 9 | Date-only Screen rendering | `formatEconomicDate` on all statement rows | COMPLETE |
+| 10 | Date-only Print rendering | `formatDateForPrint` → `formatEconomicDate` | COMPLETE |
+| 11 | Date-only CSV rendering | same serializer path | COMPLETE |
+| 12 | Targeted tests | 14/14 passed | COMPLETE |
+| 13 | Typecheck | exit 0 | COMPLETE |
+| 14 | Build | exit 0 | COMPLETE |
+| 15 | Zero historical financial-row write | ledger row count, NULL count and `balance_after` unchanged | COMPLETE |
 
-Live `pg_proc` definition is byte-equivalent to the migration body.
+**SLICE-A AUTHORIZED SCOPE COMPLETE.**
 
-- Signature `get_client_first_financial_activity(p_tenant_id uuid, p_client_id uuid)` — unchanged
-- Returns `timestamp with time zone`; owner `postgres`; `prosecdef = t`; `proconfig = {"search_path=public, pg_temp"}`; `STABLE`
-- Gates preserved: `auth.uid()` non-null, `is_tenant_member`, `has_permission(..., 'clients.statement.view')`, client-belongs-to-tenant
-- Economic expression: `MIN(le.effective_date)`; future guard `le.effective_date <= current_date`
-- Unrelated predicates (invoice_cancellation exclusion, draft/cancelled invoice exclusion) unchanged
-- No write statement, no index, no RLS, no GRANT change
+## F. Correctness Acceptance
 
-**Date-cast behavior**: the function returns `v_first::timestamp AT TIME ZONE current_setting('TimeZone')`, i.e. local midnight of the economic date in the session timezone. Live session `TimeZone` is `UTC`, so `2013-07-20` returns `2013-07-20 00:00:00+00`. The only caller, `useClientFirstActivity.ts`, does `String(at).slice(0, 10)` on the PostgREST string, which preserves the offset-local calendar date under both `UTC` and `Asia/Riyadh` sessions. No calendar-day shift is possible on this path. No BLOCKING DATE-CAST DEFECT.
+- 88 ledger rows, 0 NULL `effective_date`, 27 divergent rows — matches §5.1 baseline
+- Economic order materially differs from the legacy `created_at` order for five of seven affected client pairs; the other two reorder to the identical sequence
+- Same-effective-date ties resolve by `created_at` then `id` identically in SQL and in `compareEconomicOrder`, with the descending path mirroring all three keys
+- Opening balance: 1200.00 / 50.00 / 580.00 / 719.35 — zero difference against the application algorithm; never sourced from the first visible row or `balance_after`; zero when no `from_date`
+- Running balance: closings 131985.00 / 2770.00 / 905.00 / 1669.35 — zero difference; closing equals opening plus visible period sum in every case; neutralized rows hold the prior balance; `balance_after` neither rewritten nor used as display authority (demonstrated on client `a279407b…`, whose stored final `balance_after` is not a valid economic running total)
+- First activity: eight clients, zero difference; the `v_first::timestamp AT TIME ZONE current_setting('TimeZone')` cast returns local midnight and the sole caller slices the `yyyy-MM-dd` prefix, so no calendar-day shift is possible under UTC or Asia/Riyadh
+- Rendering: `flatRows` → `printEntries` → `printData` is one ordered in-memory set for Screen, Print and CSV; identical ids, dates and balances; no fabricated time; no UTC day shift
 
-## G. Divergent-Row Chronology QA
+**SLICE-A ECONOMIC-DATE CORRECTNESS ACCEPTED.**
 
-Live totals: 88 rows, 0 NULLs, **27 divergent rows** (Prompt-38 claim holds), 3 tenants, 8 clients, range 2013-07-20 → 2026-07-27.
+## G. Security and Tenancy Acceptance
 
-| Tenant | Client | Rows | Divergent | Old/new order differs? | Same-date ties? | Result |
-|---|---|---:|---:|---|---|---|
-| 145f2128… | f225ffb7… | 37 | 15 | Yes | Yes (23) | PASS |
-| 348ce41c… | 364165f0… | 15 | 1 | Yes | Yes (9) | PASS |
-| 348ce41c… | 3e1f790b… | 5 | 3 | No | Yes (2) | PASS |
-| 348ce41c… | 4461804b… | 14 | 2 | Yes | Yes (7) | PASS |
-| 348ce41c… | 7e2a78b3… | 1 | 1 | No | No | PASS |
-| 348ce41c… | a3165b28… | 6 | 2 | Yes | Yes (4) | PASS |
-| 8951ac1a… | a279407b… | 4 | 3 | Yes | Yes (2) | PASS |
+Both statement reads keep `.eq("tenant_id")` and `.eq("client_id")`, so tenant and client scope and the underlying RLS-governed read path are unchanged. The first-activity function preserves its signature, `timestamptz` return, `SECURITY DEFINER`, owner `postgres`, `search_path = public, pg_temp`, the `auth.uid()` and `is_tenant_member` gates, the `clients.statement.view` permission gate and the client-belongs-to-tenant isolation check. The migration contains no GRANT, no RLS statement, no index change and no write statement; no cross-tenant aggregation and no permission broadening exist anywhere in the slice.
 
-Order comparison used `array_agg(id ORDER BY effective_date, created_at, id)` versus `array_agg(id ORDER BY created_at, id)`; five of seven clients reorder materially, confirming Slice A is behaviorally live. Ties are broken deterministically by `created_at` then `id` in both SQL and `compareEconomicOrder`.
+**SLICE-A TENANT AND PERMISSION CONTRACT ACCEPTED.**
 
-Date-only filter cases exercised inclusive bounds on a divergent row (2026-05-10 single-day range), a same-date tie set (2026-05-09), a month boundary (2026-02-01) and a year boundary (2026-01-01); every range returned exactly the expected row counts with both bounds inclusive and no UTC conversion.
+## H. Zero-Regression Acceptance
 
-## H. Opening-Balance QA
+No historical financial-row write, no `balance_after` write, no `effective_date` repair. Ledger row count 88 unchanged; NULL count remains 0. Stage A and Stage B remained closed and were not reopened. The Stable Contract and the Emergency Rollback artifact were not touched. Unrelated invoice, payment, expense and dashboard read paths were not modified — the only application changes are the four Slice-A source files plus the targeted test. Stage D not started.
 
-| Tenant | Client | From | Pre-range rows | Expected opening | Application opening | Diff | Result |
-|---|---|---|---:|---:|---:|---:|---|
-| 145f2128… | f225ffb7… | 2026-01-01 | 3 | 1200.00 | 1200.00 | 0.00 | PASS |
-| 348ce41c… | 364165f0… | 2026-01-01 | 1 | 50.00 | 50.00 | 0.00 | PASS |
-| 348ce41c… | 4461804b… | 2026-02-01 | 1 | 580.00 | 580.00 | 0.00 | PASS |
-| 8951ac1a… | a279407b… | 2026-05-10 | 3 | 719.35 | 719.35 | 0.00 | PASS |
+**SLICE-A ZERO-REGRESSION CONTRACT ACCEPTED.**
 
-Application values reproduced from the hook's exact algorithm (`effective_date < from`, tenant+client scoped, cent-accumulated, paginated). No case relies on the first visible row or on `balance_after`; with no `dateFrom` the algorithm returns 0 by construction.
+## I. Test and Build Evidence
 
-## I. Running-Balance QA
-
-| Tenant | Client | From | To | Visible rows | Opening | Period sum | Expected closing | App closing | Diff | Result |
-|---|---|---|---|---:|---:|---:|---:|---:|---:|---|
-| 145f2128… | f225ffb7… | 2026-01-01 | 2026-12-31 | 34 | 1200.00 | 130785.00 | 131985.00 | 131985.00 | 0.00 | PASS |
-| 348ce41c… | 364165f0… | 2026-01-01 | 2026-07-27 | 14 | 50.00 | 2720.00 | 2770.00 | 2770.00 | 0.00 | PASS |
-| 348ce41c… | 4461804b… | 2026-02-01 | 2026-04-03 | 13 | 580.00 | 325.00 | 905.00 | 905.00 | 0.00 | PASS |
-| 8951ac1a… | a279407b… | 2026-05-10 | 2026-05-10 | 1 | 719.35 | 950.00 | 1669.35 | 1669.35 | 0.00 | PASS |
-
-No mismatching ordered row was found in any case. Stored/derived divergence example — client `a279407b…`: stored `balance_after` follows the write sequence 1669.35 → 969.35 → 719.35 → 1669.35, where the final row (economic date 2026-05-10, written *earliest* at 21:17) carries a `balance_after` of 1669.35 that is not a valid running total under economic order; the derived display sequence is 1669.35 → 969.35 → 719.35 → 1669.35 seeded correctly per range, and the single-day range opens at 719.35 rather than the stored value, proving the display no longer trusts `balance_after`. No `balance_after` value was mutated during QA.
-
-## J. Screen / Print / CSV Parity
-
-One in-memory set drives all three: `flatRows` → `printEntries` (identical `id`, `date`, `createdAt`, balances from the same `runningBalances` map) → `printData` → `printStatement` / `exportCSV` / `exportPDF`.
-
-| Case | Screen rows/order | Print rows/order | CSV rows/order | Date parity | Balance parity | Result |
-|---|---|---|---|---|---|---|
-| Divergent multi-row range (f225ffb7…) | flatRows, canonical | same array | same array | `formatEconomicDate` both sides | same `runningBalances` | PASS |
-| Same-date tie set (a279407b…) | flatRows, canonical | same array | same array | identical | identical | PASS |
-| Scoped/segment rows | segment inherits `row.entry.date` | same | same | identical | identical | PASS |
-
-Totals also flow from the single `scopedSummary`. No fabricated time appears on any statement row in Screen, Print or CSV. **Visual preview inspection was not performed**; this is structural verification only.
-
-## K. First-Activity QA
-
-Expected `MIN(effective_date) WHERE effective_date <= current_date` per client (function's additional draft/cancelled-invoice exclusions may only move the value later, never earlier):
-
-| Client | Expected first economic date | Function calendar date | Diff | Result |
-|---|---|---|---|---|
-| f225ffb7… | 2013-07-20 | 2013-07-20 (00:00+00) | none | PASS |
-| 364165f0… | 2017-02-20 | 2017-02-20 | none | PASS |
-| 4461804b… | 2026-01-30 | 2026-01-30 | none | PASS |
-| 3e1f790b… | 2026-02-05 | 2026-02-05 | none | PASS |
-| a3165b28… | 2026-01-31 | 2026-01-31 | none | PASS |
-| a279407b… | 2026-05-09 | 2026-05-09 | none | PASS |
-| 7e2a78b3… | 2026-07-25 | 2026-07-25 | none | PASS |
-| a0705f81… | 2026-02-08 | 2026-02-08 | none | PASS |
-
-Function was not invoked with a mutated role; authorization behavior was verified by definition inspection (unauthenticated raise, tenant-member raise, permission raise, tenant/client isolation via the `clients` existence check). Future-effective rows are excluded by `effective_date <= current_date`; the maximum live economic date is 2026-07-27, in the past relative to the run date.
-
-## L. Tests, Typecheck and Build
+Accepted from Prompt 39 without rerun:
 
 - `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` → 14/14 passed, exit 0
-- `bunx vitest run src/lib/finance` → 12 files, 217/217 passed, exit 0 (no failures; the InvoicePDFGenerator RTL test is outside this path and was not executed)
-- `tsgo --noEmit -p tsconfig.app.json` → exit 0, no diagnostics
-- `bun run build` → exit 0, built in 23.45s (only the pre-existing chunk-size advisory)
+- `bunx vitest run src/lib/finance` → 12 files, 217/217 passed, exit 0
+- `tsgo --noEmit -p tsconfig.app.json` → exit 0
+- `bun run build` → exit 0; chunk-size advisory pre-existing and non-blocking
+- InvoicePDFGenerator RTL test: outside the executed glob and outside Slice A — not reopened
 
-## M. Zero Regression
+**SLICE-A TEST AND BUILD EVIDENCE ACCEPTED.**
 
-Repository substantive writes: ZERO. Committed paths: ZERO. Working Tree clean before and after. Database writes / DDL / DML / financial-row writes / migration writes: ZERO — every database statement issued was a `SELECT`. Ledger row count 88 unchanged; `effective_date` NULLs remain 0; no `balance_after` value changed; no RLS or GRANT touched; Stable Contract and Emergency Rollback untouched. Temporary artifacts: `/tmp/t1.log`, `/tmp/t2.log`, `/tmp/tc.log`, `/tmp/b.log` (outside the repository) and `dist/` from the build (git-ignored, untracked). Stage A closed, Stage B closed, Stage C unaccepted, Stage D not started.
+## J. Residual Classification
 
-## N. Blocking Findings
+**Residual 1 — Unallocated Payments.** The Customer-level Activity block on the statement page is driven by `useUnallocatedPayments.ts`, which still selects, filters (UTC-window helpers) and orders by `created_at`, and renders with `formatDateTime12h`. Separate read path, excluded from Prompt 38, Deferred Item 26, correct business date is `payment_date`. Disposition: NON-BLOCKING — PROMOTED TO NEXT STAGE-C EXECUTION SLICE.
+
+**Residual 2 — Visual preview.** Structural parity only; one in-memory result set drives all three surfaces, serializers were inspected, targeted tests passed, no contradictory visual evidence exists. No browser preview occurred and none is claimed. Disposition: NON-BLOCKING FOR SLICE-A ACCEPTANCE.
+
+**Residual 3 — Test-count wording.** 254 (Prompt 38) versus 217 (Prompt 39 executed glob). Disposition: NON-BLOCKING REPORTING CORRECTION; functional QA not reopened.
+
+**SLICE-A RESIDUALS CORRECTLY CLASSIFIED AS NON-BLOCKING.**
+
+## K. Blocking Findings
 
 None.
 
-## O. Non-Blocking Residuals
+## L. Final Acceptance Re-Audit Result
 
-1. The Statement Screen's "Customer-level Activity" block (`ClientStatementTab.tsx` lines 1290 and 1329) renders `formatDateTime12h(e.date)`. Its source, `useUnallocatedPayments.ts`, still selects, filters (`localDateFromToUtcIso` / `localDateToToUtcIso`) and orders by `created_at`, so those rows legitimately carry a timestamp and no fabricated time is produced. This surface is explicitly Deferred Item 26 (Unallocated Payments payment-date cutover) and outside Slice A; it is disclosed, not counted as a Slice-A defect. It does mean the statement page currently mixes an economic-date table with a created_at-based auxiliary block.
-2. Prompt-38's "254 finance tests" figure is not reproducible under the `src/lib/finance` glob (217). Reporting artifact only; no functional impact.
+**STAGE-C SLICE-A ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE**
 
-## P. Final Result
+## M. Owner Decision Required
 
-**STAGE-C SLICE-A INDEPENDENT QA PASSED — READY FOR SLICE-A ACCEPTANCE RE-AUDIT**
+Approve or reject Stage-C Slice-A Acceptance. On approval, Slice A becomes accepted and the next operational step is Stage-C Slice B execution preparation, beginning with the Unallocated Payments `payment_date` cutover and the remaining Ledger/activity read paths. No separate Slice-A persistence loop is required unless the existing Stage-C governance package explicitly demands one.
 
-## Q. Recommendation
+## N. One Recommendation
 
-Issue Prompt 40 — Stage-C Slice-A Acceptance Re-Audit (read-only), carrying Residual 1 forward as the natural head of Deferred Item 26.
+Grant Owner Acceptance for Stage-C Slice A, then issue Prompt 41 — Stage-C Slice B execution preparation (Unallocated Payments `payment_date` cutover), Plan/Chat Read-Only.
 
-## R. Workstream Persistence
+## O. Workstream Persistence
 
-Stage A closed. Stage B closed. Stage C Slice A implemented. Independent QA result: PASSED. Acceptance not started. WS-DH-2026-0003 active. No Closure.
+Stage A closed. Stage B closed. Stage C active. Slice A implemented. Independent QA passed. Acceptance Re-Audit result: PASSED — READY FOR OWNER ACCEPTANCE. Owner Acceptance pending. No Slice-A persistence performed. WS-DH-2026-0003 active. No Closure.
 
-## S. Roadmap Impact
+## P. Roadmap Impact
 
-Phase 1 active. Stage C current. Stage D not started. Phases 2–8 not started. No advancement, no Closure.
+Phase 1 active. Stage C active. Slice A awaiting Owner Acceptance. Stage D not started. Phases 2–8 not started. No advancement, no Closure.
 
-## T. Deferred Items Register
+## Q. Deferred Items Register
 
-Items 1–20 (promoted to Prompt 39) are all executed and answered in this report. Items 21–37 remain BLOCKED PENDING PROMPT-39 RESULT and are now unblocked for Acceptance Re-Audit (21) only. Items 38–57 remain DEFERRED — TRACKED, unchanged and intact. No item removed.
+Items 1–12 (promoted to Prompt 40) are all executed and answered in this report. Items 13–28 remain BLOCKED PENDING OWNER ACCEPTANCE, unchanged. Items 29–48 remain DEFERRED — TRACKED, unchanged and intact. No item removed.
 
-## U. Run Metadata and Exact Stopping Point
+## R. Run Metadata and Exact Stopping Point
 
-1. Mode: Plan/Chat — Read-Only QA. 2. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-C-SLICE-A-INDEPENDENT-QA-39 — CONSUMED. 3. Prepared 04-08-2026 21:31 Asia/Riyadh. 4. Run start 21:38, end 21:46, report 21:47 Asia/Riyadh (UTC+03:00). 5. Timestamp evidence: message header 18:38 UTC; test runs stamped 18:40 UTC. 6–10. See Section C. 11. Code paths inspected: `effectiveDate.ts`, `useClientStatement.ts`, `ClientStatementTab.tsx`, `StatementPrintUtils.ts`, `useClientFirstActivity.ts`, `useUnallocatedPayments.ts`, `formatters.ts`, `displayHelpers.ts`, the Slice-A test file and the Prompt-38 migration. 12–14. See Section F. 15. Ledger rows 88. 16. NULLs 0. 17. Divergent 27. 18. Tenants 3, clients 8 (7 client pairs carry divergent rows). 19. Chronology cases 7 clients + 4 range cases. 20. Opening-balance cases 4. 21. Running-balance cases 4. 22. Parity cases 3. 23. First-activity cases 8. 24–26. See Section L. 27. Temporary artifacts: `/tmp/*.log`, `dist/` (untracked). 28–31. Repository substantive writes ZERO; database writes ZERO; financial-row writes ZERO; migration writes ZERO. 32. Stage A CLOSED. 33. Stage B CLOSED. 34. Slice-A QA result PASSED. 35. Acceptance NOT STARTED. 36. Stage D NOT STARTED. 37. Phase advancement NONE. 38. Closure NONE. 39. Stopping point: the Slice-A QA verdict and one recommendation. 40. Recommendation: Section Q. 41. Next Prompt: Prompt 40 — Slice-A Acceptance Re-Audit, Plan/Chat Read-Only.
+1. Mode: Plan/Chat — Read-Only Acceptance Re-Audit. 2. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-C-SLICE-A-ACCEPTANCE-REAUDIT-40 — SUBMITTED — RUN — CONSUMED. 3. Prepared 04-08-2026 21:49 Asia/Riyadh (UTC+03:00). 4. Run start 21:50, end 21:53, report 21:54 Asia/Riyadh. 5. Timestamp evidence: HEAD commit `a141a53f…` dated 2026-08-04 18:42:44 +0000; message header 18:38 UTC. 6. Branch `edit/edt-7392a2bb-e621-4715-b010-e4698f74aed6`; HEAD `a141a53ff05e2a99ebee38340a4f127ab0affe3a`; parents `302ec9118d37ca487c3cb2db3765ff82d3437b2e` and `4bd7643bcf990e14579c477daff37772d761f529`. 7. Working Tree clean. 8. Per-path latest commits: see Section C. 9. Post-QA drift: NONE (only `.lovable/plan.md` changed). 10. Scope completeness: COMPLETE (15/15). 11. Correctness: ACCEPTED. 12. Security/tenancy: ACCEPTED. 13. Zero regression: ACCEPTED. 14. Test/build evidence: ACCEPTED. 15. Residuals: three, all non-blocking. 16. Blocking findings: none. 17. Repository writes ZERO. 18. Database writes ZERO. 19. Financial-row writes ZERO. 20. Migration writes ZERO. 21. Stage A CLOSED. 22. Stage B CLOSED. 23. Stage C ACTIVE. 24. Slice A: ACCEPTANCE RE-AUDIT PASSED. 25. Owner Acceptance NOT YET GIVEN. 26. Slice B NOT STARTED. 27. Stage D NOT STARTED. 28. Phase advancement NONE. 29. Closure NONE. 30. Stopping point: the Slice-A Acceptance Re-Audit verdict and the Owner decision. 31. Recommendation: Section N. 32. Next Prompt: Prompt 41 — Stage-C Slice B execution preparation, Plan/Chat Read-Only, eligible only after Owner Acceptance.
