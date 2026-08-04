@@ -179,3 +179,38 @@ This commit-topology supersession applies only to that exact artifact and does n
 **Scope.** Exactly three files were written in this correction: this Roadmap's `decisions.md` (1.2.0 → 1.3.0) and `changelog.md` (1.3.0 → 1.3.1), and `docs/README.md` (1.14.0 → 1.14.1). No application, database, migration, RLS, RPC, Edge Function, configuration, Knowledge, Skill or settings change occurred, and Execution-02 Git history was not rewritten, rebased, squashed or amended.
 
 **Next permitted action.** Targeted Acceptance Re-Verification of this correction.
+
+---
+
+### 2026-08-04T10:16:00+03:00 — Prompt-04 commit-topology supersession, Prompt-05 verdict correction and timestamp-truth repair
+
+This timestamp is the **actual Prompt-06 repository correction execution time**. It is not the Prompt preparation time and it is not the Owner alignment time.
+
+- **Executed under:** `PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06`, Roadmap `RM-DH-003`, Phase 3, Sub-phase 3.0.
+- **Owner alignment:** 2026-08-04T08:41:00+03:00 (Asia/Riyadh — UTC+03:00) — **Option B2 — Prompt-04 Narrow Commit-Topology Supersession** approved.
+- **Governing decision:** `DEC-RM-DH-003-008` — Prompt-04 Commit-Topology Supersession and Prompt-05 Acceptance-Verdict Correction.
+
+**Verified Prompt-04 topology.** The Prompt-04 correction used **five content commits plus one merge commit**, not the single content commit its contract required:
+
+- pre-correction HEAD `095aed9184a0753eebdda3dc73ba5aecc541f722`;
+- `4a76805f856042a7da939c0c0f7aa10209829658` (05:41:49), `04c2b2d72824854cce75e8aac423585685df5e59` (05:42:12), `856e767d3c4c6e8f082eb12ce6b08541b7cbca7f` (05:42:51) — `decisions.md`;
+- `fc389ab14bf4983c5912c3ad5565f64e954624a8` (05:43:20) — `changelog.md`;
+- `17759761c4277bed76fbc719f6914cb3b430b2c7` (05:43:36) — `docs/README.md`;
+- merge `944ea916cd9a000204b0c54f309ebf2828e60b42` (05:43:55), diff against its second parent empty;
+- final correction HEAD `944ea916cd9a000204b0c54f309ebf2828e60b42`.
+
+**Exact three-path aggregate scope:** `decisions.md`, `changelog.md`, `docs/README.md`. No content commit touched `.lovable/plan.md` or any denied path, and **no Prompt-04 history was rewritten, rebased, squashed or amended**.
+
+**Decisions.** Exactly one decision was added: `DEC-RM-DH-003-008`. The canonical Decision range is updated to `DEC-RM-DH-003-001` through `DEC-RM-DH-003-008`, with `DEC-RM-DH-003-009` as the next free ID. Decisions `-001` through `-007`, including the D1–D10 text, are preserved unchanged and unrenumbered apart from the authorized timestamp-label repair.
+
+**Prompt-05 verdict rejected.** The verdict `TARGETED ACCEPTANCE RE-VERIFICATION PASSED — READY FOR OWNER ACCEPTANCE` is rejected; mandatory check TA-ZR-17 could not pass. The authoritative verdict is `GOVERNANCE PERSISTENCE TARGETED ACCEPTANCE RE-VERIFICATION FAILED — PROMPT-04 COMMIT-TOPOLOGY CONTRACT REMAINS UNSATISFIED`.
+
+**Timestamp-truth repair.** `2026-08-04T05:41:41+03:00` is retained only as the **correction run start**. Separately evidenced: first Prompt-04 content commit 05:41:49, final Prompt-04 content commit 05:43:36, Prompt-04 merge 05:43:55. Prompt-04 final report time — Exact time not recorded.
+
+**Preservation.** Every other prior contract remains authoritative: Phase 0, Phase 1, CLOSED Phase 2; Phase 3 identity and state; Tracks A–E; Sub-phases 3.0–3.7; Workstreams `WS-DH-2026-0012`–`0020` and the Option C model; the Memory boundary; the 16-item Deferred Items Register; and the exact-file restoration rollback strategy.
+
+**Not performed.** No Technical Acceptance, no Owner Acceptance, no Acceptance persistence, no Sub-phase 3.1 advancement, no Workstream package or investigation, no Project Knowledge installation, no Closure, and no application, database, migration, RLS, RPC, Edge Function, configuration, Knowledge, Skill or settings change.
+
+**Scope.** Exactly three files were written: this Roadmap's `decisions.md` (1.3.0 → 1.4.0) and `changelog.md` (1.3.1 → 1.3.2), and `docs/README.md` (1.14.1 → 1.14.2).
+
+**Next permitted action.** Targeted Acceptance Re-Verification (Prompt 07).
