@@ -305,14 +305,25 @@ function ExpensesTab() {
         loading={isLoading}
         onDelete={deleteExpense}
         onUpdateStatus={async (id, status) => {
-          await updateExpense({ id, status: status as any });
-          if (status === "approved" && activeTenant?.tenant?.id) {
-            try {
-              await postLedgerForExpense(id, activeTenant.tenant.id);
-            } catch (err) {
-              console.error("Failed to post expense to ledger:", err);
+          const tenantId = activeTenant?.tenant?.id;
+          // Stage B: approval is performed atomically by the canonical
+          // post_expense_with_ledger RPC (expense status + ledger posting).
+          if (status === "approved") {
+            if (!tenantId) return;
+            const { error } = await supabase.rpc("post_expense_with_ledger", {
+              p_tenant_id: tenantId,
+              p_idempotency_key: crypto.randomUUID(),
+              p_expense_id: id,
+            });
+            if (error) {
+              console.error("post_expense_with_ledger failed:", error);
+              toast.error(t("finance.expenses.approveFailed"));
+              return;
             }
+            invalidateFinanceQueries(queryClient, tenantId);
+            return;
           }
+          await updateExpense({ id, status: status as any });
         }}
         canManage={canManage}
       />
