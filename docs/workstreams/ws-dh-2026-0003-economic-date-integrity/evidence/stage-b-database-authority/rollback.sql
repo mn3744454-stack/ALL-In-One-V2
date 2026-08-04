@@ -24,8 +24,8 @@
 --
 -- Bound Stable Contract artifact:
 --   docs/workstreams/ws-dh-2026-0003-economic-date-integrity/evidence/stage-b-database-authority/stable-function-acl-contract-v1.md
---   (Stable Contract SHA-256 recorded in the Prompt-28 execution report;
---    the contract values themselves are reproduced literally below.)
+--   Stable Contract SHA-256:
+--   63bac3c945cc676fa565727367e1b41a0e3e243981223ef252a6576ed8b5178b
 --
 -- Previous Rollback SHA-256 (fully replaced by this artifact):
 --   62be2f2773dddc0b8e1aab33aaef4b70c9ba304df5cc8879f616e32c74460baa
