@@ -119,7 +119,7 @@ Technical Roadmap Acceptance:
 NOT STARTED
 
 Workstream Technical Acceptance:
-NOT COMPLETE — Stage A only is accepted
+NOT COMPLETE — Stage A and Stage B only are accepted
 
 Phase 1 Acceptance:
 NOT COMPLETE
