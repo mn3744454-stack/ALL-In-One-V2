@@ -280,6 +280,7 @@ export const NAV_MODULES: NavModule[] = [
         icon: ShoppingCart,
         labelKey: "finance.pos.title",
         route: "/dashboard/finance/pos",
+        comingSoon: true,
       },
       {
         key: "categories",
