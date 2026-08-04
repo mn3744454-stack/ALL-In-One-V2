@@ -9,7 +9,7 @@ last-verified: 2026-08-04
 
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.
 source-sha256: n/a
 -->
 
