@@ -800,15 +800,17 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         });
       }
     }
-    // Sort rows by effective date
-    // 2QA-A · Finding 2 — Sort/display uses the canonical effective posting
-    // date (parent ledger row date) even for exploded boarding segments. The
-    // segment period stays visible only inside the description column.
-    const getRowDate = (row: FlatStatementRow): string => row.entry.date;
+    // Stage C · Slice A — Deterministic economic ordering:
+    // effective_date, then created_at (audit tie-breaker), then id.
+    // Exploded boarding segments inherit their parent ledger row's keys so a
+    // segment can never drift away from its posting.
     rows.sort((a, b) => {
-      const da = new Date(getRowDate(a)).getTime();
-      const db = new Date(getRowDate(b)).getTime();
-      return sortOrder === "asc" ? da - db : db - da;
+      const cmp = compareEconomicOrder(
+        { date: a.entry.date, createdAt: a.entry.createdAt, id: a.entry.id },
+        { date: b.entry.date, createdAt: b.entry.createdAt, id: b.entry.id },
+        sortOrder === "asc" ? "asc" : "desc"
+      );
+      return cmp;
     });
     return rows;
   }, [domainFilteredEntries, enrichment, isEnriching, sortOrder]);
@@ -969,6 +971,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         id: row.key,
         // 2QA-A · Finding 2 — canonical effective date on every export row
         date: row.entry.date,
+        createdAt: row.entry.createdAt,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
         description: printEnrichedDescriptions.get(row.key) || "",
         reference_type: row.entry.reference_type,
