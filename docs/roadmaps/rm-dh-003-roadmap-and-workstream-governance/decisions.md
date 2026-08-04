@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-003-DECISIONS
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (decisions)
-version: 1.3.0
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-07-30
@@ -9,7 +9,7 @@ last-verified: 2026-08-04
 
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.; v1.3.0 — RM-DH-003 / Phase 3 — Acceptance-Defect Correction Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04, persisted 2026-08-04T05:41:41+03:00 (Asia/Riyadh — UTC+03:00) under Owner-approved Option B: corrects the stale canonical Decision-ID summary so it states the consecutive canonical range DEC-RM-DH-003-001 through DEC-RM-DH-003-007, and appends exactly one decision, DEC-RM-DH-003-007 (Acceptance-Defect Correction and Narrow Execution-Contract Supersession). Decisions 001 through 006 and the D1–D10 text are preserved unchanged and unrenumbered.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.; v1.3.0 — RM-DH-003 / Phase 3 — Acceptance-Defect Correction Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04, correction run start 2026-08-04T05:41:41+03:00 with final content commit 2026-08-04T05:43:36+03:00 (Asia/Riyadh — UTC+03:00) under Owner-approved Option B: corrects the stale canonical Decision-ID summary so it states the consecutive canonical range DEC-RM-DH-003-001 through DEC-RM-DH-003-007, and appends exactly one decision, DEC-RM-DH-003-007 (Acceptance-Defect Correction and Narrow Execution-Contract Supersession). Decisions 001 through 006 and the D1–D10 text are preserved unchanged and unrenumbered.; v1.4.0 — RM-DH-003 / Phase 3 — Prompt-04 Commit-Topology Supersession and Prompt-05 Acceptance-Verdict Correction under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06 and Owner-approved Option B2, written 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly one decision, DEC-RM-DH-003-008, updates the canonical Decision-ID range to DEC-RM-DH-003-001 through DEC-RM-DH-003-008 with DEC-RM-DH-003-009 as next free, and corrects the mislabelled 2026-08-04T05:41:41+03:00 timestamp to correction run start. Decisions 001 through 007 and the D1–D10 text are otherwise preserved unchanged and unrenumbered.
 source-sha256: n/a
 -->
 
@@ -23,7 +23,7 @@ This file owns approved decisions, options, rationale, rejected alternatives, an
 
 - The original owner-alignment session used the labels **D-01**, **D-02**, and **D-04**. The label **D-03** was skipped during that session.
 - A repository check found **no evidence** of an omitted decision named D-03. Nothing was removed, lost, or hidden.
-- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-007`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`. The next free Decision ID is `DEC-RM-DH-003-008`.
+- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-008`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`, `DEC-RM-DH-003-008`. The next free Decision ID is `DEC-RM-DH-003-009`.
 - Each of `DEC-RM-DH-003-001` to `-003` retains its original owner-alignment label as an alias. `DEC-RM-DH-003-004` has **no alias**: it was approved later, in a separate owner decision, and it is **not** the historical owner-alignment label `D-04` (that label is the alias of `DEC-RM-DH-003-003`).
 - **No decision content was fabricated** to fill the D-03 gap.
 
@@ -313,7 +313,8 @@ Dayli Horse spans many account types whose capabilities overlap. Without a fixed
 **العنوان العربي:** تصحيح عيوب القبول والاستبدال المحدود لعقد التنفيذ
 **Status:** Approved
 **Owner alignment decided at:** 2026-08-04T05:27:00+03:00 (Asia/Riyadh — UTC+03:00) — Owner approved **Option B — Explicit Narrow Supersession**.
-**Persisted at:** 2026-08-04T05:41:41+03:00 (Asia/Riyadh — UTC+03:00), by execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04`. The Owner alignment time and this repository write time are distinct events and are not interchangeable.
+**Correction run start:** 2026-08-04T05:41:41+03:00 (Asia/Riyadh — UTC+03:00) — execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04`. This value is the correction run start only; it is not the final content-write, final-commit or completion time (timestamp-label corrected under `DEC-RM-DH-003-008`).
+**First content commit:** 2026-08-04T05:41:49+03:00. **Final content commit:** 2026-08-04T05:43:36+03:00. **Merge:** 2026-08-04T05:43:55+03:00. The Owner alignment time and these repository write times are distinct events and are not interchangeable.
 
 ### Decision
 
