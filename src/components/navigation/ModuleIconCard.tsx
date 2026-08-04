@@ -112,8 +112,11 @@ export function ModuleIconCard({
   colorScheme,
   onClick,
   index = 0,
+  comingSoon = false,
+  comingSoonLabel,
 }: ModuleIconCardProps) {
   const handleClick = () => {
+    if (comingSoon) return;
     triggerHaptic();
     onClick();
   };
@@ -123,10 +126,13 @@ export function ModuleIconCard({
   return (
     <button
       onClick={handleClick}
+      disabled={comingSoon}
+      aria-disabled={comingSoon || undefined}
       style={{ animationDelay: `${index * 60}ms` }}
       className={cn(
         // Base layout
         "group relative flex flex-col items-center justify-center gap-3 p-4 rounded-3xl",
+        comingSoon && "opacity-50 cursor-not-allowed",
         // Background and border
         "bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm",
         "border-2 border-transparent",
