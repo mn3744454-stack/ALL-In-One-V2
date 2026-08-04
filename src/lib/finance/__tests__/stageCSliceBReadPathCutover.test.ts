@@ -28,6 +28,8 @@ const financePage = read("src/pages/DashboardFinance.tsx");
 const invoicesList = read("src/components/finance/InvoicesList.tsx");
 const statementTab = read("src/components/clients/ClientStatementTab.tsx");
 const statementHook = read("src/hooks/clients/useClientStatement.ts");
+const invoiceCard = read("src/components/finance/InvoiceCard.tsx");
+const overdueFn = read("supabase/functions/mark-overdue-invoices/index.ts");
 
 describe("Slice B · Unallocated / customer-level activity", () => {
   it("1. selects the business date alongside audit created_at", () => {
@@ -137,7 +139,11 @@ describe("Slice B · Invoice lists", () => {
   it("17. due-date and overdue behavior still use due_date", () => {
     expect(invoices).toContain("due_date?: string");
     expect(invoices).not.toContain('.order("due_date"');
-    expect(invoicesList).toContain("due_date");
+    // Overdue marking remains a due_date rule, untouched by the list cutover.
+    expect(overdueFn).toContain('.not("due_date", "is", null)');
+    expect(overdueFn).toContain('.lt("due_date"');
+    // Card surface still renders the dedicated due date.
+    expect(invoiceCard).toContain("invoice.due_date");
   });
 
   it("18. invoice document date renders via the economic formatter", () => {
@@ -170,9 +176,11 @@ describe("Slice B · Shared regression boundary", () => {
   it("22. no write path was introduced in the changed read hooks", () => {
     for (const src of [unallocated, ledger, invoices]) {
       expect(src).not.toContain("post_payment_session");
-      expect(src).not.toContain("balance_after:");
+      expect(src).not.toContain("post_expense_with_ledger");
     }
+    // Both cut-over ledger read hooks remain strictly read-only.
     expect(unallocated).not.toMatch(/\.insert\(|\.update\(|\.delete\(/);
+    expect(ledger).not.toMatch(/\.insert\(|\.update\(|\.delete\(/);
   });
 
   it("23. Arabic and English render the same underlying business date", () => {
