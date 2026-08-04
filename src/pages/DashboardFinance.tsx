@@ -227,6 +227,7 @@ function ExpensesTab() {
   const { expenses, isLoading, updateExpense, deleteExpense } = useExpenses(
     activeTenant?.tenant.id
   );
+  const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // TODO: Replace with hasPermission("finance.expenses.manage") once permission key is defined
