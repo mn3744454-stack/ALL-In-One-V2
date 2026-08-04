@@ -4009,6 +4009,7 @@ export const ar = {
     },
     expenses: {
       title: "المصروفات",
+      approveFailed: "تعذر اعتماد المصروف",
       create: "إضافة مصروف",
       category: "الفئة",
       description: "الوصف",
