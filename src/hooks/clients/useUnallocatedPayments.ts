@@ -20,11 +20,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
-import { localDateFromToUtcIso, localDateToToUtcIso } from "@/lib/finance/effectiveDate";
+import { toEconomicDateString } from "@/lib/finance/effectiveDate";
 
 export interface UnallocatedEntry {
   id: string;
+  /**
+   * Stage C · Slice B — business (economic) date of the movement.
+   * Sourced from ledger_entries.effective_date (date column, yyyy-MM-dd).
+   * created_at is retained separately as audit/tie-break metadata only.
+   */
   date: string;
+  created_at: string;
   entry_type: "invoice" | "payment" | "credit" | "adjustment";
   description: string | null;
   amount: number;          // signed as stored
@@ -34,6 +40,7 @@ export interface UnallocatedEntry {
   payment_method: string | null;
   classification: "customer_level" | "unresolved_legacy";
 }
+
 
 export interface UnallocatedPaymentsSummary {
   count: number;
