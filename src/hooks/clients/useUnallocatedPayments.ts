@@ -119,7 +119,8 @@ export function useUnallocatedPayments(
         const amount = Number(r.amount || 0);
         entries.push({
           id: r.id,
-          date: r.created_at,
+          date: toEconomicDateString(r.effective_date),
+          created_at: r.created_at,
           entry_type: r.entry_type,
           description: r.description,
           amount,
