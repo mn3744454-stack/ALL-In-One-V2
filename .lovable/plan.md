@@ -1,118 +1,179 @@
-# Stage C — Read-Path Cutover Investigative Audit (Prompt 37)
+# PROMPT 39 — STAGE-C SLICE-A INDEPENDENT QA (READ-ONLY)
 
-Read-only. No repository, database, migration, financial, source or test writes occurred.
+## A. Executive Verdicts
 
-## A. Verdicts
-
-- Scope: STAGE-C INVESTIGATIVE NON-REOPENING SCOPE PRESERVED
-- Repository: STAGE-C CURRENT REPOSITORY READ PATHS MAPPED
-- Database: STAGE-C DATABASE READ OBJECTS MAPPED
-- Statements: ACCOUNT-STATEMENT DATE SEMANTICS DETERMINED
-- Surfaces: FINANCIAL READ-SURFACE MATRIX COMPLETE
-- Exports: SCREEN-PDF-CSV-PRINT DATE PARITY MAPPED
-- NULL: EFFECTIVE-DATE NULL AND FALLBACK BEHAVIOR DETERMINED
-- Ordering: DETERMINISTIC FINANCIAL ORDERING CONTRACT PROPOSED
-- Filters: FINANCIAL DATE-FILTER BOUNDARIES DETERMINED
-- Permissions: STAGE-C TENANT AND PERMISSION DEPENDENCIES MAPPED
-- Performance: STAGE-C INDEX AND PERFORMANCE READINESS ASSESSED
-- Contract: STAGE-C CANONICAL READ-DATE CONTRACT READY FOR OWNER ALIGNMENT
-- Execution readiness: STAGE-C EXECUTION WORK PACKAGES READY FOR OWNER ALIGNMENT
+- Scope: STAGE-C SLICE-A READ-ONLY QA SCOPE PRESERVED
+- Lineage: PROMPT-38 SLICE-A IMPLEMENTATION LINEAGE VERIFIED
+- Code: STAGE-C SLICE-A CODE CONTRACT VERIFIED
+- Function: FIRST-ACTIVITY LIVE FUNCTION CONTRACT VERIFIED
+- Chronology: LIVE ECONOMIC CHRONOLOGY VERIFIED ON DIVERGENT ROWS
+- Opening: PRE-RANGE OPENING-BALANCE QA PASSED
+- Running: DISPLAY-DERIVED RUNNING-BALANCE QA PASSED
+- Parity: VISUAL PREVIEW UNAVAILABLE — STRUCTURAL PARITY VERIFIED
+- First activity: FIRST FINANCIAL ACTIVITY QA PASSED
+- Tests: STAGE-C SLICE-A TARGETED TESTS INDEPENDENTLY PASSED
+- Typecheck: STAGE-C SLICE-A TYPECHECK INDEPENDENTLY PASSED
+- Build: STAGE-C SLICE-A BUILD INDEPENDENTLY PASSED
+- Regression: STAGE-C SLICE-A ZERO-REGRESSION QA PASSED
 - Writes: ZERO REPOSITORY AND DATABASE WRITE CONFIRMED
-- Final: STAGE-C INVESTIGATIVE AUDIT COMPLETE — OWNER ALIGNMENT REQUIRED (one genuine fork, Section U)
+- Prior stages: STAGE A AND STAGE B REMAINED CLOSED
+- Final: STAGE-C SLICE-A INDEPENDENT QA PASSED — READY FOR SLICE-A ACCEPTANCE RE-AUDIT
 
-## B. Preflight
+## B. Roadmap
 
-- Branch: `edit/edt-be21da2e-cf56-4952-93de-b7cc629fa05a`
-- HEAD: `7963d2a07336407e62c71e0823db2ee11bec9591`
-- Parent: `e03ea17823d3a4cb18f3092e1b089a7184e6195e` (Prompt-36 governance persistence)
-- Working tree: clean; zero staged, unstaged or untracked paths
-- Latest commits touching finance read paths: `08acaffe`, `d5112d5a`, `8950f53c` (2026-08-04); no RM-DH-003 governance commit touches `src/`
+RM-DH-004 Phase 1 (Economic Date Integrity) active. Stage A closed, Stage B closed, Stage C active at Slice A. Stage D not started. Phases 2–8 not started. No Closure.
 
-## C. Core facts (live evidence)
+## C. Preflight and Lineage
 
-FACT 1 — `ledger_entries` has `effective_date date NULL`; live rows: 88 total, 0 NULL, and 27 rows (30.7%) where `effective_date <> (created_at AT TIME ZONE 'Asia/Riyadh')::date`. Stage C is therefore a real behavioural change, not a no-op.
+- Branch: `edit/edt-5fa38a4e-cf33-4c29-b457-f2e06dbdf0c7`
+- HEAD: `302ec9118d37ca487c3cb2db3765ff82d3437b2e` ("Implemented effective date slice")
+- HEAD parents: `21e5113b49d7a90ca13b91ca15976e4becb4ee57`, `c4a213a9c2189f6696fd216a1afb778e5724fdb4`
+- Prompt-38 implementation chain (all reachable from HEAD): `c4a213a9c2189f6696fd216a1afb778e5724fdb4` → `b3c14992a672f8acd9b935cf0532d95a5fe87262` → `e2be0a96a794d61b0e2c8fa01c0f189c7b16ab18` → `acfc7d1d3884f1858fa73d271159a1cffb4fc309` → `72adfc2e6fb494327cf0786bbe8e2fa01ac9fa6a` → `c452bd651b6ed39267bbda1224335e0edd781ccd`
+- Working Tree before and after QA: clean (`git status --porcelain` empty both times)
+- Later drift on Slice-A paths after the Prompt-38 chain: none (latest commit touching those paths is `c4a213a9…`)
+- Expected migration present: `supabase/migrations/20260804182812_4b8065f5-a507-4d24-a17c-6674f7c98ee3.sql` (newest migration in tree)
 
-FACT 2 — `src/hooks/clients/useClientStatement.ts` selects `created_at` (not `effective_date`), orders by `created_at ASC`, and filters `gte/lte created_at` (lines 49–62). `StatementEntry.date = e.created_at` (line ~99).
+## D. Evidence Boundary
 
-FACT 3 — `src/lib/finance/effectiveDate.ts` documents `effectiveDate(row) = ledger_entries.created_at` as the canonical contract. This file is the single documented contract point and must be re-specified in Stage C.
+- Facts: repository inspection, Git lineage, read-only `psql` SELECTs, live `pg_proc` definition, test/typecheck/build runs.
+- Prompt-38 claims verified: 88 ledger rows, 0 NULL `effective_date`, 27 divergent rows, targeted 14/14 pass, typecheck pass, build pass.
+- Prompt-38 claim not reproducible as stated: "254 finance tests". The `src/lib/finance` glob yields 217 passing tests across 12 files; the InvoicePDFGenerator RTL test lives outside that path and was not executed here, so its pre-existing status is neither confirmed nor contradicted by this run.
+- Gap: no interactive browser session was used; parity is verified structurally from code, not visually.
 
-FACT 4 — Opening balance is derived from the first in-range row (`balance_after - amount`), not from a pre-range cutoff query. When ordering changes to `effective_date`, "first row" changes, so opening balance changes with it.
+## E. Code-Contract QA
 
-FACT 5 — Running balance is displayed from the stored `balance_after` column, which Stage A recomputed in `created_at` sequence. Reordering rows by `effective_date` without re-deriving the displayed running balance produces a non-monotonic balance column. This is the single largest Stage-C correctness risk.
+**Helper — `src/lib/finance/effectiveDate.ts`**: declares `effective_date` as the sole economic chronology, keeps `created_at` explicitly as audit/tie-breaker, provides `compareEconomicOrder` with asc/desc mirroring across `date → createdAt → id`, string-based `formatEconomicDate` (no `new Date("yyyy-MM-dd")`, no UTC shift), inclusive `isWithinEconomicRange`, and integer-cent `toCents`/`fromCents`/`sumMoney`. Legacy UTC-window helpers retained but marked `@deprecated` and scoped to non-financial/audit paths. VERIFIED.
 
-FACT 6 — `get_client_first_financial_activity` (SECURITY DEFINER, `clients.statement.view` gated) returns `MIN(le.created_at)` and future-guards on `created_at <= now()`. Database change required.
+**Query — `src/hooks/clients/useClientStatement.ts`**: selects `effective_date` plus `created_at` (audit only); orders `effective_date ASC, created_at ASC, id ASC` matching `ledger_entries_effective_composite_idx`; filters `.gte`/`.lte` on `effective_date` with `toEconomicDateString` (plain `yyyy-MM-dd`, both bounds inclusive, no UTC helper); sets `StatementEntry.date` from `effective_date`; retains `balance_after` only as `balance` with an explicit "audit metadata only" contract; preserves `.eq("tenant_id")` and `.eq("client_id")`. VERIFIED.
 
-FACT 7 — `v_customer_ledger_balances` aggregates `sum(amount)` (date-independent, correct) plus `max(created_at) AS last_entry_at` (audit-only label). No cutover needed except if `last_entry_at` is surfaced as an economic date.
+**Opening balance**: separate pre-range read, `lt("effective_date", cutoff)`, tenant- and client-scoped, paginated at 1000 rows with an explicit `.range()` loop so a default row cap cannot truncate the sum, accumulated in integer cents, returns 0 when `dateFrom` is absent, never sourced from the first visible row or from `balance_after`. VERIFIED.
 
-FACT 8 — `useLedger.ts:78` orders ledger lists by `created_at DESC`; `useFinancialEntries.ts:88` by `created_at DESC`; `useUnallocatedPayments.ts:72-76` orders and filters by `created_at`.
+**Running balance**: `ClientStatementTab.tsx` seeds `runningBalances` from `statement.openingBalance` (line 841), accumulates over `flatRows` already sorted by `compareEconomicOrder` (line 809), uses `toCents`/`fromCents`, holds the prior balance for neutralized rows (`scopedSummary.neutralizedRowIds`), and never writes or displays `balance_after` as authority. VERIFIED.
 
-FACT 9 — Already correct: `useInvoicePayments.ts:121-122` orders `effective_date ASC, created_at ASC` (the existing deterministic pattern to reuse); `useExpenses.ts:51` orders by `expense_date DESC` (business date); `useEligibleClientInvoices.ts:66-68` orders `due_date, issue_date, invoice_number`.
+**Rendering**: statement rows use `formatEconomicDate` (lines 1391, 1411, 1451, 1465); Print and CSV both route through `formatDateForPrint` → `formatEconomicDate` (StatementPrintUtils lines 57–58, 151, 163, 237, 281, 315). Arabic and English share the identical underlying `yyyy-MM-dd` string. Generic ledger printing (`printLedgerEntries`, `exportLedgerCSV`) unchanged. VERIFIED.
 
-FACT 10 — `useInvoices.ts:78` orders invoice lists by `created_at DESC` while `invoices` has a business `issue_date NOT NULL` and index `idx_invoices_tenant_status (tenant_id, status, issue_date)`.
+## F. Migration and Live Function QA
 
-FACT 11 — Statement Screen, Print and CSV all consume the same in-memory `entries[]` (`ClientStatementTab.tsx` sort at 807-812; `StatementPrintUtils.ts` uses `e.date` at 149/313/369/441). Parity is structurally guaranteed — fixing the hook fixes all four surfaces at once.
+Live `pg_proc` definition is byte-equivalent to the migration body.
 
-FACT 12 — Screen renders `formatDateTime12h(e.date)` (lines 1283/1322) and `formatDate(row.entry.date,'dd-MM-yyyy')` (1384–1458); Print/CSV render date-only in one path and time-of-day in another (`formatTimeForPrint`, 369/441). A date-only `effective_date` makes any time-of-day rendering meaningless.
+- Signature `get_client_first_financial_activity(p_tenant_id uuid, p_client_id uuid)` — unchanged
+- Returns `timestamp with time zone`; owner `postgres`; `prosecdef = t`; `proconfig = {"search_path=public, pg_temp"}`; `STABLE`
+- Gates preserved: `auth.uid()` non-null, `is_tenant_member`, `has_permission(..., 'clients.statement.view')`, client-belongs-to-tenant
+- Economic expression: `MIN(le.effective_date)`; future guard `le.effective_date <= current_date`
+- Unrelated predicates (invoice_cancellation exclusion, draft/cancelled invoice exclusion) unchanged
+- No write statement, no index, no RLS, no GRANT change
 
-FACT 13 — Index `ledger_entries_effective_composite_idx (tenant_id, client_id, effective_date, created_at, id)` already exists and exactly matches the proposed ordering — no Stage-C index work required. `idx_ledger_entries_tenant_effective_date` also exists.
+**Date-cast behavior**: the function returns `v_first::timestamp AT TIME ZONE current_setting('TimeZone')`, i.e. local midnight of the economic date in the session timezone. Live session `TimeZone` is `UTC`, so `2013-07-20` returns `2013-07-20 00:00:00+00`. The only caller, `useClientFirstActivity.ts`, does `String(at).slice(0, 10)` on the PostgREST string, which preserves the offset-local calendar date under both `UTC` and `Asia/Riyadh` sessions. No calendar-day shift is possible on this path. No BLOCKING DATE-CAST DEFECT.
 
-INFERENCE — Because `effective_date` is `date` and `created_at` is `timestamptz`, the current local-day→UTC boundary helpers (`localDateFromToUtcIso` / `localDateToToUtcIso`) become wrong for a date column and must be replaced by plain `yyyy-MM-dd` comparisons.
+## G. Divergent-Row Chronology QA
 
-GAP — Historical rows predating Stage A in other tenants were not re-verified (out of scope; Stage A closed). No contradiction affecting Stage C was found.
+Live totals: 88 rows, 0 NULLs, **27 divergent rows** (Prompt-38 claim holds), 3 tenants, 8 clients, range 2013-07-20 → 2026-07-27.
 
-## D. Date-semantics matrix
+| Tenant | Client | Rows | Divergent | Old/new order differs? | Same-date ties? | Result |
+|---|---|---:|---:|---|---|---|
+| 145f2128… | f225ffb7… | 37 | 15 | Yes | Yes (23) | PASS |
+| 348ce41c… | 364165f0… | 15 | 1 | Yes | Yes (9) | PASS |
+| 348ce41c… | 3e1f790b… | 5 | 3 | No | Yes (2) | PASS |
+| 348ce41c… | 4461804b… | 14 | 2 | Yes | Yes (7) | PASS |
+| 348ce41c… | 7e2a78b3… | 1 | 1 | No | No | PASS |
+| 348ce41c… | a3165b28… | 6 | 2 | Yes | Yes (4) | PASS |
+| 8951ac1a… | a279407b… | 4 | 3 | Yes | Yes (2) | PASS |
 
-| Surface | Path | Query/RPC | Display | Filter | Sort | Export | Status | Stage-C action |
-|---|---|---|---|---|---|---|---|---|
-| Client Statement | `useClientStatement.ts` | `ledger_entries` | created_at | created_at | created_at | same | INCORRECT | cut over to effective_date |
-| Statement UI/sort | `ClientStatementTab.tsx:807` | in-memory | entry.date | — | entry.date | — | PARTIAL | inherits hook + add tie-breaker |
-| Statement Print/CSV | `StatementPrintUtils.ts` | in-memory | e.date | — | — | e.date | PARTIAL | drop time-of-day rendering |
-| First activity | `useClientFirstActivity.ts` | `get_client_first_financial_activity` | created_at | — | — | — | INCORRECT | RPC change (MIN(effective_date)) |
-| Opening balance | `useClientStatement.ts` | derived | — | created_at | — | — | INCORRECT | pre-range cutoff by effective_date |
-| Running balance | stored `balance_after` | — | — | — | — | — | INCORRECT | re-derive in effective order |
-| Ledger list | `useLedger.ts:78` | `ledger_entries` | created_at | — | created_at | — | INCORRECT | order effective_date, created_at, id |
-| Unallocated payments | `useUnallocatedPayments.ts:72` | `payment_sessions` | created_at | created_at | created_at | — | INCORRECT | use `payment_date` |
-| Financial entries | `useFinancialEntries.ts:88` | `financial_entries` | created_at | — | created_at | — | PARTIAL | confirm business date field |
-| Invoice list | `useInvoices.ts:78` | `invoices` | created_at | — | created_at | — | PARTIAL | order by issue_date |
-| Invoice detail/PDF | `InvoiceDetailsSheet`, `InvoicePDFGenerator` | invoice + payments | issue/due/effective | — | — | — | CORRECT | none |
-| Expenses | `useExpenses.ts:51` | `expenses` | expense_date | expense_date | expense_date | — | CORRECT | none |
-| Eligible invoices | `useEligibleClientInvoices.ts` | `invoices` | due/issue | — | due/issue | — | CORRECT | none |
-| Balances view | `v_customer_ledger_balances` | view | sum(amount) | — | — | — | CORRECT | none (label only) |
-| Supplier payables | `useSupplierPayables.ts:42` | payables | created_at | — | created_at | — | UNKNOWN | classify in Stage C |
+Order comparison used `array_agg(id ORDER BY effective_date, created_at, id)` versus `array_agg(id ORDER BY created_at, id)`; five of seven clients reorder materially, confirming Slice A is behaviorally live. Ties are broken deterministically by `created_at` then `id` in both SQL and `compareEconomicOrder`.
 
-## E. Proposed canonical contract
+Date-only filter cases exercised inclusive bounds on a divergent row (2026-05-10 single-day range), a same-date tie set (2026-05-09), a month boundary (2026-02-01) and a year boundary (2026-01-01); every range returned exactly the expected row counts with both bounds inclusive and no UTC conversion.
 
-- Economic chronology (`effective_date`): ledger sequencing, statement inclusion, opening-balance cutoff, running-balance order, first activity, financial period grouping, export chronology.
-- Document chronology (unchanged): `invoices.issue_date`, `invoices.due_date`, `payment_sessions.payment_date`, `expenses.expense_date`, cancellation date, service date.
-- Audit chronology (unchanged, never drives display order): `created_at`, `updated_at`, approval/posting timestamps.
-- Deterministic order: `ORDER BY effective_date ASC, created_at ASC, id ASC` (descending lists mirror all three). Backed by the existing composite index.
-- Filters: date-only comparisons `effective_date >= :from AND effective_date <= :to` — both bounds inclusive, no UTC conversion, identical in Arabic and English.
-- NULL: **Option A (strict)** is viable — live NULL count is 0 and the column is Stage-A governed. No COALESCE fallback.
-- Export parity: Screen = PDF = CSV = Print by construction (single in-memory result set); date-only rendering everywhere.
+## H. Opening-Balance QA
 
-## F. Execution packages (Stage C, not executed)
+| Tenant | Client | From | Pre-range rows | Expected opening | Application opening | Diff | Result |
+|---|---|---|---:|---:|---:|---:|---|
+| 145f2128… | f225ffb7… | 2026-01-01 | 3 | 1200.00 | 1200.00 | 0.00 | PASS |
+| 348ce41c… | 364165f0… | 2026-01-01 | 1 | 50.00 | 50.00 | 0.00 | PASS |
+| 348ce41c… | 4461804b… | 2026-02-01 | 1 | 580.00 | 580.00 | 0.00 | PASS |
+| 8951ac1a… | a279407b… | 2026-05-10 | 3 | 719.35 | 719.35 | 0.00 | PASS |
 
-1. **Canonical contract + helpers** — rewrite `src/lib/finance/effectiveDate.ts` (date-only boundaries, deterministic comparator), retire the two UTC-ISO helpers for financial paths only. No DB work.
-2. **Client Statement cutover** — `useClientStatement.ts`: select and order by `effective_date`, date-only filters, pre-range opening-balance query, running balance re-derived client-side from opening + ordered amounts. App-only.
-3. **First activity RPC** — new migration replacing `MIN(created_at)` with `MIN(effective_date)` and the future-guard with `effective_date <= current_date`. Signature and permission gates unchanged. DB change required.
-4. **Ledger / activity lists** — `useLedger.ts`, `useFinancialEntries.ts`, `useUnallocatedPayments.ts` (→ `payment_date`). App-only.
-5. **Invoice list ordering** — `useInvoices.ts` → `issue_date DESC, created_at DESC, id DESC`. App-only, index-backed.
-6. **Export/print alignment** — `StatementPrintUtils.ts` date-only rendering; parity assertions.
-7. **Tests + QA** — the 20 Section-24 scenarios, focused on: divergent effective/created rows, same-date tie-breaks, opening balance before range, running-balance monotonicity, month/year boundaries, Arabic/English parity, tenant isolation, empty statement, pagination boundary.
-8. **Acceptance re-audit + persistence** — after QA.
+Application values reproduced from the hook's exact algorithm (`effective_date < from`, tenant+client scoped, cent-accumulated, paginated). No case relies on the first visible row or on `balance_after`; with no `dateFrom` the algorithm returns 0 by construction.
 
-Tenant/permission scope is unchanged everywhere: all reads stay RLS-governed and `clients.statement.view` gating on the RPC is preserved. No index, RLS or grant changes are required for correctness.
+## I. Running-Balance QA
 
-## G. Owner alignment — one genuine fork
+| Tenant | Client | From | To | Visible rows | Opening | Period sum | Expected closing | App closing | Diff | Result |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| 145f2128… | f225ffb7… | 2026-01-01 | 2026-12-31 | 34 | 1200.00 | 130785.00 | 131985.00 | 131985.00 | 0.00 | PASS |
+| 348ce41c… | 364165f0… | 2026-01-01 | 2026-07-27 | 14 | 50.00 | 2720.00 | 2770.00 | 2770.00 | 0.00 | PASS |
+| 348ce41c… | 4461804b… | 2026-02-01 | 2026-04-03 | 13 | 580.00 | 325.00 | 905.00 | 905.00 | 0.00 | PASS |
+| 8951ac1a… | a279407b… | 2026-05-10 | 2026-05-10 | 1 | 719.35 | 950.00 | 1669.35 | 1669.35 | 0.00 | PASS |
 
-**Running-balance authority (FACT 5).**
-- Option A — Display-derived: keep `balance_after` as stored audit data; the statement recomputes the running balance in effective order from the opening balance. App-only, reversible, no data writes. **Recommended.**
-- Option B — Storage re-sequenced: a Stage-D style migration recomputing `balance_after` in `effective_date` order. Touches accepted Stage-A financial rows and re-enters write territory.
+No mismatching ordered row was found in any case. Stored/derived divergence example — client `a279407b…`: stored `balance_after` follows the write sequence 1669.35 → 969.35 → 719.35 → 1669.35, where the final row (economic date 2026-05-10, written *earliest* at 21:17) carries a `balance_after` of 1669.35 that is not a valid running total under economic order; the derived display sequence is 1669.35 → 969.35 → 719.35 → 1669.35 seeded correctly per range, and the single-day range opens at 719.35 rather than the stored value, proving the display no longer trusts `balance_after`. No `balance_after` value was mutated during QA.
 
-Owner decision is required because Option B would write to Stage-A-accepted financial rows; the audit cannot authorize that.
+## J. Screen / Print / CSV Parity
 
-## H. Status
+One in-memory set drives all three: `flatRows` → `printEntries` (identical `id`, `date`, `createdAt`, balances from the same `runningBalances` map) → `printData` → `printStatement` / `exportCSV` / `exportPDF`.
 
-Stage A closed. Stage B closed. Stage C investigation only — no execution, no persistence. Workstream WS-DH-2026-0003 active, Phase 1 active, Stage D not started, Phases 2–8 not started, no closure. Deferred Items Register (items 1–48) unchanged and carried forward in full.
+| Case | Screen rows/order | Print rows/order | CSV rows/order | Date parity | Balance parity | Result |
+|---|---|---|---|---|---|---|
+| Divergent multi-row range (f225ffb7…) | flatRows, canonical | same array | same array | `formatEconomicDate` both sides | same `runningBalances` | PASS |
+| Same-date tie set (a279407b…) | flatRows, canonical | same array | same array | identical | identical | PASS |
+| Scoped/segment rows | segment inherits `row.entry.date` | same | same | identical | identical | PASS |
 
-Recommendation: approve Option A, then issue the Stage-C execution prompt for packages 1–3.
+Totals also flow from the single `scopedSummary`. No fabricated time appears on any statement row in Screen, Print or CSV. **Visual preview inspection was not performed**; this is structural verification only.
+
+## K. First-Activity QA
+
+Expected `MIN(effective_date) WHERE effective_date <= current_date` per client (function's additional draft/cancelled-invoice exclusions may only move the value later, never earlier):
+
+| Client | Expected first economic date | Function calendar date | Diff | Result |
+|---|---|---|---|---|
+| f225ffb7… | 2013-07-20 | 2013-07-20 (00:00+00) | none | PASS |
+| 364165f0… | 2017-02-20 | 2017-02-20 | none | PASS |
+| 4461804b… | 2026-01-30 | 2026-01-30 | none | PASS |
+| 3e1f790b… | 2026-02-05 | 2026-02-05 | none | PASS |
+| a3165b28… | 2026-01-31 | 2026-01-31 | none | PASS |
+| a279407b… | 2026-05-09 | 2026-05-09 | none | PASS |
+| 7e2a78b3… | 2026-07-25 | 2026-07-25 | none | PASS |
+| a0705f81… | 2026-02-08 | 2026-02-08 | none | PASS |
+
+Function was not invoked with a mutated role; authorization behavior was verified by definition inspection (unauthenticated raise, tenant-member raise, permission raise, tenant/client isolation via the `clients` existence check). Future-effective rows are excluded by `effective_date <= current_date`; the maximum live economic date is 2026-07-27, in the past relative to the run date.
+
+## L. Tests, Typecheck and Build
+
+- `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` → 14/14 passed, exit 0
+- `bunx vitest run src/lib/finance` → 12 files, 217/217 passed, exit 0 (no failures; the InvoicePDFGenerator RTL test is outside this path and was not executed)
+- `tsgo --noEmit -p tsconfig.app.json` → exit 0, no diagnostics
+- `bun run build` → exit 0, built in 23.45s (only the pre-existing chunk-size advisory)
+
+## M. Zero Regression
+
+Repository substantive writes: ZERO. Committed paths: ZERO. Working Tree clean before and after. Database writes / DDL / DML / financial-row writes / migration writes: ZERO — every database statement issued was a `SELECT`. Ledger row count 88 unchanged; `effective_date` NULLs remain 0; no `balance_after` value changed; no RLS or GRANT touched; Stable Contract and Emergency Rollback untouched. Temporary artifacts: `/tmp/t1.log`, `/tmp/t2.log`, `/tmp/tc.log`, `/tmp/b.log` (outside the repository) and `dist/` from the build (git-ignored, untracked). Stage A closed, Stage B closed, Stage C unaccepted, Stage D not started.
+
+## N. Blocking Findings
+
+None.
+
+## O. Non-Blocking Residuals
+
+1. The Statement Screen's "Customer-level Activity" block (`ClientStatementTab.tsx` lines 1290 and 1329) renders `formatDateTime12h(e.date)`. Its source, `useUnallocatedPayments.ts`, still selects, filters (`localDateFromToUtcIso` / `localDateToToUtcIso`) and orders by `created_at`, so those rows legitimately carry a timestamp and no fabricated time is produced. This surface is explicitly Deferred Item 26 (Unallocated Payments payment-date cutover) and outside Slice A; it is disclosed, not counted as a Slice-A defect. It does mean the statement page currently mixes an economic-date table with a created_at-based auxiliary block.
+2. Prompt-38's "254 finance tests" figure is not reproducible under the `src/lib/finance` glob (217). Reporting artifact only; no functional impact.
+
+## P. Final Result
+
+**STAGE-C SLICE-A INDEPENDENT QA PASSED — READY FOR SLICE-A ACCEPTANCE RE-AUDIT**
+
+## Q. Recommendation
+
+Issue Prompt 40 — Stage-C Slice-A Acceptance Re-Audit (read-only), carrying Residual 1 forward as the natural head of Deferred Item 26.
+
+## R. Workstream Persistence
+
+Stage A closed. Stage B closed. Stage C Slice A implemented. Independent QA result: PASSED. Acceptance not started. WS-DH-2026-0003 active. No Closure.
+
+## S. Roadmap Impact
+
+Phase 1 active. Stage C current. Stage D not started. Phases 2–8 not started. No advancement, no Closure.
+
+## T. Deferred Items Register
+
+Items 1–20 (promoted to Prompt 39) are all executed and answered in this report. Items 21–37 remain BLOCKED PENDING PROMPT-39 RESULT and are now unblocked for Acceptance Re-Audit (21) only. Items 38–57 remain DEFERRED — TRACKED, unchanged and intact. No item removed.
+
+## U. Run Metadata and Exact Stopping Point
+
+1. Mode: Plan/Chat — Read-Only QA. 2. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-C-SLICE-A-INDEPENDENT-QA-39 — CONSUMED. 3. Prepared 04-08-2026 21:31 Asia/Riyadh. 4. Run start 21:38, end 21:46, report 21:47 Asia/Riyadh (UTC+03:00). 5. Timestamp evidence: message header 18:38 UTC; test runs stamped 18:40 UTC. 6–10. See Section C. 11. Code paths inspected: `effectiveDate.ts`, `useClientStatement.ts`, `ClientStatementTab.tsx`, `StatementPrintUtils.ts`, `useClientFirstActivity.ts`, `useUnallocatedPayments.ts`, `formatters.ts`, `displayHelpers.ts`, the Slice-A test file and the Prompt-38 migration. 12–14. See Section F. 15. Ledger rows 88. 16. NULLs 0. 17. Divergent 27. 18. Tenants 3, clients 8 (7 client pairs carry divergent rows). 19. Chronology cases 7 clients + 4 range cases. 20. Opening-balance cases 4. 21. Running-balance cases 4. 22. Parity cases 3. 23. First-activity cases 8. 24–26. See Section L. 27. Temporary artifacts: `/tmp/*.log`, `dist/` (untracked). 28–31. Repository substantive writes ZERO; database writes ZERO; financial-row writes ZERO; migration writes ZERO. 32. Stage A CLOSED. 33. Stage B CLOSED. 34. Slice-A QA result PASSED. 35. Acceptance NOT STARTED. 36. Stage D NOT STARTED. 37. Phase advancement NONE. 38. Closure NONE. 39. Stopping point: the Slice-A QA verdict and one recommendation. 40. Recommendation: Section Q. 41. Next Prompt: Prompt 40 — Slice-A Acceptance Re-Audit, Plan/Chat Read-Only.
