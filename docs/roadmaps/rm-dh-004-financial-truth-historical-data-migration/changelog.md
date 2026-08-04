@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-004-CHANGELOG
 title: RM-DH-004 — Changelog
-version: 1.1.1
+version: 1.2.0
 status: current
 audience: internal
-date: 2026-08-03
-last-verified: 2026-08-03
+date: 2026-08-04
+last-verified: 2026-08-04
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Append-oriented; no Acceptance and no Closure recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04: appends one new chronological entry recording the passed Acceptance Re-Audit, the explicit Owner Acceptance and the completed Acceptance Persistence. All earlier entries are preserved byte-identical, the earlier rounded package-creation timestamp is not altered, OBS-01 is not corrected, and no Closure entry is recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends three new chronological entries recording the Prompt 05 Acceptance Persistence Verification and Phase 0 readiness verdict, the explicit Owner Phase advancement decision of 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), and the executed Phase Advancement Persistence. All earlier entries are preserved byte-identical, OBS-01 is not edited, no prior timestamp is altered, and no Closure entry is recorded.; v1.1.1 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage A Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-A-ACCEPTANCE-PERSISTENCE-09, following the passed read-only Stage A Acceptance Re-Audit (Prompt 08) and the explicit Owner Acceptance granted by Mohamed Nour on 03-08-2026 at 19:15 Asia/Riyadh (UTC+03:00): appends three chronological entries recording the passed Stage A Acceptance Re-Audit, the explicit Stage A Owner Acceptance and the executed Stage A Acceptance Persistence. All earlier entries are preserved byte-identical, no prior timestamp or timestamp observation is altered, OBS-01 and OBS-A-01 are not rewritten, no new decision ID was created, and no Closure entry is recorded.
+source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Append-oriented; no Acceptance and no Closure recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04: appends one new chronological entry recording the passed Acceptance Re-Audit, the explicit Owner Acceptance and the completed Acceptance Persistence. All earlier entries are preserved byte-identical, the earlier rounded package-creation timestamp is not altered, OBS-01 is not corrected, and no Closure entry is recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends three new chronological entries recording the Prompt 05 Acceptance Persistence Verification and Phase 0 readiness verdict, the explicit Owner Phase advancement decision of 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), and the executed Phase Advancement Persistence. All earlier entries are preserved byte-identical, OBS-01 is not edited, no prior timestamp is altered, and no Closure entry is recorded.; v1.1.1 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage A Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-A-ACCEPTANCE-PERSISTENCE-09, following the passed read-only Stage A Acceptance Re-Audit (Prompt 08) and the explicit Owner Acceptance granted by Mohamed Nour on 03-08-2026 at 19:15 Asia/Riyadh (UTC+03:00): appends three chronological entries recording the passed Stage A Acceptance Re-Audit, the explicit Stage A Owner Acceptance and the executed Stage A Acceptance Persistence. All earlier entries are preserved byte-identical, no prior timestamp or timestamp observation is altered, OBS-01 and OBS-A-01 are not rewritten, no new decision ID was created, and no Closure entry is recorded.; v1.2.0 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage B Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-OWNER-ACCEPTANCE-PERSISTENCE-36, following the passed read-only Stage B Acceptance Re-Audit (Prompt 35) and the explicit Owner Acceptance granted by Mohamed Nour on 04-08-2026 at 20:49 Asia/Riyadh (UTC+03:00): appends three chronological entries recording the passed Stage B Acceptance Re-Audit, the explicit Stage B Owner Acceptance and the executed Stage B Acceptance Persistence. All earlier entries are preserved byte-identical, no prior timestamp is altered, OBS-01 and OBS-A-01 are not rewritten, no new decision ID was created, and no Closure entry is recorded.
 source-sha256: n/a
 -->
 
@@ -122,5 +122,37 @@ Append-oriented chronological record. New entries are added at the bottom.
 - No application, database, migration, test, Knowledge, Skill or setting change occurred, and no database query was executed.
 - The Stage A evidence package and the RM-DH-004 decisions file were not modified, and no new decision ID was created.
 - A read-only Stage A Acceptance Persistence Verification is pending.
+- No Closure occurred.
+- The exact wall-clock time of this persistence run is not recorded.
+
+### Exact time not recorded — Stage B Acceptance Re-Audit Passed
+
+- Prompt `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-PROMPT-34-INDEPENDENT-VERIFICATION-REPORTING-CONTRADICTION-RESOLUTION-MINIMAL-LIVE-NO-DRIFT-AND-CONDITIONAL-ACCEPTANCE-REAUDIT-35` completed as a read-only independent re-audit.
+- Verdict: `STAGE-B ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE`.
+- The Stage B Application execution and QA, the Database Authority forward migration and QA, the Owner-approved Option-B Stable Function-ACL Contract and the corrected Emergency Rollback artifact were all verified as complete.
+- The minimal live no-drift guard passed, and the financial invariants were unchanged with zero monetary regression.
+- The Emergency Rollback was not executed.
+- Owner Acceptance remained pending at the end of Prompt 35.
+- The exact wall-clock time of that run is not recorded.
+
+### 2026-08-04T20:49:00+03:00 — Owner Accepted Stage B
+
+- The owner, Mohamed Nour, explicitly accepted Stage B of WS-DH-2026-0003.
+- The Acceptance applies only to the bounded Stage B scope: the Application writer cutover and QA, the Database Authority forward migration and QA, the Stable Function-ACL Contract and the corrected Emergency Rollback artifact.
+- Stage C and Stage D were not authorized.
+- Workstream-wide Technical Acceptance was not granted.
+- No Workstream, Phase or Roadmap Closure was granted.
+
+### Exact time not recorded — Stage B Acceptance Persistence Executed
+
+- The six allowlisted governance files were updated: RM-DH-004 `roadmap.md` and `changelog.md`, the WS-DH-2026-0003 `workstream.md`, and the three central registries.
+- Stage B Acceptance is persisted for its bounded scope and is recorded as `ACCEPTED — PERSISTED — VERIFICATION PENDING`.
+- Stage B is not marked verified or completed.
+- RM-DH-004 remains ACTIVE — PHASE 1.
+- WS-DH-2026-0003 remains ACTIVE — STAGE B ACCEPTED; STAGE C NOT STARTED.
+- Stage C and Stage D have not started, and the Emergency Rollback was not executed.
+- No application, database, migration, SQL, Stable Contract, Rollback, test, Knowledge, Skill or setting change occurred, and no database query was executed.
+- No new decision ID was created and no technical acceptance contract was reopened.
+- A read-only Stage B Acceptance Persistence Verification (Prompt 37) is pending.
 - No Closure occurred.
 - The exact wall-clock time of this persistence run is not recorded.
