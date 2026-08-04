@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-003-DECISIONS
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (decisions)
-version: 1.4.0
+version: 1.5.0
 status: current
 audience: internal
 date: 2026-07-30
@@ -9,7 +9,7 @@ last-verified: 2026-08-04
 
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.; v1.3.0 — RM-DH-003 / Phase 3 — Acceptance-Defect Correction Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04, correction run start 2026-08-04T05:41:41+03:00 with final content commit 2026-08-04T05:43:36+03:00 (Asia/Riyadh — UTC+03:00) under Owner-approved Option B: corrects the stale canonical Decision-ID summary so it states the consecutive canonical range DEC-RM-DH-003-001 through DEC-RM-DH-003-007, and appends exactly one decision, DEC-RM-DH-003-007 (Acceptance-Defect Correction and Narrow Execution-Contract Supersession). Decisions 001 through 006 and the D1–D10 text are preserved unchanged and unrenumbered.; v1.4.0 — RM-DH-003 / Phase 3 — Prompt-04 Commit-Topology Supersession and Prompt-05 Acceptance-Verdict Correction under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06 and Owner-approved Option B2, written 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly one decision, DEC-RM-DH-003-008, updates the canonical Decision-ID range to DEC-RM-DH-003-001 through DEC-RM-DH-003-008 with DEC-RM-DH-003-009 as next free, and corrects the mislabelled 2026-08-04T05:41:41+03:00 timestamp to correction run start. Decisions 001 through 007 and the D1–D10 text are otherwise preserved unchanged and unrenumbered.
+source: v1.5.0 — RM-DH-003 / Phase 3 — Prompt-06 Commit-Topology Supersession and Account-Type Playbook Provisional-Roster Correction under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT06-TOPOLOGY-AND-PLAYBOOK-COUNT-CORRECTION-EXECUTION-08 and Owner-approved Option B3, repository write 2026-08-04T12:55:00+03:00 (Asia/Riyadh — UTC+03:00): appends exactly one decision, DEC-RM-DH-003-009, and updates the canonical Decision-ID range to DEC-RM-DH-003-001 through DEC-RM-DH-003-009 with DEC-RM-DH-003-010 as next free. Decisions 001 through 008 and the D1–D10 text are preserved unchanged and unrenumbered.; authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.; v1.3.0 — RM-DH-003 / Phase 3 — Acceptance-Defect Correction Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-DEFECT-CORRECTION-EXECUTION-04, correction run start 2026-08-04T05:41:41+03:00 with final content commit 2026-08-04T05:43:36+03:00 (Asia/Riyadh — UTC+03:00) under Owner-approved Option B: corrects the stale canonical Decision-ID summary so it states the consecutive canonical range DEC-RM-DH-003-001 through DEC-RM-DH-003-007, and appends exactly one decision, DEC-RM-DH-003-007 (Acceptance-Defect Correction and Narrow Execution-Contract Supersession). Decisions 001 through 006 and the D1–D10 text are preserved unchanged and unrenumbered.; v1.4.0 — RM-DH-003 / Phase 3 — Prompt-04 Commit-Topology Supersession and Prompt-05 Acceptance-Verdict Correction under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06 and Owner-approved Option B2, written 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly one decision, DEC-RM-DH-003-008, updates the canonical Decision-ID range to DEC-RM-DH-003-001 through DEC-RM-DH-003-008 with DEC-RM-DH-003-009 as next free, and corrects the mislabelled 2026-08-04T05:41:41+03:00 timestamp to correction run start. Decisions 001 through 007 and the D1–D10 text are otherwise preserved unchanged and unrenumbered.
 source-sha256: n/a
 -->
 
@@ -23,7 +23,7 @@ This file owns approved decisions, options, rationale, rejected alternatives, an
 
 - The original owner-alignment session used the labels **D-01**, **D-02**, and **D-04**. The label **D-03** was skipped during that session.
 - A repository check found **no evidence** of an omitted decision named D-03. Nothing was removed, lost, or hidden.
-- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-008`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`, `DEC-RM-DH-003-008`. The next free Decision ID is `DEC-RM-DH-003-009`.
+- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-009`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`, `DEC-RM-DH-003-008`, `DEC-RM-DH-003-009`. The next free Decision ID is `DEC-RM-DH-003-010`.
 - Each of `DEC-RM-DH-003-001` to `-003` retains its original owner-alignment label as an alias. `DEC-RM-DH-003-004` has **no alias**: it was approved later, in a separate owner decision, and it is **not** the historical owner-alignment label `D-04` (that label is the alias of `DEC-RM-DH-003-003`).
 - **No decision content was fabricated** to fill the D-03 gap.
 
@@ -424,3 +424,67 @@ Prompt 05 granted a passing Acceptance verdict over evidence that its own mandat
 2. **Rewrite, squash or amend Prompt-04 into a single commit** — rejected. It would destroy the audit evidence and violate the prohibition on rewriting governance history.
 3. **Delete or silently re-date the 05:41:41 timestamp** — rejected. The value is evidenced as the run start; removing it would lose provenance, and re-dating it would create a new untruth.
 4. **Adopt a general multi-commit allowance for all governance executions** — rejected. The topology contract is a control; only a Prompt-scoped, evidence-conditional exception is authorized.
+
+
+## DEC-RM-DH-003-009
+
+**Alias:** None.
+**Subject:** Prompt-06 Commit-Topology Supersession and Account-Type Playbook Provisional-Roster Correction
+**العنوان العربي:** الاستبدال المحدود لبنية تنفيذ Prompt 06 وتصحيح مؤقتية قائمة وعدد أدلة أنواع الحسابات
+**Status:** Approved
+**Owner alignment decided at:** 2026-08-04T11:21:00+03:00 (Asia/Riyadh — UTC+03:00) — Owner approved **Option B3 — Combined Prompt-06 Topology Supersession and Account-Type Playbook Count Correction**.
+**Repository write (Prompt 08):** 2026-08-04T12:55:00+03:00 (Asia/Riyadh — UTC+03:00), under execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT06-TOPOLOGY-AND-PLAYBOOK-COUNT-CORRECTION-EXECUTION-08`. Owner approval time and this repository write time are distinct events and are not interchangeable.
+
+### Decision
+
+**1. Prior Prompt-06 commit contract.** `PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06` authorized at most **three content commits** plus at most one merge, with an aggregate scope of exactly three paths.
+
+**2. Independently verified Prompt-06 topology.** Git evidence shows **four content commits plus one merge commit**:
+
+- pre-write HEAD `19d9c6174dfc9f149590e55408c019d6ef527687`;
+- content commit 1 `348b070dc88fd4db24be8bb7ef43f69c69069cc5` — 2026-08-04T10:17:22+03:00 — `decisions.md`;
+- content commit 2 `4cf75bef5bfb656c8281e688ce245500f33e4643` — 2026-08-04T10:18:36+03:00 — `decisions.md`;
+- content commit 3 `4e8c4554402ed03c661c9fabd0b2cb06535545ca` — 2026-08-04T10:18:55+03:00 — `docs/README.md` and `changelog.md`;
+- content commit 4 `617baf906947d3b5bed8d66c0536662aebcfd2a6` — 2026-08-04T10:19:26+03:00 — `changelog.md`;
+- merge commit `41902826d1a74a3ffaa0f500e17bdaedfe6179df` — 2026-08-04T10:19:42+03:00, parents `19d9c6174dfc9f149590e55408c019d6ef527687` and `617baf906947d3b5bed8d66c0536662aebcfd2a6`; its diff against the second parent is **empty**, so the merge introduced no additional out-of-scope content;
+- final Prompt-06 HEAD `41902826d1a74a3ffaa0f500e17bdaedfe6179df`.
+
+**3. Exact three-path aggregate scope.** The aggregate pre-write-to-final diff contains exactly:
+
+- `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md`;
+- `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`;
+- `docs/README.md`.
+
+Every Prompt-06 content commit remained inside that three-path allowlist. No content commit touched `.lovable/plan.md`, a denied path, application code, database paths, another Roadmap or any Workstream package. Prompt-06 history is intact and was **not** rewritten, rebased, squashed or amended.
+
+**4. Supersession granted — Prompt-06 only.** Prompt 06 is accepted as **one bounded correction artifact** `ART-RM-DH-003-P3-GOVERNANCE-PROMPT06-CORRECTION` composed of the four verified content commits plus one verified merge, conditional on — and only on — the evidence above. This supersession applies **only** to `PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT04-TOPOLOGY-SUPERSESSION-EXECUTION-06`. It creates no general multi-commit rule and does not modify the separate supersessions recorded in `DEC-RM-DH-003-007` and `DEC-RM-DH-003-008`.
+
+**5. Prompt-07 matrix limitation.** Prompt 07 reported a 49-of-49 Zero-Regression result that **omitted** the Prompt-06 max-three-content-commit topology deviation. That result therefore did not close the deviation; it is closed only by this decision.
+
+**6. Account-Type Playbook fixed count rejected as current truth.** Two current-truth occurrences in `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` — the **Phase 3 purpose** statement and the **Track C purpose** cell — asserted "the 13 Account-Type Module Playbooks". That fixed count is rejected as current authoritative truth.
+
+**7. Exact provisional replacement.** Both occurrences now read:
+
+> Account-Type Module Playbooks, with the exact roster and count remaining provisional until the organizational and source-mapping investigations verify the current live tenant_type labels, planned account types, and target playbook architecture.
+
+**8. Distinct layers.** Current live `tenant_type` labels, planned account types and target Playbook architecture remain **three distinct layers** and must not be silently equated. **No final Playbook roster and no final Playbook count is approved.** The live database was not queried by Prompt 08, and current account-type maturity was not determined.
+
+**9. Unrelated references unchanged.** Existing account/workspace-type count references elsewhere in the repository were not modified and do **not** constitute Playbook-roster or Playbook-count proof.
+
+**10. Preservation.** All other contracts remain authoritative and unchanged: Phase 0, Phase 1 and CLOSED Phase 2; Phase 3 identity and state `ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE`; Tracks A–E; Sub-phases 3.0–3.7; Workstreams `WS-DH-2026-0012` through `WS-DH-2026-0020` and the Option C registration model; Decisions `-001` through `-008`, including the D1–D10 package, which is not modified by this decision; the Memory boundary; the complete 16-item Deferred Items Register; and the exact-file restoration rollback strategy.
+
+**11. Mandatory next action.** A separate **targeted Acceptance Re-Verification (Prompt 09)** is required before any Acceptance can be granted.
+
+**12. Explicitly absent.** This decision grants **no** Technical Acceptance by Prompt 08, **no** Owner Acceptance, **no** Acceptance persistence, **no** Sub-phase 3.1 advancement, **no** Workstream package creation, **no** Workstream investigation, **no** Project Knowledge installation and **no** Closure. `WS-DH-2026-0014` remains **NOT STARTED**.
+
+### Rationale
+
+Two defects blocked resumption of Technical Acceptance: an unrecorded Prompt-06 topology deviation, and a frozen Account-Type Playbook count persisted as current architectural truth before the organizational-blueprint and source-mapping investigations exist. Rewriting Prompt-06 history would destroy the audit evidence proving the correction stayed inside its three-path allowlist, and leaving a fixed count in an authoritative roadmap would prematurely constrain `WS-DH-2026-0014`, conflate `tenant_type` labels with account concepts, and risk seeding false Project Knowledge. A narrow, evidence-bound supersession plus an exact two-line truth correction resolves both without weakening any other contract.
+
+### Rejected alternatives
+
+1. **Leave the Prompt-06 topology deviation unrecorded** — rejected. Prompt 07's 49-of-49 result omitted it, so no persisted record would exist.
+2. **Rewrite, squash or amend Prompt-06 into three commits** — rejected. It would destroy audit evidence and violate the prohibition on rewriting governance history.
+3. **Substitute a different or provisional Playbook number** — rejected. Any number would re-freeze an unverified roster.
+4. **Correct every account/workspace-type count reference repository-wide** — rejected. Only the two proven current-truth roadmap occurrences are in scope; the rest are separate, evidence-backed contracts.
+5. **Start WS-DH-2026-0014 to settle the roster now** — rejected. Prompt 08 is a bounded governance-persistence correction and authorizes no investigation.
