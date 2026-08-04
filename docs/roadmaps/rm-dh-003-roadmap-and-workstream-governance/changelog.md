@@ -123,6 +123,20 @@ Chronology of this correction, distinguishing each event class. Raw Git offsets 
 - **Separate platform-generated `.lovable/plan.md` activity:** none observed in `277fd6af7..818c92a76`. Any such commit created later by the platform is disclosed under `docs/CONVENTIONS.md` §11.10, is excluded from the six-file intended count, and is never Closure or QA evidence.
 - **Final stopping point:** `WS-DH-2026-0002` closed after successful Acceptance and explicit owner Closure approval. Next permitted step: a separately classified, owner-approved read-only investigation of the Lovable Persistent Instructions Architecture, which was not begun in this run.
 
+### 2026-08-04 — RM-DH-003 / Phase 3 Governance Persistence Execution
+
+- **Execution prompt:** `PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02`.
+- **Decisions persisted:** `DEC-RM-DH-003-005` (Phase 3 Governance Approval) and `DEC-RM-DH-003-006` (Module, Feature and Product-Control Architecture Package D1–D10). Owner approval preceded this run; exact Owner approval time is **not recorded**. This entry records repository persistence only.
+- **Phase created:** `RM-DH-003 / Phase 3` — Persistent Knowledge Architecture, Verification, Organization and Installation — هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها.
+- **Phase state:** ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE. Checkpoint: GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING.
+- **Registers persisted:** five Tracks A–E; eight Sub-phases 3.0–3.7 with no 3.8; the authoritative nine-Workstream register reserving `WS-DH-2026-0012` through `WS-DH-2026-0020` as REGISTERED — NOT YET CREATED; the parallelism rule; Phase 3 completion criteria; the Memory boundary preserving `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095`; and the 16-item Deferred Items Register.
+- **ID consumption:** `WS-DH-2026-0012`–`WS-DH-2026-0020` are permanently reserved. No package or directory was created for any of them, and no investigation started.
+- **Superseded statement:** the previously accurate Phase 2 line stating that no Phase 3 exists or is owner-approved is superseded by this entry.
+- **Persistence scope:** seven governance files — this Roadmap package `README.md` (1.0.0 → 1.1.0), `roadmap.md` (1.2.2 → 1.3.0), `decisions.md` (1.1.0 → 1.2.0), this `changelog.md` (1.2.3 → 1.3.0), `docs/roadmaps/README.md`, `docs/workstreams/README.md`, and `docs/README.md`. `docs/CONVENTIONS.md` and `.gitignore` were not modified.
+- **Not performed:** no Acceptance, no QA, no Closure, no advancement to Sub-phase 3.1, no Workstream package creation, no Project Knowledge installation, no Workspace Knowledge or Skills change, no `AGENTS.md`, and no application, database, migration, RPC, RLS, configuration, live-data or cross-project sharing-setting change.
+- **Self-reference rule:** the commits that finalize this entry and the `docs/README.md` synchronization necessarily follow it and are therefore not self-recorded here; they are reported in the execution report.
+- **Separate platform-generated `.lovable/plan.md` activity:** disclosed under `docs/CONVENTIONS.md` §11.10, excluded from the seven-file intended count, and never Acceptance or QA evidence.
+- **Stopping point:** Governance Persistence executed; Acceptance Re-Audit pending. Next permitted step: a separate Plan/Chat read-only Governance Persistence Acceptance Re-Audit.
 
 
 ### Note on earlier Phase events
