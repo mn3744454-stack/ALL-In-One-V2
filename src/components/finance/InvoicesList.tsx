@@ -35,6 +35,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { formatEconomicDate } from "@/lib/finance/effectiveDate";
 import { InvoiceCard } from "./InvoiceCard";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
@@ -465,7 +466,7 @@ export function InvoicesList({
                     <TableCell className="font-mono text-sm whitespace-nowrap">{invoice.invoice_number}</TableCell>
                     <TableCell className="min-w-[120px] whitespace-nowrap">{invoice.client_name || "-"}</TableCell>
                     <TableCell className="font-mono text-sm whitespace-nowrap" dir="ltr">
-                      {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
+                      {formatEconomicDate(invoice.issue_date)}
                     </TableCell>
                     <TableCell className="text-center font-mono tabular-nums" dir="ltr">
                       {formatAmount(invoice.total_amount)}

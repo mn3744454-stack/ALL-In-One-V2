@@ -25,6 +25,7 @@ import {
   ExpenseFormDialog,
 } from "@/components/finance";
 import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { formatEconomicDate, toEconomicDateString, compareEconomicOrder } from "@/lib/finance/effectiveDate";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { cn } from "@/lib/utils";
 import { MobilePageHeader } from "@/components/navigation";
@@ -383,11 +384,21 @@ function LedgerTab() {
   const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const filteredEntries = useMemo(() => {
-    return entries.filter((e) => {
-      if (dateFrom && e.created_at < dateFrom) return false;
-      if (dateTo && e.created_at > dateTo + "T23:59:59") return false;
-      return true;
-    });
+    // Stage C · Slice B — filter on the business date (date-only, inclusive).
+    return entries
+      .filter((e) => {
+        const d = toEconomicDateString(e.effective_date);
+        if (dateFrom && d < toEconomicDateString(dateFrom)) return false;
+        if (dateTo && d > toEconomicDateString(dateTo)) return false;
+        return true;
+      })
+      .sort((a, b) =>
+        compareEconomicOrder(
+          { date: a.effective_date, createdAt: a.created_at, id: a.id },
+          { date: b.effective_date, createdAt: b.created_at, id: b.id },
+          "desc"
+        )
+      );
   }, [entries, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
@@ -404,7 +415,7 @@ function LedgerTab() {
   const handlePrint = () => {
     const printEntries = filteredEntries.map((e) => ({
       id: e.id,
-      date: e.created_at,
+      date: toEconomicDateString(e.effective_date),
       entry_type: t(`finance.ledger.entryTypes.${e.entry_type}`) || e.entry_type,
       description: getDesc(e),
       debit: e.amount > 0 ? e.amount : 0,
@@ -423,7 +434,7 @@ function LedgerTab() {
 
   const handleExportCSV = () => {
     const csvEntries = filteredEntries.map((e) => ({
-      date: e.created_at,
+      date: toEconomicDateString(e.effective_date),
       entry_type: e.entry_type,
       description: getDesc(e),
       debit: e.amount > 0 ? e.amount : 0,
@@ -552,7 +563,7 @@ function LedgerTab() {
                   return (
                     <TableRow key={entry.id}>
                       <TableCell className="font-mono text-xs whitespace-nowrap" dir="ltr">
-                        {formatDateTime12h(entry.created_at, lang)}
+                        {formatEconomicDate(entry.effective_date)}
                       </TableCell>
                       <TableCell>
                         <Badge variant={entry.entry_type === 'payment' ? 'default' : 'secondary'} className="text-xs">
@@ -589,7 +600,7 @@ function LedgerTab() {
                       {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                     </Badge>
                     <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                      {formatDateTime12h(entry.created_at, lang)}
+                      {formatEconomicDate(entry.effective_date)}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -655,8 +666,15 @@ function PaymentsTab() {
   const paymentEntries = useMemo(() => {
     let result = entries.filter((e) => e.entry_type === "payment");
 
-    if (dateFrom) result = result.filter((e) => e.created_at >= dateFrom);
-    if (dateTo) result = result.filter((e) => e.created_at <= dateTo + "T23:59:59");
+    // Stage C · Slice B — business-date (effective_date) inclusive bounds.
+    if (dateFrom)
+      result = result.filter(
+        (e) => toEconomicDateString(e.effective_date) >= toEconomicDateString(dateFrom)
+      );
+    if (dateTo)
+      result = result.filter(
+        (e) => toEconomicDateString(e.effective_date) <= toEconomicDateString(dateTo)
+      );
     if (methodFilter !== "all") result = result.filter((e) => e.payment_method === methodFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -667,7 +685,13 @@ function PaymentsTab() {
       );
     }
 
-    return result;
+    return result.sort((a, b) =>
+      compareEconomicOrder(
+        { date: a.effective_date, createdAt: a.created_at, id: a.id },
+        { date: b.effective_date, createdAt: b.created_at, id: b.id },
+        "desc"
+      )
+    );
   }, [entries, dateFrom, dateTo, methodFilter, search]);
 
   const stats = useMemo(() => {
@@ -687,7 +711,7 @@ function PaymentsTab() {
   const handlePrint = () => {
     const printEntries = paymentEntries.map((e) => ({
       id: e.id,
-      date: e.created_at,
+      date: toEconomicDateString(e.effective_date),
       entry_type: e.payment_method || t("finance.ledger.entryTypes.payment"),
       description: getPaymentDesc(e),
       debit: 0,
@@ -706,7 +730,7 @@ function PaymentsTab() {
 
   const handleExportCSV = () => {
     const csvEntries = paymentEntries.map((e) => ({
-      date: e.created_at,
+      date: toEconomicDateString(e.effective_date),
       entry_type: e.payment_method || "payment",
       description: getPaymentDesc(e),
       debit: 0,
@@ -838,7 +862,7 @@ function PaymentsTab() {
                 {paymentEntries.map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell className="font-mono text-xs whitespace-nowrap" dir="ltr">
-                      {formatDateTime12h(entry.created_at, lang)}
+                      {formatEconomicDate(entry.effective_date)}
                     </TableCell>
                     <TableCell className={cn("max-w-[400px]", dir === "rtl" ? "text-right" : "text-left")}>
                       <LedgerRowPreview enrichment={getPaymentEnrichment(entry)} fallbackText={getPaymentDesc(entry)} dir={dir} />
@@ -869,7 +893,7 @@ function PaymentsTab() {
                     {t(`finance.paymentMethods.${entry.payment_method}`) || entry.payment_method || "-"}
                   </Badge>
                   <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                    {formatDateTime12h(entry.created_at, lang)}
+                    {formatEconomicDate(entry.effective_date)}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
