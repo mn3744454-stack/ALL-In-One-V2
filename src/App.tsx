@@ -719,7 +719,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
-              <DashboardFinancePOS />
+              <POSComingSoon />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
