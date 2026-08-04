@@ -153,6 +153,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tool
                 );
               }
               return (
+                <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => {
