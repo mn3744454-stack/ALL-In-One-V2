@@ -1,14 +1,15 @@
 <!--
 id: DHB-RM-003-DECISIONS
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (decisions)
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-07-31
+last-verified: 2026-08-04
+
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.
+source: authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — adds the canonical decision DEC-RM-DH-003-004 (narrow `.lovable/plan.md` platform-artifact governance exception) during RM-DH-003 / Phase 2 — Planning-Artifact Governance Exception Documentation Correction. Decisions 001–003 are unchanged.; v1.2.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02, persisted 2026-08-04 (Asia/Riyadh — UTC+03:00): appends exactly two decisions, DEC-RM-DH-003-005 (Phase 3 Governance Approval) and DEC-RM-DH-003-006 (Module, Feature and Product-Control Architecture Package D1–D10). Decisions 001 through 004 are preserved unchanged and unrenumbered. Owner approval time is distinguished from repository persistence time; where the exact Owner approval time is not evidenced it is recorded as not recorded.
 source-sha256: n/a
 -->
 
@@ -171,3 +172,134 @@ Executing this documentation correction does not accept it. The Workstream statu
 1. **Broad `.lovable/**` exemption** — rejected. It would pre-authorize unaudited future platform artifacts under a rule approved for one known file.
 2. **Repeated untracking attempts in the current platform environment** — rejected. The behavior was observed repeatedly; retrying would produce recurring contract violations without changing the outcome.
 3. **Recording the limitation without a governing rule** — rejected. A known, permanent deviation with no rule leaves the read-only contract false on its face and gives auditors no stable basis for disclosure.
+
+---
+
+## DEC-RM-DH-003-005
+
+**Alias:** None.
+**Subject:** Phase 3 Governance Approval — Persistent Knowledge Architecture, Verification, Organization and Installation
+**Status:** Approved
+**Decided at:** Owner approval granted before this persistence run. **Exact approval time not recorded.**
+**Persisted at:** 2026-08-04 (Asia/Riyadh — UTC+03:00), by execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02`.
+
+Owner approval and repository persistence are distinct events. This entry records only what is evidenced.
+
+### Decision
+
+Create and govern `RM-DH-003 / Phase 3`.
+
+- **English title:** Persistent Knowledge Architecture, Verification, Organization and Installation.
+- **Arabic title:** هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها.
+- **Purpose:** establish, verify, organize and install a durable Persistent Knowledge architecture for Dayli Horse — Memory governance and provenance, codebase architecture intelligence, knowledge organization, technical verification, reconstruction, Owner Acceptance and installation.
+- **Phase state at persistence:** ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE.
+
+### Approved Tracks
+
+| Track | Title | Assigned Workstreams |
+|---|---|---|
+| A | Memory Governance and Provenance | `WS-DH-2026-0012` |
+| B | Codebase Architecture Intelligence | `WS-DH-2026-0013` |
+| C | Knowledge Organization | `WS-DH-2026-0014`, `WS-DH-2026-0015` |
+| D | Technical Verification | `WS-DH-2026-0016` |
+| E | Reconstruction, Acceptance and Installation | `WS-DH-2026-0017`, `WS-DH-2026-0018`, `WS-DH-2026-0019`, `WS-DH-2026-0020` |
+
+### Approved Sub-phases
+
+`3.0` Scope and Governance Persistence; `3.1` Foundational Read-Only Audits; `3.2` Knowledge Organizational Architecture; `3.3` Persistent Knowledge Stage B; `3.4` Persistent Knowledge Stage C; `3.5` Persistent Knowledge Stage D; `3.6` Persistent Knowledge Stage E; `3.7` Acceptance, Installation and Verification. There is no Sub-phase `3.8`.
+
+### Approved Workstreams and dependencies
+
+Nine Workstreams are approved and registered: `WS-DH-2026-0012` through `WS-DH-2026-0020`. Their exact titles, Tracks, Sub-phases, dependencies and registry statuses are authoritative in [`roadmap.md`](./roadmap.md). Dependencies in summary: 0014 and 0015 are blocked by 0012 and 0013; 0016 is blocked by 0014 and 0015; 0017 by 0016; 0018 by 0017; 0019 by 0018; 0020 by a passed Stage E and explicit Owner Acceptance.
+
+### Parallel read-only policy
+
+`WS-DH-2026-0012` and `WS-DH-2026-0013` may later run in parallel as read-only Plan/Chat investigations only after the Governance Persistence Acceptance Re-Audit passes, Owner Acceptance is granted where required, the required persistence is complete, the Owner explicitly advances to Sub-phase 3.1, and dedicated Workstream packages are separately authorized.
+
+### Memory boundary
+
+The four inaccessible Memory IDs `MEM-079`, `MEM-084`, `MEM-090` and `MEM-095` are **permanently reserved**. They must not be reconstructed, reused, renumbered or silently replaced.
+
+### Explicit exclusions of this approval
+
+- No automatic implementation of any kind.
+- No Project Knowledge installation in this execution; Project Knowledge remains **not installed**.
+- No Workspace Knowledge modification.
+- No Skills change and no `AGENTS.md` creation.
+- Documentation 01–13 remains excluded.
+- Project Knowledge and Workspace Knowledge remain isolated from one another.
+- Current state and persisted state remain distinct: approving a structure is not evidence that the structure has been executed, accepted or closed.
+- No advancement to Sub-phase 3.1 through this execution.
+
+### Rationale
+
+Persistent Knowledge work is long-horizon, highly branched and easily lost to private conversation history. Approving and persisting the complete Phase, Track, Sub-phase and Workstream structure before any investigation begins fixes the boundaries, reserves the identifiers, and makes each later step separately authorizable and auditable.
+
+### Rejected alternatives
+
+1. **Begin the Memory Genesis and Refactoring Baseline investigations immediately without persisting the structure** — rejected. The structure would exist only in conversation, and the Workstream IDs would remain unreserved and collision-prone.
+2. **Create dedicated Workstream packages for all nine IDs now** — rejected. Packages for Workstreams that have not been authorized to start imply activity that has not occurred, and they would need repeated correction before use.
+3. **Extend Phase 2 instead of creating Phase 3** — rejected. Phase 2 is closed; reopening a closed Phase would destroy the truthfulness of its Closure evidence.
+
+---
+
+## DEC-RM-DH-003-006
+
+**Alias:** None.
+**Subject:** Module, Feature and Product-Control Architecture Package D1–D10
+**Status:** Approved
+**Decided at:** Owner approval granted before this persistence run. **Exact approval time not recorded.**
+**Persisted at:** 2026-08-04 (Asia/Riyadh — UTC+03:00), by execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02`.
+
+This decision owns the full D1–D10 text. Other governance files may reference `DEC-RM-DH-003-006` but must not duplicate that text.
+
+### D1 — Module Identity
+
+A Module remains a principal Dayli Horse account-type operational domain. A Module is not the same as every capability contained inside it.
+
+### D2 — Feature Identity
+
+A Feature remains an operational capability inside a Module. A Feature may be core, optional, advanced, shared or cross-module, but it does not automatically become a Module.
+
+### D3 — Governed Cross-Module Feature Packs
+
+An eligible Workspace may activate a governed and internally coherent Feature Pack originating from another domain without activating the entire source Module. Feature Packs must preserve operational truth and dependencies.
+
+### D4 — No Arbitrary Feature Cherry-Picking
+
+The system must not allow arbitrary individual Feature selection where dependencies would create an incomplete, misleading, unsafe or non-operational workflow.
+
+### D5 — Request Features Are Separate from Internal Execution
+
+The ability to request a service from another Module does not mean the requesting Workspace internally operates that Module. Requesting, coordinating, executing, owning the record, paying and receiving the result remain separate roles.
+
+### D6 — Module Core Features and Minimum Core Bundles
+
+Identity-defining Module Core Features must not be separated in a way that makes the Module operationally false. A Minimum Core Bundle may be approved only where it creates a complete, truthful and enforceable operational journey.
+
+### D7 — Clinic and Hospital Module Family
+
+Clinic and Hospital remain initially within one Veterinary Care Module family rather than being duplicated Modules. Organization subtype and Feature depth may distinguish Veterinary Clinic, Veterinary Hospital and Veterinary Center.
+
+### D8 — Self-Declared Organization Type and Verification Boundary
+
+A Workspace may self-declare its organization type. Self-declaration does not mean Dayli Horse verified professional, facility, government or licensing status.
+
+### D9 — Separate Product-Control Layers
+
+The following remain separate: Feature Catalog identity; current implementation; Feature depth; commercial entitlement; Workspace activation; Branch configuration; user permission; workflow assignment; billing; usage limit; suspension or expiry. No layer automatically proves another.
+
+### D10 — Detailed Pack, Pricing, Dependency and Execution Design Is Pending
+
+Approval of D1–D10 does not approve exact Feature Pack names, exact pack composition, standalone Feature eligibility, prices, renewal terms, usage meters, migrations, entitlement tables, implementation sequence, current-code correction, or production activation. Those items require separate investigation, Owner Alignment and authorized execution.
+
+### Rationale
+
+Dayli Horse spans many account types whose capabilities overlap. Without a fixed vocabulary separating Module identity, Feature identity, packaging and the product-control layers, commercial packaging and entitlement work would silently redefine what a Module is and would produce operationally false workspaces.
+
+### Rejected alternatives
+
+1. **Treat every significant capability as its own Module** — rejected. It would multiply Modules, fragment operational journeys and make account-type identity meaningless.
+2. **Allow free per-Feature selection** — rejected by D4. Dependency-blind selection produces incomplete and unsafe workflows.
+3. **Approve pack names, composition and pricing in the same decision** — rejected by D10. That design has not been investigated and would bind commercial terms without evidence.
+

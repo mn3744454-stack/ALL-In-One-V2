@@ -1,14 +1,15 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.2.2
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-07-31
+last-verified: 2026-08-04
+
 supersedes: []
 superseded-by: null
-source: v1.2.2 — records the explicit owner Closure decision: RM-DH-003 / Phase 2 is CLOSED and WS-DH-2026-0002 is CLOSED. QA is Complete, satisfied by the passed Final Targeted Acceptance Re-Audit under the owner's approved interpretation for this documentation-only correction; Acceptance remains accepted and persisted; the planning-artifact finding remains resolved by narrow exception and was not resolved by successful untracking. RM-DH-003 itself remains Active, no Phase 3 or later Phase was created or approved, no Phase advance occurred, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). No status, Phase, stopping point, next step, or closure state was changed; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Roadmap status, Phase state, Acceptance state, QA, stopping point, next step, and closure state are unchanged; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the finding is resolved by narrow exception rather than by successful untracking, the current Workstream status becomes EXECUTED_AWAITING_REAUDIT, the earlier Acceptance is preserved as historical evidence, no Phase advanced, and closure remains not approved; v1.2.1 — records the passed final targeted Acceptance Re-Audit of the seven-file planning-artifact exception-documentation correction, including EV-DEF-01, and persists that Acceptance. Verified Acceptance Re-Audit repository HEAD acd831767c235771b145dfeda4612a7ec51c32d4; latest governance-content HEAD 589ec1d1272d5ded131956b98e512831b71ec55a; working tree clean; no tracked file changed during the Re-Audit. The Workstream status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. QA remains Pending, owner closure remains not approved, and no Phase advanced.
+source: v1.3.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02 and approved Decisions DEC-RM-DH-003-005 and DEC-RM-DH-003-006, executed 2026-08-04 (Asia/Riyadh — UTC+03:00): creates RM-DH-003 / Phase 3 — Persistent Knowledge Architecture, Verification, Organization and Installation with state ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE and checkpoint GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING; adds the five-Track register, the eight-Sub-phase register 3.0–3.7, the authoritative nine-Workstream register reserving WS-DH-2026-0012 through WS-DH-2026-0020 as REGISTERED — NOT YET CREATED, the parallelism rule, the Phase 3 purpose and completion criteria, the Memory boundary, the complete 16-item Deferred Items Register, the Phase 3 stopping point and the next permitted action; and supersedes the previously accurate line stating that no Phase 3 exists or is owner-approved. Phase 0, Phase 1 and the CLOSED Phase 2 are preserved unchanged, no Workstream package or directory was created, no Workstream investigation started, no Sub-phase 3.1 advancement occurred, no Acceptance or Closure is claimed, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; v1.2.2 — records the explicit owner Closure decision: RM-DH-003 / Phase 2 is CLOSED and WS-DH-2026-0002 is CLOSED. QA is Complete, satisfied by the passed Final Targeted Acceptance Re-Audit under the owner's approved interpretation for this documentation-only correction; Acceptance remains accepted and persisted; the planning-artifact finding remains resolved by narrow exception and was not resolved by successful untracking. RM-DH-003 itself remains Active, no Phase 3 or later Phase was created or approved, no Phase advance occurred, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). No status, Phase, stopping point, next step, or closure state was changed; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Roadmap status, Phase state, Acceptance state, QA, stopping point, next step, and closure state are unchanged; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the finding is resolved by narrow exception rather than by successful untracking, the current Workstream status becomes EXECUTED_AWAITING_REAUDIT, the earlier Acceptance is preserved as historical evidence, no Phase advanced, and closure remains not approved; v1.2.1 — records the passed final targeted Acceptance Re-Audit of the seven-file planning-artifact exception-documentation correction, including EV-DEF-01, and persists that Acceptance. Verified Acceptance Re-Audit repository HEAD acd831767c235771b145dfeda4612a7ec51c32d4; latest governance-content HEAD 589ec1d1272d5ded131956b98e512831b71ec55a; working tree clean; no tracked file changed during the Re-Audit. The Workstream status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. QA remains Pending, owner closure remains not approved, and no Phase advanced.
 source-sha256: n/a
 -->
 
@@ -31,7 +32,7 @@ Recovery Status:
 Not applicable
 
 Current Roadmap position:
-Phase 2 closed; next Roadmap structure or Phase has not been owner-approved.
+Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE; Acceptance Re-Audit pending.
 ```
 
 ## Phase register
@@ -41,8 +42,10 @@ Phase 2 closed; next Roadmap structure or Phase has not been owner-approved.
 | `RM-DH-003 / Phase 0` | ChatGPT Governance Foundation | Completed |
 | `RM-DH-003 / Phase 1` | Lovable Repository Investigation | Completed |
 | `RM-DH-003 / Phase 2` | Governance Foundation Execution | CLOSED |
+| `RM-DH-003 / Phase 3` | Persistent Knowledge Architecture, Verification, Organization and Installation — هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها | ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE |
 
-No later Phase is created or named here. Later Phases require owner approval before they exist.
+No Phase after Phase 3 is created or named here. Later Phases require owner approval before they exist.
+
 
 ## Inside RM-DH-003 / Phase 2
 
@@ -78,19 +81,138 @@ No later Phase is created or named here. Later Phases require owner approval bef
 - Under the explicit owner decision recorded at Closure, that passed Re-Audit is also the **final QA evidence** for this documentation-only correction, so QA is **Complete** without a separate duplicative QA run.
 - Owner Closure is **approved and persisted**. `WS-DH-2026-0002` is **CLOSED** and `RM-DH-003 / Phase 2` is **CLOSED**.
 
-## Dependencies
+## Phase 2 dependencies
 
-- `RM-DH-001` and `RM-DH-002` are secondary affected Roadmaps: both received an initial governance package in this Phase.
+- `RM-DH-001` and `RM-DH-002` are secondary affected Roadmaps: both received an initial governance package in that Phase.
 - Accepted Rounds 1–5 are inputs by reference only and were not altered.
 
-## Remaining work in this Phase
+## Remaining work in Phase 2
 
 - None. `RM-DH-003 / Phase 2` is closed and no further work item is declared inside it.
+
+## RM-DH-003 / Phase 3 — Persistent Knowledge Architecture, Verification, Organization and Installation
+
+**العنوان العربي:** هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها
+
+```text
+Phase State:
+ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
+
+Execution Checkpoint:
+GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING
+```
+
+Phase 3 is neither Accepted nor Closed. Sub-phase 3.0 is neither Accepted nor advanced, and Sub-phase 3.1 has not started.
+
+### Phase 3 purpose
+
+Establish, verify, organize and install a durable Persistent Knowledge architecture for Dayli Horse: govern Memory origin, admission, numbering and succession; map the current codebase, coupling, duplication and risk zones without performing Refactoring; organize the Shared Platform Foundation, the 13 Account-Type Module Playbooks, the Cross-Module Journey Registry, the Feature Placement and Participation Matrix, and the complete Memory and source mapping; perform Persistent Knowledge Stages B through E; and reach Owner Acceptance, Project Knowledge installation, persistence verification and maintenance governance.
+
+### Phase 3 Sub-phase register
+
+| Sub-phase | Title | Status |
+|---|---|---|
+| `3.0` | Scope and Governance Persistence | CURRENT — GOVERNANCE PERSISTENCE EXECUTED; ACCEPTANCE RE-AUDIT PENDING |
+| `3.1` | Foundational Read-Only Audits | NOT STARTED |
+| `3.2` | Knowledge Organizational Architecture | NOT STARTED |
+| `3.3` | Persistent Knowledge Stage B | NOT STARTED |
+| `3.4` | Persistent Knowledge Stage C | NOT STARTED |
+| `3.5` | Persistent Knowledge Stage D | NOT STARTED |
+| `3.6` | Persistent Knowledge Stage E | NOT STARTED |
+| `3.7` | Acceptance, Installation and Verification | NOT STARTED |
+
+There is no Sub-phase `3.8`.
+
+### Phase 3 Track register
+
+| Track | Title | Purpose | Assigned Workstreams |
+|---|---|---|---|
+| A | Memory Governance and Provenance | Define Memory origin, admission, numbering, amendment, supersession, succession, provenance and maintenance. | `WS-DH-2026-0012` |
+| B | Codebase Architecture Intelligence | Map the current codebase, coupling, duplication, risk zones, shared-kernel opportunities and future Refactoring requirements without performing Refactoring. | `WS-DH-2026-0013` |
+| C | Knowledge Organization | Organize the Shared Platform Foundation, the 13 Account-Type Module Playbooks, the Cross-Module Journey Registry, the Feature Placement and Participation Matrix, and the complete Memory and source mapping. | `WS-DH-2026-0014`, `WS-DH-2026-0015` |
+| D | Technical Verification | Perform Persistent Knowledge Stage B through bounded read-only verification slices. | `WS-DH-2026-0016` |
+| E | Reconstruction, Acceptance and Installation | Perform Persistent Knowledge Stages C, D and E, then Owner Acceptance, Project Knowledge installation, persistence verification, maintenance governance and eventual Owner Closure. | `WS-DH-2026-0017`, `WS-DH-2026-0018`, `WS-DH-2026-0019`, `WS-DH-2026-0020` |
+
+### Phase 3 Workstream register (authoritative)
+
+This register is the authoritative reservation record for these Workstream IDs. Registration reserves the ID permanently. It does not create a package and does not start an investigation.
+
+| Workstream ID | English title | Arabic title | Track | Sub-phase | Dependency | Registry status | Activation status |
+|---|---|---|---|---|---|---|---|
+| `WS-DH-2026-0012` | Memory Genesis, Admission, Numbering and Succession | أصل الذاكرة، ومعايير القبول، والترقيم، والخلافة | A | 3.1 | None. Mode: Plan/Chat — Read-only | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0013` | Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit | خط أساس إعادة هيكلة الكود، والترابط، والتكرار، وفرص النوى المشتركة | B | 3.1 | None. Mode: Plan/Chat — Read-only | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0014` | Organizational Blueprint and Feature Placement Architecture | المخطط التنظيمي ومعمارية توزيع الميزات | C | 3.2 | BLOCKED BY `WS-DH-2026-0012` AND `WS-DH-2026-0013` | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0015` | Memory, Chapter and Source Migration Matrix | مصفوفة نقل الذاكرة والفصول والمصادر | C | 3.2 | BLOCKED BY `WS-DH-2026-0012` AND `WS-DH-2026-0013` | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0016` | Persistent Knowledge Stage B Technical Verification Program | برنامج التحقق الفني للمعرفة الدائمة — Stage B | D | 3.3 | BLOCKED BY `WS-DH-2026-0014` AND `WS-DH-2026-0015`. Mode: Plan/Chat — Read-only | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0017` | Persistent Knowledge Stage C Reconciliation | مصالحة وتصحيح المعرفة — Stage C | E | 3.4 | BLOCKED BY `WS-DH-2026-0016` | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0018` | Persistent Knowledge Stage D Final Reconstruction | البناء النهائي للـProject Knowledge — Stage D | E | 3.5 | BLOCKED BY `WS-DH-2026-0017` | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0019` | Persistent Knowledge Stage E Independent Re-Audit | المراجعة المستقلة النهائية — Stage E | E | 3.6 | BLOCKED BY `WS-DH-2026-0018`. Mode: Plan/Chat — Read-only | REGISTERED — NOT YET CREATED | NOT STARTED |
+| `WS-DH-2026-0020` | Owner Acceptance, Project Knowledge Installation and Persistence Verification | اعتماد المالك، وتثبيت المعرفة، والتحقق من التثبيت | E | 3.7 | BLOCKED BY PASSED STAGE E AND EXPLICIT OWNER ACCEPTANCE | REGISTERED — NOT YET CREATED | NOT STARTED |
+
+`WS-DH-2026-0012` through `WS-DH-2026-0020` are now **REGISTERED — PERMANENTLY RESERVED — ID CONSUMED**. ID consumption means only that the global IDs are permanently reserved by this register. It does not mean a package was created, an investigation began, Sub-phase 3.1 began, execution occurred, or Acceptance occurred.
+
+### Phase 3 parallelism rule
+
+`WS-DH-2026-0012` and `WS-DH-2026-0013` may later run in parallel only after all of the following:
+
+1. The Governance Persistence Acceptance Re-Audit passes.
+2. Owner Acceptance is granted where required.
+3. The required persistence is complete.
+4. The Owner explicitly advances to Sub-phase 3.1.
+5. Dedicated Workstream packages are separately authorized.
+
+### Phase 3 completion criteria
+
+1. Sub-phases 3.0 through 3.7 are each executed, independently re-audited and Owner-accepted in order.
+2. All nine registered Workstreams are created, executed and accepted, or are explicitly superseded by an approved decision.
+3. Persistent Knowledge Stages B, C, D and E are complete, with Stage E independently re-audited.
+4. Project Knowledge is installed and its persistence is verified.
+5. Maintenance governance for Persistent Knowledge is persisted in the repository.
+6. Owner Closure of Phase 3 is explicitly granted and persisted.
+
+### Phase 3 Memory boundary
+
+- Persistent Knowledge Stage A is **substantively complete**: 104 permanent official Memory IDs, of which 100 were directly read and 4 were referenced but inaccessible.
+- `MEM-079`, `MEM-084`, `MEM-090` and `MEM-095` are **permanently reserved**. They must not be reconstructed, reused, renumbered or silently replaced.
+- The 104 objects are an inventory. They are not 104 final approved Project Knowledge rules.
+- Persistent Knowledge Stage B is **not started**. Project Knowledge is **not installed**.
+
+### Phase 3 Deferred Items Register
+
+No item may be removed except through successful Acceptance, explicit Owner cancellation, or approved supersession.
+
+1. Actual code Refactoring.
+2. Feature Pack implementation.
+3. Module activation implementation.
+4. Subscription and pricing implementation.
+5. New Feature implementation.
+6. Missing Module implementation.
+7. Skills revision.
+8. Root `AGENTS.md` creation.
+9. Workspace Knowledge use.
+10. Documentation 01–13 historical recovery.
+11. Cross-project sharing changes.
+12. `RM-DH-004` financial execution.
+13. Any technical defect discovered by a later Persistent Knowledge Stage B audit.
+14. Any Project Knowledge installation.
+15. Memory Genesis investigation.
+16. Refactoring Baseline investigation.
+
+### Phase 3 decisions
+
+- `DEC-RM-DH-003-005` — Phase 3 Governance Approval.
+- `DEC-RM-DH-003-006` — Module, Feature and Product-Control Architecture Package D1–D10. The full D1–D10 text lives only in [`decisions.md`](./decisions.md).
+
+### Remaining work in Phase 3
+
+- Governance Persistence Acceptance Re-Audit of this persistence execution.
+- Every later Sub-phase from 3.1 through 3.7, each requiring separate owner authorization.
+
 
 ## Current status
 
 ```text
-Workstream Status:
+Phase 2 Workstream Status (WS-DH-2026-0002):
 CLOSED
 
 Phase 2 Status:
@@ -102,18 +224,31 @@ Accepted and persisted
 Previous baseline Acceptance:
 Preserved as historical evidence
 
-QA:
+Phase 2 QA:
 Complete — satisfied by the passed Final Targeted Acceptance Re-Audit
 
-Closure:
+Phase 2 Closure:
 Approved and persisted
 
 Roadmap Status:
 Active
 
-Phase advance:
-None — no Phase 3 or later Phase exists or is owner-approved
+Current Phase:
+RM-DH-003 / Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
+
+Phase 3 Execution Checkpoint:
+GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING
+
+Phase 3 Acceptance:
+Not performed
+
+Phase 3 Closure:
+None
+
+Sub-phase advance:
+None — Sub-phase 3.1 has not started
 ```
+
 
 ## Final Phase 2 stopping point
 
@@ -121,10 +256,26 @@ None — no Phase 3 or later Phase exists or is owner-approved
 Phase 2 closed after successful Acceptance and explicit owner Closure approval.
 ```
 
+That Phase 2 Closure was the explicit owner decision. This Roadmap may not accept or close itself.
+
+## Current Phase 3 stopping point
+
+```text
+Phase 3 governance is persisted in the repository.
+Sub-phase 3.0 remains the current position.
+Governance Persistence Execution is complete.
+Acceptance Re-Audit is pending and is the next permitted operation.
+No Workstream investigation has started.
+No dedicated Workstream package exists for WS-DH-2026-0012 through WS-DH-2026-0020.
+No Project Knowledge is installed.
+No advancement to Sub-phase 3.1 has occurred.
+```
+
 ## Next permitted Roadmap action
 
 ```text
-Owner-approved classification and read-only investigation of the Lovable Persistent Instructions Architecture.
+Prepare and run a separate Plan/Chat — Read-only Governance Persistence Acceptance Re-Audit Prompt.
 ```
 
-That investigation was not classified or begun by this Closure execution. This Roadmap may not accept or close itself; the Closure recorded here is the explicit owner decision.
+Execution is not Acceptance, and Acceptance is not Closure.
+
