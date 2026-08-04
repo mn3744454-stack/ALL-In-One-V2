@@ -1,8 +1,8 @@
 import { formatCurrency } from "@/lib/formatters";
-import { format } from "date-fns";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 import { classifyLedgerEntry, semanticClassLabel } from "@/lib/finance/statementSemantics";
+import { formatEconomicDate } from "@/lib/finance/effectiveDate";
 
 /**
  * Escape user-controlled strings before interpolating into HTML written to a
@@ -49,11 +49,13 @@ export interface StatementPrintData {
   firstActivityDate?: string | null;
 }
 
+/**
+ * Stage C · Slice A — Client Statement dates are date-only economic dates
+ * (`effective_date`). Rendered from the string so no UTC conversion can shift
+ * the day, and no time is ever fabricated.
+ */
 function formatDateForPrint(dateStr: string): string {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return '-';
-  return format(d, 'dd-MM-yyyy');
+  return formatEconomicDate(dateStr);
 }
 
 function formatTimeForPrint(dateStr: string, _lang: string = 'en'): string {

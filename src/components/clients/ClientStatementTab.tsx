@@ -30,6 +30,7 @@ import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } fr
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
 import { summarizeStatement } from "@/lib/finance/statementSemantics";
+import { compareEconomicOrder, toCents, fromCents, formatEconomicDate } from "@/lib/finance/effectiveDate";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
 
@@ -800,15 +801,17 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         });
       }
     }
-    // Sort rows by effective date
-    // 2QA-A · Finding 2 — Sort/display uses the canonical effective posting
-    // date (parent ledger row date) even for exploded boarding segments. The
-    // segment period stays visible only inside the description column.
-    const getRowDate = (row: FlatStatementRow): string => row.entry.date;
+    // Stage C · Slice A — Deterministic economic ordering:
+    // effective_date, then created_at (audit tie-breaker), then id.
+    // Exploded boarding segments inherit their parent ledger row's keys so a
+    // segment can never drift away from its posting.
     rows.sort((a, b) => {
-      const da = new Date(getRowDate(a)).getTime();
-      const db = new Date(getRowDate(b)).getTime();
-      return sortOrder === "asc" ? da - db : db - da;
+      const cmp = compareEconomicOrder(
+        { date: a.entry.date, createdAt: a.entry.createdAt, id: a.entry.id },
+        { date: b.entry.date, createdAt: b.entry.createdAt, id: b.entry.id },
+        sortOrder === "asc" ? "asc" : "desc"
+      );
+      return cmp;
     });
     return rows;
   }, [domainFilteredEntries, enrichment, isEnriching, sortOrder]);
@@ -829,26 +832,29 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     };
   }, [domainFilteredEntries]);
 
-  // Running balance: recompute from visible rows, skipping neutralized rows.
+  // Stage C · Slice A — DISPLAY-DERIVED running balance (Owner Option A).
+  // Seeded from the pre-range opening balance and accumulated in integer cents
+  // over the canonically ordered rows. Stored `balance_after` is never used as
+  // the display authority.
   const runningBalances = useMemo(() => {
     const balances = new Map<string, number>();
-    let balance = 0;
+    let cents = toCents(statement?.openingBalance ?? 0);
     for (const row of flatRows) {
       const neutralized = scopedSummary.neutralizedRowIds.has(row.entry.id);
       if (neutralized) {
         // Show the row but do not shift the running balance.
-        balances.set(row.key, balance);
+        balances.set(row.key, fromCents(cents));
         continue;
       }
       if (row.isSegment && row.segment) {
-        balance += row.segment.amount;
+        cents += toCents(row.segment.amount);
       } else if (!row.isSegment) {
-        balance += row.entry.debit - row.entry.credit;
+        cents += toCents(row.entry.debit) - toCents(row.entry.credit);
       }
-      balances.set(row.key, balance);
+      balances.set(row.key, fromCents(cents));
     }
     return balances;
-  }, [flatRows, scopedSummary.neutralizedRowIds]);
+  }, [flatRows, scopedSummary.neutralizedRowIds, statement?.openingBalance]);
 
   // Build scope context strings
   const scopeContextHorses = useMemo(() => {
@@ -969,6 +975,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         id: row.key,
         // 2QA-A · Finding 2 — canonical effective date on every export row
         date: row.entry.date,
+        createdAt: row.entry.createdAt,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
         description: printEnrichedDescriptions.get(row.key) || "",
         reference_type: row.entry.reference_type,
@@ -1381,7 +1388,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                               <TableRow key={row.key} className="align-top bg-muted/20">
                                 <TableCell className="text-center font-mono text-xs tabular-nums whitespace-nowrap text-muted-foreground" dir="ltr">
                                   {/* 2QA-A · Finding 2 — segment rows show the parent posting date */}
-                                  {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                                  {formatEconomicDate(row.entry.date)}
                                 </TableCell>
                                 <TableCell>
                                   <RowDescription row={row} isRTL={isRTL} t={t} />
@@ -1401,7 +1408,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                           return (
                             <TableRow key={row.key} className={cn("align-top", isNeutralized && "opacity-60")}>
                               <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
-                                {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                                {formatEconomicDate(row.entry.date)}
                               </TableCell>
                               <TableCell>
                                 <RowDescription row={row} isRTL={isRTL} t={t} />
@@ -1441,7 +1448,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                           <div key={row.key} className="p-3 space-y-1 bg-muted/20">
                             <span className="font-mono text-xs text-muted-foreground" dir="ltr">
                               {/* 2QA-A · Finding 2 — mobile segment rows show the parent posting date */}
-                              {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                              {formatEconomicDate(row.entry.date)}
                             </span>
                             <RowDescription row={row} isRTL={isRTL} t={t} />
                             <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
@@ -1455,7 +1462,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       return (
                         <div key={row.key} className="p-3 space-y-2">
                           <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                            {formatDate(row.entry.date, 'dd-MM-yyyy')}
+                            {formatEconomicDate(row.entry.date)}
                           </span>
                           <RowDescription row={row} isRTL={isRTL} t={t} />
                           <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">

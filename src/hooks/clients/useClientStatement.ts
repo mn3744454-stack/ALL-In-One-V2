@@ -1,18 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
-import { localDateFromToUtcIso, localDateToToUtcIso } from "@/lib/finance/effectiveDate";
+import {
+  compareEconomicOrder,
+  toEconomicDateString,
+  toCents,
+  fromCents,
+} from "@/lib/finance/effectiveDate";
 
 export interface StatementEntry {
   id: string;
+  /**
+   * Stage C · Slice A — Canonical ECONOMIC date (yyyy-MM-dd), sourced from
+   * `ledger_entries.effective_date`. Date-only: never render a time for it.
+   */
   date: string;
+  /** Audit timestamp (`created_at`). Deterministic tie-breaker + audit only. */
+  createdAt: string | null;
   entry_type: "invoice" | "payment" | "credit" | "adjustment";
   description: string | null;
   reference_type: string | null;
   reference_id: string | null;
   debit: number; // Amount added to balance (invoice)
   credit: number; // Amount subtracted from balance (payment)
-  balance: number; // Running balance (balance_after)
+  /**
+   * Stored `ledger_entries.balance_after` — HISTORICAL AUDIT METADATA ONLY.
+   * It follows the accepted Stage-A `created_at` sequence and is NOT the
+   * display authority. The statement derives the displayed running balance
+   * from the opening balance plus cumulative ordered amounts.
+   */
+  balance: number;
   payment_method: string | null;
 }
 
@@ -26,9 +43,18 @@ export interface ClientStatementSummary {
   openingBalance: number;
 }
 
+/** Page size for the pre-range opening-balance aggregate read. */
+const OPENING_BALANCE_PAGE_SIZE = 1000;
+
 /**
- * Hook to fetch client statement from ledger_entries.
- * Provides chronological list of all financial transactions with running balance.
+ * Hook to fetch a client statement from `ledger_entries`.
+ *
+ * Stage C · Slice A contract:
+ *   - economic chronology  = `effective_date` (date-only, inclusive bounds);
+ *   - deterministic order  = effective_date ASC, created_at ASC, id ASC;
+ *   - opening balance      = SUM(amount) WHERE effective_date < dateFrom;
+ *   - running balance      = derived downstream from opening + ordered amounts;
+ *   - stored `balance_after` is never the display authority.
  */
 export function useClientStatement(
   clientId?: string | null,
@@ -43,22 +69,26 @@ export function useClientStatement(
     queryFn: async (): Promise<ClientStatementSummary | null> => {
       if (!tenantId || !clientId) return null;
 
-      // Build query
       let query = supabase
         .from("ledger_entries")
-        .select("id, created_at, entry_type, description, reference_type, reference_id, amount, balance_after, payment_method")
+        .select(
+          "id, effective_date, created_at, entry_type, description, reference_type, reference_id, amount, balance_after, payment_method"
+        )
         .eq("tenant_id", tenantId)
         .eq("client_id", clientId)
-        .order("created_at", { ascending: true });
+        // Canonical deterministic ordering — matches
+        // ledger_entries_effective_composite_idx.
+        .order("effective_date", { ascending: true })
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true });
 
-      // 2QA-A · Finding 2 — canonical local-day → UTC boundary conversion so
-      // a "From 01-04-2026" filter never leaks a row whose posting timestamp
-      // is on 31-03-2026 in the user's local timezone.
+      // Date-only, inclusive on both bounds. No UTC conversion: `effective_date`
+      // is a Postgres `date`, so a timestamp window would shift the day.
       if (dateFrom) {
-        query = query.gte("created_at", localDateFromToUtcIso(dateFrom));
+        query = query.gte("effective_date", toEconomicDateString(dateFrom));
       }
       if (dateTo) {
-        query = query.lte("created_at", localDateToToUtcIso(dateTo));
+        query = query.lte("effective_date", toEconomicDateString(dateTo));
       }
 
       const { data: entries, error } = await query;
@@ -68,6 +98,34 @@ export function useClientStatement(
         return null;
       }
 
+      // Opening balance — ALL ledger amounts economically before the range
+      // start. Paginated so a client-library row cap can never truncate the
+      // sum. Zero when no start date is selected.
+      let openingCents = 0;
+      if (dateFrom) {
+        const cutoff = toEconomicDateString(dateFrom);
+        let offset = 0;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const { data: priorPage, error: priorError } = await supabase
+            .from("ledger_entries")
+            .select("amount")
+            .eq("tenant_id", tenantId)
+            .eq("client_id", clientId)
+            .lt("effective_date", cutoff)
+            .range(offset, offset + OPENING_BALANCE_PAGE_SIZE - 1);
+
+          if (priorError) {
+            console.error("Error fetching opening balance:", priorError);
+            return null;
+          }
+          const page = priorPage || [];
+          for (const row of page) openingCents += toCents((row as any).amount);
+          if (page.length < OPENING_BALANCE_PAGE_SIZE) break;
+          offset += OPENING_BALANCE_PAGE_SIZE;
+        }
+      }
+
       // Fetch client name
       const { data: client } = await supabase
         .from("clients")
@@ -75,49 +133,46 @@ export function useClientStatement(
         .eq("id", clientId)
         .single();
 
-      // Transform entries
-      let totalDebits = 0;
-      let totalCredits = 0;
-      let openingBalance = 0;
-      let currentBalance = 0;
+      let debitCents = 0;
+      let creditCents = 0;
+      let runningCents = openingCents;
 
-      const statementEntries: StatementEntry[] = (entries || []).map((e: any, index: number) => {
-        const amount = Number(e.amount);
-        const isDebit = amount > 0;
-        const debit = isDebit ? amount : 0;
-        const credit = isDebit ? 0 : Math.abs(amount);
+      const statementEntries: StatementEntry[] = (entries || []).map((e: any) => {
+        const amountCents = toCents(e.amount);
+        const isDebit = amountCents > 0;
 
-        totalDebits += debit;
-        totalCredits += credit;
-
-        // Track balance
-        if (index === 0) {
-          openingBalance = Number(e.balance_after) - amount;
-        }
-        currentBalance = Number(e.balance_after);
+        debitCents += isDebit ? amountCents : 0;
+        creditCents += isDebit ? 0 : Math.abs(amountCents);
+        runningCents += amountCents;
 
         return {
           id: e.id,
-          date: e.created_at,
+          date: toEconomicDateString(e.effective_date),
+          createdAt: e.created_at ?? null,
           entry_type: e.entry_type as StatementEntry["entry_type"],
           description: e.description,
           reference_type: e.reference_type,
           reference_id: e.reference_id,
-          debit,
-          credit,
-          balance: Number(e.balance_after),
+          debit: isDebit ? fromCents(amountCents) : 0,
+          credit: isDebit ? 0 : fromCents(Math.abs(amountCents)),
+          balance: Number(e.balance_after), // audit metadata only
           payment_method: e.payment_method,
         };
       });
+
+      // Defensive client-side re-sort with the identical canonical keys, so
+      // ordering stays deterministic regardless of transport nuances.
+      statementEntries.sort((a, b) => compareEconomicOrder(a, b, "asc"));
 
       return {
         clientId,
         clientName: client?.name,
         entries: statementEntries,
-        totalDebits,
-        totalCredits,
-        currentBalance,
-        openingBalance,
+        totalDebits: fromCents(debitCents),
+        totalCredits: fromCents(creditCents),
+        // closing balance = opening + sum(visible ordered amounts)
+        currentBalance: fromCents(runningCents),
+        openingBalance: fromCents(openingCents),
       };
     },
     enabled: !!tenantId && !!clientId,
