@@ -1,115 +1,166 @@
-# PROMPT 42 — STAGE-C SLICE-B COMBINED INDEPENDENT QA AND CONDITIONAL ACCEPTANCE RE-AUDIT
+# PROMPT 09 — RM-DH-003 / PHASE 3 TARGETED ACCEPTANCE RE-VERIFICATION
 
-## A. Executive Verdicts
+## 1. Executive Verdict
 
-- PROMPT 42 SUBMITTED — RUN — CONSUMED
-- STAGE-C SLICE-B READ-ONLY COMBINED QA SCOPE PRESERVED
-- PROMPT-41 IMPLEMENTATION LINEAGE AND AGGREGATE DIFF VERIFIED
-- CUSTOMER-LEVEL ACTIVITY EFFECTIVE-DATE CONTRACT PROVEN
-- CUSTOMER-LEVEL ACTIVITY EFFECTIVE-DATE QA PASSED
-- LEDGER EFFECTIVE-DATE LIST QA FAILED (screen correct; Print/CSV render a fabricated time)
-- INVOICE ISSUE-DATE LIST QA PASSED
-- SLICE-B BUSINESS-DATE RENDERING OR PARITY FAILED
-- SLICE-B TARGETED QA TESTS PASSED
-- SLICE-A REGRESSION QA PASSED
-- SLICE-B TYPECHECK QA PASSED
-- SLICE-B BUILD QA PASSED
-- SLICE-B ZERO-REGRESSION QA PASSED
-- SLICE-B RESIDUALS CORRECTLY CLASSIFIED
-- Acceptance lanes NOT ENTERED (conditional gate not met): SLICE-B BUSINESS-DATE CORRECTNESS NOT ACCEPTED
-- ZERO REPOSITORY AND DATABASE WRITE CONFIRMED
-- STAGE A, STAGE B AND SLICE A REMAINED CLOSED
-- **STAGE-C SLICE-B COMBINED QA FAILED — TARGETED CORRECTION REQUIRED**
+**TARGETED GOVERNANCE PERSISTENCE ACCEPTANCE RE-VERIFICATION PASSED — PROMPT-08 CORRECTION ARTIFACT ACCEPTED — READY FOR OWNER ACCEPTANCE**
 
-## B. Complete Roadmap
+## 2. Roadmap Status
 
-RM-DH-004 Phase 1 (Economic Date Integrity) ACTIVE — Stage A CLOSED, Stage B CLOSED, Stage C ACTIVE (Slice A accepted/closed, Slice B in QA), Stage D NOT STARTED. Phases 2–8 NOT STARTED.
+RM-DH-003 ACTIVE. Phase 0 and Phase 1 preserved. Phase 2 CLOSED. Phase 3 ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE. No advancement, no Closure.
 
-## C. Preflight and Prompt-41 Lineage
+## 3. Cumulative Prompt Lineage Ledger
 
-- Branch: `edit/edt-71765b44-6c90-4180-8434-5906a84c0618`
-- HEAD: `fd7f0e0ab2a045d21be20ccbbf52add90f12a7cd` (merge)
-- HEAD parents: `d8c890cb717fefea1797c7decf480fc9643c767d` and `49cee729ac2a15e5e646de204250f8e060ce4665`
-- Working Tree: clean before and after (`git status --porcelain` empty)
-- Reported chain gap resolved: Prompt-41 work is a linear chain from the pre-HEAD —
-  `d8c890cb…` → `fdfc9515d83c0d543ebe8b4dafc7cd19d08acf61` → `c4714b4c26399133707a7037361da3d2c9eee077` → `c48d9c4379a0314fe8ffd70743249722ecfc3ead` → `5a3f574f02961273e3086937f9654c8edd9f18b9` → `863060a157c174dbd0bff6673bded3949fbf0cd3` → `2b78c925d4b78dfe5ba32ac0963de127affae658` → `187a94d6111e2d7aed4cb5bd72939a1ea2401067` → `c8377c831bc10e72da5a8fd8f36b9dd981c07e6a` → `cd7f11f7a1f4a12fb456e437e439444732ae43c5` → `49cee729ac2a15e5e646de204250f8e060ce4665`, then merged into `fd7f0e0a…`. The reported "first substantive commit" `c8377c83…` is mid-chain, not a detached root.
-- Aggregate diff `d8c890cb…` → `49cee729…`: exactly the 7 allowlisted paths, 278 insertions / 30 deletions.
-- Post-execution drift: `git diff 49cee729… HEAD` is empty → NO SLICE-B POST-EXECUTION DRIFT.
+01 CONSUMED · C1 CONSUMED (no new number) · C2 CONSUMED (no new number) · 02 CONSUMED · 03 CONSUMED — FAILED · 04 CONSUMED · 05 CONSUMED — FAILED · 06 CONSUMED · 07 CONSUMED · 08 CONSUMED · 09 SUBMITTED — RUN — CONSUMED. Local sequence 01–09 intact.
 
-## D. Evidence Boundary
+## 4. Preserved and Still Authoritative
 
-Facts: Git lineage, file contents, test/typecheck/build output, live read-only SQL. Prompt-41 claims verified independently. Gap: no interactive browser preview was used; rendering was verified structurally from code and formatter behavior, not visually.
+Section C of the Prompt is confirmed in full by current repository evidence: Phases, Sub-phases 3.0–3.7, Tracks A–E, Workstreams 0012–0020 REGISTERED — PERMANENTLY RESERVED — ID CONSUMED, D1–D10, Option C, MEM-079/084/090/095 reserved, 104 Memories as inventory, Stage B NOT STARTED, Project Knowledge NOT INSTALLED, exact-file restoration rollback, 16-item Deferred Items Register.
 
-## E. Customer-Level Activity QA
+## 5. Preserved Owner-Approved Supersessions
 
-`src/hooks/clients/useUnallocatedPayments.ts` queries `ledger_entries` only — no `payment_sessions` reference. Selects `effective_date` plus `created_at` (documented as audit/tie-break). Filters `gte/lte` on `effective_date` via `toEconomicDateString` (inclusive, date-only, no UTC window helper). Order: `effective_date` DESC, `created_at` DESC, `id` DESC. Tenant and client scoping preserved; `invoice_cancellation` exclusion and `customer_level` / `unresolved_legacy` classification unchanged; amount/reference semantics unchanged; no write path. `ClientStatementTab.tsx` renders `formatEconomicDate(e.date)` in both table and mobile blocks. Live evidence: 27 of 88 `ledger_entries` rows have `effective_date` differing from the Riyadh-local `created_at` date (e.g. `1147284a…` effective 2026-07-25 vs created 2026-07-27), so the change is observable.
+Option B, Option B2 and Option B3 remain limited exactly as stated. No general multi-commit rule exists; DEC-009 §4 explicitly binds the supersession to Prompt 06 only.
 
-## F. Ledger QA
+## 6. Rejected or Superseded Findings
 
-`useLedger.ts` selects `effective_date, created_at` and orders `effective_date` DESC, `created_at` DESC, `id` DESC; hook remains read-only. `DashboardFinance.tsx` Ledger and Payments tabs filter on date-only inclusive `effective_date` bounds (the previous `+ "T23:59:59"` construction is gone) and re-sort in memory with `compareEconomicOrder(..., "desc")` on the same three keys. Screen cells render `formatEconomicDate(entry.effective_date)`. Amounts, sign, type, description, `balance_after`, tenant scope and permissions unchanged.
+All eight rejected items in Prompt §E stand, including Prompt-08's non-canonical report wording (see §24).
 
-**Defect (blocking):** `handlePrint` and `handleExportCSV` in both tabs pass `toEconomicDateString(e.effective_date)` (a date-only string) into `printLedgerEntries` / `exportLedgerCSV` in `src/components/clients/StatementPrintUtils.ts`, which format that field with `formatTimeForPrint` → `formatStandardDateTime`, emitting `dd-MM-yyyy hh:mm AM/PM`. A date-only value therefore prints a fabricated `12:00 AM` UTC-parsed time (rendered `03:00 صباحاً` at UTC+03:00), so Print/CSV do not match the screen's date-only economic date. The Slice-A Client Statement print path is unaffected — it uses `formatDateForPrint` → `formatEconomicDate`.
+## 7. Exact Authoritative Playbook Contract
 
-## G. Invoice-List QA
+Verbatim present in `roadmap.md` L109 (Phase 3 purpose) and L132 (Track C cell), and in `decisions.md` L468. No roster, no count.
 
-`useInvoices.ts` orders `issue_date` DESC, `created_at` DESC, `id` DESC; tenant and status filters unchanged. `InvoicesList.tsx` renders `formatEconomicDate(invoice.issue_date)` (no `new Date()` parse, no UTC shift). `due_date` untouched: `InvoiceCard.tsx` still renders it and `supabase/functions/mark-overdue-invoices` still keys overdue on `due_date`. No invoice detail, PDF, approval, cancellation, allocation or write-RPC file appears in the aggregate diff.
+## 8–9. Pre-Audit Live-State Gate and Git Evidence
 
-## H. Rendering and Structural Parity
+- Branch: `edit/edt-4864a448-5e89-4573-9bdb-88c67eaf71e3`
+- HEAD: `1e14c1cba1c3f2f6658501c96edfe61549311a1c`
+- Working Tree: CLEAN (`git status --porcelain` empty) — no staged, unstaged or untracked non-ignored paths.
+- All ten §G2 anchors plus the three Prompt-08 SHAs are reachable commits.
 
-Screen surfaces on all three paths render date-only via `formatEconomicDate`, language-agnostic with Western digits and no UTC day shift. No preview session was used — this is a structural verification, not a visual one. Parity fails only for the Ledger/Payments Print and CSV exports described in §F.
+## 10–13. Prompt-08 Commit Set, Per-Commit Table, Aggregate and Final HEAD
 
-## I. Tests, Typecheck and Build
+Pre-write HEAD `1ad2b5f9b3a68d0dc6cd5503f03cde96be1f0f94`. Linear chain, no merge.
 
-| Command | Result |
-|---|---|
-| `bunx vitest run src/lib/finance/__tests__/stageCSliceBReadPathCutover.test.ts` | 1 file, 24 tests passed, exit 0 |
-| `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` | 1 file, 14 tests passed, exit 0 |
-| `bunx vitest run src/lib/finance` | 13 files, 241 tests passed, exit 0 |
-| `tsgo --noEmit -p tsconfig.app.json` | exit 0, no diagnostics |
-| `bun run build` | exit 0, built in 32.41s; pre-existing warnings only (chunk >500 kB, sonner dynamic/static import, stale caniuse-lite) |
+| # | SHA | Parent | Author = Committer (UTC) | Paths | Allowlist | plan.md | Denylist | Result |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `740067bbe390c55b81e53b357d01b3774eddce45` | `1ad2b5f9…` | 2026-08-04T09:55:49Z | roadmap.md | PASS | absent | none | PASS |
+| 2 | `e2af24bb7769fe54d4ee592cb2c329eb6e03a914` | `740067bb…` | 2026-08-04T09:56:59Z | changelog.md, decisions.md | PASS | absent | none | PASS |
+| 3 | `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109` | `e2af24bb…` | 2026-08-04T09:57:09Z | docs/README.md | PASS | absent | none | PASS |
 
-Note: the targeted suite asserts screen-level formatting only; it contains no assertion covering the Ledger/Payments Print or CSV date, which is why the defect passed Prompt-41 self-verification.
+Aggregate `1ad2b5f9…` → `fa8bcd00…` = exactly four paths (roadmap.md, decisions.md, changelog.md, docs/README.md); numstat 4/4, 67/3, 35/2, plus docs/README.md. No fifth path. Zero merge commits. **Prompt-08 final HEAD = `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109`**, an ancestor of current HEAD. History not rewritten. Topology (3 content commits, 0 merge) is inside the authorized 1–4 + ≤1 merge contract.
 
-## J. Zero Regression
+## 14. Post-Prompt-08 Drift Analysis
 
-Repository substantive writes: ZERO (working tree clean, no commit). Database writes: ZERO. Migration writes: ZERO. Financial-row writes: ZERO. No `balance_after` or `effective_date` data change, no posting/expense/supplier-payable change, no RLS/Grant/index/schema change, no Stable Contract or Emergency Rollback change. Stage A and Stage B remain closed; Slice A remains accepted and closed; Stage D not started. Only read-only SQL (`count`, sample select) was executed.
+`fa8bcd00…` → HEAD changed 23 paths, classified:
 
-## K. Residual Classification
+- Platform-managed: `.lovable/plan.md`, `.lovable/plan/1-identity-2026-08-04.md`.
+- Unrelated RM-DH-004 governance: `docs/roadmaps/rm-dh-004-*/roadmap.md`, `…/changelog.md`, `docs/workstreams/ws-dh-2026-0003-*` (3 paths).
+- Central indexes touched by RM-DH-004 only: `docs/README.md` (a Prompt-08 allowlisted path — diff limited to the three RM-DH-004 rows; the four RM-DH-003 rows and version 1.14.3 are byte-identical), `docs/roadmaps/README.md` (RM-DH-004 row only; version 1.3.0 unchanged), `docs/workstreams/README.md` (RM-DH-004 row only; version 1.5.0 unchanged).
+- Unrelated application / RM-DH-004 execution: 13 `src/**` and `supabase/migrations/**` paths.
+- **Protected RM-DH-003 governance drift: NONE** — `git diff fa8bcd00 HEAD -- docs/roadmaps/rm-dh-003-.../` is empty.
 
-Genuine remaining Stage-C work (non-blocking): dedicated `payment_sessions` surface discovery for `payment_date`; `financial_entries` business-date classification; Supplier Payables business-date classification; remaining dashboards/KPIs; remaining exports and reports; interactive browser preview. The `ledger_entries`-based Customer-level Activity path is NOT a residual — its contract is proven.
+No unexplained protected drift. Acceptance not blocked.
 
-## L. Acceptance Lanes
+## 15. Prompt-06 Artifact Re-Verification
 
-Not entered. The Acceptance Re-Audit is conditional on all QA lanes passing; Lane B and the rendering/parity lane failed, so no acceptance verdict is issued beyond `SLICE-B BUSINESS-DATE CORRECTNESS NOT ACCEPTED`.
+Pre-write `19d9c6174dfc9f149590e55408c019d6ef527687`; content commits `348b070d…` (decisions.md), `4cf75bef…` (decisions.md), `4e8c4554…` (docs/README.md + changelog.md), `617baf90…` (changelog.md); merge `41902826…` with parents `19d9c617…` and `617baf90…`. Exactly four content commits and one merge. Aggregate scope exactly three paths. `git diff 617baf90 41902826` is EMPTY — merge introduced no content. No `.lovable/plan.md`, no denied path, no rewrite.
 
-## M. Blocking Findings
+## 16. DEC-RM-DH-003-009 Verification
 
-1. Ledger tab and Payments tab Print/CSV exports render a fabricated time on a date-only economic date and therefore break Screen/Print/CSV parity (`src/pages/DashboardFinance.tsx` → `printLedgerEntries` / `exportLedgerCSV` in `src/components/clients/StatementPrintUtils.ts`).
+Present exactly once. Records Option B3 approval 2026-08-04T11:21:00+03:00, full Prompt-06 SHAs, pre-write and final HEADs, empty merge diff, three-path scope, Prompt-06-only supersession (§4, with explicit "creates no general multi-commit rule"), Prompt-07 matrix limitation (§5), fixed-count rejection (§6), exact provisional replacement (§7), three distinct layers and no final roster/count (§8), preservation of D1–D10 and Option C (§10), mandatory Prompt 09 (§11), and explicit absence of Acceptance/advancement/Closure (§12).
 
-## N. Final Result
+## 17. roadmap.md — PASS
 
-**STAGE-C SLICE-B COMBINED QA FAILED — TARGETED CORRECTION REQUIRED**
+Version 1.4.0. Prompt-08 diff is exactly four lines: version bump plus the Phase 3 purpose and Track C purpose replacements. Phase 0, Phase 1, CLOSED Phase 2, Phase 3 state line (L35), Sub-phases 3.0–3.7 (L122), Tracks A–E, Workstreams 0012–0020 (L144–152), Memory boundary (L175–177), Deferred Items Register (L180) and stopping point are byte-unchanged from the pre-write HEAD. No substitute number, no roster, no live-verification claim. WS-DH-2026-0014 NOT STARTED.
 
-## O. Owner Decision Required
+## 18. decisions.md — PASS
 
-Approve a minimal, presentation-only Slice-B correction that makes the Ledger and Payments Print/CSV exports render the same date-only economic date as the screen, followed by a re-run of the QA and Acceptance Re-Audit. No data, RPC or schema change is involved.
+Version 1.5.0. Diff is +67/−3: version line, source line, canonical-range line, and the appended DEC-009. `-001` through `-008` and D1–D10 unchanged. Range now `-001`–`-009`; next free ID `-010`.
 
-## P. One Recommendation
+## 19. changelog.md — PASS
 
-Authorize a targeted Slice-B correction prompt that renders the Ledger/Payments Print and CSV date via the economic date-only formatter and adds a direct export-parity assertion to the Slice-B test file.
+Version 1.3.3. Diff +35/−2 (version and source lines only removed); all prior entries intact. Exactly one appended entry, headed `2026-08-04T12:55:00+03:00`, recording Prompt-06 topology, Option B3, both fixed-count corrections, the exact provisional contract, no roster/count approval, and no Acceptance or advancement.
 
-## Q. Workstream Persistence
+## 20. docs/README.md — PASS
 
-Stage A closed; Stage B closed; Slice A accepted and closed; Slice B implemented but combined QA FAILED with one blocking presentation defect; Owner Acceptance pending and not granted; Stage C active; no Closure.
+Version 1.14.3. RM-DH-003 rows read ROADMAP 1.4.0, DECISIONS 1.5.0, CHANGELOG 1.3.3, README 1.1.0. No Decision body, commit evidence or dynamic Playbook contract copied in.
 
-## R. Roadmap Impact
+## 21. Protected-Version Verification — PASS
 
-Phase 1 active; Stage C active; Stage D not started; Phases 2–8 not started; no advancement, no Closure.
+RM-DH-003 README 1.1.0 · docs/roadmaps/README.md 1.3.0 · docs/workstreams/README.md 1.5.0 · docs/CONVENTIONS.md 1.2.0. No downgrade.
 
-## S. Deferred Items Register
+## 22–23. Fixed-Count Sweep and Current-Truth Classification
 
-Items 1–15 promoted to Prompt 42 were executed. Items 16–30 remain blocked pending a passing QA result, with one addition: **30a. Ledger/Payments Print and CSV economic-date parity correction (blocking Slice-B acceptance).** Items 31–50 remain deferred and tracked, unchanged. No item was dropped.
+Repository sweep over `docs/` and `.lovable/` for "Account-Type Module Playbook" variants returns four hits: `roadmap.md` L12 (frontmatter provenance — historical, names the corrected defect), L109 and L132 (current truth — provisional contract, no count), `decisions.md` L464/468 (DEC-009 — historical rejected wording explicitly labeled rejected, plus the exact replacement), `changelog.md` L239 (historical record). **Zero current-truth fixed-count occurrences.** Unrelated account/workspace counts elsewhere are not treated as Playbook proof.
 
-## T. Run Metadata and Exact Stopping Point
+## 24. Prompt-08 Reporting-Deviation Resolution
 
-1. Mode: Plan/Chat — Read-Only. 2. PROMPT-42 — SUBMITTED — RUN — CONSUMED. 3. Prepared 05-08-2026 10:37 Asia/Riyadh. 4. Run start 10:42, end 10:47, report 10:47 Asia/Riyadh (approximate; exact time not recorded). 5. Branch and HEAD per §C. 6. Working Tree clean before and after. 7–10. Per §C; no post-execution drift. 11. Paths inspected: the 7 allowlisted paths plus `StatementPrintUtils.ts`, `displayHelpers.ts`, `formatters.ts`, `effectiveDate.ts`, `InvoiceCard.tsx`, `mark-overdue-invoices/index.ts`. 12. Two read-only SQL queries on `ledger_entries`. 13–16. Cases per §E–§H. 17–19. Per §I. 20. Temporary artifacts: `dist/` build output only (ignored, uncommitted). 21–24. Repository, database, migration and financial-row writes: ZERO. 25. Stage A CLOSED. 26. Stage B CLOSED. 27. Slice A ACCEPTED — CLOSED. 28. Slice B: combined QA FAILED — targeted correction required. 29. Owner Acceptance NOT YET GIVEN. 30. Stage C ACTIVE. 31. Stage D NOT STARTED. 32. Phase advancement NONE. 33. Closure NONE. 34. Stopping point: immediately after the combined QA result; no repair, no persistence, no acceptance. 35. Recommendation per §P. 36. Next: Prompt 43 — Slice-B Targeted Correction Execution (Execution Mode).
+All repository tests pass, so the deviation is REPORTING-LAYER and non-blocking.
+
+THE PROMPT-08 NON-CANONICAL REPORT VERDICT IS WITHDRAWN.
+
+Authoritative interpretation: GOVERNANCE PROMPT-06 TOPOLOGY AND PLAYBOOK-COUNT CORRECTION EXECUTION COMPLETED — PROVISIONAL PLAYBOOK CONTRACT PERSISTED — READY FOR TARGETED ACCEPTANCE RE-VERIFICATION.
+
+## 25. Roadmap, Workstream and Memory Verification
+
+All nineteen §M checks PASS on current file evidence (see §17). No package, no investigation, no advancement.
+
+## 26. Full-Lineage Zero-Regression Matrix
+
+P09-ZR-01 through P09-ZR-100: **100 PASS, 0 FAIL.** Evidence anchors: lineage ZR-01–12 from the Prompt ledger and §S ordering; ZR-13–25 from §10–13; ZR-26–35 from §15–16; ZR-36–48 from §17 and §22; ZR-49–64 from §18–21 and §19 (12:55:00 classified in §35 below); ZR-65–76 from §17/§25; ZR-77–86 from §17 L175–177/L180 and this report's visibility of both promoted defects; ZR-87–100 from the clean tree, no-write attestation and Acceptance boundary in §39.
+
+## 27. Repository Facts
+
+Clean tree at HEAD `1e14c1cb…`; three linear Prompt-08 commits with the four-path aggregate; four Prompt-06 content commits plus one empty-diff merge; versions 1.4.0/1.5.0/1.3.3/1.14.3 and protected 1.1.0/1.3.0/1.5.0/1.2.0; zero current-truth fixed counts; DEC-009 present once; no RM-DH-003 drift after Prompt 08.
+
+## 28. Prior Lovable Claims
+
+Prompt-08's reported pre-write HEAD, three SHAs, no-merge, four-path scope, version bumps and content claims are all independently confirmed. Only its final verdict wording was non-canonical.
+
+## 29. Audit Inferences
+
+The absence of any RM-DH-003 diff after `fa8bcd00…` is inferred to mean Phase 0/1/2 and all registers remain exactly as at the pre-write HEAD, given the four-line Prompt-08 roadmap diff.
+
+## 30. Evidence Gaps
+
+No canonical/default-branch evidence was available from the sandbox remote configuration; branch identity is taken from local Git. Exact wall-clock run times were not instrumented. Owner Approval of Option B3 at 11:21:00+03:00 is Prompt-supplied, not Git-provable.
+
+## 31. Contradictions and Resolutions
+
+1. Prompt-08 report verdict vs required wording → reporting-layer deviation, withdrawn in §24; repository governs.
+2. Changelog header `12:55:00+03:00` vs first content commit 12:55:49+03:00 → the header is a minute-rounded write-start label, consistent with DEC-009's "Repository write (Prompt 08)" semantics; truthful, not misleading. PASS.
+3. `docs/README.md` appears both as a Prompt-08 allowlisted path and in post-Prompt-08 drift → resolved by content classification: later changes are RM-DH-004 rows only; RM-DH-003 rows and version unchanged.
+
+## 32. Validation Results
+
+Read-only inspection only. No tests, build, typecheck or database query executed or required.
+
+## 33. Rollback Readiness
+
+Rollback anchor `1ad2b5f9b3a68d0dc6cd5503f03cde96be1f0f94`; exact-file restoration of the four Prompt-08 paths remains the sole method. Artifact ID `ART-RM-DH-003-P3-GOVERNANCE-PROMPT08-CORRECTION`.
+
+## 34. Pre-Existing Defects Discovered but Excluded
+
+`docs/CONVENTIONS.md` contains a second `version:` token at L34 inside an embedded template block — cosmetic, pre-existing, out of scope.
+
+## 35. Complete Deferred Items Register
+
+Items 1–16 preserved verbatim and authoritative. Items 17 (Account-Type Playbook fixed-count defect) and 18 (Prompt-06 commit-topology deviation): **TECHNICAL ACCEPTANCE PASSED — AWAITING OWNER ACCEPTANCE AND ACCEPTANCE-PERSISTENCE DISPOSITION.**
+
+## 36. Workstream Persistence
+
+WORKSTREAM REGISTRY PERSISTENCE: UNCHANGED · WS-DH-2026-0012 THROUGH WS-DH-2026-0020 REMAIN REGISTERED — PERMANENTLY RESERVED — ID CONSUMED · DEDICATED WORKSTREAM PACKAGES: NONE · WORKSTREAM INVESTIGATIONS: NOT STARTED · WS-DH-2026-0014: NOT STARTED · SUB-PHASE 3.1: NOT STARTED.
+
+## 37. Roadmap Impact
+
+RM-DH-003 ACTIVE; Phase 0 and Phase 1 exact and unchanged; Phase 2 CLOSED; Phase 3 at Sub-phase 3.0; Prompt-08 execution Accepted on evidence; Playbook roster and count remain provisional; no final Playbook architecture, no advancement, no package, no investigation; WS-DH-2026-0014 NOT STARTED; Project Knowledge not installed; RM-DH-004 separate; no Closure.
+
+## 38. No-Change Attestation
+
+Zero intentional changes to repository files, application code, public assets, database schema, data, migrations, RLS, RPCs, Edge Functions, configuration, Roadmaps, Workstreams, central indexes, Project Knowledge, Workspace Knowledge, Skills, AGENTS.md, settings and cross-project sharing. `.lovable/plan.md` is platform-managed, disclosed separately, not manually edited as governance content, and is neither implementation nor Acceptance persistence.
+
+## 39. Acceptance Status
+
+TECHNICAL ACCEPTANCE: PASSED BY PROMPT 09 · OWNER ACCEPTANCE: NOT YET GRANTED — EXPLICIT OWNER DECISION REQUIRED · ACCEPTANCE PERSISTENCE: NOT PERFORMED · PHASE ADVANCEMENT: NONE · SUB-PHASE 3.1: NOT STARTED · CLOSURE: NONE.
+
+## 40. RUN METADATA AND EXACT STOPPING POINT
+
+1. Plan/Chat — Read-only targeted Acceptance Re-Verification. 2. PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-TARGETED-ACCEPTANCE-REVERIFICATION-09. 3. SUBMITTED — RUN — CONSUMED. 4. Local number 09. 5. Prior statuses exactly as §3. 6. Prepared 05-08-2026 10:47 Asia/Riyadh. 7. Run start 11:10 Asia/Riyadh. 8–10. Evidence inspection start/end and final report time: exact time not recorded. 11. Timestamp source: message metadata plus Git author/committer times. 12. `edit/edt-4864a448-5e89-4573-9bdb-88c67eaf71e3`. 13. `1e14c1cba1c3f2f6658501c96edfe61549311a1c`. 14. `1ad2b5f9b3a68d0dc6cd5503f03cde96be1f0f94`. 15. `740067bb…`, `e2af24bb…`, `fa8bcd00…` (full SHAs in §10). 16. `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109`. 17. Prompt-08 merge: None. 18. Four paths per §12. 19. Post-Prompt-08 paths per §14. 20. `19d9c6174dfc9f149590e55408c019d6ef527687`. 21. `348b070d…`, `4cf75bef…`, `4e8c4554…`, `617baf90…`. 22. `41902826d1a74a3ffaa0f500e17bdaedfe6179df`. 23. Same as 22. 24. Clean. 25–27. None. 28. `.lovable/plan.md` platform-managed activity disclosed. 29. Versions per §20–21. 30. `-001`–`-009`. 31. `-010`. 32. Current fixed-count occurrences: 0. 33. Historical references: 4. 34. Provisional contract at roadmap.md L109 and L132 (current truth) and decisions.md L468 (decision text). 35. 12:55:00 = minute-rounded repository write-start label — truthful. 36. Zero-Regression: 100/100 PASS. 37. `ART-RM-DH-003-P3-GOVERNANCE-PROMPT08-CORRECTION`. 38. Rollback anchor `1ad2b5f9…`. 39–46. Database access, repository writes, application changes, Project Knowledge, Workspace Knowledge, Skill, AGENTS.md and Workstream package changes: None. 47. Technical Acceptance PASSED. 48. Owner Acceptance NOT GRANTED. 49. Acceptance persistence NOT PERFORMED. 50. Phase advancement NONE. 51. Sub-phase 3.1 NOT STARTED. 52. Closure NONE. 53. Next eligible local Prompt number: 10 — NOT CONSUMED. 54. Stopping point: immediately after issuing this single Acceptance verdict; no write, no Decision, no changelog entry, no persistence. 55. Next permitted action: explicit Owner Acceptance decision for RM-DH-003 / Phase 3 Governance Persistence; only then may an Agent/Build Acceptance-Persistence Prompt 10 be prepared.
