@@ -34,7 +34,7 @@ This note sits outside every Decision body and changes no Decision.
 - **Correction.** Under execution prompt `PROMPT-DH-RM003-P3-DECISION-SUMMARY-AND-PLATFORM-PLAN-CORRECTION-16` (local Prompt 16), Owner approval 05-08-2026 — August at 20:02 (Asia/Riyadh — UTC+03:00), the stale canonical Decision-ID summary above was corrected. It previously stated the range `DEC-RM-DH-003-001` through `DEC-RM-DH-003-011` with `DEC-RM-DH-003-012` as next free, which was not synchronized when `DEC-RM-DH-003-012` was appended under Prompt 14.
 - **Current truth.** The canonical range is `DEC-RM-DH-003-001` through `DEC-RM-DH-003-012`. The next free Decision ID is `DEC-RM-DH-003-013`.
 - **`DEC-RM-DH-003-012`** remains valid, approved and unchanged.
-- **No new Decision was created** by Prompt 16, and no `DEC-RM-DH-003-013` exists.
+- **No new Decision was created** by Prompt 16. `DEC-RM-DH-003-013` was created later, by Prompt 18, and records Owner Acceptance of this correction and of the two foundational Workstream package/start states.
 - **No Decision body, status, ordering or numbering changed.** The D1–D10 text, Option C and the provisional Account-Type Playbook contract are unchanged.
 - **No Workstream package changed**, no foundational investigation ran, and no application or database change occurred.
 
