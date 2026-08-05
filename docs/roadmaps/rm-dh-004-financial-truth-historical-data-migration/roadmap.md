@@ -29,7 +29,7 @@ Roadmap Title:
 Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap
 
 Roadmap Status:
-ACTIVE — PHASE 1
+ACTIVE — PHASE 2
 
 Priority:
 P0 — CONTROLLING FINANCE PRIORITY
@@ -40,93 +40,86 @@ Mohamed Nour
 Owner Approval:
 03-08-2026 — 02:04 — Asia/Riyadh — UTC+03:00
 
-Owner Phase Advancement Approval:
+Owner Phase Advancement Approval (Phase 0 to Phase 1):
 03-08-2026 — 11:42 — Asia/Riyadh — UTC+03:00
 
 Current Phase:
-RM-DH-004 / Phase 1 — Economic Date Integrity
+RM-DH-004 / Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
+
+Current Phase Status:
+CURRENT — GOVERNANCE RECONCILED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Workstream:
-WS-DH-2026-0003 — Economic Date Integrity
+WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Current Workstream Status:
-ACTIVE — STAGE B ACCEPTED; STAGE C NOT STARTED
+ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Workstream Stage:
-STAGE B ACCEPTED — OWNER APPROVED — ACCEPTANCE PERSISTED — VERIFICATION PENDING
+STAGE 0 — GOVERNANCE PACKAGE CREATED — NO TECHNICAL FOUNDATION AUDIT AND NO EXECUTION CONTRACT AUTHORIZED
 
 Technical Environment:
 Lovable only unless explicitly changed by the owner
 
 Repository Persistence State:
-RM-DH-004 governance package persisted; Acceptance Re-Audit passed; explicit Owner Acceptance approved; Acceptance Persistence completed and independently verified; owner-approved Phase 0 to Phase 1 advancement persisted; WS-DH-2026-0003 Stage A executed, re-audited, Owner accepted and persisted; WS-DH-2026-0003 Stage B executed (Application cutover and Database Authority forward migration), independently re-audited, explicitly Owner accepted on 04-08-2026 at 20:49 Asia/Riyadh (UTC+03:00) and persisted by this run. The Phase Advancement Persistence Acceptance Re-Audit, the Stage A Acceptance Persistence Verification and the Stage B Acceptance Persistence Verification are pending.
+RM-DH-004 governance package persisted and reconciled with the Owner-approved current state under Decision DEC-RM-DH-004-003. Phase 0 is completed. Phase 1 — Economic Date Integrity is complete, Owner accepted and closed, with Stages A, B, C and D each closed within their accepted bounds. Phase 2 is the current Phase with its governance reconciled and the dedicated WS-DH-2026-0006 package created at version 1.0.0. No Phase-2 technical implementation exists.
 
 Phase 0 Status:
 COMPLETED — OWNER ADVANCEMENT APPROVED AND PERSISTED
 
 Phase 1 Status:
-ACTIVE — STAGE A AND STAGE B ACCEPTED AND PERSISTED; PHASE 1 NOT COMPLETE
+COMPLETE — OWNER ACCEPTED — CLOSED
 
-Phase Advancement Decision:
-APPROVED BY OWNER
+Phase 2 Status:
+CURRENT — GOVERNANCE RECONCILED — TECHNICAL IMPLEMENTATION NOT STARTED
 
-Phase Advancement Persistence:
-EXECUTED — ACCEPTANCE RE-AUDIT PENDING
+Former Phase 3 — Import Control Plane:
+SUPERSEDED AND ABSORBED INTO PHASE 2 BY OWNER DECISION — NO SEPARATE EXECUTION
 
-Stage A Execution:
-EXECUTED AND COMMITTED
+Phases 4 through 8:
+UNCHANGED — NOT STARTED
 
-Stage A Acceptance Re-Audit:
-PASSED
+WS-DH-2026-0003 Status:
+COMPLETE — OWNER ACCEPTED — CLOSED
 
-Stage A Owner Acceptance:
-GRANTED BY MOHAMED NOUR — 03-08-2026 — 19:15 — Asia/Riyadh — UTC+03:00
+Stage A — Economic Date Backfill:
+COMPLETE — OWNER ACCEPTED — CLOSED
 
-Stage A Acceptance Persistence:
-EXECUTED — READ-ONLY VERIFICATION PENDING
+Stage B — Financial Write Authority:
+COMPLETE — OWNER ACCEPTED — CLOSED
 
-Stage A Technical Acceptance:
-PASSED — OWNER ACCEPTED — PERSISTED FOR STAGE A ONLY
+Stage C — Read-Path Cutover:
+COMPLETE — OWNER ACCEPTED — CLOSED
 
-Stage B Execution:
-EXECUTED AND COMMITTED — Application writer cutover and Database Authority forward migration 20260804083738_3d2d0ddf-5f5f-42f8-9bd0-832bc4430b78.sql
-
-Stage B Acceptance Re-Audit:
-PASSED — STAGE-B ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE
-
-Stage B Owner Acceptance:
-GRANTED BY MOHAMED NOUR — 04-08-2026 — 20:49 — Asia/Riyadh — UTC+03:00
-
-Stage B Acceptance Persistence:
-EXECUTED — READ-ONLY VERIFICATION PENDING
-
-Stage B Technical Acceptance:
-ACCEPTED — PERSISTED — VERIFICATION PENDING — BOUNDED TO STAGE B ONLY
+Stage D — Constraint Enforcement:
+COMPLETE — OWNER ACCEPTED — CLOSED — `public.ledger_entries.effective_date` is `NOT NULL`; this is a closed Phase-1 contract and must not be changed
 
 Emergency Rollback:
 NOT EXECUTED
 
-Stage C and Stage D:
-NOT STARTED
+WS-DH-2026-0004 — Canonical Financial Write Authority:
+PARTIALLY COMPLETE — core write-authority objectives delivered inside WS-DH-2026-0003 Stage B; residual scope open and unscheduled; not a Phase-2 blocker; ID retained and not renumbered
 
-Economic Date Investigative Audit:
-STAGE A AND STAGE B COMPLETE AND ACCEPTED; STAGE C INVESTIGATION NOT STARTED
-
+WS-DH-2026-0005 — POS Financial Isolation:
+DEFERRED AND INERT — POS remains Coming Soon / disabled; no Phase-2 dependency
 
 Governance Persistence Acceptance:
 PASSED — OWNER ACCEPTED — PERSISTED
 
+Prompt-53 Governance Reconciliation Acceptance:
+NOT STARTED — independent Acceptance Re-Audit required
+
 Technical Roadmap Acceptance:
 NOT STARTED
 
-Workstream Technical Acceptance:
-NOT COMPLETE — Stage A and Stage B only are accepted
+Phase 2 Acceptance:
+NOT STARTED
 
-Phase 1 Acceptance:
-NOT COMPLETE
+Historical Import Technical Implementation:
+NOT STARTED — no import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists
 
 Closure:
-None — Phase 1 is not closed, WS-DH-2026-0003 is not closed, and RM-DH-004 is not closed
+None — Phase 2 is not closed, WS-DH-2026-0006 is not closed, and RM-DH-004 is not closed
 
 ```
 
