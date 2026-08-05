@@ -37,10 +37,13 @@ Track:
 Track 2 — Import Architecture & Control
 
 Workstream Status:
-ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED
+ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Stage:
-Stage 0 — Governance Package
+Stage 0 — Governance Package — COMPLETE — OWNER ACCEPTED — PERSISTED; Stage 1 — Technical Foundation Audit — NOT STARTED and NOT AUTHORIZED
+
+Owner Acceptance of Stage 0:
+06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004
 
 Owner:
 Mohamed Nour
