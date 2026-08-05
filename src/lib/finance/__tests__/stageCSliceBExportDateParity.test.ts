@@ -69,9 +69,10 @@ describe("Prompt 43 · Ledger Print economic-date parity", () => {
     const html = printLedger();
     expect(html).toContain("INV-1001");
     expect(html).toContain("Bank transfer");
-    expect(html).toContain("SAR 1,500.00");
-    expect(html).toContain("SAR 500.50");
-    expect(html).toContain("SAR 999.50");
+    // Intl emits a non-breaking space after the currency code.
+    expect(html).toMatch(/SAR\s1,500\.00/);
+    expect(html).toMatch(/SAR\s500\.50/);
+    expect(html).toMatch(/SAR\s999\.50/);
   });
 
   it("9. row order is preserved exactly as supplied by the caller", () => {
