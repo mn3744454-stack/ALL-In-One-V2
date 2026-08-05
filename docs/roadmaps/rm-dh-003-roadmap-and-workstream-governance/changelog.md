@@ -269,3 +269,29 @@ This timestamp is the **actual Prompt-06 repository correction execution time**.
 **Not performed.** No application, public-asset, database, schema, data, migration, RLS, RPC, Edge Function, configuration, Project Knowledge, Workspace Knowledge, Skill, `AGENTS.md`, settings, cross-project sharing or `RM-DH-004` change. No Workstream status change, no Workstream package creation and no Workstream investigation: `WS-DH-2026-0012` through `WS-DH-2026-0020` remain **REGISTERED — PERMANENTLY RESERVED — ID CONSUMED** and **NOT STARTED**. No Project Knowledge installation, no Phase advancement, no Sub-phase 3.1 start and no Closure. The exact provisional Account-Type Playbook contract, D1–D10, Option C, the Memory boundary and the 16-item Deferred Items Register are unchanged.
 
 **Next permitted action.** A separate Plan/Chat read-only targeted post-persistence verification. Only after that verification passes may the Owner decide whether to advance from Sub-phase 3.0 to Sub-phase 3.1.
+
+### 2026-08-05 — RM-DH-003 / Phase 3 Sub-phase 3.1 advancement persistence
+
+**Execution prompt.** `PROMPT-DH-RM003-P3-SUBPHASE-3.1-ADVANCEMENT-PERSISTENCE-EXECUTION-12` (local Prompt number 12), Agent/Build, repository write 2026-08-05 (Asia/Riyadh — UTC+03:00). The repository write time is distinct from the Owner Advancement approval time and the two are not interchangeable.
+
+**Owner Advancement.** **Approved** on 05-08-2026 — August at 15:51 (Asia/Riyadh — UTC+03:00): advance `RM-DH-003 / Phase 3` from Sub-phase 3.0 — Scope and Governance Persistence to Sub-phase 3.1 — Foundational Read-Only Audits.
+
+**Preceding verification.** `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-POST-PERSISTENCE-VERIFICATION-11` (read-only) **passed**, verifying the durable Prompt-10 Acceptance-persistence Artifact and the complete Sub-phase 3.0 persistence checkpoint (`ART-RM-DH-003-P3-GOVERNANCE-PROMPT11-POST-PERSISTENCE-VERIFICATION`).
+
+**Sub-phase 3.0.** Recorded as **COMPLETED — TECHNICAL ACCEPTANCE PASSED AND PERSISTED — OWNER ACCEPTANCE GRANTED AND PERSISTED — POST-PERSISTENCE VERIFICATION PASSED — OWNER ADVANCEMENT APPROVED**.
+
+**Sub-phase 3.1.** Set as the **current** Sub-phase with status **CURRENT — ADVANCEMENT PERSISTED — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED**. Sub-phases 3.2 through 3.7 remain NOT STARTED.
+
+**Decision.** `DEC-RM-DH-003-011` — Owner Advancement from Sub-phase 3.0 to Sub-phase 3.1. The canonical Decision range becomes `DEC-RM-DH-003-001` through `DEC-RM-DH-003-011`, next free `DEC-RM-DH-003-012`. Decisions `-001` through `-010` are unchanged and unrenumbered.
+
+**Scope.** Exactly four files were written: this Roadmap's `roadmap.md` (1.5.0 → 1.6.0), `decisions.md` (1.6.0 → 1.7.0) and `changelog.md` (1.3.4 → 1.3.5), and `docs/README.md` (1.14.4 → 1.14.5).
+
+**Central-index synchronization.** Three stale RM-DH-003 descriptive cells in `docs/README.md` were synchronized: the Decisions coverage cell (stale range ending at `-009` → `DEC-RM-DH-003-001` through `DEC-RM-DH-003-011`, next free `DEC-RM-DH-003-012`), the Changelog coverage cell (stale 04-08-2026 latest-entry description → the 05-08-2026 Sub-phase 3.1 advancement-persistence entry) and the RM-DH-003 README status cell (stale Acceptance Re-Audit wording → governance package preserved at 1.1.0; Phase 3 current at Sub-phase 3.1; Workstreams and investigations not started). All unrelated rows are unchanged.
+
+**Deferred Items.** Items 17, 18 and 19 remain visible with resolved or historical statuses; item 20 is added — Sub-phase 3.1 advancement persistence: OWNER APPROVED — PERSISTENCE EXECUTED — AWAITING TARGETED POST-ADVANCEMENT VERIFICATION.
+
+**Preservation.** RM-DH-003 remains ACTIVE; Phase 0 and Phase 1 remain completed; Phase 2 remains CLOSED; Phase 3 remains ACTIVE; Tracks A–E, Sub-phases 3.0–3.7, the exact provisional Account-Type Playbook contract, D1–D10, Option C, the Memory boundary and the exact-file restoration rollback strategy are unchanged. `RM-DH-004` remains separate.
+
+**Not performed.** No Workstream started — `WS-DH-2026-0012`, `WS-DH-2026-0013` and `WS-DH-2026-0014` remain **NOT STARTED**, and `WS-DH-2026-0012` through `WS-DH-2026-0020` remain REGISTERED — PERMANENTLY RESERVED — ID CONSUMED. No Workstream package was created, no investigation started, no Project Knowledge was installed, and no application, database, migration, RLS, RPC, Edge Function, configuration, Knowledge, Skill or settings change occurred. No Closure was granted.
+
+**Next permitted action.** Prompt 13 — Plan/Chat Read-only Targeted Post-Advancement Verification.

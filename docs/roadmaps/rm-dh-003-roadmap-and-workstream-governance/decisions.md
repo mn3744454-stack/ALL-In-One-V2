@@ -536,3 +536,53 @@ The Technical Acceptance evidence for Sub-phase 3.0 was completed across Prompt 
 3. **Record a Deferred Item for the withdrawn SHA** — rejected. The error was report-only and non-material; a Deferred Item would imply outstanding repository work that does not exist.
 4. **Silently drop the withdrawn SHA from the record** — rejected. Recording the withdrawal and its classification preserves provenance and prevents the value from resurfacing as truth.
 5. **Re-run Prompt-09 testing before persisting** — rejected under the Owner Materiality Directive. No new material evidence exists to justify reopening it.
+
+
+## DEC-RM-DH-003-011
+
+**Alias:** None.
+**Subject:** Owner Advancement from Sub-phase 3.0 to Sub-phase 3.1
+**العنوان العربي:** تقدّم معتمد من المالك من المرحلة الفرعية 3.0 إلى المرحلة الفرعية 3.1
+**Status:** Approved
+**Owner Advancement approved at:** 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00.
+**Repository write (Prompt 12):** 2026-08-05, Asia/Riyadh — UTC+03:00, under execution prompt `PROMPT-DH-RM003-P3-SUBPHASE-3.1-ADVANCEMENT-PERSISTENCE-EXECUTION-12`. The Owner Advancement time and this repository write time are distinct events and are not interchangeable; the exact write chronology is recorded in [`changelog.md`](./changelog.md).
+
+### Decision
+
+**1. Explicit Owner Advancement.** The Owner explicitly approved advancement of `RM-DH-003 / Phase 3` from Sub-phase 3.0 to Sub-phase 3.1 on 05-08-2026 — August at 15:51 (Asia/Riyadh — UTC+03:00).
+
+**2. Post-persistence verification passed.** The read-only targeted post-persistence verification required by `DEC-RM-DH-003-010` was performed under `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-POST-PERSISTENCE-VERIFICATION-11` and **passed** (`ART-RM-DH-003-P3-GOVERNANCE-PROMPT11-POST-PERSISTENCE-VERIFICATION`).
+
+**3. Sub-phase 3.0 completed and verified.** Sub-phase 3.0 — Scope and Governance Persistence is **COMPLETED — TECHNICAL ACCEPTANCE PASSED AND PERSISTED — OWNER ACCEPTANCE GRANTED AND PERSISTED — POST-PERSISTENCE VERIFICATION PASSED — OWNER ADVANCEMENT APPROVED**.
+
+**4. Sub-phase 3.1 becomes current.** Sub-phase 3.1 — Foundational Read-Only Audits is now the **current** Sub-phase with status **CURRENT — ADVANCEMENT PERSISTED — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED**. Sub-phases 3.2 through 3.7 remain **NOT STARTED**. There is no Sub-phase `3.8`.
+
+**5. No Workstream starts.** Advancement persistence is **not** Workstream start. `WS-DH-2026-0012` remains **NOT STARTED**. `WS-DH-2026-0013` remains **NOT STARTED**. `WS-DH-2026-0014` remains **NOT STARTED**. All of `WS-DH-2026-0012` through `WS-DH-2026-0020` remain **REGISTERED — PERMANENTLY RESERVED — ID CONSUMED**.
+
+**6. No Workstream package.** No dedicated Workstream package, directory or record is created by this decision.
+
+**7. No investigation.** No investigation, audit execution, codebase mapping, database query or Memory reconstruction is authorized or performed by this decision.
+
+**8. Project Knowledge.** Project Knowledge remains **NOT INSTALLED**, and Persistent Knowledge Stage B remains **NOT STARTED**.
+
+**9. Playbook contract preserved.** The exact provisional contract remains authoritative and unchanged: *Account-Type Module Playbooks, with the exact roster and count remaining provisional until the organizational and source-mapping investigations verify the current live tenant_type labels, planned account types, and target playbook architecture.* No final Playbook roster and no final Playbook count is approved.
+
+**10. Preserved contracts.** `D1`–`D10` remain unchanged. Option C remains unchanged. `MEM-079`, `MEM-084`, `MEM-090` and `MEM-095` remain reserved, and the 104 Memories remain an inventory. Tracks A–E remain unchanged. Exact-file restoration remains the rollback method. `RM-DH-004` remains a separate Roadmap. Decisions `-001` through `-010` are preserved unchanged and unrenumbered.
+
+**11. Deferred Items traceability.** Deferred Items 17, 18 and 19 remain **visible** in the Deferred Items Register for traceability with their resolved or historical statuses, and item 20 is added to record this advancement persistence as awaiting targeted post-advancement verification.
+
+**12. Mandatory next action.** A separate **read-only targeted post-advancement verification** is mandatory. Only after it passes may the Owner authorize creation or start of `WS-DH-2026-0012` and/or `WS-DH-2026-0013`.
+
+**13. Explicitly absent.** This decision grants no Workstream start, no Workstream package creation, no investigation, no Project Knowledge installation, no application change, no database change and **no Closure**.
+
+### Rationale
+
+Prompt 11 independently verified, read-only, that the Sub-phase 3.0 Acceptance persistence was durable in Git and internally consistent across the four governance files, with 85 of 85 zero-regression checks passing. With that verification passed, the only remaining risk was that the Owner's advancement decision would exist solely in conversation while the repository continued to assert Sub-phase 3.0 as current. Persisting the advancement in a bounded four-file update makes the repository state truthful, while explicitly separating advancement from Workstream start, investigation, Project Knowledge installation and Closure so that no downstream authority is silently granted.
+
+### Rejected alternatives
+
+1. **Treat the Owner advancement as sufficient without repository persistence** — rejected. Governance truth must live in the repository, not only in a conversation, and the index would keep asserting a stale Sub-phase 3.0.
+2. **Combine advancement with creation or start of WS-DH-2026-0012 and WS-DH-2026-0013** — rejected. The Owner authorized advancement only; Workstream start requires a separate authorization after post-advancement verification.
+3. **Advance and simultaneously begin the Foundational Read-Only Audits** — rejected. Setting a Sub-phase as current is a governance state change, not an execution mandate.
+4. **Close Sub-phase 3.0 without recording items 17–19** — rejected. Removing resolved items would destroy traceability of the accepted defects and evidence gaps.
+5. **Defer advancement until Project Knowledge installation is planned in detail** — rejected. Sub-phase 3.1 exists precisely to produce the read-only audits that inform that later planning.
