@@ -241,7 +241,7 @@ Stage summary: Stage A — Economic Date Backfill, Stage B — Financial Write A
 ### Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Status:
-CURRENT — GOVERNANCE RECONCILED — TECHNICAL IMPLEMENTATION NOT STARTED
+CURRENT — STAGE 0 OWNER ACCEPTED AND PERSISTED — STAGE 1 NOT STARTED
 
 Primary Workstream:
 WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
