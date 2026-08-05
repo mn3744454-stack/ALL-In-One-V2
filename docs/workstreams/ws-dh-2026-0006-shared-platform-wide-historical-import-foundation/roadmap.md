@@ -101,7 +101,7 @@ NONE
 
 | # | Stage | State |
 |---:|---|---|
-| 0 | Governance Package | COMPLETE — created by Prompt 53; independent Acceptance Re-Audit pending |
+| 0 | Governance Package | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004) |
 | 1 | Technical Foundation Audit (read-only) | NOT STARTED — requires explicit Owner authorization |
 | 2 | Owner Alignment on Import Foundation Architecture | NOT STARTED |
 | 3 | Execution Contract | NOT STARTED |
