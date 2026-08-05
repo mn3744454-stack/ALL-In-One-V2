@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0013-README
 title: WS-DH-2026-0013 — Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit (package README)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
 last-verified: 2026-08-05
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 (local parent Prompt number 14) and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00). This file creates the package and records the Owner-authorized start of WS-DH-2026-0013. No investigation was executed, no architecture finding is recorded, no code was modified and Project Knowledge remains NOT INSTALLED.
+source: v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence for the Prompt-16 correction and for the package/start states of WS-DH-2026-0012 and WS-DH-2026-0013, under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 (local parent Prompt number 18) and approved Decision DEC-RM-DH-003-013, Owner Acceptance granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00), exact time not recorded: records PACKAGE/START OWNER ACCEPTED, that the investigation remains NOT YET RUN, that the official local Prompt count remains 0 with next local Prompt 01 NOT CONSUMED, and that the superseded narrative naming Prompt 15 as the next verifier is replaced by the independent Prompt-18 persistence verification followed by a separate explicit Owner authorization. Stage 0 is not marked completed, decisions.md is unchanged, no local Workstream Decision was created, no investigation ran, no code was read for analysis or modified and Project Knowledge remains NOT INSTALLED; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 (local parent Prompt number 14) and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00). This file creates the package and records the Owner-authorized start of WS-DH-2026-0013. No investigation was executed, no architecture finding is recorded, no code was modified and Project Knowledge remains NOT INSTALLED.
 source-sha256: n/a
 -->
 
