@@ -2,6 +2,11 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import DOMPurify from "dompurify";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
+// Stage C · Slice C — payment economic dates are date-only `effective_date`
+// values and must never be parsed through `new Date(...)`, which shifts the
+// calendar day in negative UTC offsets.
+import { formatEconomicDate } from "@/lib/finance/effectiveDate";
+
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import {
   buildInvoicePresentation,
