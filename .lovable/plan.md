@@ -1,222 +1,170 @@
-# PROMPT-09 CORRECTION CONTINUATION C2 — EXACT PROMPT-06 COMMIT IDENTITY RESOLUTION
+# PROMPT 46 — CONTINUATION A1 — EXECUTION EVIDENCE COMPLETION AND FAILED-TEST ATTRIBUTION
 
-Artifact ID: ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY
-Mode: Plan/Chat — Read-only. Repository writes: None. Database access: None.
+Mode: Plan/Chat — read-only evidence completion. No code, test, migration, database, RLS, RPC or repository content was modified.
 
-## 1. Executive Verdict
+## 9. FINAL VERDICT (stated first)
 
-TARGETED GOVERNANCE PERSISTENCE ACCEPTANCE RE-VERIFICATION PASSED —
-PROMPT-08 CORRECTION ARTIFACT ACCEPTED —
-EXACT PROMPT-06 COMMIT IDENTITY RESOLVED —
-READY FOR EXPLICIT OWNER ACCEPTANCE
+PROMPT 46 EXECUTION EVIDENCE COMPLETED — READY FOR FINAL STAGE-C QA
 
-Decision path applied: Case 1 — Unique Valid Candidate Matches DEC-009.
+Arabic RTL attribution: **A. ARABIC RTL FAILURE PROVEN PRE-EXISTING AND UNCHANGED**
 
-## 2. Owner Materiality Directive
+## A. Executive Verdicts
 
-Applied as approved. Candidate B is a report-only transcription error in the Prompt-09-C1 narrative. It does not exist as a Git object, does not appear anywhere in the repository, and is not persisted in DEC-RM-DH-003-009. It therefore cannot alter commit identity, reachability, parentage, aggregate scope, merge conclusion, Decision binding, repository truth, the Acceptance safety boundary, or the Owner's ability to decide. Non-material.
+- Implementation preserved unmodified; nothing was rewritten or repaired in A1.
+- Prior claim "310/311 pass with exit code 0" is WITHDRAWN. The earlier command piped through `tail` without `pipefail`, so the reported exit code was the pipeline's, not Vitest's. Corrected: `bunx vitest run src/components/finance` exits **1**.
+- The single failure is `InvoicePDFGenerator.test.ts > createInvoiceHTML — Arabic direction & bidi isolation > emits lang=ar and dir=rtl on the root`, proven pre-existing by running the identical test against the Prompt-46 pre-execution HEAD, where it fails with a byte-identical assertion message.
+- Typecheck exit 0. Build exit 0 (previously never run — now completed).
 
-## 3. Current Git State
+## B. Complete Roadmap
 
-- Branch: `edit/edt-99fbcb67-39f4-49e1-a507-2da47d14fddd`
-- HEAD: `b6ee23433ced62946c93114d1f14841f87990593`
-- Working tree: clean (`git status --porcelain` returned no entries)
+RM-DH-004 — Financial Truth & Historical Data Migration / Phase 1 — Economic Date Integrity / Stage C — Read-Path Cutover / Slice C — Final Read Paths. Continuation A1 under consumed Prompt 46; no new Prompt number consumed.
 
-## 4. Candidate A Verification — `4e8c4554402ed03c661c9fabd0b2cb06535545ca`
+## C. Preflight
 
-| Check | Result |
-| --- | --- |
-| `git cat-file -t` | `commit` |
-| `git rev-parse --verify ^{commit}` | `4e8c4554402ed03c661c9fabd0b2cb06535545ca` |
-| Author / Committer | `gpt-engineer-app[bot]`, co-authored by `mn3744454-stack` |
-| AuthorDate / CommitDate | `2026-08-04T07:18:55Z` / `2026-08-04T07:18:55Z` (10:18:55 Asia/Riyadh) |
-| Parent (`%P`) | `4cf75bef5bfb656c8281e688ce245500f33e4643` |
-| Changed paths | `docs/README.md`; `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` |
-| `merge-base --is-ancestor … HEAD` | exit 0 — reachable from HEAD |
-| Subject | `Changes` |
+- Branch: `edit/edt-2b437e63-21b7-4a92-b0e9-dc6995a0fa07`
+- Working tree before A1: clean (`git status --porcelain` empty)
+- Working tree after A1: clean; the only artifact written is the platform-managed `.lovable/plan.md`
+- Temporary disposable snapshot: `/tmp/pre46` (outside repository), created by `git archive <pre-HEAD> | tar -x`, used only to run one test, **removed** afterwards (`rm -rf /tmp/pre46`, confirmed). No `git worktree`, no branch, no stash, no commit.
 
-## 5. Candidate B Verification — `4e8c8554402ed03c661c9fabd0b2cb06535545ca`
+## D. Evidence Boundary
 
-| Check | Result |
-| --- | --- |
-| `git cat-file -t` | `fatal: git cat-file: could not get object info` |
-| `git rev-parse --verify ^{commit}` | `fatal: Needed a single revision` |
-| `git show --no-patch` | `fatal: bad object` |
-| `git diff-tree` | `fatal: bad object` |
-| `merge-base --is-ancestor … HEAD` | exit 128 — `fatal: Not a valid commit name` |
+Repository files, Git object history, Vitest, tsgo, Vite build, and read-only SQL SELECTs. Zero database writes. Zero repository writes. No Acceptance, no QA, no Stage D.
 
-Candidate B does not exist as any Git object in this repository.
+## E. Source-Date Contract Matrix
 
-## 6. Authoritative Prompt-06 Commit Identity
+| entity_type | source table | authoritative date field | DB type | nullable | linked financial_entries | resolved | Unknown |
+|---|---|---|---|---:|---:|---:|---:|
+| vet_treatment | vet_treatments | `completed_at`, else `scheduled_for` | timestamptz | YES / YES | 3 | 3 | 0 |
+| vaccination | horse_vaccinations | `administered_date` | date | YES | 1 | 1 | 0 |
+| breeding_attempt | breeding_attempts | `attempt_date` | timestamptz | NO | 1 | 1 | 0 |
+| foaling | foalings | `foaling_date` | date | NO | 0 | 0 | 0 |
+| (unsupported types) | — | — | — | — | 0 | 0 | 0 |
+| **Total** | | | | | **5** | **5** | **0** |
 
-`4e8c4554402ed03c661c9fabd0b2cb06535545ca` (Candidate A) is the sole valid, reachable third Prompt-06 content commit.
+Column types/nullability read from `information_schema.columns`. Excluded by contract and verified in code: `vet_treatments.requested_at` (administrative), `horse_vaccinations.due_date` (future schedule), and all `created_at` / `updated_at` columns.
 
-## 7. Parent, Child and Path Verification
+Query behaviour:
+- Batch source queries actually issued for the live data set: **3** (`vet_treatments`, `horse_vaccinations`, `breeding_attempts`); `foalings` is skipped because no entry references it. Maximum is 4 — one per supported entity type, never per row.
+- Total financial entries read: 5. Resolved: 5. Unknown: 0. Missing source rows: 0. Missing source dates: 0.
+- No row uses `created_at` as `business_date`: `financialEntryBusinessDate.ts` lists no audit column in any `dateColumns` array, and `pickSourceBusinessDate` returns `{null, null}` when no contract column yields a value.
+- No N+1: `groupSourceIdsByType` de-duplicates ids into one `.in("id", ids)` query per entity type inside a single `Promise.all`.
+- `financial_entries` still has no business-date column; nothing was added or backfilled.
 
-- Parent of Candidate A: `4cf75bef5bfb656c8281e688ce245500f33e4643` — matches the expected predecessor.
-- Child: `617baf906947d3b5bed8d66c0536662aebcfd2a6` records `%P = 4e8c4554402ed03c661c9fabd0b2cb06535545ca` — direct child confirmed; it changed `changelog.md` at `2026-08-04T07:19:26Z`.
-- Candidate A changed paths: `docs/README.md`, `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` — inside the expected aggregate scope.
-- Merge `41902826d1a74a3ffaa0f500e17bdaedfe6179df` (`2026-08-04T07:19:42Z`) has parents `19d9c6174dfc9f149590e55408c019d6ef527687` (pre-write HEAD) and `617baf906947d3b5bed8d66c0536662aebcfd2a6`; first-parent diff = `docs/README.md`, `changelog.md`, `decisions.md` — the expected three-path aggregate, no extra content.
-- `git log 19d9c617..41902826` returns exactly: `348b070d`, `4cf75bef`, `4e8c4554`, `617baf90` plus the merge — four content commits, confirming the previously accepted topology deviation and no new deviation.
+## F. Final Allowlist (paths touched by Prompt 46)
 
-## 8. DEC-RM-DH-003-009 Comparison
+Substantive (8):
+1. `src/lib/finance/financialEntryBusinessDate.ts` (new)
+2. `src/hooks/finance/useFinancialEntries.ts`
+3. `src/components/finance/InternalCostsTab.tsx`
+4. `src/components/finance/InvoicePDFGenerator.tsx`
+5. `src/i18n/locales/en.ts`
+6. `src/i18n/locales/ar.ts`
+7. `src/lib/finance/__tests__/stageCSliceCFinancialEntryBusinessDate.test.ts` (new)
+8. `src/components/finance/__tests__/InvoicePDFGenerator.paymentDisclosure.test.ts` (new)
 
-`docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md:447`:
+Platform-managed, reported separately: `.lovable/plan.md` (commits `d12cdc98`, `51631a07`).
 
-```text
-- content commit 3 `4e8c4554402ed03c661c9fabd0b2cb06535545ca` — 2026-08-04T10:18:55+03:00 — `docs/README.md` and `changelog.md`;
-```
+## G. Financial Entries Before-State
 
-`changelog.md:230` records the same SHA and paths. Persisted Decision binding matches the valid Git artifact exactly (SHA, time, paths). Candidate B appears in zero repository files.
+5 rows, all with an `entity_type`/`entity_id` link; no business-date column; display previously driven by `created_at`.
 
-## 9. Exact Error Classification
+## H. Financial Entries Implementation
 
-REPORT-ONLY TRANSCRIPTION ERROR — a single hex-digit substitution (`4e8c4…` → `4e8c8…`) in the Prompt-09-C1 report narrative only. Non-material under Section B. No repository, Decision, changelog or index correction is required.
+Read-time inheritance only, batched, additive `business_date` + `business_date_source` fields, `null` = Unknown with no `created_at` fallback, ordering `business_date DESC NULLS LAST, created_at DESC, id DESC`, dual-date UI (Cost Date vs Recorded On / تاريخ التسجيل, Unknown / غير محدد).
 
-## 10. Required Withdrawal
+## I. Invoice PDF Correction
 
-`4e8c8554402ed03c661c9fabd0b2cb06535545ca` is explicitly WITHDRAWN. It must not appear in any future RM-DH-003 evidence, Decision, changelog or report.
+Diff limited to 10 changed lines: import of `formatEconomicDate` plus two call-site swaps replacing `formatStandardDate` for `p.effective_date` and `sess.effectiveDate`. No change to `lang`, `dir`, root wrapper, bidi helpers or pagination.
 
-## 11. Corrected Prompt-06 Artifact List
+## J. Output Evidence
 
-Pre-write HEAD: `19d9c6174dfc9f149590e55408c019d6ef527687`
+Economic dates render as `dd-MM-yyyy` from string slicing (`formatEconomicDate`), never through `new Date(...)`, eliminating negative-offset day shift. Audit timestamps continue to use `formatStandardDateTime`.
 
-1. `348b070dc88fd4db24be8bb7ef43f69c69069cc5` — 07:17:22Z
-2. `4cf75bef5bfb656c8281e688ce245500f33e4643` — 07:18:36Z
-3. `4e8c4554402ed03c661c9fabd0b2cb06535545ca` — 07:18:55Z — `docs/README.md`, `changelog.md` (CORRECTED)
-4. `617baf906947d3b5bed8d66c0536662aebcfd2a6` — 07:19:26Z — `changelog.md`
+## K. Tests (each run separately, exit code captured immediately, no exit-code-masking pipeline)
 
-Merge: `41902826d1a74a3ffaa0f500e17bdaedfe6179df` — 07:19:42Z
-Aggregate scope: `decisions.md`, `changelog.md`, `docs/README.md` — three paths, unchanged conclusion.
+| # | Command | Exit | Files | Passed | Failed | Skipped | Duration |
+|---|---|---:|---|---:|---:|---:|---|
+| 1 | `bunx vitest run src/lib/finance/__tests__/stageCSliceCFinancialEntryBusinessDate.test.ts` | 0 | 1 passed | 15 | 0 | 0 | 667 ms |
+| 2 | `bunx vitest run src/components/finance/__tests__/InvoicePDFGenerator.paymentDisclosure.test.ts` | 0 | 1 passed | 10 | 0 | 0 | 1.40 s |
+| 3 | `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` | 0 | 1 passed | 14 | 0 | 0 | 607 ms |
+| 4 | `bunx vitest run src/lib/finance/__tests__/stageCSliceBExportDateParity.test.ts` | 0 | 1 passed | 12 | 0 | 0 | 1.25 s |
+| 5 | `bunx vitest run src/lib/finance` | 0 | 15 passed | 268 | 0 | 0 | 2.51 s |
+| 6 | `bunx vitest run src/components/finance` | **1** | 1 failed / 3 passed | 42 | 1 | 0 | 1.74 s |
+| 7 | `bunx vitest run src/hooks/finance` | **1** | — | 0 | 0 | 0 | n/a — `No test files found` (directory contains no test file; not a failure of code) |
+| 8 | `bunx vitest run src/components/finance/__tests__/InvoicePDFGenerator.test.ts -t "emits lang=ar and dir=rtl on the root"` (executed at pre-execution HEAD, see §4) | **1** | 1 failed | 0 | 1 | 16 | 1.31 s |
 
-## 12. Corrected Affected Zero-Regression Rows
+Note on item 2: the file contains 10 tests (5 economic-date parity assertions plus supporting cases).
 
-| Row | Subject | Result |
-| --- | --- | --- |
-| P09-ZR-27 | Prompt-06 content-commit count = 4 | PASS (unchanged conclusion) |
-| P09-ZR-29 | Third content commit exists as a Git commit | PASS — `4e8c4554…` |
-| P09-ZR-30 | Third content commit reachable from HEAD | PASS — ancestor exit 0 |
-| P09-ZR-33 | Third commit parent/child linkage | PASS — parent `4cf75bef…`, child `617baf90…` |
-| P09-ZR-34 | Third commit changed paths within scope | PASS — `docs/README.md`, `changelog.md` |
-| P09-ZR-35 | DEC-009 artifact binding matches Git | PASS — exact SHA match at `decisions.md:447` |
+## L. Attribution of the Arabic RTL Failure
 
-P09-ZR-01 through P09-ZR-100, excluding the six rows above, remain preserved and unchanged from C1. No re-run performed; no new evidence contradicts them.
+- File: `src/components/finance/__tests__/InvoicePDFGenerator.test.ts`
+- Suite / test: `createInvoiceHTML — Arabic direction & bidi isolation` › `emits lang=ar and dir=rtl on the root`
+- Assertion: `expect(html).toMatch(/dir="rtl"/)` (the preceding `expect(html).toMatch(/lang="ar"/)` also cannot match)
+- Expected: `/dir="rtl"/`
+- Actual: `'<div class="pdf-body" data-lang="ar">…'` — the exported `__createInvoiceHTMLForTest` returns only the paginated body fragment; `lang`/`dir` live on the `<html>` element emitted later in the print document (`<html lang="${options.lang}" dir="${dir}">`, line 650 at pre-HEAD).
+- First commit containing the failure: `2f52f8cf9` (2026-07-27T03:22:41Z) — the pagination refactor that changed `createInvoiceHTML` to `return \`<div class="pdf-body" …\`` while the test kept asserting the old full-document root. `fabc618f1` (2026-07-26) does not contain that return; `2f52f8cf9` and every later commit do. Prompt 46 is dated 2026-08-05.
+- Same test on Prompt-46 pre-execution HEAD `b13efcb2e85d6dc18dea1a90def27d74a3754e50`: **FAILS** with the identical assertion text and identical received string.
+- Prompt-46 diff to `InvoicePDFGenerator.tsx` (10 lines) touches only payment-date formatting; it does not touch `lang`, `dir`, the root wrapper or `__createInvoiceHTMLForTest`.
 
-## 13. Preserved Unaffected C1 Evidence
+Classification: **A. ARABIC RTL FAILURE PROVEN PRE-EXISTING AND UNCHANGED**
 
-Complete repository inventory and sweep; zero current-truth fixed Playbook count and roster; exact provisional contract; Prompt-08 three-commit linear artifact and four-path scope; Prompt-08 versions (roadmap 1.4.0, decisions 1.5.0, changelog 1.3.3, docs/README 1.14.3); DEC-009 existence; D1–D10; Option C; Phase 3 structure; Workstreams 0012–0020; Memory boundaries; bounded timestamp conclusion; RM-DH-003 zero protected drift; separate RM-DH-004 advisory; no repository write; no database access; no Owner Acceptance; no persistence; no advancement; no Closure. Prompt-08 not reopened — the SHA resolution proves no defect touching it.
+## M. Typecheck and Build
 
-## 14. Non-Blocking Advisory Notes
+| Command | Exit | Notes |
+|---|---:|---|
+| `bunx tsgo --noEmit -p tsconfig.app.json` | 0 | no diagnostics |
+| `bun run build` | 0 | `✓ 4625 modules transformed`, `✓ built in 25.12s`. Pre-existing advisories only: browserslist data 8 months old; `sonner` mixed static/dynamic import; main chunk 5,604.77 kB > 500 kB. None introduced by Prompt 46. |
 
-1. Prompt-09-C1 displayed search command omitted some exclusion flags; inventory and scanned-path counts were reported. Advisory.
-2. Occurrence O-08 used a bounded row description rather than an exact line number. Advisory.
-3. RM-DH-004 shared-index version/provenance synchronization remains a separate RM-DH-004 advisory.
+Build success was measured directly, not inferred from typecheck.
 
-## 15. Repository Facts
+## N. Diff and Git Evidence
 
-- Branch and HEAD as in §3; working tree clean.
-- Candidate A exists, is reachable, and is bound in two governance files.
-- Candidate B is absent from Git objects and from all tracked file content.
-- Prompt-06 window contains exactly four content commits and one merge.
+- Branch: `edit/edt-2b437e63-21b7-4a92-b0e9-dc6995a0fa07`
+- HEAD before Prompt 46: `b13efcb2e85d6dc18dea1a90def27d74a3754e50`
+- Current HEAD: `51631a079bc7c1c6e6a3ba04a057bf5eeeafa532`
+- Prompt-46 content commits (15, linear, each parent = previous):
+  `04ceea6c…` → `d8f3e221…` → `bb8e1e6d…` → `3183ac7b…` → `93ce7045…` → `afdb2ed0…` → `5ec618d9…` → `ebb39f39…` → `61f4582c…` → `5235f43b…` → `9f05137e…` → `d7a3b316…` → `a0bbbb66…` → `0057c66b…` → `6169f212caecc5499dbe7057c2225b1748d77722`
+- Merge: `b6ee23433ced62946c93114d1f14841f87990593` (parents `b13efcb2…`, `6169f212…`)
+- Post-merge platform-managed commits: `d12cdc98…` and merge `51631a07…`, both `.lovable/plan.md` only
+- Aggregate `git diff --stat b13efcb2…b6ee2343…`: **8 files changed, 579 insertions(+), 9 deletions(-)** — matches the allowlist in §F exactly, with no unexpected path
+- Latest commit touching `InvoicePDFGenerator.tsx`: `5ec618d94` (2026-08-05T09:15:52Z, inside the Prompt-46 chain)
+- Working tree before and after A1: clean. Post-execution drift: none.
 
-## 16. Prior Lovable Claims
+## O. Zero Regression
 
-- C1 claim that the third Prompt-06 content commit is `4e8c8554…`: FALSE — withdrawn.
-- Earlier authoritative claim `4e8c4554…`: CONFIRMED TRUE.
-- C1 claim that Prompt-06 aggregate scope is three paths: CONFIRMED TRUE.
-- C1 claim that DEC-009 binds the Prompt-06 artifact: CONFIRMED TRUE.
+No repository write, no database write, no migration, no RLS/RPC/Edge Function change, no financial row change, no settings, Skills, Roadmap or Workstream change. All 268 `src/lib/finance` tests pass; the only `src/components/finance` failure is the proven pre-existing RTL assertion.
 
-## 17. Audit Inferences
+## P. Blocking Findings
 
-The one-digit divergence and the absence of Candidate B from both the object database and the working tree indicate a transcription defect confined to the C1 narrative, not a repository or Decision defect.
+None.
 
-## 18. Evidence Gaps
+## Q. Non-Blocking Residuals
 
-None material. Exact C1 report-authoring time: Exact time not recorded.
+1. Pre-existing stale test: `emits lang=ar and dir=rtl on the root` asserts against the pre-pagination full-document root. Origin `2f52f8cf9`, unrelated to Stage C.
+2. `src/hooks/finance` contains no test files, so Vitest exits 1 for that path by design.
+3. Build advisories (browserslist age, `sonner` mixed import, >500 kB chunk) — all pre-existing.
 
-## 19. Contradictions and Resolutions
+## R. One Recommendation
 
-Contradiction: Candidate A (historical) vs Candidate B (C1). Resolved in favour of Candidate A by direct Git object verification, parent/child linkage and persisted DEC-009 text.
+Fix the stale RTL assertion under a separate, clearly-scoped correction: assert `data-lang="ar"` on the `.pdf-body` fragment and move the `lang`/`dir` assertion to the print-document builder. Keep it outside RM-DH-004 Stage C so the economic-date lineage stays clean.
 
-## 20. Complete Deferred Items Register
+## S. WORKSTREAM PERSISTENCE
 
-1. Actual code Refactoring. 2. Feature Pack implementation. 3. Module activation implementation. 4. Subscription and pricing implementation. 5. New Feature implementation. 6. Missing Module implementation. 7. Skills revision. 8. Root AGENTS.md creation. 9. Workspace Knowledge use. 10. Documentation 01–13 historical recovery. 11. Cross-project sharing changes. 12. RM-DH-004 financial execution. 13. Any technical defect discovered by a later Persistent Knowledge Stage B audit. 14. Any Project Knowledge installation. 15. Memory Genesis investigation. 16. Refactoring Baseline investigation.
+WORKSTREAM REGISTRY PERSISTENCE: UNCHANGED. WS-DH-2026-0003 remains the active Economic Date Integrity Workstream. No package created, no registry edit, no ID consumed in A1.
 
-Promoted items:
+## T. ROADMAP IMPACT
 
-17. Account-Type Playbook fixed-count defect — TECHNICAL ACCEPTANCE PASSED — AWAITING EXPLICIT OWNER ACCEPTANCE AND ACCEPTANCE-PERSISTENCE DISPOSITION.
-18. Prompt-06 commit-topology deviation — TECHNICAL ACCEPTANCE PASSED — AWAITING EXPLICIT OWNER ACCEPTANCE AND ACCEPTANCE-PERSISTENCE DISPOSITION.
+RM-DH-004 remains ACTIVE. Phase 1 remains ACTIVE. Stage A: ACCEPTED — PERSISTED. Stage B: ACCEPTED — PERSISTED. Stage C Slice A and Slice B: Acceptance Re-Audit passed, awaiting Owner Acceptance. Stage C Slice C: executed, evidence now complete, **not** QA'd and **not** accepted. Stage D: NOT STARTED. No advancement, no Closure.
 
-No new Deferred Item created for the report-only transcription error. RM-DH-004 advisory remains under item 12.
+## U. Complete Deferred Items Register
 
-## 21. WORKSTREAM PERSISTENCE
+1. Actual code Refactoring. 2. Feature Pack implementation. 3. Module activation implementation. 4. Subscription and pricing implementation. 5. New Feature implementation. 6. Missing Module implementation. 7. Skills revision. 8. Root AGENTS.md creation. 9. Workspace Knowledge use. 10. Documentation 01–13 historical recovery. 11. Cross-project sharing changes. 12. RM-DH-003 governance persistence Owner Acceptance. 13. Any technical defect discovered by a later Persistent Knowledge Stage B audit. 14. Any Project Knowledge installation. 15. Memory Genesis investigation. 16. Refactoring Baseline investigation. 17. `supplier_payables` economic-date contract — DEFERRED (immature domain, 0 rows). 18. Stale Arabic RTL PDF root assertion (`2f52f8cf9`) — DEFERRED, non-blocking, separate correction.
 
-WORKSTREAM REGISTRY PERSISTENCE: UNCHANGED
-WORKSTREAM IDS: WS-DH-2026-0012 THROUGH WS-DH-2026-0020 REMAIN REGISTERED — PERMANENTLY RESERVED — ID CONSUMED
-DEDICATED WORKSTREAM PACKAGES: NONE
-WORKSTREAM INVESTIGATIONS: NOT STARTED
-SUB-PHASE 3.1: NOT STARTED
-WS-DH-2026-0014: NOT STARTED
+## V. Run Metadata and Exact Stopping Point
 
-## 22. ROADMAP IMPACT
-
-RM-DH-003 remains ACTIVE. Phase 0 unchanged. Phase 1 unchanged. Phase 2 CLOSED. Phase 3 remains at Sub-phase 3.0. No Phase advancement. No Workstream package created. No Workstream investigation started. Project Knowledge remains NOT INSTALLED. Playbook roster and count remain provisional. RM-DH-004 remains separate. Closure not claimed.
-
-## 23. NO-CHANGE ATTESTATION
-
-Zero intentional changes to repository files, application code, public assets, database, migrations, RLS, RPCs, Edge Functions, configuration, Roadmaps, Workstreams, central indexes, Project Knowledge, Workspace Knowledge, Skills, AGENTS.md, settings, cross-project sharing.
-
-Platform-managed disclosure: `.lovable/plan.md` was written by the platform-managed planning mechanism to carry this read-only report (DEC-RM-DH-003-004 exception). No other file was touched.
-
-## 24. ACCEPTANCE STATUS
-
-TECHNICAL ACCEPTANCE: PASSED BY PROMPT-09 CORRECTION CONTINUATION C2
-OWNER ACCEPTANCE: NOT YET GRANTED — EXPLICIT OWNER DECISION REQUIRED
-ACCEPTANCE PERSISTENCE: NOT PERFORMED
-PHASE ADVANCEMENT: NONE
-SUB-PHASE 3.1: NOT STARTED
-CLOSURE: NONE
-
-## 25. EVIDENCE ARTIFACT BINDING
-
-Artifact ID: ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY
-Type: READ-ONLY EXACT COMMIT IDENTITY RESOLUTION
-Bound to: RM-DH-003; Phase 3; Sub-phase 3.0; Prompt 09; Continuation C2; branch `edit/edt-99fbcb67-39f4-49e1-a507-2da47d14fddd`; HEAD `b6ee23433ced62946c93114d1f14841f87990593`; candidates `4e8c4554402ed03c661c9fabd0b2cb06535545ca` and `4e8c8554402ed03c661c9fabd0b2cb06535545ca`; valid SHA `4e8c4554402ed03c661c9fabd0b2cb06535545ca`; withdrawn SHA `4e8c8554402ed03c661c9fabd0b2cb06535545ca`; parent `4cf75bef5bfb656c8281e688ce245500f33e4643`; child `617baf906947d3b5bed8d66c0536662aebcfd2a6`; changed paths `docs/README.md` and `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`; DEC-009 comparison at `decisions.md:447`; affected rows P09-ZR-27/29/30/33/34/35; evidence time 2026-08-05 ~12:28 Asia/Riyadh (09:28Z); zero writes; zero database access. Not reusable across another branch, HEAD, Roadmap, Workstream, environment or Prompt Lineage without equivalence proof.
-
-## 26. RUN METADATA AND EXACT STOPPING POINT
-
-1. Mode: Plan/Chat — read-only Git evidence resolution.
-2. Parent Prompt ID: PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-TARGETED-ACCEPTANCE-REVERIFICATION-09.
-3. Continuation: C2.
-4. Parent Local Number: 09.
-5. New Local Number Consumed: No.
-6. Continuation Status: SUBMITTED — RUN — CONSUMED — NO NEW LOCAL NUMBER.
-7. Owner Approval: 05-08-2026 — August, 12:19, Asia/Riyadh UTC+03:00.
-8. Prompt Preparation: 05-08-2026 — August, 12:19, Asia/Riyadh UTC+03:00.
-9. Run Start: 05-08-2026, 12:28 Asia/Riyadh (09:28Z).
-10. Branch: `edit/edt-99fbcb67-39f4-49e1-a507-2da47d14fddd`.
-11. HEAD: `b6ee23433ced62946c93114d1f14841f87990593`.
-12. Working Tree: clean.
-13. Candidate A: valid commit, reachable, parent `4cf75bef…`, 07:18:55Z, two paths.
-14. Candidate B: bad object — does not exist; not reachable; no paths.
-15. Valid authoritative SHA: `4e8c4554402ed03c661c9fabd0b2cb06535545ca`.
-16. Invalid withdrawn SHA: `4e8c8554402ed03c661c9fabd0b2cb06535545ca`.
-17. Valid SHA parent: `4cf75bef5bfb656c8281e688ce245500f33e4643`.
-18. Valid SHA child: `617baf906947d3b5bed8d66c0536662aebcfd2a6`.
-19. Valid SHA changed paths: `docs/README.md`; `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`.
-20. DEC-009 stored SHA: `4e8c4554402ed03c661c9fabd0b2cb06535545ca` — match.
-21. Prompt-06 corrected commit list: §11.
-22. Prompt-06 merge: `41902826d1a74a3ffaa0f500e17bdaedfe6179df`.
-23. Affected Zero-Regression rows: all six PASS.
-24. Unaffected C1 evidence: preserved, unchanged.
-25. Repository writes: None. 26. Database access: None. 27. Application changes: None. 28. Project Knowledge changes: None. 29. Workspace Knowledge changes: None. 30. Skill changes: None. 31. AGENTS.md changes: None.
-32. Technical Acceptance: PASSED.
-33. Owner Acceptance: NOT YET GRANTED.
-34. Acceptance persistence: NOT PERFORMED.
-35. Phase advancement: NONE.
-36. Sub-phase 3.1: NOT STARTED.
-37. Closure: NONE.
-38. Evidence Artifact ID: ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY.
-39. Next eligible local Prompt number: 10 — NOT CONSUMED.
-40. Exact stopping point: stopped after candidate testing, identity resolution, DEC-009 comparison, withdrawal of the invalid SHA, correction of the six affected rows and issuance of the final verdict. No writes beyond the platform-managed plan artifact.
-41. Exact next permitted action: Explicit Owner Acceptance decision for RM-DH-003 / Phase 3 Governance Persistence. Only after that may Prompt 10 be prepared in Agent/Build Mode for Acceptance persistence.
+- Mode: Plan/Chat, read-only evidence completion. Parent Prompt: PROMPT-…-STAGE-C-SLICE-C-FINAL-READ-PATH-EXECUTION-46. Continuation A1. No new Prompt number consumed.
+- Run date/time: 05-08-2026, 12:28–12:40 Asia/Riyadh (09:28–09:40 UTC). Exact per-command wall-clock start times not recorded.
+- Repository writes: None (except platform-managed `.lovable/plan.md`). Database access: read-only SELECT only. Database writes: None. Application changes: None. Project Knowledge / Workspace Knowledge / Skills / AGENTS.md changes: None.
+- Temporary artifacts: `/tmp/pre46` created and removed; `/tmp/*.txt` command logs outside the repository.
+- Stopping point: stopped after test reruns, RTL attribution, typecheck, build, source-date matrix and Git evidence. No QA, no Acceptance Re-Audit, no Acceptance, no Stage D.
+- Next permitted action: Final Stage-C QA of Slice C under a new Prompt.
