@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-004-DECISIONS
 title: RM-DH-004 — Decisions
-version: 1.2.0
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-08-03
-last-verified: 2026-08-05
+last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Records DEC-RM-DH-004-001 only.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends exactly one new decision, DEC-RM-DH-004-002 — Advancement from Phase 0 to Phase 1, recording the explicit Owner advancement decision granted by Mohamed Nour on 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), its supporting evidence, rationale, rejected alternatives and implications. DEC-RM-DH-004-001 is preserved byte-identical. No other decision was added, and no technical Acceptance or Closure is recorded.
+source: v1.3.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54, Parallel Task ID PT-DH-RM004-WS0006-P54-OWNER-ACCEPTANCE-PERSISTENCE-20260806-0024): appends exactly one new decision, DEC-RM-DH-004-004 — Owner Acceptance of Phase-2 Stage-0 Governance Reconciliation and the WS-DH-2026-0006 Governance Package, granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00). Decisions 001 through 003 are preserved byte-identical and are neither amended nor renumbered. No local Workstream Decision was created. No technical authorization is granted.; authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Records DEC-RM-DH-004-001 only.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends exactly one new decision, DEC-RM-DH-004-002 — Advancement from Phase 0 to Phase 1, recording the explicit Owner advancement decision granted by Mohamed Nour on 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), its supporting evidence, rationale, rejected alternatives and implications. DEC-RM-DH-004-001 is preserved byte-identical. No other decision was added, and no technical Acceptance or Closure is recorded.
 source-sha256: n/a
 -->
 
