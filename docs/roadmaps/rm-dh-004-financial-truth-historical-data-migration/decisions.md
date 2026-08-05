@@ -1,11 +1,11 @@
 <!--
 id: DHB-RM-004-DECISIONS
 title: RM-DH-004 — Decisions
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-08-03
-last-verified: 2026-08-03
+last-verified: 2026-08-05
 supersedes: []
 superseded-by: null
 source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Records DEC-RM-DH-004-001 only.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends exactly one new decision, DEC-RM-DH-004-002 — Advancement from Phase 0 to Phase 1, recording the explicit Owner advancement decision granted by Mohamed Nour on 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), its supporting evidence, rationale, rejected alternatives and implications. DEC-RM-DH-004-001 is preserved byte-identical. No other decision was added, and no technical Acceptance or Closure is recorded.
