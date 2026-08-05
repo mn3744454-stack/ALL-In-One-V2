@@ -1,13 +1,14 @@
 <!--
 id: DHB-WS-2026-0006-README
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (package README)
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-08-05
-last-verified: 2026-08-05
+last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
+source: v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records the accepted Stage-0 status. Identity and scope are unchanged; all dynamic state remains in roadmap.md. The earlier provenance is preserved verbatim on the following source line.
 source: authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, local Prompt number 53, Parallel Task ID PT-DH-RM004-WS0006-P53-GOVERNANCE-RECONCILIATION-20260805-2216), under approved Decision DEC-RM-DH-004-003. This file carries stable identity only; all dynamic WS-DH-2026-0006 state lives in roadmap.md. No technical Historical Import implementation exists.
 source-sha256: n/a
 -->
@@ -24,7 +25,7 @@ source-sha256: n/a
 
 **Track:** Track 2 — Import Architecture & Control
 
-**Status:** ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED
+**Status:** ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 ## Identity and Lineage
 

@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0006-ROADMAP
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (authoritative current state)
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-08-05
-last-verified: 2026-08-05
+last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, local Prompt number 53), under approved Decision DEC-RM-DH-004-003. Establishes the authoritative Workstream state at Stage 0. No Stage is complete, no technical Historical Import implementation exists, and no Acceptance or Closure is recorded.
+source: v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records Stage 0 as COMPLETE — OWNER ACCEPTED — PERSISTED, planned technical Step 1 as COMPLETE — OWNER ACCEPTED, and updates the Workstream Status block, stopping point and next permitted step. Stage 1 remains NOT STARTED and requires separate explicit Owner authorization. No technical implementation, no database, migration or Storage activity, and no Workstream or Roadmap Closure.; authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, local Prompt number 53), under approved Decision DEC-RM-DH-004-003. Establishes the authoritative Workstream state at Stage 0. No Stage is complete, no technical Historical Import implementation exists, and no Acceptance or Closure is recorded.
 source-sha256: n/a
 -->
 
@@ -37,10 +37,13 @@ Track:
 Track 2 — Import Architecture & Control
 
 Workstream Status:
-ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED
+ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Stage:
-Stage 0 — Governance Package
+Stage 0 — Governance Package — COMPLETE — OWNER ACCEPTED — PERSISTED; Stage 1 — Technical Foundation Audit — NOT STARTED and NOT AUTHORIZED
+
+Owner Acceptance of Stage 0:
+06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004
 
 Owner:
 Mohamed Nour
@@ -85,10 +88,10 @@ QA:
 NOT STARTED
 
 Acceptance Re-Audit:
-NOT STARTED
+STAGE 0 — PASSED INDEPENDENT RE-VERIFICATION; TECHNICAL STAGES — NOT STARTED
 
 Owner Acceptance:
-NOT GRANTED
+GRANTED FOR STAGE 0 GOVERNANCE ONLY — 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004; NO TECHNICAL ACCEPTANCE
 
 Closure:
 NONE
@@ -98,7 +101,7 @@ NONE
 
 | # | Stage | State |
 |---:|---|---|
-| 0 | Governance Package | COMPLETE — created by Prompt 53; independent Acceptance Re-Audit pending |
+| 0 | Governance Package | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004) |
 | 1 | Technical Foundation Audit (read-only) | NOT STARTED — requires explicit Owner authorization |
 | 2 | Owner Alignment on Import Foundation Architecture | NOT STARTED |
 | 3 | Execution Contract | NOT STARTED |
@@ -111,9 +114,9 @@ NONE
 
 This register is the planned technical order. It is separate from, and does not replace, the Stage Register above. No technical step is implemented, executed, accepted or closed.
 
-| # | Planned step | State after this correction |
+| # | Planned step | Current state |
 |---:|---|---|
-| 1 | Governance reconciliation | EXECUTED — INDEPENDENT RE-VERIFICATION PENDING |
+| 1 | Governance reconciliation | COMPLETE — OWNER ACCEPTED (DEC-RM-DH-004-004) |
 | 2 | Technical Foundation Audit / Execution Contract | NOT STARTED |
 | 3 | Shared control-plane schema, storage and permissions | NOT STARTED |
 | 4 | Upload and registry visibility | NOT STARTED |
@@ -125,7 +128,7 @@ This register is the planned technical order. It is separate from, and does not 
 | 10 | Controlled real-client pilot | NOT STARTED |
 | 11 | Later Domain Adapters | NOT STARTED |
 
-Step 1 must not be marked COMPLETE before independent re-verification and Owner Acceptance.
+Step 1 is marked COMPLETE only because independent re-verification passed and the Owner granted explicit Acceptance. Steps 2 through 11 remain unimplemented and unauthorized.
 
 ## Dependencies
 
@@ -147,10 +150,10 @@ Step 1 must not be marked COMPLETE before independent re-verification and Owner 
 
 ## Current Stopping Point
 
-The governance package was originally created at version `1.0.0` and is currently at version `1.1.0` following the bounded Prompt-53 same-subject package correction. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database. The remaining version-coherence sentence has now been repaired under Prompt-53 Correction Continuation C2, and this C2 correction remains pending independent read-only verification and Owner Acceptance.
+The governance package was originally created at version `1.0.0`, corrected to `1.1.0` under the bounded Prompt-53 same-subject package correction and Correction Continuation C2, and is currently at version `1.2.0` following the Prompt-54 Stage-0 Owner Acceptance Persistence. Stage 0 is `COMPLETE — OWNER ACCEPTED — PERSISTED` under `DEC-RM-DH-004-004`, Owner Acceptance granted 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database, and no Technical Foundation Execution Contract exists.
 
 ## Next Permitted Step
 
-1. Independent read-only verification of Prompt-53 Correction Continuation C2 is the next permitted step.
-2. Owner Acceptance of the Prompt-53 governance reconciliation and of this package may occur only after that verification passes.
-3. Stated separately: the Technical Foundation Audit (Stage 1) still requires a **separate explicit Owner authorization** after Owner Acceptance. It is not authorized by the creation or correction of this package.
+1. Prompt 55 — the Stage 1 Technical Foundation Audit / Execution Contract — is the next permitted step and requires a **separate explicit Owner authorization**. Prompt 55 has not been consumed.
+2. Stated separately: the Stage-0 Owner Acceptance does not authorize any technical slice, database change, migration, Storage object, permission/RLS/Grant change, parsing or staging work.
+3. No Workstream Acceptance and no Workstream Closure is granted.

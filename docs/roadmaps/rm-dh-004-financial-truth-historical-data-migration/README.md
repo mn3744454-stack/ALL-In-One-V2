@@ -1,13 +1,14 @@
 <!--
 id: DHB-RM-004-README
 title: RM-DH-004 — Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap (package README)
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-08-03
-last-verified: 2026-08-05
+last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
+source: v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54, Parallel Task ID PT-DH-RM004-WS0006-P54-OWNER-ACCEPTANCE-PERSISTENCE-20260806-0024), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records the accepted Phase-2 Stage-0 current-state summary. No new Prompt number was consumed and Prompt 55 remains next eligible. The earlier provenance is preserved verbatim on the following source lines.
 source: v1.1.0 — RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, approved Decision DEC-RM-DH-004-003), 05-08-2026 (Asia/Riyadh — UTC+03:00): adds the WS-DH-2026-0006 package to the navigation list and records the two currently packaged Workstreams. This file continues to carry stable identity only; all dynamic RM-DH-004 state remains in roadmap.md. The earlier provenance is preserved verbatim on the following source line.
 source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under approved Decision DEC-RM-DH-004-001 and execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02, following the passed planning audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01. This file carries stable identity only; all dynamic RM-DH-004 state lives in roadmap.md.
 source-sha256: n/a
@@ -46,7 +47,18 @@ RM-DH-004 governs:
 Currently packaged Workstreams:
 
 - [`WS-DH-2026-0003 — Economic Date Integrity`](../../workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md) — Phase 1; complete, Owner accepted and closed.
-- [`WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`](../../workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/README.md) — Phase 2; current Workstream; governance package created, technical implementation not started.
+- [`WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`](../../workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/README.md) — Phase 2; current Workstream; Stage 0 governance Owner accepted and persisted; Stage 1 not started; technical implementation not started.
+
+## Current State Summary
+
+Dynamic state is authoritative only in [`roadmap.md`](./roadmap.md). This summary is a convenience pointer.
+
+- RM-DH-004 is ACTIVE; Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase.
+- Phase-2 Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-004` (Owner Acceptance 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00).
+- Stage 1 — Technical Foundation Audit / Execution Contract is `NOT STARTED` and requires a separate explicit Owner authorization.
+- No technical Historical Import implementation exists.
+- No Workstream Closure and no Roadmap Closure is granted.
+- Prompt 55 is the next eligible new Prompt and has not been consumed.
 
 ## Ownership Boundaries
 

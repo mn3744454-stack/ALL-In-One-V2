@@ -1,11 +1,11 @@
 <!--
 id: DHB-RM-004-CHANGELOG
 title: RM-DH-004 — Changelog
-version: 1.3.0
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-08-04
-last-verified: 2026-08-05
+last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
 source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Append-oriented; no Acceptance and no Closure recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04: appends one new chronological entry recording the passed Acceptance Re-Audit, the explicit Owner Acceptance and the completed Acceptance Persistence. All earlier entries are preserved byte-identical, the earlier rounded package-creation timestamp is not altered, OBS-01 is not corrected, and no Closure entry is recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends three new chronological entries recording the Prompt 05 Acceptance Persistence Verification and Phase 0 readiness verdict, the explicit Owner Phase advancement decision of 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), and the executed Phase Advancement Persistence. All earlier entries are preserved byte-identical, OBS-01 is not edited, no prior timestamp is altered, and no Closure entry is recorded.; v1.1.1 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage A Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-A-ACCEPTANCE-PERSISTENCE-09, following the passed read-only Stage A Acceptance Re-Audit (Prompt 08) and the explicit Owner Acceptance granted by Mohamed Nour on 03-08-2026 at 19:15 Asia/Riyadh (UTC+03:00): appends three chronological entries recording the passed Stage A Acceptance Re-Audit, the explicit Stage A Owner Acceptance and the executed Stage A Acceptance Persistence. All earlier entries are preserved byte-identical, no prior timestamp or timestamp observation is altered, OBS-01 and OBS-A-01 are not rewritten, no new decision ID was created, and no Closure entry is recorded.; v1.2.0 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage B Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-OWNER-ACCEPTANCE-PERSISTENCE-36, following the passed read-only Stage B Acceptance Re-Audit (Prompt 35) and the explicit Owner Acceptance granted by Mohamed Nour on 04-08-2026 at 20:49 Asia/Riyadh (UTC+03:00): appends three chronological entries recording the passed Stage B Acceptance Re-Audit, the explicit Stage B Owner Acceptance and the executed Stage B Acceptance Persistence. All earlier entries are preserved byte-identical, no prior timestamp is altered, OBS-01 and OBS-A-01 are not rewritten, no new decision ID was created, and no Closure entry is recorded.
@@ -184,3 +184,18 @@ Append-oriented chronological record. New entries are added at the bottom.
 - No Acceptance and no Closure were recorded for Phase 2.
 - An independent Acceptance Re-Audit of this reconciliation is required before any Phase-2 technical authorization.
 - The exact wall-clock time of this run is not recorded.
+
+### 2026-08-06T00:24:00+03:00 — Owner Acceptance of Phase-2 Stage 0 and Acceptance Persistence
+
+- The owner, Mohamed Nour, explicitly accepted the Prompt-53 RM-DH-004 Phase-2 governance reconciliation, the creation of the `WS-DH-2026-0006` governance package, the first Prompt-53 same-subject package correction and Prompt-53 Correction Continuation C2.
+- The independent re-verifications completed under Prompt 54 and its same-subject continuations passed with no blocking findings.
+- Decision `DEC-RM-DH-004-004` was created, recording the Owner Acceptance, the accepted state, the rationale and the explicit non-decisions. The Roadmap Decision range becomes `DEC-RM-DH-004-001` through `DEC-RM-DH-004-004` and the next free Roadmap Decision ID becomes `DEC-RM-DH-004-005`.
+- Phase-2 Stage 0 — Governance Reconciliation is recorded as `COMPLETE — OWNER ACCEPTED — PERSISTED`.
+- The `WS-DH-2026-0006` governance package moved from version `1.1.0` to version `1.2.0` across all four files, remaining version-coherent. Its local Decision register remains at 0 consumed Decisions with next free local ID `DEC-WS-DH-2026-0006-001`.
+- Stage 1 — Technical Foundation Audit / Execution Contract remains `NOT STARTED` and requires a separate explicit Owner authorization. No Technical Foundation Execution Contract exists.
+- Planned technical Steps 2 through 11 remain `NOT STARTED`.
+- Zero technical Historical Import implementation occurred: no import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC was designed, created or executed.
+- Zero database reads or writes, zero migrations, zero Storage activity, zero application changes, zero test changes and zero permission, RLS or Grant changes occurred.
+- Phase 1 and `WS-DH-2026-0003` remain `COMPLETE — OWNER ACCEPTED — CLOSED`, and the `public.ledger_entries.effective_date NOT NULL` contract remains a closed Phase-1 contract.
+- No Workstream Acceptance, no Workstream Closure and no Roadmap Closure was granted.
+- Prompt 55 remains the next eligible new Prompt and was not consumed; this run was a same-subject continuation of Prompt 54 and consumed no new Prompt number.
