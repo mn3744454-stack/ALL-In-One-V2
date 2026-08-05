@@ -337,7 +337,7 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
         .map((p) => {
           const methodKey = p.payment_method || "";
           const methodLabel = labels.methodLabels[methodKey] || methodKey || "—";
-          const effDate = p.effective_date ? formatStandardDate(p.effective_date) : "—";
+          const effDate = p.effective_date ? formatEconomicDate(p.effective_date) : "—";
           const recAt = p.created_at ? formatStandardDateTime(p.created_at) : "—";
           return `
       <div data-block="session-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; break-inside: avoid;">
