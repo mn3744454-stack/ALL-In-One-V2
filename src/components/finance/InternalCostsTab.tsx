@@ -330,9 +330,17 @@ export function InternalCostsTab() {
                       <Badge variant="outline" className="text-xs">
                         {getEntityLabel(entry.entity_type)}
                       </Badge>
-                      <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                        {formatStandardDate(entry.created_at)}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-mono text-xs" dir="ltr">
+                          {entry.business_date
+                            ? formatEconomicDate(entry.business_date)
+                            : t("finance.internalCosts.unknownDate")}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
+                          {t("finance.internalCosts.recordedOn")}: {formatStandardDateTime(entry.created_at)}
+                        </span>
+                      </div>
+
                     </div>
                     {horseNames[entry.entity_id] && (
                       <p className="text-sm font-medium">{horseNames[entry.entity_id]}</p>
