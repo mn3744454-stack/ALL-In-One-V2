@@ -1,158 +1,115 @@
-# PROMPT 40 — STAGE-C SLICE-A ACCEPTANCE RE-AUDIT (READ-ONLY)
+# PROMPT 42 — STAGE-C SLICE-B COMBINED INDEPENDENT QA AND CONDITIONAL ACCEPTANCE RE-AUDIT
 
 ## A. Executive Verdicts
 
-- Prompt: PROMPT 40 SUBMITTED — RUN — CONSUMED
-- Scope: STAGE-C SLICE-A ACCEPTANCE SCOPE PRESERVED
-- Drift: CURRENT SLICE-A REPOSITORY STATE UNCHANGED SINCE PROMPT 39
-- Completeness: SLICE-A AUTHORIZED SCOPE COMPLETE
-- Correctness: SLICE-A ECONOMIC-DATE CORRECTNESS ACCEPTED
-- Security: SLICE-A TENANT AND PERMISSION CONTRACT ACCEPTED
-- Regression: SLICE-A ZERO-REGRESSION CONTRACT ACCEPTED
-- Testing: SLICE-A TEST AND BUILD EVIDENCE ACCEPTED
-- Residuals: SLICE-A RESIDUALS CORRECTLY CLASSIFIED AS NON-BLOCKING
-- Writes: ZERO REPOSITORY AND DATABASE WRITE CONFIRMED
-- Prior stages: STAGE A AND STAGE B REMAINED CLOSED
-- Stage boundary: STAGE C REMAINS ACTIVE — SLICE-A OWNER ACCEPTANCE PENDING
-- Final: STAGE-C SLICE-A ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE
+- PROMPT 42 SUBMITTED — RUN — CONSUMED
+- STAGE-C SLICE-B READ-ONLY COMBINED QA SCOPE PRESERVED
+- PROMPT-41 IMPLEMENTATION LINEAGE AND AGGREGATE DIFF VERIFIED
+- CUSTOMER-LEVEL ACTIVITY EFFECTIVE-DATE CONTRACT PROVEN
+- CUSTOMER-LEVEL ACTIVITY EFFECTIVE-DATE QA PASSED
+- LEDGER EFFECTIVE-DATE LIST QA FAILED (screen correct; Print/CSV render a fabricated time)
+- INVOICE ISSUE-DATE LIST QA PASSED
+- SLICE-B BUSINESS-DATE RENDERING OR PARITY FAILED
+- SLICE-B TARGETED QA TESTS PASSED
+- SLICE-A REGRESSION QA PASSED
+- SLICE-B TYPECHECK QA PASSED
+- SLICE-B BUILD QA PASSED
+- SLICE-B ZERO-REGRESSION QA PASSED
+- SLICE-B RESIDUALS CORRECTLY CLASSIFIED
+- Acceptance lanes NOT ENTERED (conditional gate not met): SLICE-B BUSINESS-DATE CORRECTNESS NOT ACCEPTED
+- ZERO REPOSITORY AND DATABASE WRITE CONFIRMED
+- STAGE A, STAGE B AND SLICE A REMAINED CLOSED
+- **STAGE-C SLICE-B COMBINED QA FAILED — TARGETED CORRECTION REQUIRED**
 
 ## B. Complete Roadmap
 
-Mission: build a safe historical financial migration system, then execute the Laboratory Historical Import as the first controlled Pilot.
+RM-DH-004 Phase 1 (Economic Date Integrity) ACTIVE — Stage A CLOSED, Stage B CLOSED, Stage C ACTIVE (Slice A accepted/closed, Slice B in QA), Stage D NOT STARTED. Phases 2–8 NOT STARTED.
 
-Phase 0 completed. Phase 1 (Economic Date Integrity) active — Stage A closed, Stage B closed, Stage C active, Stage D not started. Phases 2–8 not started. Current position: Stage C · Slice A, implemented and independently QA-passed, awaiting Owner Acceptance. No Workstream, Phase or Roadmap Closure.
+## C. Preflight and Prompt-41 Lineage
 
-## C. Current Repository Drift Gate
-
-- Branch: `edit/edt-7392a2bb-e621-4715-b010-e4698f74aed6`
-- HEAD: `a141a53ff05e2a99ebee38340a4f127ab0affe3a` ("Update plan")
-- HEAD parents: `302ec9118d37ca487c3cb2db3765ff82d3437b2e`, `4bd7643bcf990e14579c477daff37772d761f529`
-- Working Tree: clean — staged paths none, unstaged paths none, untracked paths none
-- Diff `302ec9118d37ca487c3cb2db3765ff82d3437b2e` → `a141a53ff05e2a99ebee38340a4f127ab0affe3a`: `.lovable/plan.md` only (147 insertions, 86 deletions) — the Prompt-39 QA report, a platform-managed governance artifact under DEC-RM-DH-003-004
-
-Latest commit per Slice-A path:
-
-| Slice-A path | Latest commit | Date (UTC) |
-|---|---|---|
-| `src/lib/finance/effectiveDate.ts` | `d321d850b2714d56896322374f2ed43bad128c24` | 2026-08-04 18:26:32 |
-| `src/hooks/clients/useClientStatement.ts` | `d321d850b2714d56896322374f2ed43bad128c24` | 2026-08-04 18:26:32 |
-| `src/components/clients/ClientStatementTab.tsx` | `acfc7d1d3884f1858fa73d271159a1cffb4fc309` | 2026-08-04 18:27:44 |
-| `src/components/clients/StatementPrintUtils.ts` | `72adfc2e6fb494327cf0786bbe8e2fa01ac9fa6a` | 2026-08-04 18:27:38 |
-| `src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` | `c4a213a9c2189f6696fd216a1afb778e5724fdb4` | 2026-08-04 18:29:04 |
-| `supabase/migrations/20260804182812_4b8065f5-a507-4d24-a17c-6674f7c98ee3.sql` | `e2be0a96a794d61b0e2c8fa01c0f189c7b16ab18` | 2026-08-04 18:28:19 |
-
-Every Slice-A path's newest commit belongs to the Prompt-38 implementation chain. No substantive commit after Prompt 39 changed any Slice-A path. **CURRENT SLICE-A REPOSITORY STATE UNCHANGED SINCE PROMPT 39** — no narrow drift re-check was triggered and no completed technical QA was rerun.
+- Branch: `edit/edt-71765b44-6c90-4180-8434-5906a84c0618`
+- HEAD: `fd7f0e0ab2a045d21be20ccbbf52add90f12a7cd` (merge)
+- HEAD parents: `d8c890cb717fefea1797c7decf480fc9643c767d` and `49cee729ac2a15e5e646de204250f8e060ce4665`
+- Working Tree: clean before and after (`git status --porcelain` empty)
+- Reported chain gap resolved: Prompt-41 work is a linear chain from the pre-HEAD —
+  `d8c890cb…` → `fdfc9515d83c0d543ebe8b4dafc7cd19d08acf61` → `c4714b4c26399133707a7037361da3d2c9eee077` → `c48d9c4379a0314fe8ffd70743249722ecfc3ead` → `5a3f574f02961273e3086937f9654c8edd9f18b9` → `863060a157c174dbd0bff6673bded3949fbf0cd3` → `2b78c925d4b78dfe5ba32ac0963de127affae658` → `187a94d6111e2d7aed4cb5bd72939a1ea2401067` → `c8377c831bc10e72da5a8fd8f36b9dd981c07e6a` → `cd7f11f7a1f4a12fb456e437e439444732ae43c5` → `49cee729ac2a15e5e646de204250f8e060ce4665`, then merged into `fd7f0e0a…`. The reported "first substantive commit" `c8377c83…` is mid-chain, not a detached root.
+- Aggregate diff `d8c890cb…` → `49cee729…`: exactly the 7 allowlisted paths, 278 insertions / 30 deletions.
+- Post-execution drift: `git diff 49cee729… HEAD` is empty → NO SLICE-B POST-EXECUTION DRIFT.
 
 ## D. Evidence Boundary
 
-**Repository facts measured in Prompt 40**: branch, HEAD, parents, clean Working Tree, per-path latest commits, and the single-file `.lovable/plan.md` diff since the Prompt-39 HEAD. Nothing else was measured.
+Facts: Git lineage, file contents, test/typecheck/build output, live read-only SQL. Prompt-41 claims verified independently. Gap: no interactive browser preview was used; rendering was verified structurally from code and formatter behavior, not visually.
 
-**Prompt-38 evidence (implementation, authoritative)**: helper contract, statement query cutover, opening balance, derived running balance, first-activity migration, date-only rendering, zero historical financial-row writes.
+## E. Customer-Level Activity QA
 
-**Prompt-39 QA evidence (independent, authoritative)**: lineage verified; code contract verified; live function definition verified byte-equivalent to the migration; 88 rows / 0 NULLs / 27 divergent rows; per-client ordering comparison; four opening-balance and four running-balance cases at zero difference; eight first-activity cases at zero difference; structural Screen/Print/CSV parity; 14/14 targeted, 217/217 finance, typecheck and build all passing; zero repository and database writes.
+`src/hooks/clients/useUnallocatedPayments.ts` queries `ledger_entries` only — no `payment_sessions` reference. Selects `effective_date` plus `created_at` (documented as audit/tie-break). Filters `gte/lte` on `effective_date` via `toEconomicDateString` (inclusive, date-only, no UTC window helper). Order: `effective_date` DESC, `created_at` DESC, `id` DESC. Tenant and client scoping preserved; `invoice_cancellation` exclusion and `customer_level` / `unresolved_legacy` classification unchanged; amount/reference semantics unchanged; no write path. `ClientStatementTab.tsx` renders `formatEconomicDate(e.date)` in both table and mobile blocks. Live evidence: 27 of 88 `ledger_entries` rows have `effective_date` differing from the Riyadh-local `created_at` date (e.g. `1147284a…` effective 2026-07-25 vs created 2026-07-27), so the change is observable.
 
-**Acceptance inference (Prompt 40)**: because the Slice-A paths, the applied migration and the live function are unchanged since QA, the Prompt-39 measurements remain currently valid without re-execution.
+## F. Ledger QA
 
-**Gaps**: no interactive browser preview was ever performed (Residual 2); the live database was not re-queried in Prompt 40 by design, so live values are accepted as of the Prompt-39 run rather than re-measured now.
+`useLedger.ts` selects `effective_date, created_at` and orders `effective_date` DESC, `created_at` DESC, `id` DESC; hook remains read-only. `DashboardFinance.tsx` Ledger and Payments tabs filter on date-only inclusive `effective_date` bounds (the previous `+ "T23:59:59"` construction is gone) and re-sort in memory with `compareEconomicOrder(..., "desc")` on the same three keys. Screen cells render `formatEconomicDate(entry.effective_date)`. Amounts, sign, type, description, `balance_after`, tenant scope and permissions unchanged.
 
-**Contradictions**: none. The single Prompt-38/39 numeric divergence (254 vs 217 finance tests) is a reporting-scope difference, already classified as Residual 3.
+**Defect (blocking):** `handlePrint` and `handleExportCSV` in both tabs pass `toEconomicDateString(e.effective_date)` (a date-only string) into `printLedgerEntries` / `exportLedgerCSV` in `src/components/clients/StatementPrintUtils.ts`, which format that field with `formatTimeForPrint` → `formatStandardDateTime`, emitting `dd-MM-yyyy hh:mm AM/PM`. A date-only value therefore prints a fabricated `12:00 AM` UTC-parsed time (rendered `03:00 صباحاً` at UTC+03:00), so Print/CSV do not match the screen's date-only economic date. The Slice-A Client Statement print path is unaffected — it uses `formatDateForPrint` → `formatEconomicDate`.
 
-## E. Scope Completeness
+## G. Invoice-List QA
 
-| # | Authorized Slice-A outcome | Evidence | Status |
-|---:|---|---|---|
-| 1 | Canonical effective-date helper | `effectiveDate.ts` contract, comparator, date-only formatter, cent helpers | COMPLETE |
-| 2 | Statement selects `effective_date` | `useClientStatement.ts` select list | COMPLETE |
-| 3 | Inclusive date-only filters | `.gte`/`.lte` on `effective_date` via `toEconomicDateString` | COMPLETE |
-| 4 | Deterministic ordering | `effective_date, created_at, id` in SQL and `compareEconomicOrder` | COMPLETE |
-| 5 | Opening-balance correction | pre-range `effective_date < from`, tenant+client scoped, paginated | COMPLETE |
-| 6 | Display-derived running balance | seeded from `openingBalance` in `ClientStatementTab.tsx` | COMPLETE |
-| 7 | Monetary-safe accumulation | `toCents`/`fromCents` throughout | COMPLETE |
-| 8 | First-activity RPC cutover | migration `20260804182812…`, live definition matches | COMPLETE |
-| 9 | Date-only Screen rendering | `formatEconomicDate` on all statement rows | COMPLETE |
-| 10 | Date-only Print rendering | `formatDateForPrint` → `formatEconomicDate` | COMPLETE |
-| 11 | Date-only CSV rendering | same serializer path | COMPLETE |
-| 12 | Targeted tests | 14/14 passed | COMPLETE |
-| 13 | Typecheck | exit 0 | COMPLETE |
-| 14 | Build | exit 0 | COMPLETE |
-| 15 | Zero historical financial-row write | ledger row count, NULL count and `balance_after` unchanged | COMPLETE |
+`useInvoices.ts` orders `issue_date` DESC, `created_at` DESC, `id` DESC; tenant and status filters unchanged. `InvoicesList.tsx` renders `formatEconomicDate(invoice.issue_date)` (no `new Date()` parse, no UTC shift). `due_date` untouched: `InvoiceCard.tsx` still renders it and `supabase/functions/mark-overdue-invoices` still keys overdue on `due_date`. No invoice detail, PDF, approval, cancellation, allocation or write-RPC file appears in the aggregate diff.
 
-**SLICE-A AUTHORIZED SCOPE COMPLETE.**
+## H. Rendering and Structural Parity
 
-## F. Correctness Acceptance
+Screen surfaces on all three paths render date-only via `formatEconomicDate`, language-agnostic with Western digits and no UTC day shift. No preview session was used — this is a structural verification, not a visual one. Parity fails only for the Ledger/Payments Print and CSV exports described in §F.
 
-- 88 ledger rows, 0 NULL `effective_date`, 27 divergent rows — matches §5.1 baseline
-- Economic order materially differs from the legacy `created_at` order for five of seven affected client pairs; the other two reorder to the identical sequence
-- Same-effective-date ties resolve by `created_at` then `id` identically in SQL and in `compareEconomicOrder`, with the descending path mirroring all three keys
-- Opening balance: 1200.00 / 50.00 / 580.00 / 719.35 — zero difference against the application algorithm; never sourced from the first visible row or `balance_after`; zero when no `from_date`
-- Running balance: closings 131985.00 / 2770.00 / 905.00 / 1669.35 — zero difference; closing equals opening plus visible period sum in every case; neutralized rows hold the prior balance; `balance_after` neither rewritten nor used as display authority (demonstrated on client `a279407b…`, whose stored final `balance_after` is not a valid economic running total)
-- First activity: eight clients, zero difference; the `v_first::timestamp AT TIME ZONE current_setting('TimeZone')` cast returns local midnight and the sole caller slices the `yyyy-MM-dd` prefix, so no calendar-day shift is possible under UTC or Asia/Riyadh
-- Rendering: `flatRows` → `printEntries` → `printData` is one ordered in-memory set for Screen, Print and CSV; identical ids, dates and balances; no fabricated time; no UTC day shift
+## I. Tests, Typecheck and Build
 
-**SLICE-A ECONOMIC-DATE CORRECTNESS ACCEPTED.**
+| Command | Result |
+|---|---|
+| `bunx vitest run src/lib/finance/__tests__/stageCSliceBReadPathCutover.test.ts` | 1 file, 24 tests passed, exit 0 |
+| `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` | 1 file, 14 tests passed, exit 0 |
+| `bunx vitest run src/lib/finance` | 13 files, 241 tests passed, exit 0 |
+| `tsgo --noEmit -p tsconfig.app.json` | exit 0, no diagnostics |
+| `bun run build` | exit 0, built in 32.41s; pre-existing warnings only (chunk >500 kB, sonner dynamic/static import, stale caniuse-lite) |
 
-## G. Security and Tenancy Acceptance
+Note: the targeted suite asserts screen-level formatting only; it contains no assertion covering the Ledger/Payments Print or CSV date, which is why the defect passed Prompt-41 self-verification.
 
-Both statement reads keep `.eq("tenant_id")` and `.eq("client_id")`, so tenant and client scope and the underlying RLS-governed read path are unchanged. The first-activity function preserves its signature, `timestamptz` return, `SECURITY DEFINER`, owner `postgres`, `search_path = public, pg_temp`, the `auth.uid()` and `is_tenant_member` gates, the `clients.statement.view` permission gate and the client-belongs-to-tenant isolation check. The migration contains no GRANT, no RLS statement, no index change and no write statement; no cross-tenant aggregation and no permission broadening exist anywhere in the slice.
+## J. Zero Regression
 
-**SLICE-A TENANT AND PERMISSION CONTRACT ACCEPTED.**
+Repository substantive writes: ZERO (working tree clean, no commit). Database writes: ZERO. Migration writes: ZERO. Financial-row writes: ZERO. No `balance_after` or `effective_date` data change, no posting/expense/supplier-payable change, no RLS/Grant/index/schema change, no Stable Contract or Emergency Rollback change. Stage A and Stage B remain closed; Slice A remains accepted and closed; Stage D not started. Only read-only SQL (`count`, sample select) was executed.
 
-## H. Zero-Regression Acceptance
+## K. Residual Classification
 
-No historical financial-row write, no `balance_after` write, no `effective_date` repair. Ledger row count 88 unchanged; NULL count remains 0. Stage A and Stage B remained closed and were not reopened. The Stable Contract and the Emergency Rollback artifact were not touched. Unrelated invoice, payment, expense and dashboard read paths were not modified — the only application changes are the four Slice-A source files plus the targeted test. Stage D not started.
+Genuine remaining Stage-C work (non-blocking): dedicated `payment_sessions` surface discovery for `payment_date`; `financial_entries` business-date classification; Supplier Payables business-date classification; remaining dashboards/KPIs; remaining exports and reports; interactive browser preview. The `ledger_entries`-based Customer-level Activity path is NOT a residual — its contract is proven.
 
-**SLICE-A ZERO-REGRESSION CONTRACT ACCEPTED.**
+## L. Acceptance Lanes
 
-## I. Test and Build Evidence
+Not entered. The Acceptance Re-Audit is conditional on all QA lanes passing; Lane B and the rendering/parity lane failed, so no acceptance verdict is issued beyond `SLICE-B BUSINESS-DATE CORRECTNESS NOT ACCEPTED`.
 
-Accepted from Prompt 39 without rerun:
+## M. Blocking Findings
 
-- `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` → 14/14 passed, exit 0
-- `bunx vitest run src/lib/finance` → 12 files, 217/217 passed, exit 0
-- `tsgo --noEmit -p tsconfig.app.json` → exit 0
-- `bun run build` → exit 0; chunk-size advisory pre-existing and non-blocking
-- InvoicePDFGenerator RTL test: outside the executed glob and outside Slice A — not reopened
+1. Ledger tab and Payments tab Print/CSV exports render a fabricated time on a date-only economic date and therefore break Screen/Print/CSV parity (`src/pages/DashboardFinance.tsx` → `printLedgerEntries` / `exportLedgerCSV` in `src/components/clients/StatementPrintUtils.ts`).
 
-**SLICE-A TEST AND BUILD EVIDENCE ACCEPTED.**
+## N. Final Result
 
-## J. Residual Classification
+**STAGE-C SLICE-B COMBINED QA FAILED — TARGETED CORRECTION REQUIRED**
 
-**Residual 1 — Unallocated Payments.** The Customer-level Activity block on the statement page is driven by `useUnallocatedPayments.ts`, which still selects, filters (UTC-window helpers) and orders by `created_at`, and renders with `formatDateTime12h`. Separate read path, excluded from Prompt 38, Deferred Item 26, correct business date is `payment_date`. Disposition: NON-BLOCKING — PROMOTED TO NEXT STAGE-C EXECUTION SLICE.
+## O. Owner Decision Required
 
-**Residual 2 — Visual preview.** Structural parity only; one in-memory result set drives all three surfaces, serializers were inspected, targeted tests passed, no contradictory visual evidence exists. No browser preview occurred and none is claimed. Disposition: NON-BLOCKING FOR SLICE-A ACCEPTANCE.
+Approve a minimal, presentation-only Slice-B correction that makes the Ledger and Payments Print/CSV exports render the same date-only economic date as the screen, followed by a re-run of the QA and Acceptance Re-Audit. No data, RPC or schema change is involved.
 
-**Residual 3 — Test-count wording.** 254 (Prompt 38) versus 217 (Prompt 39 executed glob). Disposition: NON-BLOCKING REPORTING CORRECTION; functional QA not reopened.
+## P. One Recommendation
 
-**SLICE-A RESIDUALS CORRECTLY CLASSIFIED AS NON-BLOCKING.**
+Authorize a targeted Slice-B correction prompt that renders the Ledger/Payments Print and CSV date via the economic date-only formatter and adds a direct export-parity assertion to the Slice-B test file.
 
-## K. Blocking Findings
+## Q. Workstream Persistence
 
-None.
+Stage A closed; Stage B closed; Slice A accepted and closed; Slice B implemented but combined QA FAILED with one blocking presentation defect; Owner Acceptance pending and not granted; Stage C active; no Closure.
 
-## L. Final Acceptance Re-Audit Result
+## R. Roadmap Impact
 
-**STAGE-C SLICE-A ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE**
+Phase 1 active; Stage C active; Stage D not started; Phases 2–8 not started; no advancement, no Closure.
 
-## M. Owner Decision Required
+## S. Deferred Items Register
 
-Approve or reject Stage-C Slice-A Acceptance. On approval, Slice A becomes accepted and the next operational step is Stage-C Slice B execution preparation, beginning with the Unallocated Payments `payment_date` cutover and the remaining Ledger/activity read paths. No separate Slice-A persistence loop is required unless the existing Stage-C governance package explicitly demands one.
+Items 1–15 promoted to Prompt 42 were executed. Items 16–30 remain blocked pending a passing QA result, with one addition: **30a. Ledger/Payments Print and CSV economic-date parity correction (blocking Slice-B acceptance).** Items 31–50 remain deferred and tracked, unchanged. No item was dropped.
 
-## N. One Recommendation
+## T. Run Metadata and Exact Stopping Point
 
-Grant Owner Acceptance for Stage-C Slice A, then issue Prompt 41 — Stage-C Slice B execution preparation (Unallocated Payments `payment_date` cutover), Plan/Chat Read-Only.
-
-## O. Workstream Persistence
-
-Stage A closed. Stage B closed. Stage C active. Slice A implemented. Independent QA passed. Acceptance Re-Audit result: PASSED — READY FOR OWNER ACCEPTANCE. Owner Acceptance pending. No Slice-A persistence performed. WS-DH-2026-0003 active. No Closure.
-
-## P. Roadmap Impact
-
-Phase 1 active. Stage C active. Slice A awaiting Owner Acceptance. Stage D not started. Phases 2–8 not started. No advancement, no Closure.
-
-## Q. Deferred Items Register
-
-Items 1–12 (promoted to Prompt 40) are all executed and answered in this report. Items 13–28 remain BLOCKED PENDING OWNER ACCEPTANCE, unchanged. Items 29–48 remain DEFERRED — TRACKED, unchanged and intact. No item removed.
-
-## R. Run Metadata and Exact Stopping Point
-
-1. Mode: Plan/Chat — Read-Only Acceptance Re-Audit. 2. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-C-SLICE-A-ACCEPTANCE-REAUDIT-40 — SUBMITTED — RUN — CONSUMED. 3. Prepared 04-08-2026 21:49 Asia/Riyadh (UTC+03:00). 4. Run start 21:50, end 21:53, report 21:54 Asia/Riyadh. 5. Timestamp evidence: HEAD commit `a141a53f…` dated 2026-08-04 18:42:44 +0000; message header 18:38 UTC. 6. Branch `edit/edt-7392a2bb-e621-4715-b010-e4698f74aed6`; HEAD `a141a53ff05e2a99ebee38340a4f127ab0affe3a`; parents `302ec9118d37ca487c3cb2db3765ff82d3437b2e` and `4bd7643bcf990e14579c477daff37772d761f529`. 7. Working Tree clean. 8. Per-path latest commits: see Section C. 9. Post-QA drift: NONE (only `.lovable/plan.md` changed). 10. Scope completeness: COMPLETE (15/15). 11. Correctness: ACCEPTED. 12. Security/tenancy: ACCEPTED. 13. Zero regression: ACCEPTED. 14. Test/build evidence: ACCEPTED. 15. Residuals: three, all non-blocking. 16. Blocking findings: none. 17. Repository writes ZERO. 18. Database writes ZERO. 19. Financial-row writes ZERO. 20. Migration writes ZERO. 21. Stage A CLOSED. 22. Stage B CLOSED. 23. Stage C ACTIVE. 24. Slice A: ACCEPTANCE RE-AUDIT PASSED. 25. Owner Acceptance NOT YET GIVEN. 26. Slice B NOT STARTED. 27. Stage D NOT STARTED. 28. Phase advancement NONE. 29. Closure NONE. 30. Stopping point: the Slice-A Acceptance Re-Audit verdict and the Owner decision. 31. Recommendation: Section N. 32. Next Prompt: Prompt 41 — Stage-C Slice B execution preparation, Plan/Chat Read-Only, eligible only after Owner Acceptance.
+1. Mode: Plan/Chat — Read-Only. 2. PROMPT-42 — SUBMITTED — RUN — CONSUMED. 3. Prepared 05-08-2026 10:37 Asia/Riyadh. 4. Run start 10:42, end 10:47, report 10:47 Asia/Riyadh (approximate; exact time not recorded). 5. Branch and HEAD per §C. 6. Working Tree clean before and after. 7–10. Per §C; no post-execution drift. 11. Paths inspected: the 7 allowlisted paths plus `StatementPrintUtils.ts`, `displayHelpers.ts`, `formatters.ts`, `effectiveDate.ts`, `InvoiceCard.tsx`, `mark-overdue-invoices/index.ts`. 12. Two read-only SQL queries on `ledger_entries`. 13–16. Cases per §E–§H. 17–19. Per §I. 20. Temporary artifacts: `dist/` build output only (ignored, uncommitted). 21–24. Repository, database, migration and financial-row writes: ZERO. 25. Stage A CLOSED. 26. Stage B CLOSED. 27. Slice A ACCEPTED — CLOSED. 28. Slice B: combined QA FAILED — targeted correction required. 29. Owner Acceptance NOT YET GIVEN. 30. Stage C ACTIVE. 31. Stage D NOT STARTED. 32. Phase advancement NONE. 33. Closure NONE. 34. Stopping point: immediately after the combined QA result; no repair, no persistence, no acceptance. 35. Recommendation per §P. 36. Next: Prompt 43 — Slice-B Targeted Correction Execution (Execution Mode).
