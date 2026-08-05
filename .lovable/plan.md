@@ -1,121 +1,119 @@
-# PROMPT 44 — STAGE-C SLICE-B POST-CORRECTION QA AND ACCEPTANCE RE-AUDIT
+# PROMPT 45 — STAGE-C REMAINING READ-PATHS SHORT INVESTIGATIVE AUDIT
 
 ## A. Executive Verdicts
 
-- PROMPT 44 SUBMITTED — RUN — CONSUMED
-- STAGE-C SLICE-B POST-CORRECTION READ-ONLY SCOPE PRESERVED
-- CURRENT SLICE-B CORRECTION STATE UNCHANGED SINCE PROMPT 43
-- SLICE-B EXPORT DATE-MODE CONTRACT VERIFIED
-- LEDGER SCREEN-PRINT-CSV ECONOMIC-DATE PARITY PASSED
-- PAYMENTS SCREEN-PRINT-CSV ECONOMIC-DATE PARITY PASSED
-- SLICE-B POST-CORRECTION ZERO-REGRESSION QA PASSED
-- SLICE-B EXPORT-PARITY QA TESTS PASSED
-- SLICE-A REGRESSION QA PASSED
-- FINANCE TEST SUITE QA PASSED
-- PROMPT-44 TYPECHECK PASSED
-- PROMPT-44 BUILD PASSED
-- SLICE-B AUTHORIZED SCOPE COMPLETE
-- SLICE-B BUSINESS-DATE CORRECTNESS ACCEPTED
-- SLICE-B TENANT AND PERMISSION CONTRACT ACCEPTED
-- SLICE-B TEST AND BUILD EVIDENCE ACCEPTED
-- SLICE-B ZERO-REGRESSION CONTRACT ACCEPTED
+- PROMPT 45 SUBMITTED — RUN — CONSUMED
+- STAGE-C REMAINING READ-PATH INVESTIGATION SCOPE PRESERVED
+- ALL REMAINING STAGE-C READ PATHS MAPPED
+- NO DEDICATED PAYMENT-SESSIONS READ SURFACE REQUIRES STAGE-C CUTOVER
+- FINANCIAL-ENTRIES CONTRACT REQUIRES OWNER ALIGNMENT
+- SUPPLIER-PAYABLES DOMAIN CONTRACT DEFERRED
+- NO REMAINING DASHBOARD KPI CUTOVER REQUIRED
+- REMAINING EXPORT REPORT DATE CONTRACTS DETERMINED
+- STAGE-C EXECUTION PACKAGE REQUIRES OWNER ALIGNMENT
 - ZERO REPOSITORY AND DATABASE WRITE CONFIRMED
-- STAGE A, STAGE B AND SLICE A REMAINED CLOSED
-- **STAGE-C SLICE-B POST-CORRECTION QA AND ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE**
+- STAGE A, STAGE B, SLICE A AND SLICE B REMAINED CLOSED
+- **STAGE-C REMAINING READ-PATH INVESTIGATION COMPLETE — ONE OWNER DECISION REQUIRED**
 
-## B. Complete Roadmap
+## B. Roadmap
 
-RM-DH-004 Phase 1 (Economic Date Integrity) ACTIVE — Stage A CLOSED, Stage B CLOSED, Stage C ACTIVE (Slice A accepted/closed; Slice B corrected, QA-passed, Acceptance Re-Audit passed, Owner Acceptance pending), Stage D NOT STARTED. Phases 2–8 NOT STARTED. Mission (financial truth stabilization and historical migration) unchanged.
+RM-DH-004 Phase 1 (Economic Date Integrity) ACTIVE — Stage A CLOSED, Stage B CLOSED, Stage C ACTIVE (Slice A and Slice B accepted and closed; final slice scoped by this audit), Stage D NOT STARTED. Phases 2–8 NOT STARTED.
 
-## C. Preflight and Prompt-43 Lineage
+## C. Preflight
 
-- Branch: `edit/edt-f0c01684-ff55-487e-a862-af2aaa989562`
-- HEAD: `4ab8e4c6c5492bbb6d7afa6f2e4e1339fdc83f17` (merge)
-- HEAD parents: `1e14c1cba1c3f2f6658501c96edfe61549311a1c` and `2f50ce0aa10e5242a9bc570edc6c152b96f2d97e`
-- Working Tree: clean before and after (`git status --porcelain` empty; no staged, unstaged or untracked paths)
-- Prompt-42 baseline HEAD: `9475c0011d2e531a262376ba59d14ca63e7c5fe9`
-- Prompt-43 commit chain (linear, then merged):
-  `aa10b1b17efb266a75310addc9b5aea1c08ce239` — `StatementPrintUtils.ts` (+41/−14)
-  → `c701d7600ccbfdce6962061d882e380a0d5316ef` — `StatementPrintUtils.ts` (+22/−12)
-  → `3384b915d12294ca125fac934ff65418c4f7048c` — `DashboardFinance.tsx` (+8)
-  → `f4310eb847af62a1f43d799dd1ca9b0f77d884ee` — `stageCSliceBExportDateParity.test.ts` (+154)
-  → `9f10803fa960ed4bd1a27a2f128192843b276fcb` — same test file (+4/−3)
-  → merged as `1e14c1cba1c3f2f6658501c96edfe61549311a1c`
-- Aggregate diff `9475c001…` → `1e14c1cb…`: exactly the 3 expected paths, 226 insertions / 26 deletions.
-- Latest commit per corrected path: `StatementPrintUtils.ts` = `c701d760…`; `DashboardFinance.tsx` = `3384b915…`; export-parity test = `9f10803f…`. All inside the Prompt-43 chain.
-- Post-correction commits `2f50ce0a…` and merge `4ab8e4c6…` touch only `.lovable/plan.md` (platform-managed artifact, DEC-RM-DH-003-004). No later substantive commit changed the corrected paths → NO POST-CORRECTION DRIFT.
+- Branch: `edit/edt-dbed3ec5-3274-4710-9344-57c2d0c57cc5`
+- HEAD: `fa153b924035d2318d98bbcd65658b362c3034ef`
+- Parents: `4ab8e4c6c5492bbb6d7afa6f2e4e1339fdc83f17` and `d96ccd88a6b0e37273ff2ec223075d94ee6c2f9c`
+- Working Tree: clean before and after.
 
 ## D. Evidence Boundary
 
-Facts: Git lineage and exact diffs, current file contents, caller inventory by repository search, executed test/typecheck/build output. Prompt-43 claims were re-verified independently and all held. Independent measurement: 253 finance tests, exit-0 typecheck and build. Zero live SQL was required this run because no drift was proven; Prompt-42 live data evidence is carried forward unchanged. Gap: no interactive browser preview was used — Print/CSV output was verified through the exported pure serializers (`buildLedgerPrintHtml`, `buildLedgerCSVContent`), which are the exact strings the browser receives, so the gap is visual only. No contradictions found.
+Facts: repository searches over `src/`, direct file reads, and four read-only SQL statements against live schema and data. Database evidence: `payment_sessions` has a real `date` column `payment_date` (29 rows, all populated, 2026-02-05 → 2026-07-27) and 22 of 29 rows have a `payment_date` that differs from the Riyadh calendar date of `created_at`, so the distinction is economically material. `financial_entries` has **no** date column other than `created_at` / `updated_at` (5 rows). `supplier_payables` has only `due_date` plus audit timestamps and currently holds **0 rows**. Inference (labelled): the intended business date for `financial_entries` is the linked source event's own date, because every consumer already resolves `entity_type` + `entity_id` back to `vet_treatments`, `horse_vaccinations`, `breeding_attempts` or `foalings`. Gap: no dedicated column exists to hold it, so the choice between read-time inheritance and a new persisted column is a genuine fork, not a guess. No contradictions with accepted Slice-A/Slice-B contracts.
 
-## E. Export Date-Mode Contract
+## E. Complete Read-Surface Matrix
 
-`src/components/clients/StatementPrintUtils.ts` now declares `export type ExportDateMode = "timestamp" | "economic-date"` with a single dispatcher `formatExportDate(value, mode, lang)`:
-- `"economic-date"` → `formatEconomicDate(value)`, which routes through `toEconomicDateString`, validates `^\d{4}-\d{2}-\d{2}$` and re-emits `dd-MM-yyyy` by pure string manipulation — no `new Date()` parse, no timezone conversion, no locale time.
-- `"timestamp"` → the legacy `formatTimeForPrint(value, lang)` path.
-- Default: `const dateMode: ExportDateMode = data.dateMode ?? "timestamp"` in both `buildLedgerPrintHtml` and `buildLedgerCSVContent`, so any caller that omits the field keeps legacy behavior.
+| Surface | Path | Source | Current date display | Current filter | Current sort | Export date | Proven business date | Audit tie-break | Status | Execution action |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Payment sessions (direct) | — | `payment_sessions` | none | none | none | none | `payment_date` | `created_at`, `id` | DEAD / UNUSED | None — no client read exists |
+| Invoice Payment History (drawer) | `src/hooks/finance/useInvoicePayments.ts` | `ledger_entries` | via sheet | invoice scope | `effective_date, created_at` | — | `effective_date` | `created_at` | CORRECT — NO CHANGE (query) | None |
+| Invoice Payment History (render) | `src/components/finance/InvoiceDetailsSheet.tsx:1083` | same | `formatStandardDateTime(payment.created_at)` | — | — | — | `effective_date` | `created_at` shown separately | INCORRECT — CUTOVER REQUIRED | Show economic date; keep received-at as a labelled audit value |
+| Invoice PDF payment disclosure | `src/lib/finance/fetchInvoicePaymentSummary.ts`, `src/components/finance/InvoicePDFGenerator.tsx:335,364` | `ledger_entries` + allocations | `formatStandardDate(effective_date)` + separate received-at | invoice scope | `effective_date, created_at` | `effective_date` | `effective_date` | `created_at` | INCORRECT — CUTOVER REQUIRED (parsing only) | Replace `formatStandardDate` with `formatEconomicDate` for date-only values |
+| Payment allocation reads | `src/hooks/finance/useInvoicePriorAllocations.ts`, `fetchInvoicePaymentSummary.ts` | `payment_allocations`, `payment_horse_allocations` | none (amounts only) | invoice/session | none | none | n/a — amount-only | n/a | CORRECT — NO CHANGE | None |
+| Internal Costs tab | `src/components/finance/InternalCostsTab.tsx:270,324` | `financial_entries` | `formatStandardDate(entry.created_at)` | none | `created_at` desc | none | source-event date (unresolved storage) | `created_at`, `id` | UNRESOLVED — OWNER ALIGNMENT REQUIRED | See fork in §M |
+| Financial entries hook | `src/hooks/finance/useFinancialEntries.ts:88` | `financial_entries` | — | entity scope | `created_at` desc | — | same as above | `created_at` | UNRESOLVED — OWNER ALIGNMENT REQUIRED | Same fork |
+| Financial status chip | `src/components/finance/FinancialStatusSection.tsx` | `financial_entries` + links | no date shown | — | — | — | n/a | n/a | CORRECT — NO CHANGE | None |
+| Supplier Payables tab | `src/components/finance/SupplierPayablesTab.tsx:394` | `supplier_payables` | `due_date` only | none | `created_at` desc | none | obligation date column absent | `created_at` | DEFERRED — DOMAIN CONTRACT NOT MATURE | None in Stage C |
+| Supplier payable per-source | `src/hooks/billing/useSupplierPayableForSource.ts` | `supplier_payables` | no date selected | source scope | none | none | n/a | n/a | CORRECT — NO CHANGE | None |
+| Ledger tab / Payments tab | `src/pages/DashboardFinance.tsx` | `ledger_entries` | `effective_date` | `effective_date` | 3-key | `effective_date` | `effective_date` | `created_at`, `id` | DUPLICATE OF ACCEPTED PATH (Slice B) | None |
+| Client Statement, Customer Activity | Slice-A paths | `ledger_entries` | `effective_date` | `effective_date` | 3-key | `effective_date` | `effective_date` | `created_at`, `id` | DUPLICATE OF ACCEPTED PATH (Slice A) | None |
+| Invoice lists / eligible invoices | `useInvoices.ts`, `useEligibleClientInvoices.ts` | `invoices` | `issue_date` / `due_date` | issue/due | `due_date, issue_date, invoice_number` | `issue_date` | `issue_date`, `due_date` | `created_at` | CORRECT — NO CHANGE | None |
+| Expenses list | `src/components/finance/ExpensesList.tsx` | `expenses` | `expense_date` | `expense_date` | `expense_date` | `expense_date` | `expense_date` | `created_at` | CORRECT — NO CHANGE | None |
+| Invoice item ordering | `InvoiceDetailsSheet.tsx:159`, `DashboardFinance.tsx:966` | `invoice_items` | none | none | `created_at` asc | none | n/a — line sequence, not a business date | n/a | CORRECT — NO CHANGE | None |
+| POS surfaces | `src/hooks/pos/usePOSCore.ts` | POS tables | — | — | — | — | n/a | n/a | DEAD / UNUSED (fenced inert) | None |
 
-Caller inventory (repository-wide): the only non-test callers of `printLedgerEntries` / `exportLedgerCSV` are `src/pages/DashboardFinance.tsx` lines 425, 446, 725 and 746 — Ledger Print, Ledger CSV, Payments Print, Payments CSV — and all four pass `dateMode: "economic-date"`. No unrelated caller exists or was changed. `printStatement` / `exportPDF` (Slice A) were untouched and keep their own `formatDateForPrint` → `formatEconomicDate` path.
+## F. Payment Sessions
 
-## F. Ledger Parity
+`payment_sessions.payment_date` exists as a true `date` column and is written by `post_payment_session`, but no hook, component or page reads the table — the only repository occurrences outside generated types are the doc comment in `src/lib/finance/effectiveDate.ts` and the write payloads in `postPaymentSession.ts` / `postLedgerForPayments.ts` / `multiInvoicePaymentFingerprint.ts`. All user-visible payment chronology is served from `ledger_entries.effective_date`, which the RPC derives from `payment_date`. Contract recorded for future surfaces: business date `payment_date`, tie-break `created_at`, final tie-break `id`. Verdict: NO DEDICATED PAYMENT-SESSIONS READ SURFACE REQUIRES STAGE-C CUTOVER.
 
-Screen: `DashboardFinance.tsx` lines 570 and 607 render `formatEconomicDate(entry.effective_date)`. Print/CSV: entries are built at lines 418 and 439 as `date: toEconomicDateString(e.effective_date)` and serialized in economic-date mode, producing the same `dd-MM-yyyy` value. Asserted directly for `2026-07-25`: output contains no `00:00`, no `12:00 AM`, no `03:00 صباحاً`, no `AM`/`PM`, no `صباح`/`مساء`, and no shifted calendar day; Arabic and English render the identical economic date. Row order (filter → `compareEconomicOrder` desc on `effective_date`, `created_at`, `id`), totals (`totalDebits` / `totalCredits`), amounts, sign, entry type and description are unchanged by the diff and are asserted unchanged in tests 9 and 10.
+## G. Financial Entries
 
-## G. Payments Parity
+Surfaces: `useFinancialEntries.ts` (tenant-scoped read, ordered `created_at` desc), `InternalCostsTab.tsx` (displays `formatStandardDate(entry.created_at)` as the cost date in two places), `FinancialStatusSection.tsx` (no date rendered), `recordAsStableCost.ts` (writer, out of scope). Schema evidence: the table has no `cost_date`, `incurred_on` or equivalent — only `created_at` / `updated_at`. Domain evidence: each row carries `entity_type` + `entity_id` pointing at a dated operational event (`vet_treatments`, `horse_vaccinations`, `breeding_attempts`, `foalings`), and `InternalCostsTab` already joins those tables for horse names. Therefore `created_at` is a data-entry timestamp, not the economic date of the cost, and the correct business date is the linked source event's date. The storage mechanism is the open question — see §M. Verdict: FINANCIAL-ENTRIES CONTRACT REQUIRES OWNER ALIGNMENT.
 
-Screen: lines 873 and 904 render `formatEconomicDate(entry.effective_date)`. Print/CSV: entries built at lines 718 and 739 from `toEconomicDateString(e.effective_date)` with `dateMode: "economic-date"`. Tests 3 and 4 assert date-only output with no fabricated time for both surfaces. Payments filtering keeps date-only inclusive `effective_date` bounds (lines 673–695) and the same three-key descending order; totals, amount, sign and type are untouched.
+## H. Supplier Payables
 
-## H. Regression Evidence
+Surfaces: `useSupplierPayables.ts` (list, ordered `created_at` desc), `SupplierPayablesTab.tsx` (renders `due_date` only), `useSupplierPayableForSource.ts` (selects no date), plus creation call sites in vet/breeding modules. Date inventory: obligation/document date **absent**; `due_date` present; payment/settlement date **absent** (settlement is inferred from `amount_paid` and `status` with no date); audit `created_at` / `updated_at` present. The table currently holds 0 rows, so no historical correctness is at risk. Two of the four required dates have no column, so a read-path cutover cannot be specified without inventing schema — this belongs to deferred item 23 (Supplier Payable lifecycle and authority), not Stage C. Verdict: SUPPLIER-PAYABLES DOMAIN CONTRACT DEFERRED.
 
-- Customer-level Activity: `useUnallocatedPayments.ts` untouched by the Prompt-43 diff; remains on `effective_date` with the three-key order.
-- Ledger screen: unchanged, remains on `effective_date`.
-- Invoice list: `useInvoices.ts` / `InvoicesList.tsx` untouched; remains on `issue_date`.
-- Due date: `InvoiceCard.tsx` and `mark-overdue-invoices` untouched; `due_date` retains its own meaning.
-- Slice-A Statement exports: `printStatement` / `exportPDF` untouched; test 8/12 asserts they keep their own date-only formatter.
-- Timestamp-mode callers: default preserved and asserted by test 7 (real time still rendered for a `timestamptz` sample in both Print and CSV).
-- No write path, RPC, migration, RLS, grant, index or schema object changed — the aggregate diff contains only two presentation files and one test file.
+## I. Dashboards and KPIs
 
-## I. Tests, Typecheck and Build
+All finance KPI aggregates in `DashboardFinance.tsx` (four `stats` memos) compute over already-filtered collections: the Ledger and Payments stats consume the Slice-B `effective_date`-filtered arrays, invoice stats consume `issue_date`/`due_date` data, and expense stats consume `expense_date` data. No KPI filters, buckets or ranges by `created_at`, `updated_at`, an approval timestamp or a posting timestamp. `DashboardRevenue.tsx` contains no direct database read. Verdict: NO REMAINING DASHBOARD KPI CUTOVER REQUIRED.
 
-| Command | Files | Tests | Result | Exit |
-|---|---|---|---|---|
-| `bunx vitest run src/lib/finance/__tests__/stageCSliceBExportDateParity.test.ts` | 1 | 12 | passed | 0 |
-| `bunx vitest run src/lib/finance/__tests__/stageCSliceBReadPathCutover.test.ts` | 1 | 24 | passed | 0 |
-| `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` | 1 | 14 | passed | 0 |
-| `bunx vitest run src/lib/finance` | 14 | 253 | passed | 0 |
-| `tsgo --noEmit -p tsconfig.app.json` | — | — | no diagnostics | 0 |
-| `bun run build` | — | — | built in 41.06s | 0 |
+## J. Exports and Reports
 
-Warnings: pre-existing only — chunk >500 kB, sonner dynamic/static import, stale caniuse-lite. One benign stderr line from an existing negative-path payment test.
+Only one remaining export flow is affected: the Invoice PDF payment disclosure. It correctly separates the economic date (`sess.effectiveDate`, `p.effective_date`) from the audit received-at (`p.created_at`), but renders the date-only economic value through `formatStandardDate`, whose `toValidDate` helper calls `new Date("2026-07-25")`. That parses as UTC midnight, so in any negative-UTC-offset environment the printed calendar day shifts back by one — the same class of defect Slice B removed from the Ledger/Payments exports. In Riyadh (UTC+03:00) the rendered day is currently correct, so this is a latent, not an active, production defect. Statement exports (Slice A) and Ledger/Payments exports (Slice B) remain correct and were not re-audited. Verdict: REMAINING EXPORT REPORT DATE CONTRACTS DETERMINED.
 
-## J. Acceptance Lanes
+## K. Dead and Duplicate Paths
 
-- Completeness: Customer-level Activity effective-date contract, Ledger effective-date contract, Invoice issue-date contract, deterministic three-key ordering, date-only Screen, Print and CSV rendering, direct export-parity tests and zero-regression evidence are all present → SLICE-B AUTHORIZED SCOPE COMPLETE.
-- Correctness: each path uses its proven business date; Print and CSV match the screen; no fabricated time; no UTC day shift; `due_date` and audit `created_at` retain their own meanings → SLICE-B BUSINESS-DATE CORRECTNESS ACCEPTED.
-- Security and tenancy: the correction is presentation-only; tenant/client filters, RLS-governed reads and permission gates are byte-identical to the Prompt-42-accepted state → SLICE-B TENANT AND PERMISSION CONTRACT ACCEPTED.
-- Release evidence: per §I, all five gates pass → SLICE-B TEST AND BUILD EVIDENCE ACCEPTED.
-- Zero regression: no repository, database, migration or financial-row write; no prior stage reopened → SLICE-B ZERO-REGRESSION CONTRACT ACCEPTED.
+Dead/unused: direct `payment_sessions` reads (none exist); POS surfaces (fenced inert). Duplicates of accepted paths: Ledger tab, Payments tab, Client Statement, Customer-level Activity, invoice and expense lists. No-date surfaces requiring no work: `FinancialStatusSection`, `useSupplierPayableForSource`, allocation reads, invoice-item ordering.
 
-## K. Blocking Findings
+## L. Final Execution Package (Stage-C Slice C — draft, not authorized)
 
-None.
+**Package 1 — Payment Sessions.** Empty. No path to change; record the `payment_date` contract in `effectiveDate.ts` documentation only if the Owner wants it, otherwise no action.
 
-## L. Final Result
+**Package 2 — Financial Entries.** Blocked on the §M fork. Allowlist under option A would be `src/hooks/finance/useFinancialEntries.ts` and `src/components/finance/InternalCostsTab.tsx`.
 
-**STAGE-C SLICE-B POST-CORRECTION QA AND ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE**
+**Package 3 — Supplier Payables.** Excluded from Stage C; remains deferred item 23.
 
-## M. Owner Decision Required
+**Package 4 — Dashboards/KPIs.** Empty.
 
-Approve or reject Stage-C Slice B Acceptance. If approved, Slice B becomes accepted and closed. Proceed directly to a short investigation of the remaining Stage-C paths only: dedicated `payment_sessions` surfaces, `financial_entries`, Supplier Payables, remaining dashboards/KPIs and exports/reports.
+**Package 5 — Exports/Reports.**
+- Allowlisted paths: `src/components/finance/InvoicePDFGenerator.tsx` and, if a shared helper is preferred, `src/lib/displayHelpers.ts` (additive only).
+- Before-state: line 335 `formatStandardDate(p.effective_date)`; line 364 `formatStandardDate(sess.effectiveDate)`.
+- Target: render date-only economic values with `formatEconomicDate` from `src/lib/finance/effectiveDate.ts`; leave line 336 `formatStandardDateTime(p.created_at)` untouched as the labelled audit timestamp.
+- Deterministic order: unchanged (`effective_date`, `created_at` ascending, already applied by the query).
+- Filter semantics: unchanged — invoice-scoped, no date filter.
+- Rendering semantics: `dd-MM-yyyy`, no timezone conversion, no fabricated time.
+- Tests: extend `src/components/finance/__tests__/InvoicePDFGenerator.paymentDisclosure.test.ts` with a fixed non-Riyadh `TZ` case asserting no day shift for `2026-07-25`.
+- Exclusions: invoice `issue_date` / `due_date` header rendering, all Slice-A and Slice-B paths, every write path.
+- Risk: very low — presentation-only, one component.
+- Rollback: revert the single commit; no data or schema involvement.
+- Acceptance: PDF economic dates match the on-screen `effective_date` under at least one negative-offset timezone; timestamp disclosure unchanged; finance tests, typecheck and build pass.
+
+## M. Owner Decision
+
+One genuine fork — how `financial_entries` (Internal Costs) should obtain its business date:
+
+- **Option A — Read-time inheritance (recommended).** Resolve the date from the linked source event (`vet_treatments`, `horse_vaccinations`, `breeding_attempts`, `foalings`) at read time and use it for display, filtering and the primary sort key, with `created_at` then `id` as tie-breaks. No schema change, no data migration, no write-path change; fits Stage C's read-only cutover mandate. Cost: an extra join per surface and a fallback to `created_at` for entity types without a resolvable date.
+- **Option B — Persisted `cost_date` column.** Add a dedicated business-date column, backfill the 5 existing rows from their source events, and change writers to populate it. Cleaner long-term and cheaper to query, but it is a schema plus write-path change, which exceeds the Stage-C read-path boundary and would need its own migration, backfill evidence and acceptance run.
+
+Recommendation: Option A for Stage C, with Option B registered as a Phase-2 candidate.
 
 ## N. One Recommendation
 
-Grant Owner Acceptance for Stage-C Slice B and authorize a single short read-only investigation prompt covering the remaining Stage-C business-date surfaces.
+Approve Option A and authorize a single final Stage-C execution prompt covering exactly Package 2 (financial entries read-time inheritance) and Package 5 (invoice PDF date-only parity).
 
 ## O. Workstream Persistence
 
-Stage A closed; Stage B closed; Slice A accepted and closed; Slice B post-correction QA and Acceptance Re-Audit PASSED; Owner Acceptance pending; Stage C active; no Closure.
+Stage A closed; Stage B closed; Slice A accepted and closed; Slice B accepted and closed; remaining Stage-C investigation complete with one Owner decision outstanding; Stage C active; no Closure.
 
 ## P. Roadmap Impact
 
@@ -123,8 +121,8 @@ Phase 1 active; Stage C active; Stage D not started; Phases 2–8 not started; n
 
 ## Q. Deferred Items Register
 
-Items 1–14 promoted to Prompt 44 were executed and all passed. Items 15–29 remain blocked pending Owner Acceptance (15 Slice-B Owner Acceptance; 16 remaining Stage-C path investigation; 17 `payment_sessions` surface discovery; 18 `financial_entries` business-date classification; 19 Supplier Payables business-date classification; 20 remaining dashboards and KPIs; 21 remaining exports and reports; 22 final Stage-C execution; 23 Stage-C final QA; 24 Stage-C Acceptance; 25 Stage-C persistence if required; 26 Stage-D investigation; 27 Phase-1 completion; 28 Workstream Closure; 29 Closure Persistence). Items 30–49 remain deferred and tracked, unchanged. The Prompt-42 item 30a (Print/CSV parity correction) is now RESOLVED by Prompt 43 and verified here. No item was dropped.
+Items 1–9 promoted to Prompt 45 were all executed: payment-sessions surface discovery (none found), payment_sessions `payment_date` contract (recorded, unused), financial_entries classification (fork in §M), Supplier Payables classification (deferred), dashboards/KPIs (clean), exports/reports (one latent defect), dead/duplicate classification, execution packaging, zero-write verification. Items 10–17 remain blocked pending the Owner decision (10 final Stage-C execution; 11 Stage-C final QA; 12 Stage-C Acceptance; 13 Stage-C persistence if required; 14 Stage-D investigation; 15 Phase-1 completion; 16 Workstream Closure; 17 Closure Persistence). Items 18–37 remain deferred and tracked, unchanged, with item 23 (Supplier Payable lifecycle and authority) now confirmed as the owner of the Supplier Payables date-model gap. No item was dropped.
 
 ## R. Run Metadata and Exact Stopping Point
 
-1. Mode: Plan/Chat — Read-Only. 2. PROMPT-44 — SUBMITTED — RUN — CONSUMED. 3. Prepared 05-08-2026 10:58 Asia/Riyadh. 4. Run start 11:16, end 11:20, report 11:20 Asia/Riyadh (approximate; exact time not recorded). 5. Branch and HEAD per §C. 6. Working Tree clean before and after. 7–8. Prompt-43 chain and aggregate diff per §C. 9. Post-correction drift: NONE. 10. Corrected paths inspected: `src/components/clients/StatementPrintUtils.ts`, `src/pages/DashboardFinance.tsx`, `src/lib/finance/__tests__/stageCSliceBExportDateParity.test.ts`. 11. Export caller inventory: four call sites, all economic-date mode (§E). 12. Serialized-output cases: `2026-07-25` date-only in Ledger Print, Ledger CSV, Payments Print, Payments CSV; `2026-07-25T13:45:00.000Z` under timestamp mode retains a real time. 13. Ledger parity: PASSED. 14. Payments parity: PASSED. 15. Regression: PASSED. 16–18. Test, typecheck and build results per §I. 19. Temporary artifacts: `dist/` build output only (ignored, uncommitted). 20. Repository substantive writes: ZERO. 21. Database reads: 0 (no SQL executed; no drift proven). 22. Database writes: ZERO. 23. Migration writes: ZERO. 24. Financial-row writes: ZERO. 25. Stage A CLOSED. 26. Stage B CLOSED. 27. Slice A ACCEPTED — CLOSED. 28. Slice B: post-correction QA and Acceptance Re-Audit PASSED. 29. Owner Acceptance NOT YET GIVEN. 30. Stage C ACTIVE. 31. Stage D NOT STARTED. 32. Phase advancement NONE. 33. Closure NONE. 34. Stopping point: immediately after the Acceptance Re-Audit verdict; no persistence, no acceptance on the Owner's behalf, no remaining Stage-C work. 35. Recommendation per §N. 36. Next: Prompt 45 — Slice-B Owner Acceptance Persistence (Execution Mode), only after Owner approval.
+1. Plan/Chat — Read-Only investigation. 2. PROMPT-45 — SUBMITTED — RUN — CONSUMED. 3. Prepared 05-08-2026 11:30 Asia/Riyadh. 4. Run start 11:30, end 11:38, report 11:38 Asia/Riyadh (approximate; exact time not recorded). 5. Branch and HEAD per §C. 6. Working Tree clean before and after. 7. Repository paths inspected: `useFinancialEntries.ts`, `InternalCostsTab.tsx`, `FinancialStatusSection.tsx`, `useSupplierPayables.ts`, `SupplierPayablesTab.tsx`, `useSupplierPayableForSource.ts`, `useInvoicePayments.ts`, `useInvoicePriorAllocations.ts`, `fetchInvoicePaymentSummary.ts`, `InvoicePDFGenerator.tsx`, `InvoiceDetailsSheet.tsx`, `DashboardFinance.tsx`, `DashboardRevenue.tsx`, `useEligibleClientInvoices.ts`, `displayHelpers.ts`, `effectiveDate.ts`. 8. Database objects inspected: `payment_sessions`, `payment_allocations`, `financial_entries`, `supplier_payables` (columns and row counts). 9. Read-only SQL statements: 4. 10. payment_sessions surfaces: 0. 11. financial_entries surfaces: 3 (2 date-bearing). 12. Supplier Payables surfaces: 3 (1 date-bearing). 13. Dashboard/KPI surfaces: 4 stats memos, all clean. 14. Export/report surfaces: 1 requiring correction. 15. Dead/duplicate paths per §K. 16. Unresolved forks: 1 (§M). 17. Final execution package per §L. 18. Repository writes: ZERO. 19. Database writes: ZERO. 20. Migration writes: ZERO. 21. Financial-row writes: ZERO. 22. Stage A CLOSED. 23. Stage B CLOSED. 24. Slice A ACCEPTED — CLOSED. 25. Slice B ACCEPTED — CLOSED. 26. Stage C ACTIVE. 27. Stage D NOT STARTED. 28. Phase advancement NONE. 29. Closure NONE. 30. Stopping point: after mapping the remaining paths and preparing one execution package; no writes, no persistence, no Stage-D work. 31. Recommendation per §N. 32. Next: Prompt 46 — Stage-C Slice-C final execution (Execution Mode), only after the §M decision.
