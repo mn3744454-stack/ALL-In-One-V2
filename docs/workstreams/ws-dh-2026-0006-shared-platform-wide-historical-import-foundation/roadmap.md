@@ -1,0 +1,136 @@
+<!--
+id: DHB-WS-2026-0006-ROADMAP
+title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (authoritative current state)
+version: 1.0.0
+status: current
+audience: internal
+date: 2026-08-05
+last-verified: 2026-08-05
+supersedes: []
+superseded-by: null
+source: authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, local Prompt number 53), under approved Decision DEC-RM-DH-004-003. Establishes the authoritative Workstream state at Stage 0. No Stage is complete, no technical Historical Import implementation exists, and no Acceptance or Closure is recorded.
+source-sha256: n/a
+-->
+
+# WS-DH-2026-0006 — Authoritative Current State
+
+**العنوان العربي:** الحالة الحاكمة لمسار الأساس المشترك لاستيراد البيانات التاريخية
+
+This file is the single authoritative repository source for WS-DH-2026-0006 dynamic state. Where any registry, README or summary disagrees with this file, this file is authoritative and the other location is a defect to be corrected.
+
+## Workstream Status
+
+```text
+Workstream ID:
+WS-DH-2026-0006
+
+Workstream Title:
+Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
+
+Primary Roadmap:
+RM-DH-004
+
+Phase:
+RM-DH-004 / Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
+
+Track:
+Track 2 — Import Architecture & Control
+
+Workstream Status:
+ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED
+
+Current Stage:
+Stage 0 — Governance Package
+
+Owner:
+Mohamed Nour
+
+Technical Environment:
+Lovable only unless explicitly changed by the owner
+
+Local Prompts Consumed:
+0
+
+Local Decisions Consumed:
+0
+
+Governing Roadmap Decision:
+DEC-RM-DH-004-003
+
+Technical Foundation Audit:
+NOT AUTHORIZED — NOT STARTED
+
+Execution Contract:
+NOT AUTHORIZED — DOES NOT EXIST
+
+Slices Defined:
+0
+
+Slices Executed:
+0
+
+Historical Import Substrate:
+DOES NOT EXIST — no import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC
+
+Database Change:
+NONE
+
+Storage Change:
+NONE
+
+Application Change:
+NONE
+
+QA:
+NOT STARTED
+
+Acceptance Re-Audit:
+NOT STARTED
+
+Owner Acceptance:
+NOT GRANTED
+
+Closure:
+NONE
+```
+
+## Stage Register
+
+| # | Stage | State |
+|---:|---|---|
+| 0 | Governance Package | COMPLETE — created by Prompt 53; independent Acceptance Re-Audit pending |
+| 1 | Technical Foundation Audit (read-only) | NOT STARTED — requires explicit Owner authorization |
+| 2 | Owner Alignment on Import Foundation Architecture | NOT STARTED |
+| 3 | Execution Contract | NOT STARTED |
+| 4 | Slice Execution | NOT STARTED |
+| 5 | QA | NOT STARTED |
+| 6 | Acceptance Re-Audit | NOT STARTED |
+| 7 | Closure | NOT STARTED |
+
+## Dependencies
+
+| Dependency | State | Effect on this Workstream |
+|---|---|---|
+| RM-DH-004 / Phase 1 — Economic Date Integrity | COMPLETE — OWNER ACCEPTED — CLOSED | Satisfied. Its contracts are closed inputs and must not be changed. |
+| WS-DH-2026-0003 — Economic Date Integrity | COMPLETE — OWNER ACCEPTED — CLOSED | Satisfied. |
+| WS-DH-2026-0004 — Canonical Financial Write Authority | PARTIALLY COMPLETE — residual scope open and unscheduled | Not a blocker. Residual scope must not be silently absorbed here. |
+| WS-DH-2026-0005 — POS Financial Isolation | DEFERRED AND INERT | Not a dependency. Historical Import must not invoke or depend on the POS financial writer. |
+| WS-DH-2026-0007 — Provenance, Idempotency & Selective Rollback | BLOCKED BY THIS WORKSTREAM | Downstream. |
+
+## Preserved Boundaries
+
+1. `public.ledger_entries.effective_date NOT NULL` is a closed Phase-1 contract and must not be changed.
+2. Financial writes remain RPC-mediated under the Stage-B Stable Function-ACL Contract; direct browser-role DML on financial tables must not be reintroduced.
+3. Payment status remains derived from the ledger.
+4. Historical Import must not invoke or depend on the POS financial writer.
+5. No production financial or operational data write is authorized.
+
+## Current Stopping Point
+
+Governance package created at version `1.0.0`. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database.
+
+## Next Permitted Step
+
+Independent Acceptance Re-Audit of the Prompt-53 governance reconciliation and of this package.
+
+Stated separately: the Technical Foundation Audit (Stage 1) requires a **separate explicit Owner authorization** after that Re-Audit passes. It is not authorized by the creation of this package.
