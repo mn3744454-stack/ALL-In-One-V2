@@ -43,9 +43,10 @@ RM-DH-004 governs:
 - [`decisions.md`](./decisions.md) — owner decisions.
 - [`changelog.md`](./changelog.md) — chronological record.
 
-Currently packaged Workstream:
+Currently packaged Workstreams:
 
-- [`WS-DH-2026-0003 — Economic Date Integrity`](../../workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md)
+- [`WS-DH-2026-0003 — Economic Date Integrity`](../../workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md) — Phase 1; complete, Owner accepted and closed.
+- [`WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`](../../workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/README.md) — Phase 2; current Workstream; governance package created, technical implementation not started.
 
 ## Ownership Boundaries
 
