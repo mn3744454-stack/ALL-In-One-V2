@@ -26,10 +26,10 @@ Parent:
 RM-DH-003 / Phase 3 / Sub-phase 3.1
 
 Workstream Status:
-ACTIVE — PACKAGE CREATED — OWNER START AUTHORIZATION PERSISTED — INVESTIGATION NOT YET RUN
+ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
 
 Current Stage:
-Stage 0 — PACKAGE CREATED — INVESTIGATION NOT YET RUN
+Stage 0 — PACKAGE CREATED — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
 
 Stages completed:
 None
@@ -40,6 +40,16 @@ NOT YET RUN
 Findings:
 None
 
+Package/Start Owner Acceptance:
+GRANTED 05-08-2026 — August (Asia/Riyadh — UTC+03:00). Exact time not recorded.
+Persisted under DEC-RM-DH-003-013 (parent Prompt 18).
+
+Official local Prompts consumed:
+0
+
+Next eligible local Prompt:
+01 — NOT CONSUMED
+
 Owner Alignment:
 Not performed
 
@@ -47,7 +57,7 @@ QA:
 Not performed
 
 Acceptance:
-None
+Package and start state accepted. No investigation Acceptance.
 
 Closure:
 None
