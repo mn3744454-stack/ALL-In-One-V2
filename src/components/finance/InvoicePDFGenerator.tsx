@@ -366,8 +366,9 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
                 ? `${sessLabels.sessionLabel} #${idx + 1}`
                 : sessLabels.historicalLabel;
               const dateLine = sess.effectiveDate
-                ? ltrBdi(escapeHtml(formatStandardDate(sess.effectiveDate)))
+                ? ltrBdi(escapeHtml(formatEconomicDate(sess.effectiveDate)))
                 : "";
+
               const totalLine = `${escapeHtml(sessLabels.sessionTotal)}: ${ltrBdi(formatCurrency(sess.totalAmount))}`;
               const methodsRows = sess.tenders
                 .map((t) => {
