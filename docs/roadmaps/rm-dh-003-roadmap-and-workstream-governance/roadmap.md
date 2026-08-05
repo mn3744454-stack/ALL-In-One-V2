@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.5.0
+version: 1.6.0
 status: current
 audience: internal
 date: 2026-07-30
@@ -9,7 +9,7 @@ last-verified: 2026-08-05
 
 supersedes: []
 superseded-by: null
-source: v1.5.0 — RM-DH-003 / Phase 3 / Sub-phase 3.0 — Owner Acceptance and Technical Acceptance persistence under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-PERSISTENCE-EXECUTION-10, Owner Acceptance granted 05-08-2026 — August at 12:38 (Asia/Riyadh — UTC+03:00), repository write 2026-08-05 (Asia/Riyadh — UTC+03:00) on branch edit/edt-262e2bb6-6706-4ea0-949d-0cafcbe6914b from pre-write HEAD 72f743f0c69a037bf2edbe668d4a687db304c79d, under approved Decision DEC-RM-DH-003-010: records the Sub-phase 3.0 status TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION, the Accepted Prompt-08 correction Artifact (740067bbe390c55b81e53b357d01b3774eddce45, e2af24bb7769fe54d4ee592cb2c329eb6e03a914, fa8bcd00e0ee5b1ca636e94698011d8b3dad1109) and the accepted read-only Acceptance evidence package Prompt 09 + C1 + C2 (ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY). RM-DH-003 remains ACTIVE, Phase 3 remains at Sub-phase 3.0, the exact provisional Account-Type Playbook contract, Tracks A–E, Sub-phases 3.0–3.7, Workstreams WS-DH-2026-0012 through WS-DH-2026-0020, D1–D10, Option C, the Memory boundary and the 16-item Deferred Items Register are preserved unchanged, and no Sub-phase 3.1 advancement, Workstream package, Workstream investigation, Project Knowledge installation, application change, database change or Closure occurred; v1.4.0 — RM-DH-003 / Phase 3 — Prompt-06 Commit-Topology Supersession and Account-Type Playbook Fixed-Count Correction under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT06-TOPOLOGY-AND-PLAYBOOK-COUNT-CORRECTION-EXECUTION-08, Owner-approved Option B3 (approved 2026-08-04T11:21:00+03:00), repository write 2026-08-04T12:55:00+03:00 (Asia/Riyadh — UTC+03:00) under approved Decision DEC-RM-DH-003-009: replaces the two current-truth fixed Account-Type Module Playbook count statements (Phase 3 purpose and Track C purpose) with the authoritative provisional roster-and-count contract. No final Playbook roster or count is approved, the live database was not queried, WS-DH-2026-0014 remains NOT STARTED, and Phase 0, Phase 1, CLOSED Phase 2, the Phase 3 title and Sub-phase structure, Tracks A–E, Workstreams WS-DH-2026-0012 through WS-DH-2026-0020, the state ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE, the Memory boundary and the Deferred Items Register are preserved unchanged. No Technical Acceptance, Owner Acceptance, Acceptance persistence, Sub-phase 3.1 advancement, Workstream package, Workstream investigation or Closure occurred; v1.3.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02 and approved Decisions DEC-RM-DH-003-005 and DEC-RM-DH-003-006, executed 2026-08-04 (Asia/Riyadh — UTC+03:00): creates RM-DH-003 / Phase 3 — Persistent Knowledge Architecture, Verification, Organization and Installation with state ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE and checkpoint GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING; adds the five-Track register, the eight-Sub-phase register 3.0–3.7, the authoritative nine-Workstream register reserving WS-DH-2026-0012 through WS-DH-2026-0020 as REGISTERED — NOT YET CREATED, the parallelism rule, the Phase 3 purpose and completion criteria, the Memory boundary, the complete 16-item Deferred Items Register, the Phase 3 stopping point and the next permitted action; and supersedes the previously accurate line stating that no Phase 3 exists or is owner-approved. Phase 0, Phase 1 and the CLOSED Phase 2 are preserved unchanged, no Workstream package or directory was created, no Workstream investigation started, no Sub-phase 3.1 advancement occurred, no Acceptance or Closure is claimed, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; v1.2.2 — records the explicit owner Closure decision: RM-DH-003 / Phase 2 is CLOSED and WS-DH-2026-0002 is CLOSED. QA is Complete, satisfied by the passed Final Targeted Acceptance Re-Audit under the owner's approved interpretation for this documentation-only correction; Acceptance remains accepted and persisted; the planning-artifact finding remains resolved by narrow exception and was not resolved by successful untracking. RM-DH-003 itself remains Active, no Phase 3 or later Phase was created or approved, no Phase advance occurred, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). No status, Phase, stopping point, next step, or closure state was changed; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Roadmap status, Phase state, Acceptance state, QA, stopping point, next step, and closure state are unchanged; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the finding is resolved by narrow exception rather than by successful untracking, the current Workstream status becomes EXECUTED_AWAITING_REAUDIT, the earlier Acceptance is preserved as historical evidence, no Phase advanced, and closure remains not approved; v1.2.1 — records the passed final targeted Acceptance Re-Audit of the seven-file planning-artifact exception-documentation correction, including EV-DEF-01, and persists that Acceptance. Verified Acceptance Re-Audit repository HEAD acd831767c235771b145dfeda4612a7ec51c32d4; latest governance-content HEAD 589ec1d1272d5ded131956b98e512831b71ec55a; working tree clean; no tracked file changed during the Re-Audit. The Workstream status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. QA remains Pending, owner closure remains not approved, and no Phase advanced.
+source: v1.6.0 — RM-DH-003 / Phase 3 — Owner-approved advancement from Sub-phase 3.0 to Sub-phase 3.1 under execution prompt PROMPT-DH-RM003-P3-SUBPHASE-3.1-ADVANCEMENT-PERSISTENCE-EXECUTION-12 (local Prompt number 12), Owner Advancement approved 05-08-2026 — August at 15:51 (Asia/Riyadh — UTC+03:00), repository write 2026-08-05 (Asia/Riyadh — UTC+03:00) on branch edit/edt-6f0be9dc-9faf-4a42-bbc9-acd81fc34aff from pre-write HEAD 3aee9ef27b11cfb3a8375d5b3629981a94e76ac3, under approved Decision DEC-RM-DH-003-011: records Sub-phase 3.0 as COMPLETED — TECHNICAL ACCEPTANCE PASSED AND PERSISTED — OWNER ACCEPTANCE GRANTED AND PERSISTED — POST-PERSISTENCE VERIFICATION PASSED — OWNER ADVANCEMENT APPROVED, sets Sub-phase 3.1 Foundational Read-Only Audits as the current Sub-phase with status CURRENT — ADVANCEMENT PERSISTED — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED, and extends the Deferred Items Register with items 17–20. Sub-phases 3.2–3.7 remain NOT STARTED, Workstreams WS-DH-2026-0012 through WS-DH-2026-0020 remain REGISTERED — PERMANENTLY RESERVED — ID CONSUMED and NOT STARTED, no Workstream package is created, no investigation starts, the exact provisional Account-Type Playbook contract, Tracks A–E, D1–D10, Option C and the Memory boundary are preserved unchanged, Project Knowledge remains NOT INSTALLED, and no application change, database change or Closure occurred; v1.5.0 — RM-DH-003 / Phase 3 / Sub-phase 3.0 — Owner Acceptance and Technical Acceptance persistence under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-PERSISTENCE-EXECUTION-10, Owner Acceptance granted 05-08-2026 — August at 12:38 (Asia/Riyadh — UTC+03:00), repository write 2026-08-05 (Asia/Riyadh — UTC+03:00) on branch edit/edt-262e2bb6-6706-4ea0-949d-0cafcbe6914b from pre-write HEAD 72f743f0c69a037bf2edbe668d4a687db304c79d, under approved Decision DEC-RM-DH-003-010: records the Sub-phase 3.0 status TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION, the Accepted Prompt-08 correction Artifact (740067bbe390c55b81e53b357d01b3774eddce45, e2af24bb7769fe54d4ee592cb2c329eb6e03a914, fa8bcd00e0ee5b1ca636e94698011d8b3dad1109) and the accepted read-only Acceptance evidence package Prompt 09 + C1 + C2 (ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY). RM-DH-003 remains ACTIVE, Phase 3 remains at Sub-phase 3.0, the exact provisional Account-Type Playbook contract, Tracks A–E, Sub-phases 3.0–3.7, Workstreams WS-DH-2026-0012 through WS-DH-2026-0020, D1–D10, Option C, the Memory boundary and the 16-item Deferred Items Register are preserved unchanged, and no Sub-phase 3.1 advancement, Workstream package, Workstream investigation, Project Knowledge installation, application change, database change or Closure occurred; v1.4.0 — RM-DH-003 / Phase 3 — Prompt-06 Commit-Topology Supersession and Account-Type Playbook Fixed-Count Correction under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT06-TOPOLOGY-AND-PLAYBOOK-COUNT-CORRECTION-EXECUTION-08, Owner-approved Option B3 (approved 2026-08-04T11:21:00+03:00), repository write 2026-08-04T12:55:00+03:00 (Asia/Riyadh — UTC+03:00) under approved Decision DEC-RM-DH-003-009: replaces the two current-truth fixed Account-Type Module Playbook count statements (Phase 3 purpose and Track C purpose) with the authoritative provisional roster-and-count contract. No final Playbook roster or count is approved, the live database was not queried, WS-DH-2026-0014 remains NOT STARTED, and Phase 0, Phase 1, CLOSED Phase 2, the Phase 3 title and Sub-phase structure, Tracks A–E, Workstreams WS-DH-2026-0012 through WS-DH-2026-0020, the state ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE, the Memory boundary and the Deferred Items Register are preserved unchanged. No Technical Acceptance, Owner Acceptance, Acceptance persistence, Sub-phase 3.1 advancement, Workstream package, Workstream investigation or Closure occurred; v1.3.0 — RM-DH-003 / Phase 3 — Governance Persistence Execution under execution prompt PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-EXECUTION-02 and approved Decisions DEC-RM-DH-003-005 and DEC-RM-DH-003-006, executed 2026-08-04 (Asia/Riyadh — UTC+03:00): creates RM-DH-003 / Phase 3 — Persistent Knowledge Architecture, Verification, Organization and Installation with state ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE and checkpoint GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING; adds the five-Track register, the eight-Sub-phase register 3.0–3.7, the authoritative nine-Workstream register reserving WS-DH-2026-0012 through WS-DH-2026-0020 as REGISTERED — NOT YET CREATED, the parallelism rule, the Phase 3 purpose and completion criteria, the Memory boundary, the complete 16-item Deferred Items Register, the Phase 3 stopping point and the next permitted action; and supersedes the previously accurate line stating that no Phase 3 exists or is owner-approved. Phase 0, Phase 1 and the CLOSED Phase 2 are preserved unchanged, no Workstream package or directory was created, no Workstream investigation started, no Sub-phase 3.1 advancement occurred, no Acceptance or Closure is claimed, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; v1.2.2 — records the explicit owner Closure decision: RM-DH-003 / Phase 2 is CLOSED and WS-DH-2026-0002 is CLOSED. QA is Complete, satisfied by the passed Final Targeted Acceptance Re-Audit under the owner's approved interpretation for this documentation-only correction; Acceptance remains accepted and persisted; the planning-artifact finding remains resolved by narrow exception and was not resolved by successful untracking. RM-DH-003 itself remains Active, no Phase 3 or later Phase was created or approved, no Phase advance occurred, and no application, database, migration, Knowledge, Skill or sharing-setting change occurred; authored during RM-DH-003 / Phase 2 — Governance Foundation Execution (WS-DH-2026-0002); v1.1.0 — records the passed read-only Acceptance Re-Audit during RM-DH-003 / Phase 2 — Acceptance-Persistence at 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). Phase closure not approved; v1.1.1 — corrects defect D-01 during RM-DH-003 / Phase 2 — Persistence Correction: the Acceptance-Persistence timestamp is restated to the Git-evidenced authoritative completion timestamp 2026-07-30T23:35:55+03:00 (Asia/Riyadh — UTC+03:00). No status, Phase, stopping point, next step, or closure state was changed; v1.1.2 — corrects finding PV-DEF-03 during RM-DH-003 / Phase 2 — Timestamp Semantics Correction: Persistence last content write 2026-07-30T23:35:03+03:00 — e8e4a9f91; Persistence run closing 2026-07-30T23:35:55+03:00 — 71556af2e, empty commit. Roadmap status, Phase state, Acceptance state, QA, stopping point, next step, and closure state are unchanged; v1.2.0 — records the Planning-Artifact Governance Exception Documentation Correction under approved Decision DEC-RM-DH-003-004: the finding is resolved by narrow exception rather than by successful untracking, the current Workstream status becomes EXECUTED_AWAITING_REAUDIT, the earlier Acceptance is preserved as historical evidence, no Phase advanced, and closure remains not approved; v1.2.1 — records the passed final targeted Acceptance Re-Audit of the seven-file planning-artifact exception-documentation correction, including EV-DEF-01, and persists that Acceptance. Verified Acceptance Re-Audit repository HEAD acd831767c235771b145dfeda4612a7ec51c32d4; latest governance-content HEAD 589ec1d1272d5ded131956b98e512831b71ec55a; working tree clean; no tracked file changed during the Re-Audit. The Workstream status becomes ACCEPTED_AWAITING_OWNER_CLOSURE. QA remains Pending, owner closure remains not approved, and no Phase advanced.
 source-sha256: n/a
 -->
 
@@ -32,7 +32,7 @@ Recovery Status:
 Not applicable
 
 Current Roadmap position:
-Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE; Acceptance Re-Audit pending.
+Phase 3 — ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS; advancement persisted, audits not yet started.
 ```
 
 ## Phase register
@@ -42,7 +42,7 @@ Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE; Acceptance Re-A
 | `RM-DH-003 / Phase 0` | ChatGPT Governance Foundation | Completed |
 | `RM-DH-003 / Phase 1` | Lovable Repository Investigation | Completed |
 | `RM-DH-003 / Phase 2` | Governance Foundation Execution | CLOSED |
-| `RM-DH-003 / Phase 3` | Persistent Knowledge Architecture, Verification, Organization and Installation — هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها | ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE |
+| `RM-DH-003 / Phase 3` | Persistent Knowledge Architecture, Verification, Organization and Installation — هندسة المعرفة الدائمة والتحقق منها وتنظيمها وتثبيتها | ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS |
 
 No Phase after Phase 3 is created or named here. Later Phases require owner approval before they exist.
 
@@ -96,22 +96,30 @@ No Phase after Phase 3 is created or named here. Later Phases require owner appr
 
 ```text
 Phase State:
-ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
+ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS
 
 Execution Checkpoint:
-TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION
+SUB-PHASE 3.0 COMPLETED AND VERIFIED — OWNER ADVANCEMENT APPROVED AND PERSISTED — SUB-PHASE 3.1 SET CURRENT — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED — AWAITING TARGETED POST-ADVANCEMENT VERIFICATION
 ```
 
-Phase 3 is not Closed. Sub-phase 3.0 Technical Acceptance passed, Owner Acceptance was explicitly granted, and that Acceptance is persisted here. Sub-phase 3.0 has not advanced, and Sub-phase 3.1 has not started.
+Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is now the current Sub-phase, but its Foundational Read-Only Audits have not started.
 
-### Sub-phase 3.0 Acceptance record
+### Sub-phase 3.0 Acceptance and completion record
 
+- **Sub-phase 3.0 status.** COMPLETED — TECHNICAL ACCEPTANCE PASSED AND PERSISTED — OWNER ACCEPTANCE GRANTED AND PERSISTED — POST-PERSISTENCE VERIFICATION PASSED — OWNER ADVANCEMENT APPROVED.
 - **Accepted Artifact.** The Prompt-08 correction Artifact is **Accepted**: content commits `740067bbe390c55b81e53b357d01b3774eddce45`, `e2af24bb7769fe54d4ee592cb2c329eb6e03a914` and `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109`, no merge, four governance paths.
 - **Accepted Acceptance evidence package.** Prompt 09, Prompt-09 Correction Continuation C1 and Prompt-09 Correction Continuation C2 (`ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY`) form the accepted read-only Acceptance evidence package.
-- **Technical Acceptance.** Passed.
-- **Owner Acceptance.** Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00. The Owner Acceptance time is not the repository write time; the repository write time for this persistence is recorded in [`changelog.md`](./changelog.md).
-- **Governing Decision.** `DEC-RM-DH-003-010`.
-- **Boundary.** Acceptance persistence is not Sub-phase advancement, not Phase advancement and not Closure. A separate read-only post-persistence verification is required before any Sub-phase 3.1 advancement decision.
+- **Technical Acceptance.** Passed and persisted.
+- **Owner Acceptance.** Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00. The Owner Acceptance time is not the repository write time; the repository write time for that persistence is recorded in [`changelog.md`](./changelog.md).
+- **Post-persistence verification.** Passed under `ART-RM-DH-003-P3-GOVERNANCE-PROMPT11-POST-PERSISTENCE-VERIFICATION` (read-only Prompt 11).
+- **Governing Decisions.** `DEC-RM-DH-003-010` (Acceptance persistence) and `DEC-RM-DH-003-011` (Owner advancement to Sub-phase 3.1).
+
+### Sub-phase 3.1 advancement record
+
+- **Sub-phase 3.1 status.** CURRENT — ADVANCEMENT PERSISTED — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED.
+- **Owner Advancement.** Approved 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00, and persisted here under `DEC-RM-DH-003-011`.
+- **Boundary.** Setting Sub-phase 3.1 as the current Sub-phase does **not** start `WS-DH-2026-0012`, does **not** start `WS-DH-2026-0013`, does **not** create any Workstream package, does **not** begin any investigation, does **not** install Project Knowledge and grants **no** Closure.
+- **Mandatory next action.** A separate read-only targeted post-advancement verification is required before the Owner may authorize creation or start of any Workstream.
 
 ### Phase 3 purpose
 
@@ -121,8 +129,8 @@ Establish, verify, organize and install a durable Persistent Knowledge architect
 
 | Sub-phase | Title | Status |
 |---|---|---|
-| `3.0` | Scope and Governance Persistence | CURRENT — TECHNICAL ACCEPTANCE PASSED; OWNER ACCEPTANCE GRANTED; ACCEPTANCE PERSISTENCE COMPLETED; AWAITING TARGETED POST-PERSISTENCE VERIFICATION |
-| `3.1` | Foundational Read-Only Audits | NOT STARTED |
+| `3.0` | Scope and Governance Persistence | COMPLETED — TECHNICAL ACCEPTANCE PASSED AND PERSISTED — OWNER ACCEPTANCE GRANTED AND PERSISTED — POST-PERSISTENCE VERIFICATION PASSED — OWNER ADVANCEMENT APPROVED |
+| `3.1` | Foundational Read-Only Audits | CURRENT — ADVANCEMENT PERSISTED — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED |
 | `3.2` | Knowledge Organizational Architecture | NOT STARTED |
 | `3.3` | Persistent Knowledge Stage B | NOT STARTED |
 | `3.4` | Persistent Knowledge Stage C | NOT STARTED |
@@ -206,16 +214,23 @@ No item may be removed except through successful Acceptance, explicit Owner canc
 14. Any Project Knowledge installation.
 15. Memory Genesis investigation.
 16. Refactoring Baseline investigation.
+17. Account-Type Playbook fixed-count defect: **RESOLVED — ACCEPTED — PERSISTED — POST-PERSISTENCE VERIFIED — RETAINED FOR TRACEABILITY**.
+18. Prompt-06 commit-topology deviation: **HISTORICAL DEVIATION — ACCEPTED — NON-BLOCKING — RETAINED FOR TRACEABILITY**.
+19. Prompt-10 durable Git Artifact: **EVIDENCE GAP RESOLVED — DURABLE GIT ARTIFACT VERIFIED — RETAINED FOR TRACEABILITY**.
+20. Sub-phase 3.1 advancement persistence: **SUB-PHASE 3.1 ADVANCEMENT PERSISTENCE — OWNER APPROVED — EXECUTED — AWAITING TARGETED POST-ADVANCEMENT VERIFICATION**.
 
 ### Phase 3 decisions
 
 - `DEC-RM-DH-003-005` — Phase 3 Governance Approval.
 - `DEC-RM-DH-003-006` — Module, Feature and Product-Control Architecture Package D1–D10. The full D1–D10 text lives only in [`decisions.md`](./decisions.md).
+- `DEC-RM-DH-003-010` — Owner Acceptance and Acceptance-Persistence Authorization for Sub-phase 3.0.
+- `DEC-RM-DH-003-011` — Owner Advancement from Sub-phase 3.0 to Sub-phase 3.1.
 
 ### Remaining work in Phase 3
 
-- Targeted read-only post-persistence verification of this Acceptance persistence.
-- Every later Sub-phase from 3.1 through 3.7, each requiring separate owner authorization.
+- Targeted read-only post-advancement verification of this Sub-phase 3.1 advancement persistence.
+- The Sub-phase 3.1 Foundational Read-Only Audits themselves, which have not started and require separate owner authorization before any Workstream is created or started.
+- Every later Sub-phase from 3.2 through 3.7, each requiring separate owner authorization.
 
 
 ## Current status
@@ -243,28 +258,52 @@ Roadmap Status:
 Active
 
 Current Phase:
-RM-DH-003 / Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
+RM-DH-003 / Phase 3 — ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS
 
 Phase 3 Execution Checkpoint:
-TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION
+SUB-PHASE 3.0 COMPLETED AND VERIFIED — OWNER ADVANCEMENT APPROVED AND PERSISTED — SUB-PHASE 3.1 SET CURRENT — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED — AWAITING TARGETED POST-ADVANCEMENT VERIFICATION
 
 Sub-phase 3.0 Technical Acceptance:
-Passed
+Passed and persisted
 
 Sub-phase 3.0 Owner Acceptance:
-Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00
+Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00, and persisted
 
 Sub-phase 3.0 Acceptance persistence:
 Completed — governed by DEC-RM-DH-003-010
+
+Sub-phase 3.0 post-persistence verification:
+Passed — ART-RM-DH-003-P3-GOVERNANCE-PROMPT11-POST-PERSISTENCE-VERIFICATION
+
+Sub-phase 3.0 Status:
+COMPLETED AND VERIFIED
+
+Owner Advancement:
+Granted 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00, and persisted under DEC-RM-DH-003-011
+
+Current Sub-phase:
+3.1 — Foundational Read-Only Audits — CURRENT — ADVANCEMENT PERSISTED — NOT YET STARTED
+
+Foundational Read-Only Audits:
+Not started
+
+Workstreams:
+WS-DH-2026-0012 through WS-DH-2026-0020 remain REGISTERED — PERMANENTLY RESERVED — ID CONSUMED and NOT STARTED
+
+Workstream packages:
+None
+
+Investigations:
+Not started
+
+Project Knowledge:
+NOT INSTALLED
 
 Phase 3 Acceptance:
 Not performed — Phase-level Acceptance is separate from the Sub-phase 3.0 Acceptance recorded above
 
 Phase 3 Closure:
 None
-
-Sub-phase advance:
-None — Sub-phase 3.1 has not started
 ```
 
 
@@ -280,24 +319,26 @@ That Phase 2 Closure was the explicit owner decision. This Roadmap may not accep
 
 ```text
 Phase 3 governance is persisted in the repository.
-Sub-phase 3.0 remains the current position.
-Governance Persistence Execution is complete.
-Technical Acceptance passed and explicit Owner Acceptance was granted.
-Acceptance persistence is completed and recorded under DEC-RM-DH-003-010.
-A targeted read-only post-persistence verification is pending and is the next permitted operation.
+Sub-phase 3.0 is completed and verified.
+Technical Acceptance passed and was persisted; explicit Owner Acceptance was granted and persisted.
+The targeted read-only post-persistence verification passed.
+The Owner approved advancement on 05-08-2026 — August at 15:51 (Asia/Riyadh — UTC+03:00).
+Sub-phase 3.1 — Foundational Read-Only Audits is now the current Sub-phase, recorded under DEC-RM-DH-003-011.
+The Foundational Read-Only Audits have not started.
+Setting Sub-phase 3.1 as current does not start WS-DH-2026-0012 or WS-DH-2026-0013.
 No Workstream investigation has started.
 No dedicated Workstream package exists for WS-DH-2026-0012 through WS-DH-2026-0020.
 No Project Knowledge is installed.
-No advancement to Sub-phase 3.1 has occurred.
+A targeted read-only post-advancement verification is pending and is the next permitted operation.
 No Closure has occurred.
 ```
 
 ## Next permitted Roadmap action
 
 ```text
-Prepare and run a separate Plan/Chat — Read-only targeted post-persistence verification Prompt.
-Only after that verification passes may the Owner decide whether to advance from Sub-phase 3.0 to Sub-phase 3.1.
+Prepare and run a separate Plan/Chat — Read-only targeted post-advancement verification Prompt.
+Only after that verification passes may the Owner authorize creation or start of WS-DH-2026-0012 and/or WS-DH-2026-0013.
 ```
 
-Execution is not Acceptance, and Acceptance is not Closure.
+Advancement persistence is not Workstream start, Workstream start is not investigation completion, investigation completion is not Project Knowledge installation, and Project Knowledge installation is not Closure. Execution is not Acceptance, and Acceptance is not Closure.
 
