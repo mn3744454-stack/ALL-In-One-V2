@@ -25,7 +25,7 @@ source-sha256: n/a
 
 **Track:** Track 2 — Import Architecture & Control
 
-**Status:** ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED
+**Status:** ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 ## Identity and Lineage
 
