@@ -228,29 +228,39 @@ Completed scope:
 ### Phase 1 — Economic Date Integrity
 
 Status:
-ACTIVE — STAGE A ACCEPTED AND PERSISTED; STAGE B, STAGE C AND STAGE D NOT STARTED; PHASE 1 NOT COMPLETE
+COMPLETE — OWNER ACCEPTED — CLOSED
 
 Primary Workstream:
-WS-DH-2026-0003
+WS-DH-2026-0003 — COMPLETE — OWNER ACCEPTED — CLOSED
 
+Stage summary: Stage A — Economic Date Backfill, Stage B — Financial Write Authority, Stage C — Read-Path Cutover and Stage D — Constraint Enforcement are each closed within their accepted bounds. The `public.ledger_entries.effective_date NOT NULL` contract is a closed Phase-1 contract and must not be changed by Phase 2 or by any later Phase.
 
-### Phase 2 — Canonical Financial Write Authority
+### Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Status:
-Blocked
+CURRENT — GOVERNANCE RECONCILED — TECHNICAL IMPLEMENTATION NOT STARTED
 
-Primary Workstreams:
+Primary Workstream:
+WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
-- WS-DH-2026-0004
-- WS-DH-2026-0005, deferred and isolated
+Supporting Workstreams:
+
+- WS-DH-2026-0004 — PARTIALLY COMPLETE; residual scope open and unscheduled; not a Phase-2 blocker.
+- WS-DH-2026-0005 — DEFERRED and INERT; POS remains Coming Soon / disabled; no Phase-2 dependency.
+
+Scope note: Phase 2 is a shared platform-wide Historical Import Foundation whose **first implemented domain is Finance**. The Import Control Plane capabilities formerly scoped as Phase 3 are absorbed here.
+
+Phase 2 historical identity: this Phase number previously carried the title `Canonical Financial Write Authority`. That title is superseded by this reconciliation. The Phase number is unchanged and no Phase was renumbered.
 
 ### Phase 3 — Import Control Plane
 
 Status:
-Blocked
+SUPERSEDED AND ABSORBED INTO PHASE 2 BY OWNER DECISION — NO SEPARATE EXECUTION
 
 Primary Workstream:
-WS-DH-2026-0006
+WS-DH-2026-0006, now executed under Phase 2
+
+Stated separately: Phase 3 retains its historical number and identity for lineage. It is not deleted, not renumbered and not reused. It has no independent execution state, no Acceptance and no Closure.
 
 ### Phase 4 — Provenance, Idempotency & Recovery
 
