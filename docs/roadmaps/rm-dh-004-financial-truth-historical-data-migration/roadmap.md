@@ -295,15 +295,19 @@ Not started
 
 | Workstream ID | Title | Track | Phase | Status | Dependency | Package |
 |---|---|---:|---:|---|---|---|
-| WS-DH-2026-0003 | Economic Date Integrity | 1 | 1 | ACTIVE — INVESTIGATIVE AUDIT PENDING | None | Present |
-| WS-DH-2026-0004 | Canonical Financial Write Authority | 1 | 2 | BLOCKED BY WS-DH-2026-0003 | WS-DH-2026-0003 | Not yet created |
-| WS-DH-2026-0005 | POS Financial Isolation | 1 | 2 | DEFERRED — POS COMING SOON / DISABLED | Deferred and isolated | Not yet created |
-| WS-DH-2026-0006 | Import Control Plane | 2 | 3 | BLOCKED BY PHASES 1–2 | Phases 1–2 | Not yet created |
+| WS-DH-2026-0003 | Economic Date Integrity | 1 | 1 | COMPLETE — OWNER ACCEPTED — CLOSED | None | Present |
+| WS-DH-2026-0004 | Canonical Financial Write Authority | 1 | 1–2 | PARTIALLY COMPLETE — CORE WRITE-AUTHORITY OBJECTIVES DELIVERED INSIDE WS-DH-2026-0003 STAGE B; RESIDUAL SCOPE OPEN | WS-DH-2026-0003 | Not yet created |
+| WS-DH-2026-0005 | POS Financial Isolation | 1 | 2 | DEFERRED — POS COMING SOON / DISABLED — INERT; NO PHASE-2 DEPENDENCY | Deferred and isolated | Not yet created |
+| WS-DH-2026-0006 | Shared Platform-Wide Historical Import Foundation — Finance-First Implementation | 2 | 2 | ACTIVE — CURRENT PHASE-2 WORKSTREAM — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED | Phase 1 complete | Present |
 | WS-DH-2026-0007 | Provenance, Idempotency & Selective Rollback | 2 | 4 | BLOCKED BY WS-DH-2026-0006 | WS-DH-2026-0006 | Not yet created |
 | WS-DH-2026-0008 | Historical Financial Semantics | 3 | 5 | PLANNED — OWNER ALIGNMENT REQUIRED | Owner Alignment | Not yet created |
 | WS-DH-2026-0009 | Historical Document Identity & Numbering | 3 | 5 | PLANNED — OWNER ALIGNMENT REQUIRED | Owner Alignment | Not yet created |
 | WS-DH-2026-0010 | Client, Owner & Horse Matching Integrity | 4 | 6 | BLOCKED BY CONTROL AND PROVENANCE LAYERS | WS-DH-2026-0006 and WS-DH-2026-0007 | Not yet created |
 | WS-DH-2026-0011 | Laboratory Historical Import Safety Pilot | 4 | 7 | PILOT — BLOCKED BY PHASES 1–6 | Phases 1–6 | Not yet created |
+
+Stated separately for `WS-DH-2026-0004`: its core canonical financial write-authority objectives were delivered inside `WS-DH-2026-0003` Stage B — Financial Write Authority (browser-role direct-DML revocation on financial tables, RPC-mediated financial writes, the Stable Function-ACL Contract). Its residual scope — any remaining non-Stage-B write paths and their governance — is **open and unscheduled**, is not claimed as complete, and is not a Phase-2 blocker. `WS-DH-2026-0004` retains its ID; it is not renumbered, not merged and not closed.
+
+Stated separately for `WS-DH-2026-0006`: its title and scope were reconciled from the historical `Import Control Plane` framing to `Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`. Its ID and Track are unchanged; the Workstream is not renumbered and no new Workstream ID was created. Its Phase reference is reconciled from the former Phase 3 to Phase 2 because the former Phase 3 is superseded and absorbed into Phase 2 by Owner decision.
 
 ## Dependency Order
 
