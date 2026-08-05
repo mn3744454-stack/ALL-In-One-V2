@@ -8361,7 +8361,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
-          effective_date: string | null
+          effective_date: string
           entry_type: string
           id: string
           metadata: Json
@@ -8378,7 +8378,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          effective_date?: string | null
+          effective_date: string
           entry_type: string
           id?: string
           metadata?: Json
@@ -8395,7 +8395,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          effective_date?: string | null
+          effective_date?: string
           entry_type?: string
           id?: string
           metadata?: Json
