@@ -31,8 +31,18 @@ export interface FinancialEntry {
   currency: string;
   notes: string | null;
   created_by: string;
+  /** Audit timestamp — never the business/cost date. */
   created_at: string;
   updated_at: string;
+  /**
+   * Stage C · Slice C — economic (cost) date inherited at read time from the
+   * linked operational source event. `null` means Unknown; it is never a
+   * `created_at` fallback.
+   */
+  business_date?: string | null;
+  /** `table.column` that proved `business_date`, or null when Unknown. */
+  business_date_source?: string | null;
+
   // Joined
   client?: {
     id: string;
