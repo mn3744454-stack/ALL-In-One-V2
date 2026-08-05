@@ -319,24 +319,26 @@ That Phase 2 Closure was the explicit owner decision. This Roadmap may not accep
 
 ```text
 Phase 3 governance is persisted in the repository.
-Sub-phase 3.0 remains the current position.
-Governance Persistence Execution is complete.
-Technical Acceptance passed and explicit Owner Acceptance was granted.
-Acceptance persistence is completed and recorded under DEC-RM-DH-003-010.
-A targeted read-only post-persistence verification is pending and is the next permitted operation.
+Sub-phase 3.0 is completed and verified.
+Technical Acceptance passed and was persisted; explicit Owner Acceptance was granted and persisted.
+The targeted read-only post-persistence verification passed.
+The Owner approved advancement on 05-08-2026 — August at 15:51 (Asia/Riyadh — UTC+03:00).
+Sub-phase 3.1 — Foundational Read-Only Audits is now the current Sub-phase, recorded under DEC-RM-DH-003-011.
+The Foundational Read-Only Audits have not started.
+Setting Sub-phase 3.1 as current does not start WS-DH-2026-0012 or WS-DH-2026-0013.
 No Workstream investigation has started.
 No dedicated Workstream package exists for WS-DH-2026-0012 through WS-DH-2026-0020.
 No Project Knowledge is installed.
-No advancement to Sub-phase 3.1 has occurred.
+A targeted read-only post-advancement verification is pending and is the next permitted operation.
 No Closure has occurred.
 ```
 
 ## Next permitted Roadmap action
 
 ```text
-Prepare and run a separate Plan/Chat — Read-only targeted post-persistence verification Prompt.
-Only after that verification passes may the Owner decide whether to advance from Sub-phase 3.0 to Sub-phase 3.1.
+Prepare and run a separate Plan/Chat — Read-only targeted post-advancement verification Prompt.
+Only after that verification passes may the Owner authorize creation or start of WS-DH-2026-0012 and/or WS-DH-2026-0013.
 ```
 
-Execution is not Acceptance, and Acceptance is not Closure.
+Advancement persistence is not Workstream start, Workstream start is not investigation completion, investigation completion is not Project Knowledge installation, and Project Knowledge installation is not Closure. Execution is not Acceptance, and Acceptance is not Closure.
 
