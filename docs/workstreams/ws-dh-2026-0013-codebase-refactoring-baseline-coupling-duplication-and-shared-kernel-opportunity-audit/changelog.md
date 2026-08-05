@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0013-CHANGELOG
 title: WS-DH-2026-0013 — Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit (changelog)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
 last-verified: 2026-08-05
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012. Records package creation and Owner start authorization only.
+source: v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and approved Decision DEC-RM-DH-003-013: appends exactly one entry recording package/start Owner Acceptance. The earlier entry is preserved unchanged; no investigation ran, no code was read for analysis or modified and no local Prompt was consumed; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012. Records package creation and Owner start authorization only.
 source-sha256: n/a
 -->
 
