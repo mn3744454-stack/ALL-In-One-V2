@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-003-DECISIONS
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (decisions)
-version: 1.8.1
+version: 1.9.0
 status: current
 audience: internal
 date: 2026-07-30
