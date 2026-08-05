@@ -351,24 +351,28 @@ Sub-phase 3.1 — Foundational Read-Only Audits is the current Sub-phase, record
 The targeted read-only post-advancement verification passed.
 The Owner authorized creation and start of WS-DH-2026-0012 and WS-DH-2026-0013
 on 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00), recorded under DEC-RM-DH-003-012.
-Dedicated four-file packages now exist for WS-DH-2026-0012 and WS-DH-2026-0013,
-and both lanes are ACTIVE — STARTED — INVESTIGATION NOT YET RUN.
+Dedicated four-file packages exist for WS-DH-2026-0012 and WS-DH-2026-0013.
+The Owner accepted the Prompt-16 bounded correction and both package and start states
+on 05-08-2026 — August (Asia/Riyadh — UTC+03:00), exact time not recorded, under DEC-RM-DH-003-013.
+Both lanes are ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN.
 No investigation has been executed in either lane and neither lane has consumed a local Prompt.
 No Memory finding and no codebase architecture finding exists.
 No dedicated Workstream package exists for WS-DH-2026-0014 through WS-DH-2026-0020.
 No Project Knowledge is installed.
-A targeted read-only package and start verification is pending and is the next permitted operation.
-No Acceptance and no Closure has occurred.
+An independent read-only verification of this Owner-Acceptance persistence is pending
+and is the next permitted operation.
+No investigation Acceptance and no Closure has occurred.
 ```
 
 ## Next permitted Roadmap action
 
 ```text
-Prepare and run a separate Plan/Chat — Read-only targeted package and start verification Prompt (Prompt 15)
-covering the WS-DH-2026-0012 and WS-DH-2026-0013 packages, their start state, their Prompt-Lineage
-numbering state and their parallel-lane isolation.
-Only after that verification passes may either Workstream's local Prompt 01 be prepared as an UNSENT DRAFT.
+Prepare and run a separate Plan/Chat — Read-only verification Prompt (Prompt 19)
+covering the Prompt-18 Owner-Acceptance persistence across the RM-DH-003 governed paths,
+the central registries and the WS-DH-2026-0012 and WS-DH-2026-0013 packages.
+Only after that verification passes, and after a separate explicit Owner authorization,
+may either Workstream's local Prompt 01 be prepared as an UNSENT DRAFT.
 ```
 
-Advancement persistence is not Workstream start, Workstream start is not investigation completion, investigation completion is not Project Knowledge installation, and Project Knowledge installation is not Closure. Execution is not Acceptance, and Acceptance is not Closure.
+Advancement persistence is not Workstream start, Workstream start is not investigation completion, package and start Acceptance is not investigation Acceptance, investigation completion is not Project Knowledge installation, and Project Knowledge installation is not Closure. Execution is not Acceptance, and Acceptance is not Closure.
 
