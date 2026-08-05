@@ -1,170 +1,168 @@
-# PROMPT 46 — CONTINUATION A1 — EXECUTION EVIDENCE COMPLETION AND FAILED-TEST ATTRIBUTION
+# PROMPT-47 — RM-DH-004 Phase 1 Stage C — Final Independent QA and Acceptance Re-Audit
 
-Mode: Plan/Chat — read-only evidence completion. No code, test, migration, database, RLS, RPC or repository content was modified.
+## A. Primary Verdict
 
-## 9. FINAL VERDICT (stated first)
+STAGE-C FINAL INDEPENDENT QA AND ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE
 
-PROMPT 46 EXECUTION EVIDENCE COMPLETED — READY FOR FINAL STAGE-C QA
+One minor non-blocking bilingual deviation is disclosed in section S.
 
-Arabic RTL attribution: **A. ARABIC RTL FAILURE PROVEN PRE-EXISTING AND UNCHANGED**
+## B. Scope and Mode Confirmation
 
-## A. Executive Verdicts
+Mode: Plan/Chat — Read-Only. Operation: final independent Stage-C QA and Acceptance Re-Audit. No repository, database, migration, financial-row, governance, Knowledge, Skill or settings write was performed. No correction was implemented.
 
-- Implementation preserved unmodified; nothing was rewritten or repaired in A1.
-- Prior claim "310/311 pass with exit code 0" is WITHDRAWN. The earlier command piped through `tail` without `pipefail`, so the reported exit code was the pipeline's, not Vitest's. Corrected: `bunx vitest run src/components/finance` exits **1**.
-- The single failure is `InvoicePDFGenerator.test.ts > createInvoiceHTML — Arabic direction & bidi isolation > emits lang=ar and dir=rtl on the root`, proven pre-existing by running the identical test against the Prompt-46 pre-execution HEAD, where it fails with a byte-identical assertion message.
-- Typecheck exit 0. Build exit 0 (previously never run — now completed).
+## C. Active Parallel Task Ledger
 
-## B. Complete Roadmap
+PT-DH-RM004-WS0003-STAGEC-FINAL-QA-20260805-1412 — RM-DH-004 only, Phase 1 / Stage C only, WS-DH-2026-0003 only, Prompt 47 only, Shared Tenant Operational Finance + Historical Migration lineage only.
 
-RM-DH-004 — Financial Truth & Historical Data Migration / Phase 1 — Economic Date Integrity / Stage C — Read-Path Cutover / Slice C — Final Read Paths. Continuation A1 under consumed Prompt 46; no new Prompt number consumed.
+## D. CROSS-TASK REPORT CONTAMINATION CHECK
 
-## C. Preflight
+NO CROSS-TASK CONTAMINATION DETECTED
 
-- Branch: `edit/edt-2b437e63-21b7-4a92-b0e9-dc6995a0fa07`
-- Working tree before A1: clean (`git status --porcelain` empty)
-- Working tree after A1: clean; the only artifact written is the platform-managed `.lovable/plan.md`
-- Temporary disposable snapshot: `/tmp/pre46` (outside repository), created by `git archive <pre-HEAD> | tar -x`, used only to run one test, **removed** afterwards (`rm -rf /tmp/pre46`, confirmed). No `git worktree`, no branch, no stash, no commit.
+RM-DH-003 governance content exists in the repository working history (see G) but is excluded from Stage-C evidence and is not used to support any verdict here.
 
-## D. Evidence Boundary
+## E. Current Branch / HEAD / Working Tree
 
-Repository files, Git object history, Vitest, tsgo, Vite build, and read-only SQL SELECTs. Zero database writes. Zero repository writes. No Acceptance, no QA, no Stage D.
+- Branch: `edit/edt-4c33f81f-7efd-4e9e-afee-574cb09746e3`
+- HEAD: `739bf980cc1d9d0641b1cba1cee701d714f0140d` ("Persisted Phase 3.0 acceptance", 2026-08-05 09:57:11 +0000)
+- HEAD parents: `72f743f0c69a037bf2edbe668d4a687db304c79d`, `b4053787820130ec7d627be9e079afa769eb0d9f`
+- Working Tree before: clean (`git status --porcelain` empty). Working Tree after: `.lovable/plan.md` only (platform-managed report surface).
 
-## E. Source-Date Contract Matrix
+## F. Prompt-46 Baseline and Commit Ancestry
 
-| entity_type | source table | authoritative date field | DB type | nullable | linked financial_entries | resolved | Unknown |
-|---|---|---|---|---:|---:|---:|---:|
-| vet_treatment | vet_treatments | `completed_at`, else `scheduled_for` | timestamptz | YES / YES | 3 | 3 | 0 |
-| vaccination | horse_vaccinations | `administered_date` | date | YES | 1 | 1 | 0 |
-| breeding_attempt | breeding_attempts | `attempt_date` | timestamptz | NO | 1 | 1 | 0 |
-| foaling | foalings | `foaling_date` | date | NO | 0 | 0 | 0 |
-| (unsupported types) | — | — | — | — | 0 | 0 | 0 |
-| **Total** | | | | | **5** | **5** | **0** |
+- `b13efcb2e85d6dc18dea1a90def27d74a3754e50` — ANCESTOR of HEAD
+- `b6ee23433ced62946c93114d1f14841f87990593` — ANCESTOR of HEAD
+- `51631a079bc7c1c6e6a3ba04a057bf5eeeafa532` — ANCESTOR of HEAD
+- Aggregate Prompt-46 substantive diff `b13efcb2..b6ee2343`: 8 files, **579 insertions, 9 deletions** — identical to the A1 baseline.
+- The Prompt-46 branch is NOT claimed to be canonical/default; only ancestry is proven.
 
-Column types/nullability read from `information_schema.columns`. Excluded by contract and verified in code: `vet_treatments.requested_at` (administrative), `horse_vaccinations.due_date` (future schedule), and all `created_at` / `updated_at` columns.
+## G. Current Drift Register
 
-Query behaviour:
-- Batch source queries actually issued for the live data set: **3** (`vet_treatments`, `horse_vaccinations`, `breeding_attempts`); `foalings` is skipped because no entry references it. Maximum is 4 — one per supported entity type, never per row.
-- Total financial entries read: 5. Resolved: 5. Unknown: 0. Missing source rows: 0. Missing source dates: 0.
-- No row uses `created_at` as `business_date`: `financialEntryBusinessDate.ts` lists no audit column in any `dateColumns` array, and `pickSourceBusinessDate` returns `{null, null}` when no contract column yields a value.
-- No N+1: `groupSourceIdsByType` de-duplicates ids into one `.in("id", ids)` query per entity type inside a single `Promise.all`.
-- `financial_entries` still has no business-date column; nothing was added or backfilled.
+`51631a07..HEAD` changes 5 paths, none in Stage-C scope:
 
-## F. Final Allowlist (paths touched by Prompt 46)
+| Path | Classification |
+|---|---|
+| `.lovable/plan.md` | Platform-managed (disclosed, not evidence) |
+| `docs/README.md` | Unrelated parallel task (RM-DH-003) |
+| `docs/roadmaps/rm-dh-003-.../roadmap.md`, `decisions.md`, `changelog.md` | Unrelated parallel task (RM-DH-003) |
 
-Substantive (8):
-1. `src/lib/finance/financialEntryBusinessDate.ts` (new)
-2. `src/hooks/finance/useFinancialEntries.ts`
-3. `src/components/finance/InternalCostsTab.tsx`
-4. `src/components/finance/InvoicePDFGenerator.tsx`
-5. `src/i18n/locales/en.ts`
-6. `src/i18n/locales/ar.ts`
-7. `src/lib/finance/__tests__/stageCSliceCFinancialEntryBusinessDate.test.ts` (new)
-8. `src/components/finance/__tests__/InvoicePDFGenerator.paymentDisclosure.test.ts` (new)
+`git diff --name-only b6ee2343 HEAD -- src/` is **empty**; `git diff --name-only b13efcb2 HEAD -- supabase/` is **empty**. No source, test, serializer, economic-date utility, Invoice PDF, finance query or migration drift. No unattributed in-scope drift.
 
-Platform-managed, reported separately: `.lovable/plan.md` (commits `d12cdc98`, `51631a07`).
+## H. Exact Prompt-46 Substantive Path Allowlist (recovered from the diff, not invented)
 
-## G. Financial Entries Before-State
+1. `src/components/finance/InternalCostsTab.tsx` (+30/-…)
+2. `src/components/finance/InvoicePDFGenerator.tsx`
+3. `src/components/finance/__tests__/InvoicePDFGenerator.paymentDisclosure.test.ts`
+4. `src/hooks/finance/useFinancialEntries.ts`
+5. `src/i18n/locales/ar.ts`
+6. `src/i18n/locales/en.ts`
+7. `src/lib/finance/__tests__/stageCSliceCFinancialEntryBusinessDate.test.ts`
+8. `src/lib/finance/financialEntryBusinessDate.ts`
 
-5 rows, all with an `entity_type`/`entity_id` link; no business-date column; display previously driven by `created_at`.
+## I. Cumulative Prompt Lineage
 
-## H. Financial Entries Implementation
+Prompts 01–46 and Prompt-46 Continuation A1 are preserved as stated in the Prompt; nothing is reopened. Prompt 47 is now CONSUMED as a read-only audit.
 
-Read-time inheritance only, batched, additive `business_date` + `business_date_source` fields, `null` = Unknown with no `created_at` fallback, ordering `business_date DESC NULLS LAST, created_at DESC, id DESC`, dual-date UI (Cost Date vs Recorded On / تاريخ التسجيل, Unknown / غير محدد).
+## J. Preserved and Still Authoritative
 
-## I. Invoice PDF Correction
+No current evidence contradicts Stage A (accepted/persisted/verified), Stage B (accepted/closed, write authority migrated, POS fenced), the Slice-A/Slice-B contracts, or the Prompt-45 findings.
 
-Diff limited to 10 changed lines: import of `formatEconomicDate` plus two call-site swaps replacing `formatStandardDate` for `p.effective_date` and `sess.effectiveDate`. No change to `lang`, `dir`, root wrapper, bidi helpers or pagination.
+## K. Slice-A Verification Matrix — PASS
 
-## J. Output Evidence
+`src/hooks/clients/useClientStatement.ts` + `src/lib/finance/effectiveDate.ts`: business date is `ledger_entries.effective_date`; order `effective_date, created_at, id` server-side and re-applied client-side via `compareEconomicOrder`; opening balance is a paginated `SUM(amount) WHERE effective_date < from`; running balance derived from opening + ordered cents (`toCents`/`fromCents`); `balance_after` documented as audit-only; date bounds inclusive date-only with no UTC conversion (`toEconomicDateString` slices, `formatEconomicDate` is string-based). No `created_at` business-date fallback. No regression: zero source drift since the baseline.
 
-Economic dates render as `dd-MM-yyyy` from string slicing (`formatEconomicDate`), never through `new Date(...)`, eliminating negative-offset day shift. Audit timestamps continue to use `formatStandardDateTime`.
+## L. Slice-B Verification Matrix — PASS
 
-## K. Tests (each run separately, exit code captured immediately, no exit-code-masking pipeline)
+- Ledger/Payments: `useLedger.ts` selects and orders on `effective_date`, then `created_at`, then id.
+- Invoices: `useInvoices.ts` orders on `issue_date` DESC with `created_at`/id tie-breakers; `due_date` retained for due/overdue.
+- Exports: `StatementPrintUtils.ts` exposes `ExportDateMode = "timestamp" | "economic-date"`; `formatExportDate` routes economic mode through `formatEconomicDate` (no `Date` parsing); default remains `"timestamp"`, preserving legacy callers.
+- `DashboardFinance.tsx` passes `dateMode: "economic-date"` at all four export call sites (Ledger print, Ledger CSV, Payments print, Payments CSV).
+- `stageCSliceBExportDateParity` tests assert serialized output and pass.
 
-| # | Command | Exit | Files | Passed | Failed | Skipped | Duration |
-|---|---|---:|---|---:|---:|---:|---|
-| 1 | `bunx vitest run src/lib/finance/__tests__/stageCSliceCFinancialEntryBusinessDate.test.ts` | 0 | 1 passed | 15 | 0 | 0 | 667 ms |
-| 2 | `bunx vitest run src/components/finance/__tests__/InvoicePDFGenerator.paymentDisclosure.test.ts` | 0 | 1 passed | 10 | 0 | 0 | 1.40 s |
-| 3 | `bunx vitest run src/lib/finance/__tests__/stageCEconomicDateContract.test.ts` | 0 | 1 passed | 14 | 0 | 0 | 607 ms |
-| 4 | `bunx vitest run src/lib/finance/__tests__/stageCSliceBExportDateParity.test.ts` | 0 | 1 passed | 12 | 0 | 0 | 1.25 s |
-| 5 | `bunx vitest run src/lib/finance` | 0 | 15 passed | 268 | 0 | 0 | 2.51 s |
-| 6 | `bunx vitest run src/components/finance` | **1** | 1 failed / 3 passed | 42 | 1 | 0 | 1.74 s |
-| 7 | `bunx vitest run src/hooks/finance` | **1** | — | 0 | 0 | 0 | n/a — `No test files found` (directory contains no test file; not a failure of code) |
-| 8 | `bunx vitest run src/components/finance/__tests__/InvoicePDFGenerator.test.ts -t "emits lang=ar and dir=rtl on the root"` (executed at pre-execution HEAD, see §4) | **1** | 1 failed | 0 | 1 | 16 | 1.31 s |
+## M. Slice-C Financial Entries Verification Matrix — PASS
 
-Note on item 2: the file contains 10 tests (5 economic-date parity assertions plus supporting cases).
+Contracts in `financialEntryBusinessDate.ts`: `vet_treatment → vet_treatments.completed_at, else scheduled_for`; `vaccination → horse_vaccinations.administered_date`; `breeding_attempt → breeding_attempts.attempt_date`; `foaling → foalings.foaling_date`. Exactly four supported types — no silent broadening. `created_at`/`updated_at` appear in no contract (asserted by test 6b). Unsupported/unresolved types return `business_date = null` with `business_date_source = null`; there is no `created_at` fallback anywhere in the resolver, and the resolver contains no Supabase client and no insert/update/upsert/delete (test 21).
 
-## L. Attribution of the Arabic RTL Failure
+## N. Invoice PDF Payment-Date Verification — PASS
 
-- File: `src/components/finance/__tests__/InvoicePDFGenerator.test.ts`
-- Suite / test: `createInvoiceHTML — Arabic direction & bidi isolation` › `emits lang=ar and dir=rtl on the root`
-- Assertion: `expect(html).toMatch(/dir="rtl"/)` (the preceding `expect(html).toMatch(/lang="ar"/)` also cannot match)
-- Expected: `/dir="rtl"/`
-- Actual: `'<div class="pdf-body" data-lang="ar">…'` — the exported `__createInvoiceHTMLForTest` returns only the paginated body fragment; `lang`/`dir` live on the `<html>` element emitted later in the print document (`<html lang="${options.lang}" dir="${dir}">`, line 650 at pre-HEAD).
-- First commit containing the failure: `2f52f8cf9` (2026-07-27T03:22:41Z) — the pagination refactor that changed `createInvoiceHTML` to `return \`<div class="pdf-body" …\`` while the test kept asserting the old full-document root. `fabc618f1` (2026-07-26) does not contain that return; `2f52f8cf9` and every later commit do. Prompt 46 is dated 2026-08-05.
-- Same test on Prompt-46 pre-execution HEAD `b13efcb2e85d6dc18dea1a90def27d74a3754e50`: **FAILS** with the identical assertion text and identical received string.
-- Prompt-46 diff to `InvoicePDFGenerator.tsx` (10 lines) touches only payment-date formatting; it does not touch `lang`, `dir`, the root wrapper or `__createInvoiceHTMLForTest`.
+Both payment date sites (`session-row` effective date and grouped `sess.effectiveDate`) now use `formatEconomicDate`; `formatStandardDate` is no longer applied to date-only payment values, so no `new Date(...)` conversion occurs. `created_at` still renders as `formatStandardDateTime` ("Recorded On"). Pagination and all other PDF behavior are byte-unchanged relative to baseline (diff is limited to the import plus two lines).
 
-Classification: **A. ARABIC RTL FAILURE PROVEN PRE-EXISTING AND UNCHANGED**
+## O. Live Database Read-Only Evidence
 
-## M. Typecheck and Build
+- `financial_entries`: 5 rows total — `vet_treatment` 3, `vaccination` 1, `breeding_attempt` 1; all have `entity_id`.
+- Source-event join resolved a business date for **5 / 5** rows; **Unknown = 0** — identical to the A1 baseline.
+- Tenant alignment between each financial entry and its source event: **true for all 5 rows**.
+- Every resolved business date differs from `created_at` (e.g. 2025-02-20 vs recorded 2026-03-28), proving inheritance is real and not a timestamp echo.
+- `financial_entries` has **0** columns named `business_date` / `cost_date` / `effective_date` — no column added, no backfill.
+- `ledger_entries`: 88 rows, **0** NULL `effective_date`; `invoices`: 0 NULL `issue_date`.
+- No writer, RPC, policy, grant or schema change is present in `supabase/` since the baseline.
 
-| Command | Exit | Notes |
-|---|---:|---|
-| `bunx tsgo --noEmit -p tsconfig.app.json` | 0 | no diagnostics |
-| `bun run build` | 0 | `✓ 4625 modules transformed`, `✓ built in 25.12s`. Pre-existing advisories only: browserslist data 8 months old; `sonner` mixed static/dynamic import; main chunk 5,604.77 kB > 500 kB. None introduced by Prompt 46. |
+## P. Query Batching / N+1 Evidence — PASS
 
-Build success was measured directly, not inferred from typecheck.
+`useFinancialEntries.fetchEntries` calls `groupSourceIdsByType` (unique ids per supported type), then issues exactly **one** `.select(id + date columns).in("id", ids)` per present supported type inside a single `Promise.all` — bounded by ≤4 queries regardless of row count. Current dataset: 3 present types → **3** source queries for 5 rows. No per-row query exists. Query scope is tenant-derived: ids originate from a `tenant_id`-filtered `financial_entries` read and source tables are RLS-protected; the batch itself carries no explicit `tenant_id` predicate — noted as a defence-in-depth observation, not a proven leak (live tenant match = 100%).
 
-## N. Diff and Git Evidence
+## Q. Deterministic Ordering Evidence — PASS
 
-- Branch: `edit/edt-2b437e63-21b7-4a92-b0e9-dc6995a0fa07`
-- HEAD before Prompt 46: `b13efcb2e85d6dc18dea1a90def27d74a3754e50`
-- Current HEAD: `51631a079bc7c1c6e6a3ba04a057bf5eeeafa532`
-- Prompt-46 content commits (15, linear, each parent = previous):
-  `04ceea6c…` → `d8f3e221…` → `bb8e1e6d…` → `3183ac7b…` → `93ce7045…` → `afdb2ed0…` → `5ec618d9…` → `ebb39f39…` → `61f4582c…` → `5235f43b…` → `9f05137e…` → `d7a3b316…` → `a0bbbb66…` → `0057c66b…` → `6169f212caecc5499dbe7057c2225b1748d77722`
-- Merge: `b6ee23433ced62946c93114d1f14841f87990593` (parents `b13efcb2…`, `6169f212…`)
-- Post-merge platform-managed commits: `d12cdc98…` and merge `51631a07…`, both `.lovable/plan.md` only
-- Aggregate `git diff --stat b13efcb2…b6ee2343…`: **8 files changed, 579 insertions(+), 9 deletions(-)** — matches the allowlist in §F exactly, with no unexpected path
-- Latest commit touching `InvoicePDFGenerator.tsx`: `5ec618d94` (2026-08-05T09:15:52Z, inside the Prompt-46 chain)
-- Working tree before and after A1: clean. Post-execution drift: none.
+`compareFinancialEntryOrder` implements `business_date DESC NULLS LAST, created_at DESC, id DESC`; `sortFinancialEntries` is immutable. Covered by tests 9, 9b, 10 and the immutability test (different dates, equal dates with different `created_at`, equal dates and timestamps with id tie-break, multiple NULLs).
 
-## O. Zero Regression
+## R. Screen / Print / CSV / PDF Parity — PASS
 
-No repository write, no database write, no migration, no RLS/RPC/Edge Function change, no financial row change, no settings, Skills, Roadmap or Workstream change. All 268 `src/lib/finance` tests pass; the only `src/components/finance` failure is the proven pre-existing RTL assertion.
+All surfaces funnel through `formatEconomicDate` (`dd-MM-yyyy`, string-based, Latin digits) for economic dates and `formatStandardDateTime` for audit timestamps. No timezone dependence: no `Date` construction on date-only values in any economic path.
 
-## P. Blocking Findings
+## S. Bilingual / RTL Verification — PASS WITH ONE MINOR DISCLOSED DEVIATION
 
-None.
+English `Cost Date` / `Recorded On` / `Unknown` and Arabic `تاريخ التكلفة` / `تاريخ التسجيل` are exactly as contracted. **Deviation:** the Arabic unknown label is `غير محدد` ("unspecified") where the contract text says `غير معروف` ("unknown"). Semantically equivalent, purely lexical, no date-authority or truth impact. Classified NON-BLOCKING; recommended as a one-line wording item for the Owner to accept as-is or defer. Date cells are `dir="ltr"` with monospace Latin digits in both locales.
 
-## Q. Non-Blocking Residuals
+## T. Pre-existing Arabic Invoice PDF Assertion Attribution
 
-1. Pre-existing stale test: `emits lang=ar and dir=rtl on the root` asserts against the pre-pagination full-document root. Origin `2f52f8cf9`, unrelated to Stage C.
-2. `src/hooks/finance` contains no test files, so Vitest exits 1 for that path by design.
-3. Build advisories (browserslist age, `sonner` mixed import, >500 kB chunk) — all pre-existing.
+1. Still fails — yes, 1 test.
+2. Signature: `InvoicePDFGenerator.test.ts:151` `expect(html).toMatch(/dir="rtl"/)` on the return of `createInvoiceHTML`.
+3. Present at `b13efcb2`: proven — the function returns `<div class="pdf-body" data-lang="…">` at both baseline (line 434) and HEAD (line 440); `lang=`/`dir=` exist only on the outer document template (baseline 650 / HEAD 656). The test file is **byte-identical** between `b13efcb2` and HEAD (`git diff` empty).
+4. Did Prompt 46 touch the root lang/dir logic? No — the full `b13efcb2..HEAD` diff of the generator is the `formatEconomicDate` import plus two payment-date lines.
+5. Independent of payment economic-date formatting — yes.
+6. New Arabic/RTL regression from Prompt 46 — none; the sibling `InvoicePDFGenerator.paymentDisclosure.test.ts` (Arabic + English) passes.
 
-## R. One Recommendation
+Verdict: PRE-EXISTING OUT-OF-SCOPE FAILURE — NOT A STAGE-C BLOCKER. Not modified in this run.
 
-Fix the stale RTL assertion under a separate, clearly-scoped correction: assert `data-lang="ar"` on the `.pdf-body` fragment and move the `lang`/`dir` assertion to the print-document builder. Keep it outside RM-DH-004 Stage C so the economic-date lineage stays clean.
+## U. Security / Tenancy / Write-Authority Zero Regression — PASS
 
-## S. WORKSTREAM PERSISTENCE
+Stage-C paths introduce no browser-direct writes to `ledger_entries` or `customer_balances`, no RPC/RLS/grant/ACL/SECURITY DEFINER change, no schema or migration change (`supabase/` diff empty since baseline), no POS enablement, no historical financial-row modification. Tenant filtering in the finance reads is unchanged; source lookups remain RLS-bounded.
 
-WORKSTREAM REGISTRY PERSISTENCE: UNCHANGED. WS-DH-2026-0003 remains the active Economic Date Integrity Workstream. No package created, no registry edit, no ID consumed in A1.
+## V. Test Commands and Results
 
-## T. ROADMAP IMPACT
+`bunx vitest run src/lib/finance src/components/finance src/hooks/finance --reporter=dot` — exit **1**; 19 files (18 passed / 1 failed); **311 tests: 310 passed, 1 failed, 0 skipped**. Sole failure: `InvoicePDFGenerator.test.ts > emits lang=ar and dir=rtl on the root` — classified pre-existing, out-of-scope (section T). Start 11:19:14 UTC; end time not separately recorded. Delta vs the historical 268 baseline: that figure covered `src/lib/finance` only; this run adds `src/components/finance` and `src/hooks/finance`, a legitimate scope widening, not a suite change.
 
-RM-DH-004 remains ACTIVE. Phase 1 remains ACTIVE. Stage A: ACCEPTED — PERSISTED. Stage B: ACCEPTED — PERSISTED. Stage C Slice A and Slice B: Acceptance Re-Audit passed, awaiting Owner Acceptance. Stage C Slice C: executed, evidence now complete, **not** QA'd and **not** accepted. Stage D: NOT STARTED. No advancement, no Closure.
+## W. Typecheck and Build
 
-## U. Complete Deferred Items Register
+`bunx tsgo --noEmit` — exit **0**, no diagnostics. `bun run build` — exit **0**, built in 29.39s; only the pre-existing >500 kB chunk-size advisory.
 
-1. Actual code Refactoring. 2. Feature Pack implementation. 3. Module activation implementation. 4. Subscription and pricing implementation. 5. New Feature implementation. 6. Missing Module implementation. 7. Skills revision. 8. Root AGENTS.md creation. 9. Workspace Knowledge use. 10. Documentation 01–13 historical recovery. 11. Cross-project sharing changes. 12. RM-DH-003 governance persistence Owner Acceptance. 13. Any technical defect discovered by a later Persistent Knowledge Stage B audit. 14. Any Project Knowledge installation. 15. Memory Genesis investigation. 16. Refactoring Baseline investigation. 17. `supplier_payables` economic-date contract — DEFERRED (immature domain, 0 rows). 18. Stale Arabic RTL PDF root assertion (`2f52f8cf9`) — DEFERRED, non-blocking, separate correction.
+## X. Repository / Database / Migration / Financial-Row Write Audit
 
-## V. Run Metadata and Exact Stopping Point
+Repository substantive writes: 0. Test writes: 0. Migration writes: 0. Database writes: 0. Financial-row writes: 0. Governance/Knowledge/Skill/Settings writes: 0. `.lovable/plan.md` written as the platform report surface only — disclosed, not implementation or persistence evidence.
 
-- Mode: Plan/Chat, read-only evidence completion. Parent Prompt: PROMPT-…-STAGE-C-SLICE-C-FINAL-READ-PATH-EXECUTION-46. Continuation A1. No new Prompt number consumed.
-- Run date/time: 05-08-2026, 12:28–12:40 Asia/Riyadh (09:28–09:40 UTC). Exact per-command wall-clock start times not recorded.
-- Repository writes: None (except platform-managed `.lovable/plan.md`). Database access: read-only SELECT only. Database writes: None. Application changes: None. Project Knowledge / Workspace Knowledge / Skills / AGENTS.md changes: None.
-- Temporary artifacts: `/tmp/pre46` created and removed; `/tmp/*.txt` command logs outside the repository.
-- Stopping point: stopped after test reruns, RTL attribution, typecheck, build, source-date matrix and Git evidence. No QA, no Acceptance Re-Audit, no Acceptance, no Stage D.
-- Next permitted action: Final Stage-C QA of Slice C under a new Prompt.
+## Y. Complete Deferred Items Register
+
+Supplier Payables date architecture; future direct `payment_sessions` contract (`payment_date, created_at, id`); stale Arabic Invoice PDF root assertion; **Arabic `غير محدد` vs `غير معروف` wording (new, minor)**; source-batch explicit tenant predicate (new, defence-in-depth); Internal Cost terminology and Unknown-vs-real-zero; contextual Internal Cost labels; HR salary atomicity/idempotency/reversal; HR-linked Expense deletion; Expense unpost/reversal; Supplier Payable lifecycle; full POS implementation; `create_pos_sale` deferred operation; Manual Ledger Adjustment UI; residual finance privilege hardening; `has_permission` qualification; duplicate Ledger SELECT policy; TEMP/PUBLIC helper EXECUTE review; `sandbox_exec` review; Historical Import provenance; `owner_id` binding; shadow invoice remediation; Doctor billing / `tenant_services` alignment; rollback drill; parser/disposable-environment validation; Stage D; Phase 1 completion; Workstream Closure; Closure Persistence if later required. None marked completed.
+
+## Z. Roadmap and Workstream Impact
+
+RM-DH-004 ACTIVE. Phase 0 COMPLETE. Phase 1 ACTIVE. Stage A ACCEPTED–PERSISTED–VERIFIED–CLOSED. Stage B ACCEPTED–CLOSED. Stage C ACTIVE: Slice A accepted/closed, Slice B accepted/closed, Slice C executed with evidence complete and now independently QA'd. Stage D NOT STARTED. Phases 2–8 NOT STARTED. WS-DH-2026-0003 ACTIVE. No Workstream, Phase or Roadmap Closure. Owner Acceptance of Stage C remains pending.
+
+## AA. Owner Decision Package
+
+Recommended Owner Decision: **Accept RM-DH-004 Phase 1 Stage C within its bounded Economic Date read-path scope.**
+
+- Stage C is not Owner Accepted until the Owner explicitly approves.
+- Stage C is not closed by this Prompt.
+- No Acceptance Persistence action is authorized here.
+- Stage D does not start automatically.
+- The next action after this pass is the Owner's explicit decision.
+
+## AB. RUN METADATA AND EXACT STOPPING POINT
+
+Mode: Plan/Chat — Read-Only. Operation: Stage-C final independent QA and Acceptance Re-Audit. Task: PT-DH-RM004-WS0003-STAGEC-FINAL-QA-20260805-1412. Roadmap RM-DH-004; Phase 1 / Stage C; WS-DH-2026-0003; lineage Shared Tenant Operational Finance + Historical Migration. Prompt ID: …-REAUDIT-47. Status received: UNSENT DRAFT — NUMBER NOT YET CONSUMED. Status after run: SUBMITTED — RUN — CONSUMED. Prepared 05-08-2026, 14:12, Asia/Riyadh. Run start 2026-08-05 ~14:18 Riyadh (11:18 UTC); run end / final report time Exact time not recorded (test start stamp 11:19:14 UTC observed). Timestamp source: message metadata + vitest run stamp. Environment: Lovable only. Backend project: managed Lovable Cloud instance (identifier withheld). Branch, HEAD, parents, Working Tree: section E. Baselines and ancestry: section F (all three ANCESTOR). Authorized substantive paths: section H (8). Current-task changed paths: `.lovable/plan.md` only. Unrelated parallel-task paths: 4 RM-DH-003 docs. Platform-managed: `.lovable/plan.md`. Repository reads: many; repository writes 0; database reads 3 read-only queries; database writes 0; migration writes 0; financial-row writes 0; governance/Knowledge/Skill/Settings writes 0. Tests: 310/311 pass, 1 pre-existing out-of-scope failure. Typecheck exit 0. Build exit 0. Live Financial Entries 5; resolved 5; Unknown 0; source-type queries 3 (bound 4). N+1 verdict: NO N+1. Cross-task drift verdict: no in-scope drift. Cross-task report-contamination verdict: NO CROSS-TASK CONTAMINATION DETECTED. Final verdict: STAGE-C FINAL INDEPENDENT QA AND ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE.
+
+Skills applied: dayli-03 (workflow completeness), dayli-04 (tenant isolation), dayli-05/06 (bounded RLS and RPC regression only), dayli-07 (React/TypeScript review), dayli-08 (bounded no-change schema review), dayli-12 (bilingual/RTL), dayli-19 (financial truth), dayli-23 (performance/reliability), dayli-25 (QA evidence), dayli-26 (cross-task report integrity). Skill 01 was not used for launch readiness.
+
+Exact stopping point: The final independent Stage-C QA and Acceptance Re-Audit report has been delivered. No repository code, test, migration, database row, financial row, governance artifact, Knowledge, Skill, project setting, Acceptance Persistence, Closure Persistence, Stage-D scope, Phase state, Workstream state, or Roadmap state was modified. The task stops at the final verdict and Owner decision package.
+
+Recommended next step: Owner reviews and explicitly grants or withholds Stage-C Acceptance. Recommended next Mode: Plan/Chat — Owner Acceptance decision (Execution Mode only afterwards, for a bounded Acceptance Persistence prompt).
