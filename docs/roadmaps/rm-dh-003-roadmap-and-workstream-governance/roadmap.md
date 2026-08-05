@@ -129,8 +129,8 @@ Establish, verify, organize and install a durable Persistent Knowledge architect
 
 | Sub-phase | Title | Status |
 |---|---|---|
-| `3.0` | Scope and Governance Persistence | CURRENT — TECHNICAL ACCEPTANCE PASSED; OWNER ACCEPTANCE GRANTED; ACCEPTANCE PERSISTENCE COMPLETED; AWAITING TARGETED POST-PERSISTENCE VERIFICATION |
-| `3.1` | Foundational Read-Only Audits | NOT STARTED |
+| `3.0` | Scope and Governance Persistence | COMPLETED — TECHNICAL ACCEPTANCE PASSED AND PERSISTED — OWNER ACCEPTANCE GRANTED AND PERSISTED — POST-PERSISTENCE VERIFICATION PASSED — OWNER ADVANCEMENT APPROVED |
+| `3.1` | Foundational Read-Only Audits | CURRENT — ADVANCEMENT PERSISTED — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED |
 | `3.2` | Knowledge Organizational Architecture | NOT STARTED |
 | `3.3` | Persistent Knowledge Stage B | NOT STARTED |
 | `3.4` | Persistent Knowledge Stage C | NOT STARTED |
