@@ -1,90 +1,78 @@
-# Prompt 17 — C1 Part A — Git Baseline and Post-Prompt-16 Drift Boundary
+# Prompt 17 — C1 Part B1 — Canonical RM-DH-003 Path and Governed File Identities
 
 Read-only. No repository write. No database access. No investigation execution. No Owner Acceptance claim.
 
-The original Prompt-17 PASSED verdict is withdrawn: the authoritative Prompt-16 pre-write baseline `21916b35...` was not used and `445a25306...` was not independently classified.
-
 ## 1. Verdict
 
-PROMPT-17-C1 PART A GIT BOUNDARY RESOLVED — AUTHORITATIVE PROMPT-16 BASELINE AND POST-FINAL-HEAD DRIFT PROVEN — READY FOR PART B CONTENT VERIFICATION
+PROMPT-17-C1 PART B1 CANONICAL PATH VERIFIED — PROMPT-16 THREE GOVERNED FILE IDENTITIES RESOLVED — READY FOR PART B2 CONTENT VERIFICATION
 
-## 2. Branch, HEAD and Working Tree
+## 2. Branch and HEAD
 
-- Branch: `edit/edt-122d1936-32f4-4f71-8237-1d219c55ca0b`
-- HEAD: `3871c033d755efce5a8972465fc1f46d74a0a456` (merge)
-- HEAD parents: `445a2530650a5ed8377ead03cd8e7d74b17adb0c`, `87ff9d6647b97f8682e4d81e4d803924117f838c`
-- Working Tree: clean — no staged, no unstaged, no untracked entries (`git status --porcelain -uall` empty)
-- All seven queried objects exist and are reachable:
-  `8c514c59cc09ac0ed347bd98b6c76d280a694061`, `21916b35ec2a54ac100d7b22efdff0274d25c737`, `1ea50a8159a3ff6c4fefbefba2083407c5fd1576`, `e733853eb89a7f0c419b533412b59ce62ab22892`, `8f03731b04463153537d3bd1ef3a8e3eadb664b4`, `77053af4837de1618af624949f0bed2571a84b49`, `445a2530650a5ed8377ead03cd8e7d74b17adb0c`
+- Branch: `edit/edt-2109747d-4360-4c14-b95a-7332a3660dcb`
+- HEAD: `c762168cd4e2362789817c129bee5725f26481fb` (merge; parents `3871c033d755efce5a8972465fc1f46d74a0a456`, `50a802a185e56022bdae8a1a6c58d09efb48d4d0`)
+- Working Tree: clean — no staged, no unstaged, no untracked entries
+- HEAD advanced since Part A (`3871c033...`) solely through platform plan-artifact activity; all three governed blobs are unchanged from the Part-A reading (verified in section 8).
 
-## 3. Relationship: `8c514c59c...` and `21916b35...`
+## 3. RM-DH-003 directory candidates
 
-`8c514c59c` is a strict ancestor of `21916b35` (`git merge-base --is-ancestor` = YES), four commits earlier:
+Directories directly under `docs/roadmaps/` beginning with `rm-dh-003`:
 
-```text
-8c514c59c (Update plan, 15:41:14Z)
-  ├─ f5f0a2f38 (Changes)
-  └─ 9a24446bc (Update plan, merge)
-       ├─ 0cc1f1884 (Changes)
-       └─ 21916b35e (Update plan, merge, 16:35:15Z)  <-- authoritative Prompt-16 pre-write HEAD
-```
+1. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/` — EXISTS
 
-`8c514c59c` was an earlier platform-plan checkpoint, not the Prompt-16 baseline. Using it widened the reported baseline window by four commits. `21916b35...` is the authoritative pre-write HEAD.
+Candidate check:
 
-## 4. Commit table after `21916b35...` through current HEAD
+- A. `docs/roadmaps/rm-dh-003-persistent-knowledge-architecture/` — DOES NOT EXIST (no such directory; zero Git-tracked paths; zero commits in all-branch history touching that prefix)
+- B. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/` — EXISTS
 
-| Full SHA | Parent(s) | Subject | Changed paths | Classification |
-| --- | --- | --- | --- | --- |
-| `1ea50a8159a3ff6c4fefbefba2083407c5fd1576` | `21916b35ec...` | Changes | `docs/roadmaps/rm-dh-003-.../decisions.md` | GOVERNED CONTENT |
-| `e733853eb89a7f0c419b533412b59ce62ab22892` | `1ea50a8159...` | Changes | `docs/roadmaps/rm-dh-003-.../changelog.md` | GOVERNED CONTENT |
-| `8f03731b04463153537d3bd1ef3a8e3eadb664b4` | `e733853eb8...` | Changes | `docs/README.md` | GOVERNED CONTENT |
-| `77053af4837de1618af624949f0bed2571a84b49` | `8f03731b04...` | Changes | `.lovable/plan.md` | PLATFORM PLAN |
-| `445a2530650a5ed8377ead03cd8e7d74b17adb0c` | `21916b35ec...`, `77053af483...` | Fixed Decision Summary bounds | merge of the four paths above; zero delta vs `77053af4` | PLATFORM MERGE (Prompt-16 integration) |
-| `87ff9d6647b97f8682e4d81e4d803924117f838c` | `445a253065...` | Changes | `.lovable/plan.md` | POST-PROMPT-16 DRIFT (platform plan only) |
-| `3871c033d755efce5a8972465fc1f46d74a0a456` | `445a253065...`, `87ff9d6647...` | Update plan | `.lovable/plan.md` | POST-PROMPT-16 DRIFT (platform plan only) |
+## 4. Canonical package path
 
-## 5. Diff A — `21916b35...` to `77053af4...`
+`docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/`
 
-```text
-M  .lovable/plan.md
-M  docs/README.md
-M  docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md
-M  docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md
-```
+File inventory (4 files, all Git-tracked):
 
-Exactly four paths: three governed plus the platform plan. No fourth governed path, no Workstream file, no application, database or migration path.
+| File | Size |
+| --- | --- |
+| `README.md` | 3,003 B |
+| `roadmap.md` | 32,380 B |
+| `decisions.md` | 67,046 B |
+| `changelog.md` | 51,611 B |
 
-## 6. Diff B — `77053af4...` to current HEAD
+## 5. Evidence proving the canonical path
 
-```text
-M  .lovable/plan.md
-```
+- Git-tracked paths: `git ls-files 'docs/roadmaps/rm-dh-003*'` returns exactly the four files above under the governance path and nothing under any other `rm-dh-003` prefix.
+- `docs/README.md`: 5 references to `rm-dh-003-roadmap-and-workstream-governance`, 0 to `rm-dh-003-persistent-knowledge-architecture`.
+- `docs/roadmaps/README.md`: 1 reference to the governance path, 0 to the persistent-knowledge path.
+- Package README header: `id: DHB-RM-003-README`, `title: RM-DH-003 — Roadmap & Workstream Governance Foundation (package README)`, version `1.1.0`, `status: current`.
+- Repository-wide search for the string `rm-dh-003-persistent-knowledge-architecture`: zero matches in any file.
+- Internal links in `docs/README.md` line 169 resolve to the governance path for README, roadmap, decisions and changelog.
 
-Post-Prompt-16 drift is confined to the platform plan. Governed blobs are byte-identical between `77053af4` and HEAD:
+## 6. Classification of the non-canonical candidate
 
-- `docs/README.md` — `12be42da99b23b4420aa1ba1b669f31d24274de7`
-- `.../changelog.md` — `16eb3ad7a2f2ce523f29ae5d2937409332f335f7`
-- `.../decisions.md` — `fac92ffbd46b1d28ee15121643b7149fead51e06`
+`docs/roadmaps/rm-dh-003-persistent-knowledge-architecture/` — **ABSENT**. It is not stale, not a duplicate, not an alias directory and not a conflicting second package: it has never existed in tracked history and is referenced nowhere in the repository. The name reflects the RM-DH-003 Phase 3 *scope title* ("Persistent Knowledge Architecture, Verification, Organization and Installation"), which is recorded inside the governance package rather than as a directory. There is exactly one RM-DH-003 package; no conflict exists.
 
-## 7. Classification of `445a25306...`
-
-Platform merge/sync, not a delayed Prompt-16 content commit and not drift. Evidence: it is a two-parent merge of the pre-write HEAD `21916b35` and the Prompt-16 linear tip `77053af4`, and `git diff 77053af4 445a25306` is empty — it introduced zero content. Its subject line "Fixed Decision Summary bounds" describes the merged Prompt-16 change, not new content.
-
-## 8. Final governed path set (from `21916b35...`)
+## 7. Exact governed three-path set
 
 1. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md`
 2. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`
 3. `docs/README.md`
 
-Exactly three. No Workstream package path, no `roadmap.md`, no `docs/roadmaps/README.md`.
+## 8. Version and blob table
 
-## 9. Separate platform-plan path set
+| Path | Version at HEAD | Blob at HEAD `c762168cd...` | Version at pre-write `21916b35...` | Blob at `21916b35...` | Prompt-16 commit that changed it |
+| --- | --- | --- | --- | --- | --- |
+| `.../rm-dh-003-roadmap-and-workstream-governance/decisions.md` | 1.8.1 | `fac92ffbd46b1d28ee15121643b7149fead51e06` | 1.8.0 | `c3d897ae7ebc422b41a283a90a60d5b8ea10ed28` | `1ea50a8159a3ff6c4fefbefba2083407c5fd1576` |
+| `.../rm-dh-003-roadmap-and-workstream-governance/changelog.md` | 1.3.7 | `16eb3ad7a2f2ce523f29ae5d2937409332f335f7` | 1.3.6 | `13b893684f9a7f352ca94912d76710a42bb4dd6d` | `e733853eb89a7f0c419b533412b59ce62ab22892` |
+| `docs/README.md` | 1.14.7 | `12be42da99b23b4420aa1ba1b669f31d24274de7` | 1.14.6 | `c8654f9b425bf634560f3c615b98dd1b4ab383a0` | `8f03731b04463153537d3bd1ef3a8e3eadb664b4` |
 
-1. `.lovable/plan.md` — modified inside the Prompt-16 window (`77053af4`) and again after it (`87ff9d66`, `3871c033`), under the `DEC-RM-DH-003-004` platform-artifact exception.
+All three HEAD blobs are identical to those recorded in Part A at `77053af4...`/`3871c033...`, so the branch/HEAD advance introduced no governed-content drift.
+
+## 9. Part-A path labeling
+
+CORRECT — no correction required. Part A named the canonical governance package path for all three governed files. The `rm-dh-003-persistent-knowledge-architecture` path referenced in the external project record is not present in this repository and was never used by Part A.
 
 ## 10. Remaining evidence gap
 
-Commit author identity and exact local clock times were not captured in Part A; committer timestamps are recorded in UTC as shown. Exact time not recorded for Owner-side events. No other gap for the Git boundary.
+None for canonical path or governed file identity. Content-level verification of the three files (Decision bodies, changelog narrative, index cells) is deliberately not performed here and remains for Part B2. Exact time not recorded for Owner-side events.
 
 ## 11. CROSS-TASK REPORT CONTAMINATION CHECK
 
@@ -92,16 +80,14 @@ NO CROSS-TASK CONTAMINATION DETECTED
 
 ## 12. Run metadata and exact stopping point
 
-- Mode/operation: Plan/Chat read-only; Git baseline and drift-boundary reconstruction only.
-- Parent Prompt / continuation: PROMPT-DH-RM003-P3-POST-CORRECTION-PACKAGE-START-VERIFICATION-17 / C1 Part A. No new local number consumed.
-- Parallel Task: PT-DH-RM003-P17-C1-GIT-BOUNDARY-20260805-01.
-- Branch: `edit/edt-122d1936-32f4-4f71-8237-1d219c55ca0b`. HEAD `3871c033d755efce5a8972465fc1f46d74a0a456` with parents `445a253065...` and `87ff9d6647...`. Working Tree clean.
-- Authoritative Prompt-16 pre-write HEAD: `21916b35ec2a54ac100d7b22efdff0274d25c737`.
-- Prompt-16 reported final HEAD: `77053af4837de1618af624949f0bed2571a84b49` (confirmed as the linear Prompt-16 tip).
-- Commits reviewed: `8c514c59cc09ac0ed347bd98b6c76d280a694061`, `f5f0a2f384404f7de28b3f11a0062b33ea7b4cf5`, `9a24446bc89b12200ee5c7dd448f60baa707b000`, `0cc1f1884284f220ad6c709b2c608a7069fff11a`, `21916b35ec2a54ac100d7b22efdff0274d25c737`, `1ea50a8159a3ff6c4fefbefba2083407c5fd1576`, `e733853eb89a7f0c419b533412b59ce62ab22892`, `8f03731b04463153537d3bd1ef3a8e3eadb664b4`, `77053af4837de1618af624949f0bed2571a84b49`, `445a2530650a5ed8377ead03cd8e7d74b17adb0c`, `87ff9d6647b97f8682e4d81e4d803924117f838c`, `3871c033d755efce5a8972465fc1f46d74a0a456`.
-- Diff A path set: 3 governed + `.lovable/plan.md`. Diff B path set: `.lovable/plan.md` only.
-- `445a25306...`: PLATFORM MERGE — zero content delta.
+- Mode/operation: Plan/Chat read-only; canonical RM-DH-003 path resolution and three governed file identity resolution only.
+- Parent Prompt / continuation: PROMPT-DH-RM003-P3-POST-CORRECTION-PACKAGE-START-VERIFICATION-17 / C1 Part B1. No new local number consumed.
+- Parallel Task: PT-DH-RM003-P17-C1-CANONICAL-PATH-20260805-01.
+- Branch: `edit/edt-2109747d-4360-4c14-b95a-7332a3660dcb`. HEAD: `c762168cd4e2362789817c129bee5725f26481fb`. Working Tree clean.
+- Candidate directories: one only — `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/`.
+- Canonical package path: `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/`.
+- Governed three-path set and blobs: as tabulated in sections 7 and 8.
 - Repository writes: None. Database access: None. Investigation execution: None. Owner Acceptance: Not granted.
 - Preserved state: Prompt 16 consumed; both Workstream investigations NOT RUN; both Workstream-local Prompt 01 identities NOT CONSUMED; Project Knowledge NOT INSTALLED; Sub-phase 3.2 NOT STARTED; no Closure.
-- Stopping point: stopped immediately after resolving the Git boundary; no content or package/start verification performed.
-- Next action: Prompt-17 C1 Part B — content verification only.
+- Stopping point: stopped immediately after resolving the canonical path and the three governed file identities; no Workstream package inspection, no Decision-body or changelog-narrative verification.
+- Next action: Prompt-17 C1 Part B2 — content verification only.
