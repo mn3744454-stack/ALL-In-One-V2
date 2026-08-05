@@ -1,11 +1,11 @@
 <!--
 id: DHB-RM-003-DECISIONS
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (decisions)
-version: 1.5.0
+version: 1.6.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-08-04
+last-verified: 2026-08-05
 
 supersedes: []
 superseded-by: null
@@ -23,7 +23,7 @@ This file owns approved decisions, options, rationale, rejected alternatives, an
 
 - The original owner-alignment session used the labels **D-01**, **D-02**, and **D-04**. The label **D-03** was skipped during that session.
 - A repository check found **no evidence** of an omitted decision named D-03. Nothing was removed, lost, or hidden.
-- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-009`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`, `DEC-RM-DH-003-008`, `DEC-RM-DH-003-009`. The next free Decision ID is `DEC-RM-DH-003-010`.
+- Canonical repository Decision IDs are therefore **consecutive** from `DEC-RM-DH-003-001` through `DEC-RM-DH-003-010`: `DEC-RM-DH-003-001`, `DEC-RM-DH-003-002`, `DEC-RM-DH-003-003`, `DEC-RM-DH-003-004`, `DEC-RM-DH-003-005`, `DEC-RM-DH-003-006`, `DEC-RM-DH-003-007`, `DEC-RM-DH-003-008`, `DEC-RM-DH-003-009`, `DEC-RM-DH-003-010`. The next free Decision ID is `DEC-RM-DH-003-011`.
 - Each of `DEC-RM-DH-003-001` to `-003` retains its original owner-alignment label as an alias. `DEC-RM-DH-003-004` has **no alias**: it was approved later, in a separate owner decision, and it is **not** the historical owner-alignment label `D-04` (that label is the alias of `DEC-RM-DH-003-003`).
 - **No decision content was fabricated** to fill the D-03 gap.
 
@@ -488,3 +488,51 @@ Two defects blocked resumption of Technical Acceptance: an unrecorded Prompt-06 
 3. **Substitute a different or provisional Playbook number** — rejected. Any number would re-freeze an unverified roster.
 4. **Correct every account/workspace-type count reference repository-wide** — rejected. Only the two proven current-truth roadmap occurrences are in scope; the rest are separate, evidence-backed contracts.
 5. **Start WS-DH-2026-0014 to settle the roster now** — rejected. Prompt 08 is a bounded governance-persistence correction and authorizes no investigation.
+
+
+## DEC-RM-DH-003-010
+
+**Alias:** None.
+**Subject:** Owner Acceptance and Acceptance-Persistence Authorization for RM-DH-003 / Phase 3 Governance Persistence
+**العنوان العربي:** اعتماد المالك وتفويض تثبيت الاعتماد لحوكمة المرحلة الثالثة من RM-DH-003
+**Status:** Approved
+**Owner Acceptance granted at:** 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00.
+**Repository write (Prompt 10):** 2026-08-05, Asia/Riyadh — UTC+03:00, under execution prompt `PROMPT-DH-RM003-P3-GOVERNANCE-ACCEPTANCE-PERSISTENCE-EXECUTION-10`. The Owner Acceptance time and this repository write time are distinct events and are not interchangeable; the exact write and commit chronology is recorded in [`changelog.md`](./changelog.md).
+
+### Decision
+
+**1. Explicit Owner Acceptance.** The Owner explicitly granted Acceptance of `RM-DH-003 / Phase 3` Governance Persistence on 05-08-2026 — August at 12:38 (Asia/Riyadh — UTC+03:00).
+
+**2. Technical Acceptance passed.** The Technical Acceptance for Sub-phase 3.0 Governance Persistence is **passed**.
+
+**3. Accepted Artifact — Prompt 08.** `PROMPT-DH-RM003-P3-GOVERNANCE-PROMPT06-TOPOLOGY-AND-PLAYBOOK-COUNT-CORRECTION-EXECUTION-08` is **Accepted**: pre-write HEAD `1ad2b5f9b3a68d0dc6cd5503f03cde96be1f0f94`; content commits `740067bbe390c55b81e53b357d01b3774eddce45`, `e2af24bb7769fe54d4ee592cb2c329eb6e03a914` and `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109`; final HEAD `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109`; three content commits, no merge, four governance paths.
+
+**4. Accepted Acceptance evidence package — Prompt 09 through C1 and C2.** The read-only Acceptance evidence package comprises `PROMPT-DH-RM003-P3-GOVERNANCE-PERSISTENCE-TARGETED-ACCEPTANCE-REVERIFICATION-09`, its Correction Continuation C1 (complete-repository sweep and full 100-row Zero-Regression evidence) and its Correction Continuation C2 (commit-identity resolution). All three were read-only and wrote nothing to the repository or the database.
+
+**5. Valid Prompt-06 commit identity.** The unique valid Prompt-06 third content commit is `4e8c4554402ed03c661c9fabd0b2cb06535545ca`. It exists in Git, matches `DEC-RM-DH-003-009` exactly, and remains authoritative.
+
+**6. Withdrawn report-only SHA.** The value `4e8c8554402ed03c661c9fabd0b2cb06535545ca` does **not** exist in Git. It appeared only in a Prompt-09-C1 report and is hereby **withdrawn**. Classification: **REPORT-ONLY TRANSCRIPTION ERROR — NON-MATERIAL**. It changed no repository content, no Decision binding and no Owner decision, and it creates no Deferred Item.
+
+**7. C2 Evidence Artifact.** The commit-identity resolution is recorded as `ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY`.
+
+**8. Playbook contract preserved.** The exact provisional contract remains authoritative and unchanged: *Account-Type Module Playbooks, with the exact roster and count remaining provisional until the organizational and source-mapping investigations verify the current live tenant_type labels, planned account types, and target playbook architecture.* No final Playbook roster and no final Playbook count is approved.
+
+**9. Preserved contracts.** `D1`–`D10` remain unchanged. Option C remains unchanged. Workstreams `WS-DH-2026-0012` through `WS-DH-2026-0020` remain **REGISTERED — PERMANENTLY RESERVED — ID CONSUMED**, with no package created and no investigation started. `MEM-079`, `MEM-084`, `MEM-090` and `MEM-095` remain reserved. Project Knowledge remains **NOT INSTALLED**. Persistent Knowledge Stage B remains **NOT STARTED**. The 16-item Deferred Items Register remains authoritative. Exact-file restoration remains the rollback method. Decisions `-001` through `-009` are preserved unchanged and unrenumbered.
+
+**10. Acceptance persistence is not advancement.** Persisting this Acceptance does **not** advance Sub-phase 3.0, does **not** start Sub-phase 3.1, does **not** advance Phase 3 and grants **no** Closure.
+
+**11. Mandatory next action.** A separate **read-only targeted post-persistence verification** is required before any Sub-phase 3.1 advancement decision may be taken by the Owner.
+
+**12. Explicitly absent.** This decision grants no Workstream package creation, no Workstream investigation, no Project Knowledge installation, no application change, no database change and no Closure.
+
+### Rationale
+
+The Technical Acceptance evidence for Sub-phase 3.0 was completed across Prompt 09 and its two read-only correction continuations, and the only defect found in that package — a transcribed commit SHA that never existed in Git — was report-only and did not touch repository truth. With the Owner's explicit Acceptance granted, the remaining risk was that Acceptance existed only in conversation and not in the repository. Persisting it in a bounded four-file update records the accepted Artifact, the accepted evidence package, the correct commit identity and the withdrawn value, while keeping advancement, Workstream execution, Project Knowledge installation and Closure strictly separate and unauthorized.
+
+### Rejected alternatives
+
+1. **Treat Owner Acceptance as sufficient without repository persistence** — rejected. Governance truth must live in the repository, not only in a conversation.
+2. **Combine Acceptance persistence with Sub-phase 3.1 advancement** — rejected. The Owner authorized persistence only, and advancement requires a separate post-persistence verification.
+3. **Record a Deferred Item for the withdrawn SHA** — rejected. The error was report-only and non-material; a Deferred Item would imply outstanding repository work that does not exist.
+4. **Silently drop the withdrawn SHA from the record** — rejected. Recording the withdrawal and its classification preserves provenance and prevents the value from resurfacing as truth.
+5. **Re-run Prompt-09 testing before persisting** — rejected under the Owner Materiality Directive. No new material evidence exists to justify reopening it.
