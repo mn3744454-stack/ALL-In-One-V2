@@ -124,3 +124,54 @@ The owner did not authorize the Economic Date Investigative Audit or any technic
 - Technical execution remains blocked behind the Investigative Audit, Owner Alignment, an approved execution contract, Agent/Build execution, QA and Acceptance Re-Audit.
 - Phase Advancement Persistence requires read-only verification.
 - No Closure occurs.
+
+## DEC-RM-DH-004-003 — Phase 2 Governance Reconciliation and Creation of the WS-DH-2026-0006 Package
+
+### Decision
+
+On **05-08-2026 — Asia/Riyadh — UTC+03:00**, executed under prompt `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53`, the persisted RM-DH-004 governance package is reconciled with the Owner-approved current state, and a dedicated governance package is created for `WS-DH-2026-0006`.
+
+The reconciliation records:
+
+1. **Phase 1 — Economic Date Integrity:** `COMPLETE — OWNER ACCEPTED — CLOSED`. `WS-DH-2026-0003` is `COMPLETE — OWNER ACCEPTED — CLOSED`. Stage A — Economic Date Backfill, Stage B — Financial Write Authority, Stage C — Read-Path Cutover and Stage D — Constraint Enforcement are each closed within their accepted bounds. The `public.ledger_entries.effective_date NOT NULL` contract is a closed Phase-1 contract.
+2. **Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation:** the current Phase, with status `CURRENT — GOVERNANCE RECONCILED — TECHNICAL IMPLEMENTATION NOT STARTED`. The previous Phase-2 title `Canonical Financial Write Authority` is superseded.
+3. **Former Phase 3 — Import Control Plane:** `SUPERSEDED AND ABSORBED INTO PHASE 2 BY OWNER DECISION — NO SEPARATE EXECUTION`. Its historical number and identity are retained for lineage.
+4. **Phases 4 through 8:** unchanged, retaining their existing numbers, identities and states.
+5. **WS-DH-2026-0004 — Canonical Financial Write Authority:** `PARTIALLY COMPLETE`. Its core write-authority objectives were delivered inside `WS-DH-2026-0003` Stage B. Its residual scope is open and unscheduled and is not a Phase-2 blocker. The ID is retained and is not renumbered, merged or closed.
+6. **WS-DH-2026-0005 — POS Financial Isolation:** `DEFERRED AND INERT`. POS remains Coming Soon / disabled and has no Phase-2 dependency.
+7. **WS-DH-2026-0006:** the current Phase-2 Workstream, reconciled in title and scope from the historical `Import Control Plane` framing to `Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`, with a dedicated four-file package created at version `1.0.0` and status `ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED`.
+
+No Phase is renumbered. No Workstream ID is created, renumbered or merged. No technical Historical Import implementation is authorized by this Decision.
+
+### Rationale
+
+1. The persisted governance package asserted a stale state: `ACTIVE — PHASE 1` with Stage C and Stage D `NOT STARTED`, while Stages C and D were in fact executed, independently re-audited and Owner accepted.
+2. The persisted Phase-2 and Phase-3 titles no longer matched the Owner-approved direction, in which the Historical Import Foundation is a single shared platform-wide Phase whose first implemented domain is Finance.
+3. `WS-DH-2026-0006` was registered as blocked by Phases 1–2 while it is in fact the current Phase-2 Workstream.
+4. `WS-DH-2026-0004` was registered as blocked while its core objectives had already been delivered inside Stage B; leaving that unstated risks either a false-blocked reading or a false-complete reading.
+5. A governance package that asserts a stale Phase, a stale Stage register and a stale Workstream disposition is a defect under the RM-DH-003 governance rules and must be corrected before any Phase-2 technical work is contemplated.
+6. Creating the `WS-DH-2026-0006` package now establishes the authoritative location for Phase-2 dynamic state before any technical decision is taken there.
+
+### Rejected Alternatives
+
+1. Renumber the Phases so that the Historical Import Foundation becomes Phase 3. Rejected: renumbering breaks every persisted cross-reference and lineage claim.
+2. Delete or reuse the former Phase 3. Rejected: historical identity must be preserved, not erased.
+3. Create a new Workstream ID for the Historical Import Foundation. Rejected: `WS-DH-2026-0006` already carries that scope; a new ID would fragment lineage.
+4. Mark `WS-DH-2026-0004` complete. Rejected: only its core Stage-B objectives were delivered; residual scope remains open.
+5. Close `WS-DH-2026-0005` or treat POS as a Phase-2 dependency. Rejected: POS is deferred and inert.
+6. Combine this reconciliation with Phase-2 technical foundation work, schema design, migrations or Storage objects. Rejected: this run is documentation-only.
+7. Claim Phase-2 Acceptance, Workstream Closure or production readiness. Rejected: none has occurred.
+
+### Implications
+
+- RM-DH-004 current Phase becomes Phase 2 and the Roadmap Status becomes `ACTIVE — PHASE 2`.
+- `WS-DH-2026-0006` becomes the current Workstream and owns Phase-2 dynamic state in its own package.
+- Phase 1 and `WS-DH-2026-0003` are closed and must not be reopened by Phase-2 work; the `effective_date NOT NULL` contract must not be changed.
+- No Phase-2 technical implementation exists: no import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC.
+- This reconciliation requires an independent Acceptance Re-Audit before any Phase-2 technical authorization.
+- No Acceptance and no Closure are recorded for Phase 2 by this Decision.
+
+## Decision Summary
+
+- Decisions recorded: `DEC-RM-DH-004-001` through `DEC-RM-DH-004-003`.
+- Next free Decision ID: `DEC-RM-DH-004-004`.
