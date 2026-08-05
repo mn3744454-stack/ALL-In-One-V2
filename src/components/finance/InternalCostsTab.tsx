@@ -256,13 +256,15 @@ export function InternalCostsTab() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("common.date.label")}</TableHead>
+                      <TableHead>{t("finance.internalCosts.costDate")}</TableHead>
+                      <TableHead>{t("finance.internalCosts.recordedOn")}</TableHead>
                       <TableHead>{t("finance.internalCosts.source")}</TableHead>
                       <TableHead>{t("finance.traceability.horseName")}</TableHead>
                       <TableHead>{t("finance.internalCosts.serviceMode")}</TableHead>
                       <TableHead className="text-center">{t("finance.internalCosts.cost")}</TableHead>
                       <TableHead>{t("common.notes")}</TableHead>
                       <TableHead className="w-[40px]"></TableHead>
+
                     </TableRow>
                   </TableHeader>
                   <TableBody>
