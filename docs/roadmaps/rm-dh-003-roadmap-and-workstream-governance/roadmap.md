@@ -258,28 +258,52 @@ Roadmap Status:
 Active
 
 Current Phase:
-RM-DH-003 / Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
+RM-DH-003 / Phase 3 — ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS
 
 Phase 3 Execution Checkpoint:
-TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION
+SUB-PHASE 3.0 COMPLETED AND VERIFIED — OWNER ADVANCEMENT APPROVED AND PERSISTED — SUB-PHASE 3.1 SET CURRENT — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED — AWAITING TARGETED POST-ADVANCEMENT VERIFICATION
 
 Sub-phase 3.0 Technical Acceptance:
-Passed
+Passed and persisted
 
 Sub-phase 3.0 Owner Acceptance:
-Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00
+Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00, and persisted
 
 Sub-phase 3.0 Acceptance persistence:
 Completed — governed by DEC-RM-DH-003-010
+
+Sub-phase 3.0 post-persistence verification:
+Passed — ART-RM-DH-003-P3-GOVERNANCE-PROMPT11-POST-PERSISTENCE-VERIFICATION
+
+Sub-phase 3.0 Status:
+COMPLETED AND VERIFIED
+
+Owner Advancement:
+Granted 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00, and persisted under DEC-RM-DH-003-011
+
+Current Sub-phase:
+3.1 — Foundational Read-Only Audits — CURRENT — ADVANCEMENT PERSISTED — NOT YET STARTED
+
+Foundational Read-Only Audits:
+Not started
+
+Workstreams:
+WS-DH-2026-0012 through WS-DH-2026-0020 remain REGISTERED — PERMANENTLY RESERVED — ID CONSUMED and NOT STARTED
+
+Workstream packages:
+None
+
+Investigations:
+Not started
+
+Project Knowledge:
+NOT INSTALLED
 
 Phase 3 Acceptance:
 Not performed — Phase-level Acceptance is separate from the Sub-phase 3.0 Acceptance recorded above
 
 Phase 3 Closure:
 None
-
-Sub-phase advance:
-None — Sub-phase 3.1 has not started
 ```
 
 
