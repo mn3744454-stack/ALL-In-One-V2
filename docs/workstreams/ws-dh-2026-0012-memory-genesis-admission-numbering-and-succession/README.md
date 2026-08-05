@@ -40,19 +40,29 @@ This Workstream produces an investigation and a proposed governance model. It do
 
 ```text
 Workstream Status:
-ACTIVE — PACKAGE CREATED — OWNER START AUTHORIZATION PERSISTED — INVESTIGATION NOT YET RUN
+ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
 
 Current Stage:
-Stage 0 — PACKAGE CREATED — INVESTIGATION NOT YET RUN
+Stage 0 — PACKAGE CREATED — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
 
 Investigation Status:
 NOT YET RUN
 
 Owner Start Authorization:
-Granted 05-08-2026 — August, 16:55, Asia/Riyadh — UTC+03:00
+Granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00). Exact time not recorded.
+
+Package/Start Owner Acceptance:
+GRANTED 05-08-2026 — August (Asia/Riyadh — UTC+03:00). Exact time not recorded.
+Persisted under DEC-RM-DH-003-013 (Prompt 18).
+
+Official local Prompts consumed:
+0
+
+Next eligible local Prompt:
+01 — NOT CONSUMED
 
 Acceptance:
-None
+Package and start state accepted. No investigation Acceptance.
 
 Closure:
 None
