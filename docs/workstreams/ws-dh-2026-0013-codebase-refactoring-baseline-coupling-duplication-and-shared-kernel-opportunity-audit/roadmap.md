@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0013-ROADMAP
 title: WS-DH-2026-0013 — Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit (authoritative current state)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
 last-verified: 2026-08-05
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00). Establishes the nine-Stage register beginning at Stage 0. No Stage is completed, no investigation was executed, no finding is recorded and no code was modified.
+source: v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and approved Decision DEC-RM-DH-003-013, Owner Acceptance granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00), exact time not recorded: records PACKAGE/START OWNER ACCEPTED, investigation NOT YET RUN, official local Prompt count 0, next local Prompt 01 NOT CONSUMED, and replaces the superseded Prompt-15 next-verifier narrative with the independent Prompt-18 persistence verification followed by a separate explicit Owner authorization. No Stage is marked completed, the Stage register is unchanged, decisions.md is unchanged, no investigation ran and no code was modified; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00). Establishes the nine-Stage register beginning at Stage 0. No Stage is completed, no investigation was executed, no finding is recorded and no code was modified.
 source-sha256: n/a
 -->
 
