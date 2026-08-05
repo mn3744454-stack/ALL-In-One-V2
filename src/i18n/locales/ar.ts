@@ -3742,6 +3742,10 @@ export const ar = {
       source: "المصدر",
       serviceMode: "نوع الخدمة",
       cost: "التكلفة",
+      costDate: "تاريخ التكلفة",
+      recordedOn: "تاريخ التسجيل",
+      unknownDate: "غير محدد",
+
       modeInternal: "داخلي",
       modeExternal: "مزود خارجي",
       stats: {

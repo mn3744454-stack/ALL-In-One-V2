@@ -12,7 +12,9 @@ import {
 import { useI18n } from "@/i18n";
 import { useFinancialEntries, type FinancialEntry } from "@/hooks/finance/useFinancialEntries";
 import { formatCurrency } from "@/lib/formatters";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatEconomicDate } from "@/lib/finance/effectiveDate";
+
 import { Landmark, Search, TrendingDown, DollarSign, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -254,21 +256,29 @@ export function InternalCostsTab() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("common.date.label")}</TableHead>
+                      <TableHead>{t("finance.internalCosts.costDate")}</TableHead>
+                      <TableHead>{t("finance.internalCosts.recordedOn")}</TableHead>
                       <TableHead>{t("finance.internalCosts.source")}</TableHead>
                       <TableHead>{t("finance.traceability.horseName")}</TableHead>
                       <TableHead>{t("finance.internalCosts.serviceMode")}</TableHead>
                       <TableHead className="text-center">{t("finance.internalCosts.cost")}</TableHead>
                       <TableHead>{t("common.notes")}</TableHead>
                       <TableHead className="w-[40px]"></TableHead>
+
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filtered.map((entry) => (
                       <TableRow key={entry.id} className="group">
                         <TableCell className="font-mono text-sm" dir="ltr">
-                          {formatStandardDate(entry.created_at)}
+                          {entry.business_date
+                            ? formatEconomicDate(entry.business_date)
+                            : t("finance.internalCosts.unknownDate")}
                         </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground" dir="ltr">
+                          {formatStandardDateTime(entry.created_at)}
+                        </TableCell>
+
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {getEntityLabel(entry.entity_type)}
@@ -320,9 +330,17 @@ export function InternalCostsTab() {
                       <Badge variant="outline" className="text-xs">
                         {getEntityLabel(entry.entity_type)}
                       </Badge>
-                      <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                        {formatStandardDate(entry.created_at)}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-mono text-xs" dir="ltr">
+                          {entry.business_date
+                            ? formatEconomicDate(entry.business_date)
+                            : t("finance.internalCosts.unknownDate")}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
+                          {t("finance.internalCosts.recordedOn")}: {formatStandardDateTime(entry.created_at)}
+                        </span>
+                      </div>
+
                     </div>
                     {horseNames[entry.entity_id] && (
                       <p className="text-sm font-medium">{horseNames[entry.entity_id]}</p>

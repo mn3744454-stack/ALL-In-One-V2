@@ -3,6 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  FINANCIAL_ENTRY_SOURCE_DATE_CONTRACTS,
+  attachBusinessDates,
+  buildSourceDateLookup,
+  groupSourceIdsByType,
+  sortFinancialEntries,
+  sourceSelectColumns,
+} from "@/lib/finance/financialEntryBusinessDate";
+
 
 export interface FinancialEntry {
   id: string;
@@ -22,8 +31,18 @@ export interface FinancialEntry {
   currency: string;
   notes: string | null;
   created_by: string;
+  /** Audit timestamp — never the business/cost date. */
   created_at: string;
   updated_at: string;
+  /**
+   * Stage C · Slice C — economic (cost) date inherited at read time from the
+   * linked operational source event. `null` means Unknown; it is never a
+   * `created_at` fallback.
+   */
+  business_date?: string | null;
+  /** `table.column` that proved `business_date`, or null when Unknown. */
+  business_date_source?: string | null;
+
   // Joined
   client?: {
     id: string;
@@ -97,7 +116,34 @@ export function useFinancialEntries(entityType?: string, entityId?: string) {
       const { data, error } = await query;
 
       if (error) throw error;
-      setEntries((data as unknown as FinancialEntry[]) || []);
+      const rows = (data as unknown as FinancialEntry[]) || [];
+
+      // Stage C · Slice C — batched read-time business-date inheritance.
+      // One query per supported entity type (never per row), select limited to
+      // the source id plus its authoritative date columns. Nothing is written.
+      const grouped = groupSourceIdsByType(rows);
+      const batches = await Promise.all(
+        Object.entries(grouped).map(async ([type, ids]) => {
+          const contract = FINANCIAL_ENTRY_SOURCE_DATE_CONTRACTS[type];
+          const columns = sourceSelectColumns(type);
+          if (!contract || !columns) return { entityType: type, rows: [] };
+          const { data: sourceRows, error: sourceError } = await supabase
+            .from(contract.table as never)
+            .select(columns)
+            .in("id", ids);
+          if (sourceError) {
+            console.error(`Source date resolution failed for ${type}:`, sourceError);
+            return { entityType: type, rows: [] };
+          }
+          return {
+            entityType: type,
+            rows: (sourceRows as unknown as Array<Record<string, unknown>>) || [],
+          };
+        })
+      );
+
+      setEntries(sortFinancialEntries(attachBusinessDates(rows, buildSourceDateLookup(batches))));
+
     } catch (error) {
       console.error("Error fetching financial entries:", error);
       toast.error("Failed to load financial entries");

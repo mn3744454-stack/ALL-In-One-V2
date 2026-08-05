@@ -2,6 +2,11 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import DOMPurify from "dompurify";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
+// Stage C · Slice C — payment economic dates are date-only `effective_date`
+// values and must never be parsed through `new Date(...)`, which shifts the
+// calendar day in negative UTC offsets.
+import { formatEconomicDate } from "@/lib/finance/effectiveDate";
+
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import {
   buildInvoicePresentation,
@@ -332,7 +337,7 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
         .map((p) => {
           const methodKey = p.payment_method || "";
           const methodLabel = labels.methodLabels[methodKey] || methodKey || "—";
-          const effDate = p.effective_date ? formatStandardDate(p.effective_date) : "—";
+          const effDate = p.effective_date ? formatEconomicDate(p.effective_date) : "—";
           const recAt = p.created_at ? formatStandardDateTime(p.created_at) : "—";
           return `
       <div data-block="session-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; break-inside: avoid;">
@@ -361,8 +366,9 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
                 ? `${sessLabels.sessionLabel} #${idx + 1}`
                 : sessLabels.historicalLabel;
               const dateLine = sess.effectiveDate
-                ? ltrBdi(escapeHtml(formatStandardDate(sess.effectiveDate)))
+                ? ltrBdi(escapeHtml(formatEconomicDate(sess.effectiveDate)))
                 : "";
+
               const totalLine = `${escapeHtml(sessLabels.sessionTotal)}: ${ltrBdi(formatCurrency(sess.totalAmount))}`;
               const methodsRows = sess.tenders
                 .map((t) => {

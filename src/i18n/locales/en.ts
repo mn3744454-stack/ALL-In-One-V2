@@ -3608,6 +3608,10 @@ export const en = {
       source: "Source",
       serviceMode: "Service Mode",
       cost: "Cost",
+      costDate: "Cost Date",
+      recordedOn: "Recorded On",
+      unknownDate: "Unknown",
+
       modeInternal: "Internal",
       modeExternal: "External Provider",
       stats: {
