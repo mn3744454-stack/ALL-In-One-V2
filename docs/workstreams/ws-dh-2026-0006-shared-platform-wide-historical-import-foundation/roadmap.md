@@ -147,10 +147,10 @@ Step 1 must not be marked COMPLETE before independent re-verification and Owner 
 
 ## Current Stopping Point
 
-Governance package created at version `1.0.0`. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database.
+The governance package was originally created at version `1.0.0` and is currently at version `1.1.0` following the bounded Prompt-53 same-subject package correction. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database. The remaining version-coherence sentence has now been repaired under Prompt-53 Correction Continuation C2, and this C2 correction remains pending independent read-only verification and Owner Acceptance.
 
 ## Next Permitted Step
 
-Independent Acceptance Re-Audit of the Prompt-53 governance reconciliation and of this package.
-
-Stated separately: the Technical Foundation Audit (Stage 1) requires a **separate explicit Owner authorization** after that Re-Audit passes. It is not authorized by the creation of this package.
+1. Independent read-only verification of Prompt-53 Correction Continuation C2 is the next permitted step.
+2. Owner Acceptance of the Prompt-53 governance reconciliation and of this package may occur only after that verification passes.
+3. Stated separately: the Technical Foundation Audit (Stage 1) still requires a **separate explicit Owner authorization** after Owner Acceptance. It is not authorized by the creation or correction of this package.
