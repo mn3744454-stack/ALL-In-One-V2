@@ -116,7 +116,7 @@ This register is the planned technical order. It is separate from, and does not 
 
 | # | Planned step | Current state |
 |---:|---|---|
-| 1 | Governance reconciliation | COMPLETE — OWNER ACCEPTED (DEC-RM-DH-004-004) |
+| 1 | Governance reconciliation | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004) |
 | 2 | Technical Foundation Audit / Execution Contract | NOT STARTED |
 | 3 | Shared control-plane schema, storage and permissions | NOT STARTED |
 | 4 | Upload and registry visibility | NOT STARTED |
