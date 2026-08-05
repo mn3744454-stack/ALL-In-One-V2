@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-2026-0006-DECISIONS
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (decisions)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
@@ -36,6 +36,20 @@ No local Decision has been recorded.
 
 - Local Decisions consumed: 0.
 - Next free Decision ID: `DEC-WS-DH-2026-0006-001`.
+
+## Inherited Architectural Decisions
+
+These decisions are inherited from `DEC-RM-DH-004-003`. They are **not** local `WS-DH-2026-0006` Decision records, they consume no local Decision ID, the local register remains at 0 consumed Decisions, and the next free local ID remains `DEC-WS-DH-2026-0006-001`.
+
+1. **Staging** — Option C: Hybrid Shared Core with typed/projected Domain fields.
+2. **Storage and Registry** — Option C: dedicated private Historical Import storage and registry, later surfaced through File Manager.
+3. **Permission namespace** — `import.*`, with the applicable Domain permission additionally required at posting.
+4. **Browser role** — preview and mapping assistance only.
+5. **Server role** — authoritative parsing/extraction, validation, staging authorization and reproducible audit evidence.
+6. **Protected staging authority** — browser-direct DML to protected staging tables is prohibited.
+7. **Connections** — no Phase-2 Connections expansion; preserve only a future native-record identity seam.
+8. **EQX** — identity not proven in current repository evidence and outside the current execution scope.
+9. **Prompt 53** — governance-only; no technical implementation authorization.
 
 ## Governing Roadmap Decision
 

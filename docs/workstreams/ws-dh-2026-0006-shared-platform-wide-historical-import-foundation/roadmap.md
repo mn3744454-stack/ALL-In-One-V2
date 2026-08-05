@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-2026-0006-ROADMAP
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (authoritative current state)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
@@ -106,6 +106,26 @@ NONE
 | 5 | QA | NOT STARTED |
 | 6 | Acceptance Re-Audit | NOT STARTED |
 | 7 | Closure | NOT STARTED |
+
+## Planned Technical Sequence
+
+This register is the planned technical order. It is separate from, and does not replace, the Stage Register above. No technical step is implemented, executed, accepted or closed.
+
+| # | Planned step | State after this correction |
+|---:|---|---|
+| 1 | Governance reconciliation | EXECUTED — INDEPENDENT RE-VERIFICATION PENDING |
+| 2 | Technical Foundation Audit / Execution Contract | NOT STARTED |
+| 3 | Shared control-plane schema, storage and permissions | NOT STARTED |
+| 4 | Upload and registry visibility | NOT STARTED |
+| 5 | Excel ingestion and staging | NOT STARTED |
+| 6 | Validation, quarantine, review and correction | NOT STARTED |
+| 7 | Dry run, reconciliation and approval | NOT STARTED |
+| 8 | Canonical Finance posting | NOT STARTED |
+| 9 | PDF digital-text and table extraction | NOT STARTED |
+| 10 | Controlled real-client pilot | NOT STARTED |
+| 11 | Later Domain Adapters | NOT STARTED |
+
+Step 1 must not be marked COMPLETE before independent re-verification and Owner Acceptance.
 
 ## Dependencies
 

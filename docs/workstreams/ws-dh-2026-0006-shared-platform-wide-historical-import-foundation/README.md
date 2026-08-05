@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-2026-0006-README
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (package README)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
@@ -67,6 +67,53 @@ This Workstream **does not own**:
 3. Historical Import must not invoke or depend on the POS financial writer.
 4. Payment status remains derived from the ledger and is never set manually.
 5. No production financial or operational data may be written by this Workstream without a separately Owner-authorized execution contract.
+
+## Shared Core Boundary
+
+The Shared Core is the domain-agnostic Historical Import substrate. It owns:
+
+- Import Batch identity;
+- source-file identity and provenance;
+- staging;
+- validation;
+- quarantine;
+- dry run;
+- reconciliation;
+- idempotency and fingerprint foundations;
+- selective rollback foundations;
+- audit evidence.
+
+The Shared Core must not own Domain-specific business posting logic.
+
+## Domain Adapter Boundary
+
+Each Domain Adapter supplies:
+
+- field mapping;
+- typed/projected Domain fields;
+- Domain validation rules;
+- identity requirements;
+- Domain-specific reconciliation rules;
+- the canonical Domain posting call.
+
+A Domain Adapter must never bypass Import Batch authority, Shared Core validation, quarantine, review, approval, audit, or canonical posting authority.
+
+## Format Priorities
+
+- Excel is a first-priority ingestion format.
+- PDF is a first-priority ingestion format.
+- CSV is supported by the architecture.
+- Images are architecture-ready only.
+- OCR and image extraction are not implemented by this governance work.
+- This correction implements no parser.
+
+## Acceptance Boundary
+
+Workstream Acceptance must eventually cover: Shared Foundation safety; Finance-first Adapter safety; source preservation; tenant isolation; staging; validation; quarantine; dry run; reconciliation; canonical posting; idempotency; audit evidence; and controlled real-client pilot evidence.
+
+Workstream Acceptance does not require completion of every future Domain Adapter.
+
+This correction itself does not achieve Workstream Acceptance.
 
 ## Current State
 
