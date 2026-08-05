@@ -111,7 +111,7 @@ No Stage is marked completed. Stage 0 is the current Stage and has not been exec
 ## Current stopping point
 
 ```text
-The package exists and the Owner-authorized start is persisted.
+The package exists, the Owner-authorized start is persisted, and the package/start state is Owner accepted.
 Stage 0 has not been executed.
 No investigation has run.
 No architecture finding, coupling result, duplication result, shared-kernel opportunity
@@ -122,7 +122,8 @@ No code was read for analysis purposes and no code was modified.
 ## Next permitted step
 
 ```text
-Parent Prompt 15 — Plan/Chat Read-only targeted verification of this package, its start state,
-its Prompt-Lineage numbering state and its parallel-isolation boundary.
-Only after that verification passes may WS-DH-2026-0013 local Prompt 01 be prepared as an UNSENT DRAFT.
+The superseded narrative naming Prompt 15 as the next verifier no longer applies.
+Parent Prompt 19 — Plan/Chat read-only verification of the Prompt-18 Owner-Acceptance persistence.
+Only after that verification passes, and after a separate explicit Owner authorization,
+may WS-DH-2026-0013 local Prompt 01 be prepared as an UNSENT DRAFT.
 ```
