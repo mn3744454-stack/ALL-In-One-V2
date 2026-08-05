@@ -1,7 +1,7 @@
 <!--
 id: DHB-INDEX
 title: Dayli Horse — Documentation Index
-version: 1.16.0
+version: 1.16.1
 status: current
 audience: internal+external
 date: 2026-07-29
