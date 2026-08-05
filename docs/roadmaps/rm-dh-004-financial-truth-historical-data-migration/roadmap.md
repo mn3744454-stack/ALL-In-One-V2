@@ -431,40 +431,27 @@ No private Client names or private financial details are recorded here.
 
 ## Remaining Work
 
-1. read-only Stage B Acceptance Persistence Verification (Prompt 37);
-2. read-only Stage A Acceptance Persistence Verification;
-3. read-only Phase Advancement Persistence Acceptance Re-Audit;
-4. correction of any proven persistence defects;
-5. after verified Stage B Acceptance Persistence and separate Owner authorization, the Stage C Read-Path Cutover investigation for WS-DH-2026-0003;
-6. no Stage C or Stage D technical execution before that investigation and later Owner Alignment.
+1. independent Acceptance Re-Audit of this Prompt-53 governance reconciliation and of the new `WS-DH-2026-0006` package;
+2. after that Re-Audit passes and the Owner separately authorizes it, the `WS-DH-2026-0006` Technical Foundation Audit and Execution Contract;
+3. all later Phase-2 technical slices, each requiring separate Owner authorization;
+4. Phases 4 through 8 in their existing numbering and identities.
 
 ## Current Stopping Point
 
-Stage A of WS-DH-2026-0003 has been executed, independently re-audited, explicitly accepted by the Owner and persisted for its bounded scope.
+Phase 1 — Economic Date Integrity is `COMPLETE — OWNER ACCEPTED — CLOSED`, and `WS-DH-2026-0003` is `OWNER ACCEPTED — CLOSED`. Stages A, B, C and D are closed within their accepted bounds. The `public.ledger_entries.effective_date NOT NULL` contract is a closed Phase-1 contract and must not be changed.
 
-Stage B of WS-DH-2026-0003 has been executed, independently re-audited, explicitly accepted by the Owner on 04-08-2026 at 20:49 Asia/Riyadh (UTC+03:00) and persisted by this run for its bounded scope. Stage B is ACCEPTED — PERSISTED — VERIFICATION PENDING and is not yet marked verified or completed.
+Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase. Its governance is reconciled and the dedicated `WS-DH-2026-0006` package exists at version `1.0.0`.
 
-RM-DH-004 remains ACTIVE — PHASE 1.
+Phase-2 technical implementation has **not** started. No import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists or was created. No Phase-2 Acceptance, Workstream Closure, Roadmap Closure or production readiness is claimed.
 
-WS-DH-2026-0003 remains ACTIVE.
-
-Stage C and Stage D have not started.
-
-The Emergency Rollback was not executed.
-
-Workstream-wide Technical Acceptance, Phase 1 completion and all Closure states remain incomplete.
-
-Stage A and Stage B Acceptance Persistence each require a separate read-only verification.
+The former Phase 3 — Import Control Plane retains its historical identity but is superseded and absorbed into Phase 2 and has no separate execution state. Phases 4 through 8 retain their numbers and identities and remain not started.
 
 ## Next Permitted Action
 
-Plan/Chat — Read-Only Stage B Acceptance Persistence Verification (Prompt 37)
+Independent Acceptance Re-Audit of the Prompt-53 governance reconciliation and the `WS-DH-2026-0006` package.
 
-Stated separately: that verification must stop before Stage C, before any Statement or read-path change, before any Emergency Rollback execution and before any database change.
+Stated separately: that Re-Audit is read-only and must stop before any technical slice, before any migration or Storage object, before any parsing or staging work and before any database change.
 
-Also stated separately: the read-only Stage A Acceptance Persistence Verification and the read-only Phase Advancement Persistence Acceptance Re-Audit remain open governance items, and after Prompt 37 passes and the Owner separately authorizes it, the next Workstream-specific action may be:
-
-Plan/Chat — Read-Only Stage C Read-Path Cutover Investigative Audit
 
 
 
