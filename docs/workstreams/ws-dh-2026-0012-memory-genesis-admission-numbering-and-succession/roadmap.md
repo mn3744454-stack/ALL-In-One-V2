@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0012-ROADMAP
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (authoritative current state)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
 last-verified: 2026-08-05
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00). Establishes the eight-Stage register beginning at Stage 0. No Stage is completed, no investigation was executed and no finding is recorded.
+source: v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and approved Decision DEC-RM-DH-003-013, Owner Acceptance granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00), exact time not recorded: records PACKAGE/START OWNER ACCEPTED, investigation NOT YET RUN, official local Prompt count 0, next local Prompt 01 NOT CONSUMED, and replaces the superseded Prompt-15 next-verifier narrative with the independent Prompt-18 persistence verification followed by a separate explicit Owner authorization. No Stage is marked completed, the eight-Stage register is unchanged, decisions.md is unchanged and no investigation ran; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00). Establishes the eight-Stage register beginning at Stage 0. No Stage is completed, no investigation was executed and no finding is recorded.
 source-sha256: n/a
 -->
 
@@ -26,10 +26,10 @@ Parent:
 RM-DH-003 / Phase 3 / Sub-phase 3.1
 
 Workstream Status:
-ACTIVE — PACKAGE CREATED — OWNER START AUTHORIZATION PERSISTED — INVESTIGATION NOT YET RUN
+ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
 
 Current Stage:
-Stage 0 — PACKAGE CREATED — INVESTIGATION NOT YET RUN
+Stage 0 — PACKAGE CREATED — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
 
 Stages completed:
 None
@@ -40,6 +40,16 @@ NOT YET RUN
 Findings:
 None
 
+Package/Start Owner Acceptance:
+GRANTED 05-08-2026 — August (Asia/Riyadh — UTC+03:00). Exact time not recorded.
+Persisted under DEC-RM-DH-003-013 (parent Prompt 18).
+
+Official local Prompts consumed:
+0
+
+Next eligible local Prompt:
+01 — NOT CONSUMED
+
 Owner Alignment:
 Not performed
 
@@ -47,7 +57,7 @@ QA:
 Not performed
 
 Acceptance:
-None
+Package and start state accepted. No investigation Acceptance.
 
 Closure:
 None
@@ -97,7 +107,7 @@ No Stage is marked completed. Stage 0 is the current Stage and has not been exec
 ## Current stopping point
 
 ```text
-The package exists and the Owner-authorized start is persisted.
+The package exists, the Owner-authorized start is persisted, and the package/start state is Owner accepted.
 Stage 0 has not been executed.
 No investigation has run.
 No finding, recommendation or Memory governance rule exists in this package.
@@ -106,7 +116,8 @@ No finding, recommendation or Memory governance rule exists in this package.
 ## Next permitted step
 
 ```text
-Parent Prompt 15 — Plan/Chat Read-only targeted verification of this package, its start state,
-its Prompt-Lineage numbering state and its parallel-isolation boundary.
-Only after that verification passes may WS-DH-2026-0012 local Prompt 01 be prepared as an UNSENT DRAFT.
+The superseded narrative naming Prompt 15 as the next verifier no longer applies.
+Parent Prompt 19 — Plan/Chat read-only verification of the Prompt-18 Owner-Acceptance persistence.
+Only after that verification passes, and after a separate explicit Owner authorization,
+may WS-DH-2026-0012 local Prompt 01 be prepared as an UNSENT DRAFT.
 ```

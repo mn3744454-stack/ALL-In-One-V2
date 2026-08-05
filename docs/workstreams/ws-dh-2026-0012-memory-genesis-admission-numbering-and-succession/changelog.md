@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0012-CHANGELOG
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (changelog)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
 last-verified: 2026-08-05
 supersedes: []
 superseded-by: null
-source: authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012. Records package creation and Owner start authorization only.
+source: v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and approved Decision DEC-RM-DH-003-013: appends exactly one entry recording package/start Owner Acceptance. The earlier entry is preserved unchanged; no investigation ran and no local Prompt was consumed; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012. Records package creation and Owner start authorization only.
 source-sha256: n/a
 -->
 
@@ -36,4 +36,22 @@ Append-oriented chronological record. Newest entries are added at the bottom of 
 
 **Not performed.** No investigation was executed and no Memory finding, provenance result, admission rule, numbering rule or succession rule was produced. No repository investigation result and no database investigation result was recorded. No application, public-asset, database, schema, data, migration, RLS, RPC, Edge Function or configuration change occurred. No Project Knowledge installation, no Workspace Knowledge change, no Skill change and no `AGENTS.md` creation. No local Workstream Decision was consumed. No Owner Alignment, no QA, no Acceptance and no Closure.
 
-**Next action.** Parent Prompt 15 — Plan/Chat read-only targeted package/start verification.
+**Next action.** Superseded. See the 2026-08-05 package/start Owner Acceptance entry below.
+
+### 2026-08-05 — Package and start state Owner accepted
+
+**Execution prompt.** `PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18` (parent `RM-DH-003` local Prompt number 18), Agent/Build, repository write 2026-08-05 (Asia/Riyadh — UTC+03:00). Exact write clock time not recorded; the authoritative write chronology is the Git evidence bound to the Prompt-18 Artifact.
+
+**Owner Acceptance.** Granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00). **Exact time not recorded.** The Owner accepted the package and the start state of this Workstream. Acceptance of the package and start state is **not** authorization to run the investigation.
+
+**Governing Decision.** `DEC-RM-DH-003-013`, recorded in the parent `RM-DH-003` package.
+
+**Recorded state.** Workstream Status **ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN**; investigation **NOT YET RUN**; official local Prompt count **0**; next local Prompt **01 — NOT CONSUMED**. Stage 0 is **not** marked completed.
+
+**Superseded narrative.** The earlier statement naming Prompt 15 as the next verifier is superseded. The next permitted action is the independent read-only Prompt-18 persistence verification (parent Prompt 19), followed by a separate explicit Owner authorization before this lane's local Prompt `01` may be submitted.
+
+**Scope.** Three files in this package were written: `README.md` (1.0.0 → 1.1.0), `roadmap.md` (1.0.0 → 1.1.0) and this changelog (1.0.0 → 1.1.0). `decisions.md` is unchanged and no local Workstream Decision was created.
+
+**Not performed.** No investigation, no finding, no Stage completion, no application, public-asset, database, schema, data, migration, RLS, RPC, Edge Function or configuration change, no Project Knowledge installation, no Workspace Knowledge change, no Skill change, no `AGENTS.md` creation, no Sub-phase advancement and no Closure.
+
+**Next action.** Parent Prompt 19 — Plan/Chat read-only persistence verification.
