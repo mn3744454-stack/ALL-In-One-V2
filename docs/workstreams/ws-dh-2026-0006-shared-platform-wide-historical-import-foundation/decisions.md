@@ -51,6 +51,10 @@ These decisions are inherited from `DEC-RM-DH-004-003`. They are **not** local `
 8. **EQX** — identity not proven in current repository evidence and outside the current execution scope.
 9. **Prompt 53** — governance-only; no technical implementation authorization.
 
-## Governing Roadmap Decision
+## Governing Roadmap Decisions
 
-The creation, title, scope and Phase placement of this Workstream are governed by [`DEC-RM-DH-004-003`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-003--phase-2-governance-reconciliation-and-creation-of-the-ws-dh-2026-0006-package). That Decision is a Roadmap-level Decision and is not restated as a local Decision.
+The creation, title, scope and Phase placement of this Workstream are governed by [`DEC-RM-DH-004-003`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-003--phase-2-governance-reconciliation-and-creation-of-the-ws-dh-2026-0006-package).
+
+The Owner Acceptance of the Phase-2 Stage-0 governance reconciliation and of this package, granted 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00, is governed by [`DEC-RM-DH-004-004`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-004--owner-acceptance-of-phase-2-stage-0-governance-reconciliation-and-the-ws-dh-2026-0006-governance-package). That Acceptance is bounded to Stage-0 governance: it grants no technical authorization, no Workstream Acceptance and no Closure, and Stage 1 still requires a separate explicit Owner authorization.
+
+Both are Roadmap-level Decisions and are not restated as local Decisions. They consume no local Decision ID; the local register remains at 0 consumed Decisions and the next free local ID remains `DEC-WS-DH-2026-0006-001`.
