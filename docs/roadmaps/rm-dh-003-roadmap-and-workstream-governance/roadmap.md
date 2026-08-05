@@ -126,8 +126,18 @@ Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is
 - **Owner start authorization.** Granted 05-08-2026 — August, 16:55, Asia/Riyadh — UTC+03:00, persisted here under `DEC-RM-DH-003-012`. The Owner authorization time is not the repository write time; the repository write time is recorded in [`changelog.md`](./changelog.md).
 - **Packages created.** Dedicated four-file packages now exist for `WS-DH-2026-0012` at [`../../workstreams/ws-dh-2026-0012-memory-genesis-admission-numbering-and-succession/`](../../workstreams/ws-dh-2026-0012-memory-genesis-admission-numbering-and-succession/README.md) and for `WS-DH-2026-0013` at [`../../workstreams/ws-dh-2026-0013-codebase-refactoring-baseline-coupling-duplication-and-shared-kernel-opportunity-audit/`](../../workstreams/ws-dh-2026-0013-codebase-refactoring-baseline-coupling-duplication-and-shared-kernel-opportunity-audit/README.md).
 - **Isolated parallel lanes.** `WS-DH-2026-0012` carries Parallel Task ID `PT-DH-WS0012-MEMORY-GENESIS-INVESTIGATION-01` and `WS-DH-2026-0013` carries `PT-DH-WS0013-REFACTORING-BASELINE-INVESTIGATION-01`. Each lane has its own Prompt Lineage, its own evidence and its own stopping point, and has consumed 0 local Prompts. Cross-lane import of findings, hashes, Prompt numbers, commits or statuses requires explicit equivalence proof, and the shared repository must be re-read before any material action in either lane.
-- **Boundary.** Workstream start is **not** investigation execution. No investigation was run, no Memory finding and no architecture finding exists, no code was modified, no database was accessed for these Workstreams, Project Knowledge remains **NOT INSTALLED**, and no Acceptance or Closure occurred.
-- **Mandatory next action.** A separate read-only targeted package and start verification (Prompt 15) is required before either lane's local Prompt `01` may be prepared as an unsent draft.
+- **Boundary.** Workstream start is **not** investigation execution. No investigation was run, no Memory finding and no architecture finding exists, no code was modified, no database was accessed for these Workstreams, Project Knowledge remains **NOT INSTALLED**, and no Closure occurred.
+- **Mandatory next action.** Superseded — see the Sub-phase 3.1 package and start Owner-Acceptance record below.
+
+### Sub-phase 3.1 package and start Owner-Acceptance record
+
+- **Owner Acceptance.** Granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00). **Exact time not recorded.** Persisted here under `DEC-RM-DH-003-013`. The Owner Acceptance time is not the repository write time; the repository write time is recorded in [`changelog.md`](./changelog.md).
+- **What was accepted.** The Prompt-16 bounded Decision-summary correction, together with the package and start states of `WS-DH-2026-0012` and `WS-DH-2026-0013`.
+- **Supporting verification.** Prompt 17 and its Correction Continuation C1 Parts A, B1, B2, C1 and C2 — all read-only, all passed. Prompt 15 remains **FAILED** with its Passed verdict withdrawn; this Acceptance does not reinstate it.
+- **Resulting lane state.** Both Workstreams are **ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN** at Stage 0, each with **0** official local Prompts consumed and next eligible local Prompt `01` — **NOT CONSUMED**. Stage 0 is **not** completed in either lane.
+- **Boundary.** Acceptance of a package and start state is **not** authorization to run an investigation, and **not** Acceptance of any finding, recommendation, Memory governance rule or Refactoring proposal.
+- **Superseded statement.** Every statement naming parent Prompt 15 as the mandatory next verifier is superseded.
+- **Mandatory next action.** An independent read-only verification of this Prompt-18 Owner-Acceptance persistence (parent Prompt 19). Only after it passes, and after a **separate explicit Owner authorization**, may either lane's local Prompt `01` be prepared as an unsent draft.
 
 ### Phase 3 purpose
 
