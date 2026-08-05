@@ -150,10 +150,10 @@ Step 1 is marked COMPLETE only because independent re-verification passed and th
 
 ## Current Stopping Point
 
-The governance package was originally created at version `1.0.0` and is currently at version `1.1.0` following the bounded Prompt-53 same-subject package correction. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database. The remaining version-coherence sentence has now been repaired under Prompt-53 Correction Continuation C2, and this C2 correction remains pending independent read-only verification and Owner Acceptance.
+The governance package was originally created at version `1.0.0`, corrected to `1.1.0` under the bounded Prompt-53 same-subject package correction and Correction Continuation C2, and is currently at version `1.2.0` following the Prompt-54 Stage-0 Owner Acceptance Persistence. Stage 0 is `COMPLETE — OWNER ACCEPTED — PERSISTED` under `DEC-RM-DH-004-004`, Owner Acceptance granted 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database, and no Technical Foundation Execution Contract exists.
 
 ## Next Permitted Step
 
-1. Independent read-only verification of Prompt-53 Correction Continuation C2 is the next permitted step.
-2. Owner Acceptance of the Prompt-53 governance reconciliation and of this package may occur only after that verification passes.
-3. Stated separately: the Technical Foundation Audit (Stage 1) still requires a **separate explicit Owner authorization** after Owner Acceptance. It is not authorized by the creation or correction of this package.
+1. Prompt 55 — the Stage 1 Technical Foundation Audit / Execution Contract — is the next permitted step and requires a **separate explicit Owner authorization**. Prompt 55 has not been consumed.
+2. Stated separately: the Stage-0 Owner Acceptance does not authorize any technical slice, database change, migration, Storage object, permission/RLS/Grant change, parsing or staging work.
+3. No Workstream Acceptance and no Workstream Closure is granted.
