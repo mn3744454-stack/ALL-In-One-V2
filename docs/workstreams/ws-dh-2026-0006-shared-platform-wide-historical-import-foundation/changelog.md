@@ -69,3 +69,15 @@ Append-oriented chronological record. New entries are added at the bottom.
 - Zero technical Historical Import implementation, zero database activity, zero migrations, zero Storage activity, zero permission/RLS/Grant changes, zero application changes and zero test changes occurred.
 - Preserved boundaries are unchanged, including the closed Phase-1 `public.ledger_entries.effective_date NOT NULL` contract, RPC-mediated financial write authority, ledger-derived payment status and POS isolation.
 - No Workstream Acceptance, no Workstream Closure and no Roadmap Closure was granted.
+
+### 06-08-2026 — 00:52 — Asia/Riyadh (UTC+03:00) — Bounded Acceptance-Persistence Correction (package version remains 1.2.0)
+
+- Executed under `PROMPT 54 — SAME-SUBJECT ACCEPTANCE PERSISTENCE CORRECTION` of parent prompt `PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54`. No new Prompt number was consumed; Prompt 55 remains next eligible and unauthorized.
+- Authorized by the Owner following the independent read-only Acceptance-Persistence Re-Audit, which returned two bounded governance defects.
+- `roadmap.md` — Planned Technical Sequence Step 1 repaired from `COMPLETE — OWNER ACCEPTED` to `COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004)`, and the accompanying explanatory sentence updated to state the persisted state.
+- `docs/README.md` — the `DHB-RM-REGISTRY` row synchronized to central Roadmap registry version `1.5.0` with the current accepted state, and the `DHB-WS-REGISTRY` row synchronized to central Workstream registry version `1.8.0` with `WS-DH-2026-0006` recorded as Stage 0 Owner accepted and persisted, technical implementation not started.
+- `DEC-RM-DH-004-004` is unchanged and is not reopened or amended. No local Workstream Decision was created; the local register remains at 0 consumed Decisions and the next free local ID remains `DEC-WS-DH-2026-0006-001`.
+- All four package files remain version-coherent at `1.2.0`; this is a bounded correction to the accepted `1.2.0` persistence release and not a new package release. No new `source:` provenance line was added in any file.
+- Stage 0 remains `COMPLETE — OWNER ACCEPTED — PERSISTED`; Stages 1 through 7 and Steps 2 through 11 remain `NOT STARTED`; no Technical Foundation Execution Contract exists.
+- Zero technical Historical Import implementation, zero application changes, zero test changes, zero database activity, zero migration activity, zero Storage activity and zero permission/RLS/Grant changes occurred.
+- No new Acceptance decision, no Workstream Acceptance, no Workstream Closure and no Roadmap Closure was granted. The correction remains pending independent read-only re-verification.
