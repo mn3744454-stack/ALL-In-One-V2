@@ -342,33 +342,59 @@ export function exportPDF(data: StatementPrintData) {
   printStatement(data);
 }
 
-/** Generic ledger print utility retained for other tabs (unchanged). */
-export function printLedgerEntries(data: {
+/**
+ * Stage C · Slice B correction (Prompt 43) — explicit export date mode.
+ *
+ *   "timestamp"      → legacy behavior: render an audit `timestamptz` with a
+ *                      12-hour bilingual time. This remains the DEFAULT so any
+ *                      existing timestamp-based caller is unaffected.
+ *   "economic-date"  → render a date-only business date (`effective_date`)
+ *                      via `formatEconomicDate`: no fabricated time, no UTC
+ *                      day shift.
+ */
+export type ExportDateMode = "timestamp" | "economic-date";
+
+function formatExportDate(value: string, mode: ExportDateMode, lang: string): string {
+  return mode === "economic-date" ? formatEconomicDate(value) : formatTimeForPrint(value, lang);
+}
+
+export interface LedgerExportEntry {
+  id?: string;
+  date: string;
+  entry_type: string;
+  description: string;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface LedgerPrintData {
   title: string;
-  entries: Array<{
-    id: string;
-    date: string;
-    entry_type: string;
-    description: string;
-    debit: number;
-    credit: number;
-    balance: number;
-  }>;
+  entries: LedgerExportEntry[];
   totalDebits: number;
   totalCredits: number;
   isRTL?: boolean;
   lang?: string;
-}) {
+  /** Defaults to "timestamp" to preserve legacy caller behavior. */
+  dateMode?: ExportDateMode;
+}
+
+/**
+ * Pure serializer for the generic ledger print document. Exported so the
+ * exact printed output can be asserted in tests without a browser.
+ */
+export function buildLedgerPrintHtml(data: LedgerPrintData): string {
   const dir = data.isRTL ? "rtl" : "ltr";
   const textAlign = data.isRTL ? "right" : "left";
   const lang = data.lang || (data.isRTL ? 'ar' : 'en');
   const labels = getLabels(data.isRTL);
+  const dateMode: ExportDateMode = data.dateMode ?? "timestamp";
 
   const rows = data.entries
     .map(
       (e) => `
     <tr>
-      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${escapeHtml(formatTimeForPrint(e.date, lang))}</td>
+      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${escapeHtml(formatExportDate(e.date, dateMode, lang))}</td>
       <td style="padding:6px 8px;text-align:center"><span style="background:#f0f0f0;padding:2px 8px;border-radius:4px;font-size:11px">${escapeHtml(e.entry_type)}</span></td>
       <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"}">${escapeHtml(e.description || "-")}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.debit > 0 ? escapeHtml(formatCurrency(e.debit)) : "-"}</td>
@@ -378,7 +404,8 @@ export function printLedgerEntries(data: {
     )
     .join("");
 
-  const html = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
+
 <html dir="${dir}">
 <head>
 <meta charset="UTF-8">
