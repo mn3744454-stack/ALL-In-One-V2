@@ -171,7 +171,63 @@ No Phase is renumbered. No Workstream ID is created, renumbered or merged. No te
 - This reconciliation requires an independent Acceptance Re-Audit before any Phase-2 technical authorization.
 - No Acceptance and no Closure are recorded for Phase 2 by this Decision.
 
+## DEC-RM-DH-004-004 — Owner Acceptance of Phase-2 Stage-0 Governance Reconciliation and the WS-DH-2026-0006 Governance Package
+
+### Decision
+
+On **06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00**, the owner, Mohamed Nour, explicitly accepted:
+
+1. the Prompt-53 RM-DH-004 Phase-2 governance reconciliation;
+2. the creation of the `WS-DH-2026-0006` governance package;
+3. the first Prompt-53 same-subject package correction;
+4. Prompt-53 Correction Continuation C2;
+5. the successful independent re-verifications completed under Prompt 54 and its same-subject continuations.
+
+### Accepted State
+
+- RM-DH-004 remains ACTIVE and Phase 2 remains the current Phase.
+- Phase-2 Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED`.
+- The `WS-DH-2026-0006` governance package at version `1.1.0` is accepted; this persistence run moves the package to version `1.2.0` to record the Acceptance.
+- Stage 1 — Technical Foundation Audit / Execution Contract remains `NOT STARTED`.
+- No Technical Foundation Execution Contract exists.
+- No technical Historical Import implementation exists.
+- Prompt 55 remains the next eligible new Prompt and has not been consumed.
+
+### Rationale
+
+1. The Git state was settled and reproducible at the verified HEAD and parents.
+2. The changed paths and blobs were independently verified against the authorized boundary.
+3. Package identity, path uniqueness and version coherence were verified across all four package files.
+4. The four package-content gaps raised by the independent Acceptance Re-Audit were repaired under the bounded same-subject correction.
+5. The residual version-coherence sentence was repaired under Correction Continuation C2.
+6. Zero technical implementation was confirmed: no import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists.
+7. Rollback remained reproducible from Git evidence alone.
+8. No blocking finding remained at the end of the independent re-verification.
+
+### Explicit Non-Decisions
+
+This Acceptance does **not**:
+
+- authorize Stage 1 — Technical Foundation Audit / Execution Contract;
+- authorize any database or Storage change;
+- authorize any migration;
+- authorize any permission, RLS or Grant change;
+- authorize parsing, OCR or extraction work;
+- authorize a Finance Domain Adapter;
+- authorize a real-client pilot;
+- accept or close `WS-DH-2026-0006`;
+- close RM-DH-004;
+- close any downstream Phase.
+
+### Implications
+
+- Phase-2 Stage 0 is persisted as Owner accepted.
+- All technical Stages and all planned technical Steps 2–11 remain `NOT STARTED`.
+- Closed Phase-1 contracts, including `public.ledger_entries.effective_date NOT NULL`, are unchanged.
+- The `WS-DH-2026-0006` local Decision register remains at 0 consumed Decisions; this is a Roadmap-level Decision inherited by the Workstream, not a local Workstream Decision.
+
 ## Decision Summary
 
-- Decisions recorded: `DEC-RM-DH-004-001` through `DEC-RM-DH-004-003`.
-- Next free Decision ID: `DEC-RM-DH-004-004`.
+- Decisions recorded: `DEC-RM-DH-004-001` through `DEC-RM-DH-004-004`.
+- Next free Decision ID: `DEC-RM-DH-004-005`.
+- Current accepted governance state: RM-DH-004 ACTIVE; Phase 2 current; Phase-2 Stage 0 `COMPLETE — OWNER ACCEPTED — PERSISTED`; Stage 1 `NOT STARTED`; no Workstream Closure and no Roadmap Closure.
