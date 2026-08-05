@@ -271,8 +271,14 @@ export function InternalCostsTab() {
                     {filtered.map((entry) => (
                       <TableRow key={entry.id} className="group">
                         <TableCell className="font-mono text-sm" dir="ltr">
-                          {formatStandardDate(entry.created_at)}
+                          {entry.business_date
+                            ? formatEconomicDate(entry.business_date)
+                            : t("finance.internalCosts.unknownDate")}
                         </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground" dir="ltr">
+                          {formatStandardDateTime(entry.created_at)}
+                        </TableCell>
+
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {getEntityLabel(entry.entity_type)}
