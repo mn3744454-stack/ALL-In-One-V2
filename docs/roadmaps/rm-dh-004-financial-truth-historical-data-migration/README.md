@@ -1,13 +1,14 @@
 <!--
 id: DHB-RM-004-README
 title: RM-DH-004 — Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap (package README)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-03
-last-verified: 2026-08-03
+last-verified: 2026-08-05
 supersedes: []
 superseded-by: null
+source: v1.1.0 — RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, approved Decision DEC-RM-DH-004-003), 05-08-2026 (Asia/Riyadh — UTC+03:00): adds the WS-DH-2026-0006 package to the navigation list and records the two currently packaged Workstreams. This file continues to carry stable identity only; all dynamic RM-DH-004 state remains in roadmap.md. The earlier provenance is preserved verbatim on the following source line.
 source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under approved Decision DEC-RM-DH-004-001 and execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02, following the passed planning audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01. This file carries stable identity only; all dynamic RM-DH-004 state lives in roadmap.md.
 source-sha256: n/a
 -->
@@ -42,9 +43,10 @@ RM-DH-004 governs:
 - [`decisions.md`](./decisions.md) — owner decisions.
 - [`changelog.md`](./changelog.md) — chronological record.
 
-Currently packaged Workstream:
+Currently packaged Workstreams:
 
-- [`WS-DH-2026-0003 — Economic Date Integrity`](../../workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md)
+- [`WS-DH-2026-0003 — Economic Date Integrity`](../../workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md) — Phase 1; complete, Owner accepted and closed.
+- [`WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`](../../workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/README.md) — Phase 2; current Workstream; governance package created, technical implementation not started.
 
 ## Ownership Boundaries
 
