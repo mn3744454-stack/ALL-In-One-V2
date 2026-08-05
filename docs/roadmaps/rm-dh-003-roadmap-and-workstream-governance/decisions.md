@@ -647,3 +647,61 @@ Sub-phase 3.1 exists to produce two foundational read-only audits, and the post-
 3. **Run the two lanes as a single combined Workstream** — rejected. Memory governance and codebase architecture are distinct Tracks with distinct evidence bases; merging them would destroy the isolation that permits parallel execution and would couple two independent Acceptance paths.
 4. **Execute Stage 0 of either lane inside this parent governance prompt** — rejected. Parent Prompt 14 belongs to the `RM-DH-003` Lineage; executing local work here would consume a local Prompt number implicitly and breach lane isolation.
 5. **Use a single `workstream.md` file, matching `WS-DH-2026-0002` and `WS-DH-2026-0003`** — rejected. `docs/CONVENTIONS.md` §11.3 requires the four-file package for new packages; the two earlier single-file Workstreams predate that requirement and are not a precedent for new work.
+
+---
+
+## DEC-RM-DH-003-013
+
+**Alias:** none
+
+**Title:** Owner Acceptance of the Prompt-16 Bounded Correction and of the Package and Start States of WS-DH-2026-0012 and WS-DH-2026-0013
+
+**Status:** Approved
+
+**Owner Acceptance:** Granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00). **Exact time not recorded.**
+
+**Repository write:** 2026-08-05 (Asia/Riyadh — UTC+03:00). Exact write clock time not recorded; the authoritative write chronology is the Git evidence bound to the Prompt-18 Artifact.
+
+**Execution prompt:** `PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18` (local parent Prompt number 18), Agent/Build.
+
+**Phase / Sub-phase:** Phase 3 / Sub-phase 3.1 — Foundational Read-Only Audits.
+
+### Context
+
+Prompt 15 was **FAILED** and its Passed verdict remains withdrawn. Its Correction Continuation C1 bounded the cross-task Prompt-52 / `RM-DH-004` contamination to the platform-managed `.lovable/plan.md` only, and found no governed-content contamination in any roadmap, decisions, changelog, registry, central-index or Workstream-package path. Prompt 16 then executed the bounded Decision-summary correction. Prompt 17 and its Correction Continuation C1 Parts A, B1, B2, C1 and C2 verified, read-only, the Prompt-16 baseline, the three governed file identities and contents, and the byte-identity and start states of both foundational Workstream packages. All parts **passed**.
+
+### Decision
+
+**1. Owner Acceptance of the Prompt-16 correction.** The Owner accepts the bounded Decision-summary correction persisted under `PROMPT-DH-RM003-P3-DECISION-SUMMARY-AND-PLATFORM-PLAN-CORRECTION-16`, together with its Prompt-17 read-only verification evidence. The canonical Decision-ID summary is accepted as truthful.
+
+**2. Owner Acceptance of both Workstream package and start states.** The Owner accepts the package and start states of `WS-DH-2026-0012` (Memory Genesis, Admission Numbering and Succession) and `WS-DH-2026-0013` (Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit), each a four-file package created under `DEC-RM-DH-003-012`.
+
+**3. Acceptance scope is bounded.** This Acceptance covers **package existence, package content and start state only**. It is **not** Acceptance of any investigation, finding, recommendation, Memory governance rule or Refactoring proposal, because none exists.
+
+**4. Investigation state unchanged.** Both Workstreams remain **ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN** at Stage 0. Each has consumed **0** official local Prompts; the next eligible local Prompt in each lane is `01` — **NOT CONSUMED**. Stage 0 is **not** marked completed in either lane.
+
+**5. Acceptance is not authorization to investigate.** Acceptance of a package and start state does not authorize investigation execution. A **separate explicit Owner authorization** is required before either lane's local Prompt `01` may be submitted.
+
+**6. Superseded next-verifier narrative.** Every statement in either Workstream package naming parent Prompt 15 as the next verifier is **superseded**. The next permitted action is the independent read-only verification of this Prompt-18 persistence (parent Prompt 19).
+
+**7. Prompt-15 status preserved.** Prompt 15 remains **FAILED** with its Passed verdict withdrawn. This Acceptance does not reinstate it.
+
+**8. Parallel lane isolation preserved.** `PT-DH-WS0012-MEMORY-GENESIS-INVESTIGATION-01` and `PT-DH-WS0013-REFACTORING-BASELINE-INVESTIGATION-01` remain separate lanes with separate Prompt Lineages, separate evidence bases and separate stopping points. Parent Prompt 18 belongs to the `RM-DH-003` Lineage only and consumes no local Prompt number in either lane.
+
+**9. Preserved contracts.** Decisions `-001` through `-012` are preserved unchanged and unrenumbered. `D1`–`D10`, Option C, the exact provisional Account-Type Playbook contract, Tracks A–E, the Sub-phase register 3.0–3.7, the Memory boundary — including the permanently reserved `MEM-079`, `MEM-084`, `MEM-090` and `MEM-095` and the 104 Memories as an inventory — and exact-file restoration as the rollback method are all unchanged. `WS-DH-2026-0014` through `WS-DH-2026-0020` remain **REGISTERED — NOT YET CREATED** and **NOT STARTED**. Project Knowledge remains **NOT INSTALLED** and Persistent Knowledge Stage B remains **NOT STARTED**.
+
+**10. Cross-task boundary.** `RM-DH-004` and the Prompt-52 investigative line remain entirely separate and untouched. The `.lovable/plan.md` platform-artifact exception recorded in `DEC-RM-DH-003-004` continues to apply.
+
+**11. Explicitly absent.** This decision grants no investigation execution, no Refactoring, no application, public-asset, schema, data, migration, RLS, RPC, Edge Function or configuration change, no Project Knowledge installation, no Workspace Knowledge change, no Skill change, no `AGENTS.md` creation, no Sub-phase advancement and **no Closure**.
+
+### Rationale
+
+The correction chain from Prompt 15 through Prompt 17 produced a verified, truthful repository state, but that verified state lived only in conversation. Persisting Owner Acceptance as a durable Decision converts a passing verification into a governed fact, so a later reader can prove that both foundational lanes were accepted at package/start level without re-deriving the Prompt 15–17 history. Keeping Acceptance strictly bounded to package and start state — and requiring a separate explicit authorization before any investigation runs — preserves the governing separation between activation and execution that made parallel lanes safe in the first place.
+
+### Rejected alternatives
+
+1. **Defer Acceptance until after the first investigation** — rejected. The verified package/start state would remain unpersisted, and a future drift would have no accepted baseline to compare against.
+2. **Accept and simultaneously authorize investigation execution** — rejected. Conflating Acceptance with authorization would erase the activation/execution boundary and let a lane start work on the strength of a documentation Acceptance.
+3. **Reinstate the Prompt-15 Passed verdict as part of this Acceptance** — rejected. Prompt 15 failed on evidence; retroactively reinstating it would falsify the verification record.
+4. **Record the Acceptance only in the changelog** — rejected. Acceptance is a governance decision and belongs in `decisions.md` with a canonical ID, per `docs/CONVENTIONS.md` §11.1.
+5. **Mark Stage 0 completed in both lanes** — rejected. No Stage 0 work was executed; marking it completed would fabricate progress.
