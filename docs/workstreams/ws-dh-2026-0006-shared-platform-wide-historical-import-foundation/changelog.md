@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-2026-0006-CHANGELOG
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (changelog)
-version: 1.0.0
+version: 1.1.0
 status: current
 audience: internal
 date: 2026-08-05
@@ -32,4 +32,19 @@ Append-oriented chronological record. New entries are added at the bottom.
 - No import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC was designed, created or executed.
 - No database access, no migration, no SQL, no Storage object, no application code change and no test change occurred.
 - No Acceptance and no Closure were recorded.
+- The exact wall-clock time of this run is not recorded.
+
+### 05-08-2026 — Exact time not recorded — Bounded Package Correction (version 1.1.0)
+
+- Executed under `PROMPT 53 — SAME-SUBJECT CORRECTION CONTINUATION` of parent prompt `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53`. No new Prompt number was consumed. Governed by `DEC-RM-DH-004-003`, which is preserved and not reopened or amended.
+- Owner authorized the same-subject correction at the decision gate raised by the independent Prompt-54 Acceptance Re-Audit, which identified four bounded package-content gaps.
+- All four package files moved from version `1.0.0` to `1.1.0`: `README.md`, `roadmap.md`, `decisions.md` and `changelog.md`.
+- `README.md`: added the Shared Core Boundary, the Domain Adapter Boundary, the Format Priorities (Excel and PDF first-priority, CSV supported, images architecture-ready only, no OCR and no parser implemented) and the Workstream Acceptance Boundary.
+- `roadmap.md`: added the eleven-step planned technical sequence, with Step 1 recorded as `EXECUTED — INDEPENDENT RE-VERIFICATION PENDING` and Steps 2–11 recorded as `NOT STARTED`. The existing eight-row Stage Register is retained unchanged.
+- `decisions.md`: added the nine inherited architectural decisions from `DEC-RM-DH-004-003`. They consume no local Decision ID; the local register remains at 0 consumed Decisions and the next free local ID remains `DEC-WS-DH-2026-0006-001`.
+- Phase-1 and `WS-DH-2026-0003` synchronization remains authoritative: Phase 1 is COMPLETE — OWNER ACCEPTED — CLOSED, and `public.ledger_entries.effective_date NOT NULL` remains a closed Phase-1 contract.
+- `WS-DH-2026-0004` remains partially completed with bounded residual scope that must not be silently absorbed here.
+- `WS-DH-2026-0005` remains deferred and operationally inert.
+- Zero technical implementation, zero application changes, zero test changes, zero database activity, zero migration activity and zero Storage activity occurred.
+- Governance reconciliation remains pending independent read-only re-verification and Owner Acceptance. No Acceptance and no Closure were recorded.
 - The exact wall-clock time of this run is not recorded.
