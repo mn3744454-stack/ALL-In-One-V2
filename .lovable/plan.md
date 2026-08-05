@@ -1,53 +1,107 @@
-# Prompt 17 — RM-DH-003 / Phase 3 / Sub-phase 3.1
+# Prompt 17 — C1 Part A — Git Baseline and Post-Prompt-16 Drift Boundary
 
-Independent read-only post-correction verification of Prompt 16, WS-DH-2026-0012 and WS-DH-2026-0013. No repository write, no investigation execution, no Owner Acceptance claim.
+Read-only. No repository write. No database access. No investigation execution. No Owner Acceptance claim.
 
-## Verdict
+The original Prompt-17 PASSED verdict is withdrawn: the authoritative Prompt-16 pre-write baseline `21916b35...` was not used and `445a25306...` was not independently classified.
 
-PROMPT-17 POST-CORRECTION PACKAGE/START VERIFICATION PASSED (one non-blocking narrative observation) — READY FOR AN EXPLICIT OWNER PACKAGE/START ACCEPTANCE AND INVESTIGATION-AUTHORIZATION DECISION.
+## 1. Verdict
 
-## Git chain and artifact separation
+PROMPT-17-C1 PART A GIT BOUNDARY RESOLVED — AUTHORITATIVE PROMPT-16 BASELINE AND POST-FINAL-HEAD DRIFT PROVEN — READY FOR PART B CONTENT VERIFICATION
 
-- Verified HEAD: `445a25306` ("Fixed Decision Summary bounds", 2026-08-05 17:16:19 +0000).
-- Prompt-16 chain from the pre-write HEAD `8c514c59c`: `1ea50a815` → `e733853eb` → `8f03731b0` → `77053af48` → `445a25306`.
-- Net diff `8c514c59c..445a25306` contains exactly four paths: three governed (`docs/README.md`, RM-DH-003 `changelog.md`, RM-DH-003 `decisions.md`) plus the platform artifact `.lovable/plan.md` under the `DEC-RM-DH-003-004` exception.
-- `roadmap.md` (1.7.0), `docs/roadmaps/README.md` (1.3.0) and both Workstream packages are untouched by Prompt 16.
-- Working tree is clean.
+## 2. Branch, HEAD and Working Tree
 
-## Decision range and record integrity
+- Branch: `edit/edt-122d1936-32f4-4f71-8237-1d219c55ca0b`
+- HEAD: `3871c033d755efce5a8972465fc1f46d74a0a456` (merge)
+- HEAD parents: `445a2530650a5ed8377ead03cd8e7d74b17adb0c`, `87ff9d6647b97f8682e4d81e4d803924117f838c`
+- Working Tree: clean — no staged, no unstaged, no untracked entries (`git status --porcelain -uall` empty)
+- All seven queried objects exist and are reachable:
+  `8c514c59cc09ac0ed347bd98b6c76d280a694061`, `21916b35ec2a54ac100d7b22efdff0274d25c737`, `1ea50a8159a3ff6c4fefbefba2083407c5fd1576`, `e733853eb89a7f0c419b533412b59ce62ab22892`, `8f03731b04463153537d3bd1ef3a8e3eadb664b4`, `77053af4837de1618af624949f0bed2571a84b49`, `445a2530650a5ed8377ead03cd8e7d74b17adb0c`
 
-- `decisions.md` version `1.8.1`.
-- Canonical summary now states `DEC-RM-DH-003-001` through `DEC-RM-DH-003-012`, next free `DEC-RM-DH-003-013`.
-- `DEC-RM-DH-003-012` present and unchanged; zero `## DEC-RM-DH-003-013` headings exist — the four `013` occurrences are next-free references only.
-- One bounded Prompt-16 correction note exists outside every Decision body; no Decision was created, modified, renumbered or reordered.
+## 3. Relationship: `8c514c59c...` and `21916b35...`
 
-## Changelog and central index
+`8c514c59c` is a strict ancestor of `21916b35` (`git merge-base --is-ancestor` = YES), four commits earlier:
 
-- `changelog.md` version `1.3.7` with exactly one Prompt-16 correction entry (line 323), append-only preserved.
-- `docs/README.md` version `1.14.7`; decisions cell `1.8.1`, changelog cell `1.3.7`, roadmap cell `1.7.0`.
+```text
+8c514c59c (Update plan, 15:41:14Z)
+  ├─ f5f0a2f38 (Changes)
+  └─ 9a24446bc (Update plan, merge)
+       ├─ 0cc1f1884 (Changes)
+       └─ 21916b35e (Update plan, merge, 16:35:15Z)  <-- authoritative Prompt-16 pre-write HEAD
+```
 
-## Platform-plan contamination
+`8c514c59c` was an earlier platform-plan checkpoint, not the Prompt-16 baseline. Using it widened the reported baseline window by four commits. `21916b35...` is the authoritative pre-write HEAD.
 
-- Zero occurrences of `RM-DH-004`, `Prompt-52` or `Prompt 52` remain in `.lovable/plan.md`. Contamination cleared; no governed path was ever contaminated.
+## 4. Commit table after `21916b35...` through current HEAD
 
-## Workstream package and start state
+| Full SHA | Parent(s) | Subject | Changed paths | Classification |
+| --- | --- | --- | --- | --- |
+| `1ea50a8159a3ff6c4fefbefba2083407c5fd1576` | `21916b35ec...` | Changes | `docs/roadmaps/rm-dh-003-.../decisions.md` | GOVERNED CONTENT |
+| `e733853eb89a7f0c419b533412b59ce62ab22892` | `1ea50a8159...` | Changes | `docs/roadmaps/rm-dh-003-.../changelog.md` | GOVERNED CONTENT |
+| `8f03731b04463153537d3bd1ef3a8e3eadb664b4` | `e733853eb8...` | Changes | `docs/README.md` | GOVERNED CONTENT |
+| `77053af4837de1618af624949f0bed2571a84b49` | `8f03731b04...` | Changes | `.lovable/plan.md` | PLATFORM PLAN |
+| `445a2530650a5ed8377ead03cd8e7d74b17adb0c` | `21916b35ec...`, `77053af483...` | Fixed Decision Summary bounds | merge of the four paths above; zero delta vs `77053af4` | PLATFORM MERGE (Prompt-16 integration) |
+| `87ff9d6647b97f8682e4d81e4d803924117f838c` | `445a253065...` | Changes | `.lovable/plan.md` | POST-PROMPT-16 DRIFT (platform plan only) |
+| `3871c033d755efce5a8972465fc1f46d74a0a456` | `445a253065...`, `87ff9d6647...` | Update plan | `.lovable/plan.md` | POST-PROMPT-16 DRIFT (platform plan only) |
 
-- Both packages complete at four files each, version `1.0.0`.
-- WS-DH-2026-0012: `ACTIVE — PACKAGE CREATED — OWNER START AUTHORIZATION PERSISTED — INVESTIGATION NOT YET RUN`, Stage 0 not executed, eight-Stage register.
-- WS-DH-2026-0013: same start state, Stage 0 not executed, nine-Stage register, no code modified.
-- Isolated Prompt Lineages: local Prompt `01` not consumed in either lane. Parallel-task isolation intact; neither lane references the other's evidence.
-- Registry `docs/workstreams/README.md` at `1.6.0` records both rows as `PACKAGE CREATED / ACTIVE — STARTED — INVESTIGATION NOT YET RUN`; frozen seven-column schema unchanged.
+## 5. Diff A — `21916b35...` to `77053af4...`
 
-## Non-advancement confirmations
+```text
+M  .lovable/plan.md
+M  docs/README.md
+M  docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md
+M  docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md
+```
 
-- Project Knowledge remains NOT INSTALLED.
-- No advancement to Sub-phase 3.2, no Acceptance, no Closure.
-- No application, database, migration, RLS, RPC or Edge Function change.
+Exactly four paths: three governed plus the platform plan. No fourth governed path, no Workstream file, no application, database or migration path.
 
-## Non-blocking observation
+## 6. Diff B — `77053af4...` to current HEAD
 
-`docs/README.md` line 129 carries the correct changelog version `1.3.7`, but its descriptive cell still narrates the latest entry as the Prompt-14 package creation and start persistence rather than the Prompt-16 correction. Version synchronization is correct; only the prose summary lags. Recommend folding this into the next authorized central-index write rather than a standalone correction prompt.
+```text
+M  .lovable/plan.md
+```
 
-## Next permitted action
+Post-Prompt-16 drift is confined to the platform plan. Governed blobs are byte-identical between `77053af4` and HEAD:
 
-Explicit Owner package/start Acceptance and investigation-authorization decision for WS-DH-2026-0012 and/or WS-DH-2026-0013.
+- `docs/README.md` — `12be42da99b23b4420aa1ba1b669f31d24274de7`
+- `.../changelog.md` — `16eb3ad7a2f2ce523f29ae5d2937409332f335f7`
+- `.../decisions.md` — `fac92ffbd46b1d28ee15121643b7149fead51e06`
+
+## 7. Classification of `445a25306...`
+
+Platform merge/sync, not a delayed Prompt-16 content commit and not drift. Evidence: it is a two-parent merge of the pre-write HEAD `21916b35` and the Prompt-16 linear tip `77053af4`, and `git diff 77053af4 445a25306` is empty — it introduced zero content. Its subject line "Fixed Decision Summary bounds" describes the merged Prompt-16 change, not new content.
+
+## 8. Final governed path set (from `21916b35...`)
+
+1. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md`
+2. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`
+3. `docs/README.md`
+
+Exactly three. No Workstream package path, no `roadmap.md`, no `docs/roadmaps/README.md`.
+
+## 9. Separate platform-plan path set
+
+1. `.lovable/plan.md` — modified inside the Prompt-16 window (`77053af4`) and again after it (`87ff9d66`, `3871c033`), under the `DEC-RM-DH-003-004` platform-artifact exception.
+
+## 10. Remaining evidence gap
+
+Commit author identity and exact local clock times were not captured in Part A; committer timestamps are recorded in UTC as shown. Exact time not recorded for Owner-side events. No other gap for the Git boundary.
+
+## 11. CROSS-TASK REPORT CONTAMINATION CHECK
+
+NO CROSS-TASK CONTAMINATION DETECTED
+
+## 12. Run metadata and exact stopping point
+
+- Mode/operation: Plan/Chat read-only; Git baseline and drift-boundary reconstruction only.
+- Parent Prompt / continuation: PROMPT-DH-RM003-P3-POST-CORRECTION-PACKAGE-START-VERIFICATION-17 / C1 Part A. No new local number consumed.
+- Parallel Task: PT-DH-RM003-P17-C1-GIT-BOUNDARY-20260805-01.
+- Branch: `edit/edt-122d1936-32f4-4f71-8237-1d219c55ca0b`. HEAD `3871c033d755efce5a8972465fc1f46d74a0a456` with parents `445a253065...` and `87ff9d6647...`. Working Tree clean.
+- Authoritative Prompt-16 pre-write HEAD: `21916b35ec2a54ac100d7b22efdff0274d25c737`.
+- Prompt-16 reported final HEAD: `77053af4837de1618af624949f0bed2571a84b49` (confirmed as the linear Prompt-16 tip).
+- Commits reviewed: `8c514c59cc09ac0ed347bd98b6c76d280a694061`, `f5f0a2f384404f7de28b3f11a0062b33ea7b4cf5`, `9a24446bc89b12200ee5c7dd448f60baa707b000`, `0cc1f1884284f220ad6c709b2c608a7069fff11a`, `21916b35ec2a54ac100d7b22efdff0274d25c737`, `1ea50a8159a3ff6c4fefbefba2083407c5fd1576`, `e733853eb89a7f0c419b533412b59ce62ab22892`, `8f03731b04463153537d3bd1ef3a8e3eadb664b4`, `77053af4837de1618af624949f0bed2571a84b49`, `445a2530650a5ed8377ead03cd8e7d74b17adb0c`, `87ff9d6647b97f8682e4d81e4d803924117f838c`, `3871c033d755efce5a8972465fc1f46d74a0a456`.
+- Diff A path set: 3 governed + `.lovable/plan.md`. Diff B path set: `.lovable/plan.md` only.
+- `445a25306...`: PLATFORM MERGE — zero content delta.
+- Repository writes: None. Database access: None. Investigation execution: None. Owner Acceptance: Not granted.
+- Preserved state: Prompt 16 consumed; both Workstream investigations NOT RUN; both Workstream-local Prompt 01 identities NOT CONSUMED; Project Knowledge NOT INSTALLED; Sub-phase 3.2 NOT STARTED; no Closure.
+- Stopping point: stopped immediately after resolving the Git boundary; no content or package/start verification performed.
+- Next action: Prompt-17 C1 Part B — content verification only.
