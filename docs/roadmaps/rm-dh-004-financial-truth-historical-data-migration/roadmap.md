@@ -374,8 +374,8 @@ Phase 1 technical scope is **not** accepted. No technical Acceptance and no Clos
 | Workstream-wide Technical Acceptance | NOT COMPLETE |
 | Phase 1 Acceptance | NOT COMPLETE |
 | Stage B — Financial Write Authority | ACCEPTED — PERSISTED — VERIFICATION PENDING |
-| Stage C — Read-Path Cutover | NOT STARTED |
-| Stage D — Constraint Enforcement | NOT STARTED |
+| Stage C — Read-Path Cutover | COMPLETE — OWNER ACCEPTED — CLOSED |
+| Stage D — Constraint Enforcement | COMPLETE — OWNER ACCEPTED — CLOSED |
 | Closure | NONE |
 
 Accepted Stage A aggregate evidence:
