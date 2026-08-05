@@ -156,3 +156,31 @@ Append-oriented chronological record. New entries are added at the bottom.
 - A read-only Stage B Acceptance Persistence Verification (Prompt 37) is pending.
 - No Closure occurred.
 - The exact wall-clock time of this persistence run is not recorded.
+
+### Exact time not recorded — Stage C and Stage D Executed, Re-Audited, Owner Accepted and Closed
+
+- Stage C — Read-Path Cutover was executed across Slices A, B and C, independently re-audited and Owner accepted.
+- Stage D — Constraint Enforcement was executed: `public.ledger_entries.effective_date` was set `NOT NULL`, the generated types were synchronized, and the change passed its final independent QA and Acceptance Re-Audit.
+- Stage D carried a bounded environmental evidence limitation for the privileged rollback-only writer tests, classified as an environmental limitation with residual risk accepted at Owner Acceptance.
+- Phase 1 — Economic Date Integrity and `WS-DH-2026-0003` are complete, Owner accepted and closed.
+- The `effective_date NOT NULL` contract is a closed Phase-1 contract.
+- The exact wall-clock times of these runs are recorded in the Stage-level prompt lineage, not in this entry.
+
+### 05-08-2026 — Exact time not recorded — RM-DH-004 Phase 2 Governance Reconciliation and WS-DH-2026-0006 Package Creation
+
+- Prompt `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53` (local Prompt number 53) executed as a bounded, documentation-only governance run under approved Decision `DEC-RM-DH-004-003`.
+- The persisted RM-DH-004 governance package was reconciled with the Owner-approved current state.
+- Phase 1 — Economic Date Integrity and `WS-DH-2026-0003` were recorded as `COMPLETE — OWNER ACCEPTED — CLOSED`, with Stages A, B, C and D each closed within their accepted bounds.
+- Phase 2 was retitled `Shared Platform-Wide Historical Import Foundation — Finance-First Implementation` and recorded as `CURRENT — GOVERNANCE RECONCILED — TECHNICAL IMPLEMENTATION NOT STARTED`.
+- The former Phase 3 — Import Control Plane was recorded as `SUPERSEDED AND ABSORBED INTO PHASE 2 BY OWNER DECISION — NO SEPARATE EXECUTION`, retaining its historical number and identity.
+- Phases 4 through 8 were preserved unchanged.
+- `WS-DH-2026-0004` was recorded as `PARTIALLY COMPLETE` with its core objectives delivered inside Stage B and its residual scope open, unscheduled and not a Phase-2 blocker.
+- `WS-DH-2026-0005` was recorded as `DEFERRED AND INERT` with no Phase-2 dependency.
+- `WS-DH-2026-0006` was reconciled to the current Phase-2 Workstream and a dedicated four-file governance package was created at version `1.0.0`.
+- The three central registries — `docs/roadmaps/README.md`, `docs/workstreams/README.md` and `docs/README.md` — were synchronized.
+- No Phase was renumbered, no Workstream ID was created, renumbered or merged, and no Decision ID other than `DEC-RM-DH-004-003` was consumed.
+- No Historical Import technical implementation occurred: no import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC was designed, created or executed.
+- No database access, no migration, no SQL, no Storage object, no financial or operational data write, no application code change and no test change occurred.
+- No Acceptance and no Closure were recorded for Phase 2.
+- An independent Acceptance Re-Audit of this reconciliation is required before any Phase-2 technical authorization.
+- The exact wall-clock time of this run is not recorded.
