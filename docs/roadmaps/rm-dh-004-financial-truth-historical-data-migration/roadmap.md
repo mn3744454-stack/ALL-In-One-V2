@@ -1,7 +1,7 @@
 <!--
 id: DHB-RM-004-ROADMAP
 title: RM-DH-004 — Authoritative Current State
-version: 1.2.0
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-08-04
