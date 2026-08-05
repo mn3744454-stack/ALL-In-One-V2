@@ -12,7 +12,9 @@ import {
 import { useI18n } from "@/i18n";
 import { useFinancialEntries, type FinancialEntry } from "@/hooks/finance/useFinancialEntries";
 import { formatCurrency } from "@/lib/formatters";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatEconomicDate } from "@/lib/finance/effectiveDate";
+
 import { Landmark, Search, TrendingDown, DollarSign, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
