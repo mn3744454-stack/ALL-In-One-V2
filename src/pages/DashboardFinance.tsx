@@ -429,6 +429,8 @@ function LedgerTab() {
       totalCredits: stats.collected,
       isRTL: dir === "rtl",
       lang,
+      // Stage C · Slice B (Prompt 43) — effective_date is date-only.
+      dateMode: "economic-date",
     });
   };
 
@@ -445,6 +447,8 @@ function LedgerTab() {
       filename: `ledger-${dateFrom || "all"}-${dateTo || "all"}.csv`,
       entries: csvEntries,
       lang,
+      // Stage C · Slice B (Prompt 43) — effective_date is date-only.
+      dateMode: "economic-date",
     });
   };
 
@@ -725,6 +729,8 @@ function PaymentsTab() {
       totalCredits: stats.total,
       isRTL: dir === "rtl",
       lang,
+      // Stage C · Slice B (Prompt 43) — effective_date is date-only.
+      dateMode: "economic-date",
     });
   };
 
@@ -741,6 +747,8 @@ function PaymentsTab() {
       filename: `payments-${dateFrom || "all"}-${dateTo || "all"}.csv`,
       entries: csvEntries,
       lang,
+      // Stage C · Slice B (Prompt 43) — effective_date is date-only.
+      dateMode: "economic-date",
     });
   };
 
