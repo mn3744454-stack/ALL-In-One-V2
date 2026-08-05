@@ -96,22 +96,30 @@ No Phase after Phase 3 is created or named here. Later Phases require owner appr
 
 ```text
 Phase State:
-ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
+ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS
 
 Execution Checkpoint:
-TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION
+SUB-PHASE 3.0 COMPLETED AND VERIFIED — OWNER ADVANCEMENT APPROVED AND PERSISTED — SUB-PHASE 3.1 SET CURRENT — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED — AWAITING TARGETED POST-ADVANCEMENT VERIFICATION
 ```
 
-Phase 3 is not Closed. Sub-phase 3.0 Technical Acceptance passed, Owner Acceptance was explicitly granted, and that Acceptance is persisted here. Sub-phase 3.0 has not advanced, and Sub-phase 3.1 has not started.
+Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is now the current Sub-phase, but its Foundational Read-Only Audits have not started.
 
-### Sub-phase 3.0 Acceptance record
+### Sub-phase 3.0 Acceptance and completion record
 
+- **Sub-phase 3.0 status.** COMPLETED — TECHNICAL ACCEPTANCE PASSED AND PERSISTED — OWNER ACCEPTANCE GRANTED AND PERSISTED — POST-PERSISTENCE VERIFICATION PASSED — OWNER ADVANCEMENT APPROVED.
 - **Accepted Artifact.** The Prompt-08 correction Artifact is **Accepted**: content commits `740067bbe390c55b81e53b357d01b3774eddce45`, `e2af24bb7769fe54d4ee592cb2c329eb6e03a914` and `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109`, no merge, four governance paths.
 - **Accepted Acceptance evidence package.** Prompt 09, Prompt-09 Correction Continuation C1 and Prompt-09 Correction Continuation C2 (`ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY`) form the accepted read-only Acceptance evidence package.
-- **Technical Acceptance.** Passed.
-- **Owner Acceptance.** Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00. The Owner Acceptance time is not the repository write time; the repository write time for this persistence is recorded in [`changelog.md`](./changelog.md).
-- **Governing Decision.** `DEC-RM-DH-003-010`.
-- **Boundary.** Acceptance persistence is not Sub-phase advancement, not Phase advancement and not Closure. A separate read-only post-persistence verification is required before any Sub-phase 3.1 advancement decision.
+- **Technical Acceptance.** Passed and persisted.
+- **Owner Acceptance.** Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00. The Owner Acceptance time is not the repository write time; the repository write time for that persistence is recorded in [`changelog.md`](./changelog.md).
+- **Post-persistence verification.** Passed under `ART-RM-DH-003-P3-GOVERNANCE-PROMPT11-POST-PERSISTENCE-VERIFICATION` (read-only Prompt 11).
+- **Governing Decisions.** `DEC-RM-DH-003-010` (Acceptance persistence) and `DEC-RM-DH-003-011` (Owner advancement to Sub-phase 3.1).
+
+### Sub-phase 3.1 advancement record
+
+- **Sub-phase 3.1 status.** CURRENT — ADVANCEMENT PERSISTED — FOUNDATIONAL READ-ONLY AUDITS NOT YET STARTED.
+- **Owner Advancement.** Approved 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00, and persisted here under `DEC-RM-DH-003-011`.
+- **Boundary.** Setting Sub-phase 3.1 as the current Sub-phase does **not** start `WS-DH-2026-0012`, does **not** start `WS-DH-2026-0013`, does **not** create any Workstream package, does **not** begin any investigation, does **not** install Project Knowledge and grants **no** Closure.
+- **Mandatory next action.** A separate read-only targeted post-advancement verification is required before the Owner may authorize creation or start of any Workstream.
 
 ### Phase 3 purpose
 
