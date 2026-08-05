@@ -214,16 +214,23 @@ No item may be removed except through successful Acceptance, explicit Owner canc
 14. Any Project Knowledge installation.
 15. Memory Genesis investigation.
 16. Refactoring Baseline investigation.
+17. Account-Type Playbook fixed-count defect: **RESOLVED — ACCEPTED — PERSISTED — POST-PERSISTENCE VERIFIED — RETAINED FOR TRACEABILITY**.
+18. Prompt-06 commit-topology deviation: **HISTORICAL DEVIATION — ACCEPTED — NON-BLOCKING — RETAINED FOR TRACEABILITY**.
+19. Prompt-10 durable Git Artifact: **EVIDENCE GAP RESOLVED — DURABLE GIT ARTIFACT VERIFIED — RETAINED FOR TRACEABILITY**.
+20. Sub-phase 3.1 advancement persistence: **SUB-PHASE 3.1 ADVANCEMENT PERSISTENCE — OWNER APPROVED — EXECUTED — AWAITING TARGETED POST-ADVANCEMENT VERIFICATION**.
 
 ### Phase 3 decisions
 
 - `DEC-RM-DH-003-005` — Phase 3 Governance Approval.
 - `DEC-RM-DH-003-006` — Module, Feature and Product-Control Architecture Package D1–D10. The full D1–D10 text lives only in [`decisions.md`](./decisions.md).
+- `DEC-RM-DH-003-010` — Owner Acceptance and Acceptance-Persistence Authorization for Sub-phase 3.0.
+- `DEC-RM-DH-003-011` — Owner Advancement from Sub-phase 3.0 to Sub-phase 3.1.
 
 ### Remaining work in Phase 3
 
-- Targeted read-only post-persistence verification of this Acceptance persistence.
-- Every later Sub-phase from 3.1 through 3.7, each requiring separate owner authorization.
+- Targeted read-only post-advancement verification of this Sub-phase 3.1 advancement persistence.
+- The Sub-phase 3.1 Foundational Read-Only Audits themselves, which have not started and require separate owner authorization before any Workstream is created or started.
+- Every later Sub-phase from 3.2 through 3.7, each requiring separate owner authorization.
 
 
 ## Current status
