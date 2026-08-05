@@ -1,11 +1,11 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.4.0
+version: 1.5.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-08-04
+last-verified: 2026-08-05
 
 supersedes: []
 superseded-by: null
@@ -99,10 +99,19 @@ Phase State:
 ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
 
 Execution Checkpoint:
-GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING
+TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION
 ```
 
-Phase 3 is neither Accepted nor Closed. Sub-phase 3.0 is neither Accepted nor advanced, and Sub-phase 3.1 has not started.
+Phase 3 is not Closed. Sub-phase 3.0 Technical Acceptance passed, Owner Acceptance was explicitly granted, and that Acceptance is persisted here. Sub-phase 3.0 has not advanced, and Sub-phase 3.1 has not started.
+
+### Sub-phase 3.0 Acceptance record
+
+- **Accepted Artifact.** The Prompt-08 correction Artifact is **Accepted**: content commits `740067bbe390c55b81e53b357d01b3774eddce45`, `e2af24bb7769fe54d4ee592cb2c329eb6e03a914` and `fa8bcd00e0ee5b1ca636e94698011d8b3dad1109`, no merge, four governance paths.
+- **Accepted Acceptance evidence package.** Prompt 09, Prompt-09 Correction Continuation C1 and Prompt-09 Correction Continuation C2 (`ART-RM-DH-003-P3-GOVERNANCE-PROMPT09-C2-COMMIT-IDENTITY`) form the accepted read-only Acceptance evidence package.
+- **Technical Acceptance.** Passed.
+- **Owner Acceptance.** Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00. The Owner Acceptance time is not the repository write time; the repository write time for this persistence is recorded in [`changelog.md`](./changelog.md).
+- **Governing Decision.** `DEC-RM-DH-003-010`.
+- **Boundary.** Acceptance persistence is not Sub-phase advancement, not Phase advancement and not Closure. A separate read-only post-persistence verification is required before any Sub-phase 3.1 advancement decision.
 
 ### Phase 3 purpose
 
@@ -112,7 +121,7 @@ Establish, verify, organize and install a durable Persistent Knowledge architect
 
 | Sub-phase | Title | Status |
 |---|---|---|
-| `3.0` | Scope and Governance Persistence | CURRENT — GOVERNANCE PERSISTENCE EXECUTED; ACCEPTANCE RE-AUDIT PENDING |
+| `3.0` | Scope and Governance Persistence | CURRENT — TECHNICAL ACCEPTANCE PASSED; OWNER ACCEPTANCE GRANTED; ACCEPTANCE PERSISTENCE COMPLETED; AWAITING TARGETED POST-PERSISTENCE VERIFICATION |
 | `3.1` | Foundational Read-Only Audits | NOT STARTED |
 | `3.2` | Knowledge Organizational Architecture | NOT STARTED |
 | `3.3` | Persistent Knowledge Stage B | NOT STARTED |
@@ -205,7 +214,7 @@ No item may be removed except through successful Acceptance, explicit Owner canc
 
 ### Remaining work in Phase 3
 
-- Governance Persistence Acceptance Re-Audit of this persistence execution.
+- Targeted read-only post-persistence verification of this Acceptance persistence.
 - Every later Sub-phase from 3.1 through 3.7, each requiring separate owner authorization.
 
 
@@ -237,10 +246,19 @@ Current Phase:
 RM-DH-003 / Phase 3 — ACTIVE — SUB-PHASE 3.0 — GOVERNANCE PERSISTENCE
 
 Phase 3 Execution Checkpoint:
-GOVERNANCE PERSISTENCE EXECUTED — ACCEPTANCE RE-AUDIT PENDING
+TECHNICAL ACCEPTANCE PASSED — OWNER ACCEPTANCE GRANTED — ACCEPTANCE PERSISTENCE COMPLETED — AWAITING SEPARATE SUB-PHASE 3.1 ADVANCEMENT DECISION
+
+Sub-phase 3.0 Technical Acceptance:
+Passed
+
+Sub-phase 3.0 Owner Acceptance:
+Granted 05-08-2026 — August, 12:38, Asia/Riyadh — UTC+03:00
+
+Sub-phase 3.0 Acceptance persistence:
+Completed — governed by DEC-RM-DH-003-010
 
 Phase 3 Acceptance:
-Not performed
+Not performed — Phase-level Acceptance is separate from the Sub-phase 3.0 Acceptance recorded above
 
 Phase 3 Closure:
 None
@@ -264,17 +282,21 @@ That Phase 2 Closure was the explicit owner decision. This Roadmap may not accep
 Phase 3 governance is persisted in the repository.
 Sub-phase 3.0 remains the current position.
 Governance Persistence Execution is complete.
-Acceptance Re-Audit is pending and is the next permitted operation.
+Technical Acceptance passed and explicit Owner Acceptance was granted.
+Acceptance persistence is completed and recorded under DEC-RM-DH-003-010.
+A targeted read-only post-persistence verification is pending and is the next permitted operation.
 No Workstream investigation has started.
 No dedicated Workstream package exists for WS-DH-2026-0012 through WS-DH-2026-0020.
 No Project Knowledge is installed.
 No advancement to Sub-phase 3.1 has occurred.
+No Closure has occurred.
 ```
 
 ## Next permitted Roadmap action
 
 ```text
-Prepare and run a separate Plan/Chat — Read-only Governance Persistence Acceptance Re-Audit Prompt.
+Prepare and run a separate Plan/Chat — Read-only targeted post-persistence verification Prompt.
+Only after that verification passes may the Owner decide whether to advance from Sub-phase 3.0 to Sub-phase 3.1.
 ```
 
 Execution is not Acceptance, and Acceptance is not Closure.
