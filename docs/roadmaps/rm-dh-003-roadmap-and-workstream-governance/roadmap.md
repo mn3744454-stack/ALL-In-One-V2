@@ -174,8 +174,8 @@ This register is the authoritative reservation record for these Workstream IDs. 
 
 | Workstream ID | English title | Arabic title | Track | Sub-phase | Dependency | Registry status | Activation status |
 |---|---|---|---|---|---|---|---|
-| `WS-DH-2026-0012` | Memory Genesis, Admission, Numbering and Succession | أصل الذاكرة، ومعايير القبول، والترقيم، والخلافة | A | 3.1 | None. Mode: Plan/Chat — Read-only | PACKAGE CREATED | ACTIVE — STARTED — INVESTIGATION NOT YET RUN |
-| `WS-DH-2026-0013` | Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit | خط أساس إعادة هيكلة الكود، والترابط، والتكرار، وفرص النوى المشتركة | B | 3.1 | None. Mode: Plan/Chat — Read-only | PACKAGE CREATED | ACTIVE — STARTED — INVESTIGATION NOT YET RUN |
+| `WS-DH-2026-0012` | Memory Genesis, Admission, Numbering and Succession | أصل الذاكرة، ومعايير القبول، والترقيم، والخلافة | A | 3.1 | None. Mode: Plan/Chat — Read-only | PACKAGE CREATED | ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN |
+| `WS-DH-2026-0013` | Codebase Refactoring Baseline, Coupling, Duplication and Shared-Kernel Opportunity Audit | خط أساس إعادة هيكلة الكود، والترابط، والتكرار، وفرص النوى المشتركة | B | 3.1 | None. Mode: Plan/Chat — Read-only | PACKAGE CREATED | ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN |
 | `WS-DH-2026-0014` | Organizational Blueprint and Feature Placement Architecture | المخطط التنظيمي ومعمارية توزيع الميزات | C | 3.2 | BLOCKED BY `WS-DH-2026-0012` AND `WS-DH-2026-0013` | REGISTERED — NOT YET CREATED | NOT STARTED |
 | `WS-DH-2026-0015` | Memory, Chapter and Source Migration Matrix | مصفوفة نقل الذاكرة والفصول والمصادر | C | 3.2 | BLOCKED BY `WS-DH-2026-0012` AND `WS-DH-2026-0013` | REGISTERED — NOT YET CREATED | NOT STARTED |
 | `WS-DH-2026-0016` | Persistent Knowledge Stage B Technical Verification Program | برنامج التحقق الفني للمعرفة الدائمة — Stage B | D | 3.3 | BLOCKED BY `WS-DH-2026-0014` AND `WS-DH-2026-0015`. Mode: Plan/Chat — Read-only | REGISTERED — NOT YET CREATED | NOT STARTED |
