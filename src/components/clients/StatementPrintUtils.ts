@@ -441,7 +441,11 @@ export function buildLedgerPrintHtml(data: LedgerPrintData): string {
 </div>
 </body>
 </html>`;
+}
 
+/** Generic ledger print utility retained for other tabs. */
+export function printLedgerEntries(data: LedgerPrintData) {
+  const html = buildLedgerPrintHtml(data);
   const w = window.open("", "_blank");
   if (w) {
     w.document.write(html);
@@ -450,24 +454,26 @@ export function buildLedgerPrintHtml(data: LedgerPrintData): string {
   }
 }
 
-export function exportLedgerCSV(data: {
+export interface LedgerCSVData {
   filename: string;
-  entries: Array<{
-    date: string;
-    entry_type: string;
-    description: string;
-    debit: number;
-    credit: number;
-    balance: number;
-  }>;
+  entries: LedgerExportEntry[];
   lang?: string;
   isRTL?: boolean;
-}) {
+  /** Defaults to "timestamp" to preserve legacy caller behavior. */
+  dateMode?: ExportDateMode;
+}
+
+/**
+ * Pure serializer for the generic ledger CSV. Exported so the exact CSV
+ * content can be asserted in tests without a browser download.
+ */
+export function buildLedgerCSVContent(data: Omit<LedgerCSVData, "filename">): string {
   const lang = data.lang || 'en';
   const labels = getLabels(data.isRTL);
+  const dateMode: ExportDateMode = data.dateMode ?? "timestamp";
   const headers = [labels.date, data.isRTL ? "النوع" : "Type", labels.description, labels.debit, labels.credit, labels.balance];
   const rows = data.entries.map((e) => [
-    formatTimeForPrint(e.date, lang),
+    formatExportDate(e.date, dateMode, lang),
     e.entry_type,
     `"${(e.description || "").replace(/"/g, '""')}"`,
     e.debit > 0 ? e.debit.toFixed(2) : "",
@@ -475,7 +481,11 @@ export function exportLedgerCSV(data: {
     e.balance.toFixed(2),
   ]);
 
-  const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+  return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+}
+
+export function exportLedgerCSV(data: LedgerCSVData) {
+  const csv = buildLedgerCSVContent(data);
   const BOM = "\uFEFF";
   const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
