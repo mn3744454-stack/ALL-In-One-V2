@@ -311,7 +311,7 @@ Not started
 | WS-DH-2026-0003 | Economic Date Integrity | 1 | 1 | COMPLETE — OWNER ACCEPTED — CLOSED | None | Present |
 | WS-DH-2026-0004 | Canonical Financial Write Authority | 1 | 1–2 | PARTIALLY COMPLETE — CORE WRITE-AUTHORITY OBJECTIVES DELIVERED INSIDE WS-DH-2026-0003 STAGE B; RESIDUAL SCOPE OPEN | WS-DH-2026-0003 | Not yet created |
 | WS-DH-2026-0005 | POS Financial Isolation | 1 | 2 | DEFERRED — POS COMING SOON / DISABLED — INERT; NO PHASE-2 DEPENDENCY | Deferred and isolated | Not yet created |
-| WS-DH-2026-0006 | Shared Platform-Wide Historical Import Foundation — Finance-First Implementation | 2 | 2 | ACTIVE — CURRENT PHASE-2 WORKSTREAM — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED | Phase 1 complete | Present |
+| WS-DH-2026-0006 | Shared Platform-Wide Historical Import Foundation — Finance-First Implementation | 2 | 2 | ACTIVE — CURRENT PHASE-2 WORKSTREAM — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED | Phase 1 complete | Present |
 | WS-DH-2026-0007 | Provenance, Idempotency & Selective Rollback | 2 | 4 | BLOCKED BY WS-DH-2026-0006 | WS-DH-2026-0006 | Not yet created |
 | WS-DH-2026-0008 | Historical Financial Semantics | 3 | 5 | PLANNED — OWNER ALIGNMENT REQUIRED | Owner Alignment | Not yet created |
 | WS-DH-2026-0009 | Historical Document Identity & Numbering | 3 | 5 | PLANNED — OWNER ALIGNMENT REQUIRED | Owner Alignment | Not yet created |
