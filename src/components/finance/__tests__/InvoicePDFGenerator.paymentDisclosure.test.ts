@@ -136,3 +136,66 @@ describe("Invoice PDF payment disclosure", () => {
     expect(html).not.toContain("Payment History");
   });
 });
+
+/* Stage C · Slice C — economic-date parity for payment disclosure. */
+describe("Invoice PDF payment economic-date parity", () => {
+  const julySummary: InvoicePaymentSummaryForPdf = {
+    status: "paid",
+    paidAmount: 230,
+    outstandingAmount: 0,
+    totalAmount: 230,
+    payments: [
+      {
+        id: "p1", amount: 230, payment_method: "cash",
+        effective_date: "2026-07-25", created_at: "2026-07-26T17:26:00Z", reference: null,
+      },
+    ],
+  };
+
+  const renderHistory = () =>
+    __createInvoiceHTMLForTest({
+      invoice, items, lang: "en", labels,
+      paymentSummary: julySummary, includePaymentHistory: true,
+    });
+
+  it("13. renders the economic date 2026-07-25 as 25-07-2026", () => {
+    expect(renderHistory()).toContain("25-07-2026");
+  });
+
+  it("14. keeps the same calendar day under a negative UTC offset", () => {
+    const originalTz = process.env.TZ;
+    try {
+      process.env.TZ = "America/Los_Angeles"; // UTC-07:00
+      expect(renderHistory()).toContain("25-07-2026");
+      // The previous helper would have parsed the date-only value as UTC
+      // midnight and printed the preceding day in this offset.
+      expect(renderHistory()).not.toContain("24-07-2026");
+    } finally {
+      process.env.TZ = originalTz;
+    }
+  });
+
+  it("15. adds no fabricated time to the economic date", () => {
+    const html = renderHistory();
+    expect(html).not.toContain("25-07-2026 12:00");
+    expect(html).not.toMatch(/25-07-2026\s+\d{1,2}:\d{2}/);
+  });
+
+  it("16. still renders the labelled created_at audit timestamp", () => {
+    const html = renderHistory();
+    expect(html).toMatch(/26-07-2026\s+\d{1,2}:\d{2}\s+(AM|PM)/);
+  });
+
+  it("17. leaves allocation amounts and payment ordering unchanged", () => {
+    const html = __createInvoiceHTMLForTest({
+      invoice, items, lang: "en", labels,
+      paymentSummary: paidSummary, includePaymentHistory: true,
+    });
+    const transferIdx = html.indexOf("Bank Transfer");
+    const cashIdx = html.indexOf("Cash");
+    expect(transferIdx).toBeGreaterThan(-1);
+    expect(transferIdx).toBeLessThan(cashIdx);
+    expect(html).toContain("230");
+  });
+});
+
