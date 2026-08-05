@@ -99,10 +99,10 @@ Phase State:
 ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS
 
 Execution Checkpoint:
-SUB-PHASE 3.0 COMPLETED AND VERIFIED — SUB-PHASE 3.1 CURRENT — POST-ADVANCEMENT VERIFICATION PASSED — WS-DH-2026-0012 AND WS-DH-2026-0013 PACKAGES CREATED AND STARTED AS ISOLATED PARALLEL LANES — INVESTIGATIONS NOT YET RUN — AWAITING TARGETED PACKAGE AND START VERIFICATION
+SUB-PHASE 3.0 COMPLETED AND VERIFIED — SUB-PHASE 3.1 CURRENT — POST-ADVANCEMENT VERIFICATION PASSED — WS-DH-2026-0012 AND WS-DH-2026-0013 PACKAGES CREATED AND STARTED AS ISOLATED PARALLEL LANES — PACKAGE AND START STATES OWNER ACCEPTED UNDER DEC-RM-DH-003-013 — INVESTIGATIONS NOT YET RUN — AWAITING INDEPENDENT PERSISTENCE VERIFICATION AND A SEPARATE EXPLICIT OWNER AUTHORIZATION TO INVESTIGATE
 ```
 
-Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is the current Sub-phase. Its first two foundational Workstreams now have dedicated packages and Owner-authorized starts, but no investigation has run.
+Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is the current Sub-phase. Its first two foundational Workstreams have dedicated packages, Owner-authorized starts and Owner-accepted package and start states, but no investigation has run.
 
 ### Sub-phase 3.0 Acceptance and completion record
 
