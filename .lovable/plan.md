@@ -1,92 +1,51 @@
-# PROMPT 53 — SAME-SUBJECT CORRECTION CONTINUATION
+# PROMPT 53 — SAME-SUBJECT CORRECTION CONTINUATION (C2)
 
-Bounded repair of the four `WS-DH-2026-0006` governance package files. No new Prompt number is consumed. Authorized by the Owner following the Prompt-54 independent Acceptance Re-Audit.
+## WS-DH-2026-0006 roadmap.md bounded version-coherence repair
 
-## Authority and boundary
+### Scope
 
-- Governing Decision: `DEC-RM-DH-004-003` (already recorded; not re-opened, not amended).
-- Continuation of Prompt `PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53`.
-- Pre-correction baseline: HEAD `9cd4d3e45165f9865ed657507767ff87eb5c0b72`, Working Tree clean.
+Exactly one file:
 
-## Authorized paths — exactly 4
+`docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/roadmap.md`
 
-1. `docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/README.md`
-2. `docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/roadmap.md`
-3. `docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/decisions.md`
-4. `docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/changelog.md`
+No other governance file, no central index, no RM-DH-004 package, no platform-managed artifact, no application code, no migration, no database or Storage activity.
 
-All four move `1.0.0 → 1.1.0`. No other repository path is touched.
+### Defect being repaired
 
-## Defects being repaired
-
-Each item below was recorded as a blocking finding in the Prompt-54 re-audit.
-
-### 1. README.md — missing scope definitions
-
-Add, without changing existing identity, status or boundary text:
-
-- **Shared Core boundary** — what the common import substrate owns: batch identity, source-file identity, staging, validation, quarantine, dry run, reconciliation, selective rollback.
-- **Domain Adapter boundary** — what each domain supplies: field mapping, domain validation rules, canonical posting call. Adapters never bypass the Shared Core.
-- **Format priorities** — Excel and PDF are the first-priority ingestion formats; CSV is supported; images are architecture-ready only and are not implemented in Phase 2.
-- **Acceptance boundary** — what Acceptance of this Workstream will and will not cover.
-
-### 2. roadmap.md — missing planned sequence
-
-Add an eleven-step planned sequence register, every row marked `NOT STARTED` except step 1:
+The Prompt-54 independent re-verification confirmed all four package files carry `version: 1.1.0` in metadata and all four blobs match the reported state. One bounded defect remains: the authoritative state file still describes its own current version as `1.0.0`.
 
 ```text
- 1  Governance reconciliation                                  COMPLETE (Prompt 53 + this correction)
- 2  Technical Foundation Audit / Execution Contract            NOT STARTED
- 3  Shared control-plane schema, storage and permissions       NOT STARTED
- 4  Upload and registry visibility                             NOT STARTED
- 5  Excel ingestion and staging                                NOT STARTED
- 6  Validation, quarantine, review and correction              NOT STARTED
- 7  Dry run, reconciliation and approval                       NOT STARTED
- 8  Canonical Finance posting                                  NOT STARTED
- 9  PDF digital-text and table extraction                      NOT STARTED
-10  Controlled real-client pilot                               NOT STARTED
-11  Later Domain Adapters                                      NOT STARTED
+roadmap.md — Current Stopping Point (line 150)
+"Governance package created at version `1.0.0`. Stage 0 is the only stage
+ with any state. No technical Historical Import work exists ..."
 ```
 
-The existing eight-row Stage register is retained; the new sequence sits alongside it as the planned technical order. No step is marked implemented, accepted or closed.
+This is a current-state declaration, not a historical reference, so it conflicts with the file's own `version: 1.1.0` header and fails the version-coherence requirement.
 
-### 3. decisions.md — missing architectural decisions
+### Changes
 
-Add an "Inherited Architectural Decisions" section recording the nine Owner-approved decisions, each attributed upward to `DEC-RM-DH-004-003` and explicitly **not** numbered as local decisions:
+1. Metadata header: `version: 1.0.0` → `version: 1.1.1`; refresh `last-verified` to 06-08-2026; extend the `source:` note to record the bounded C2 correction under the same parent Prompt 53, with no new Prompt number consumed.
+2. Current Stopping Point: restate the package as created at `1.0.0` and **currently at version `1.1.1`**, with the Prompt-53 same-subject correction executed and independently re-verified, and the single version-coherence defect repaired.
+3. Next Permitted Step: refresh to reflect that independent read-only re-verification has been performed and the remaining gate is Owner Acceptance of the Prompt-53 governance execution and package correction — Stage 1 Technical Foundation Audit still requires separate explicit Owner authorization.
 
-1. Staging: Option C — Hybrid Shared Core with typed/projected Domain fields.
-2. Storage/Registry: Option C — dedicated private Historical Import storage and registry, later surfaced through File Manager.
-3. Permission namespace: `import.*`, with Domain permission additionally required at posting.
-4. Browser role: preview and mapping assistance only.
-5. Server role: authoritative parsing/extraction, validation, staging authorization and reproducible audit evidence.
-6. Browser direct DML to protected staging tables: prohibited.
-7. Connections: no Phase-2 expansion; preserve only a future native-record identity seam.
-8. EQX: identity not proven in current repository evidence; outside current execution scope.
-9. Prompt 53: governance-only.
+### Explicitly unchanged
 
-The local register stays at `0 local Decisions consumed`, next free `DEC-WS-DH-2026-0006-001` — that count was verified accurate and does not change.
+- Eight-row Stage Register (identity and states).
+- Eleven-step Planned Technical Sequence: Step 1 stays `EXECUTED — INDEPENDENT RE-VERIFICATION PENDING` until Owner Acceptance; Steps 2–11 stay `NOT STARTED`.
+- Workstream Status block: ACTIVE — GOVERNANCE PACKAGE CREATED — TECHNICAL IMPLEMENTATION NOT STARTED; Stage 0; 0 local Prompts; 0 local Decisions; Execution Contract does not exist.
+- Dependencies, Preserved Boundaries.
+- `README.md`, `decisions.md`, `changelog.md` remain at 1.1.0 with their current blobs.
 
-### 4. changelog.md — missing entries
+### Boundary and rollback
 
-Append one dated correction entry recording: the package correction itself, the Phase-1 / `WS-DH-2026-0003` synchronization, the `WS-DH-2026-0004` partial-completion disposition, and a restatement that zero technical implementation, zero database, zero migration and zero Storage activity occurred.
+- Authorized changed paths: 1.
+- Prior blob for rollback: `ac0f3b71a682d224fe3e5bdce9f6e896705798be` (current HEAD `51e9446f97b4f77a534ca2d527735f09148f75ad`).
+- Rollback is a single-file Git checkout; no other file must be restored.
 
-## Explicitly out of scope
+### Not authorized by this plan
 
-No change to: the RM-DH-004 package, `docs/README.md`, `docs/roadmaps/README.md`, `docs/workstreams/README.md`, the stale `WS-DH-2026-0003/workstream.md`, duplicate `source:` lines (Deferred Item 46), application code, tests, configuration, translations, migrations, SQL, RLS, grants, permissions, Storage or the live database. No Acceptance, no Closure, no Technical Foundation Audit, no Execution Contract, no Slice.
+Technical Foundation Audit, Execution Contract drafting, Historical Import implementation, Owner Acceptance, Workstream or Roadmap Closure, Master Register updates, new Prompt number consumption.
 
-## Rollback
+### Required next action after execution
 
-Git-only, no temporary filesystem state:
-
-```text
-git checkout 9cd4d3e45165f9865ed657507767ff87eb5c0b72 -- \
-  docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/
-```
-
-## Verification after execution
-
-1. `git diff --name-status` against the pre-correction HEAD shows exactly the four package paths.
-2. All four files report `version: 1.1.0`.
-3. Keyword scan confirms presence of: Shared Core, Domain Adapter, Excel, PDF, CSV, images, the eleven-step sequence, and all nine architectural decisions.
-4. Zero application, database, migration and Storage change.
-5. Report issued; the next step is an independent read-only re-verification of this correction.
+Independent read-only verification of this C2 correction, then the Owner Acceptance decision on the Prompt-53 governance execution and package correction.
