@@ -122,11 +122,13 @@ This Workstream has:
 ## Stopping point
 
 ```text
-Package created and Owner start authorization persisted.
+Package created, Owner start authorization persisted, and the package/start state Owner accepted.
 Stage 0 has not been executed.
 No investigation has run and no Memory finding exists.
-The next permitted action is the parent targeted read-only package/start verification (Prompt 15).
-Only after that verification passes may WS-DH-2026-0012 local Prompt 01 be prepared as an UNSENT DRAFT.
+The superseded narrative naming Prompt 15 as the next verifier no longer applies.
+The next permitted action is the independent read-only Prompt-18 persistence verification (Prompt 19).
+Only after that verification passes, and after a separate explicit Owner authorization,
+may WS-DH-2026-0012 local Prompt 01 be prepared as an UNSENT DRAFT.
 ```
 
 ## Package navigation
