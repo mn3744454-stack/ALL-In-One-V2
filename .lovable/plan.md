@@ -1,54 +1,69 @@
-# Prompt 15 — RM-DH-003 / Phase 3 / Sub-phase 3.1
+# Prompt 15 — Correction Continuation C1 (read-only)
 
-Targeted read-only verification of the Prompt-14 + C1 + C2 artifact and the WS-DH-2026-0012 / WS-DH-2026-0013 packages. No repository, database or knowledge write was performed.
+RM-DH-003 / Phase 3 / Sub-phase 3.1. Bounded correction investigation of the prior Prompt-15 report. No repository, database or governance write was performed. No package/start Acceptance is claimed.
 
-## A. Primary verdict
+## A. Withdrawal of the prior verdict
 
-FOUNDATIONAL WORKSTREAM PACKAGE AND START PERSISTENCE VERIFIED — DENIED FOURTEENTH PATH DURABLY RESTORED — NET THIRTEEN-PATH GOVERNANCE ARTIFACT CONFIRMED — BOTH INVESTIGATIONS NOT YET RUN — READY FOR EXPLICIT OWNER PACKAGE/START ACCEPTANCE.
+The prior Prompt-15 verdict ("FOUNDATIONAL WORKSTREAM PACKAGE AND START PERSISTENCE VERIFIED … READY FOR EXPLICIT OWNER PACKAGE/START ACCEPTANCE") is **WITHDRAWN**. It was issued in a report that carried cross-task content and that flagged a Decision-numbering defect without bounding it. No Acceptance may rest on it.
 
-## B. Git artifact and working tree
+## B. Cross-task contamination investigation
 
-- Prompt-14 pre-write HEAD: `8dcd733e45f6fd17589a1ac474081160369267be`.
-- Artifact chain: `29e90f77c` (package creation) → `5b3c05b56` → `d40156d6c` (C1/C2 restoration of the denied fourteenth path).
-- Current HEAD: `8c514c59c`; working tree clean (`git status --porcelain` empty).
-- Net diff `8dcd733e..HEAD` = exactly thirteen governance content paths, plus `.lovable/plan.md` only, which is the platform-managed planning artifact excluded by `DEC-RM-DH-003-004`.
+- The contaminating reference is a single trailing sentence in `.lovable/plan.md` (line 54) naming Prompt-52 / RM-DH-004 Phase 2 import-foundation, plus the fact that the same file previously held the full Prompt-52 draft audit before being overwritten by the Prompt-15 report.
+- Repository-wide search for Prompt-52 and RM-DH-004 import-foundation content (`PROMPT-52`, `Prompt-52`, `Shared Platform-Wide Historical Import`, `Historical Import Foundation`, `import_batches`) across `docs/`, `src/` and `.lovable/` returns **exactly one** matching path: `.lovable/plan.md`.
+- Classification: **REPORT-LEVEL AND PLANNING-ARTIFACT CONTAMINATION ONLY.**
+  - No governance document, no roadmap, no changelog, no decisions file, no Workstream package, no central index, no application source and no database object contains RM-DH-004 Prompt-52 content.
+  - `.lovable/plan.md` is the platform-managed planning artifact excluded from governance content scope by `DEC-RM-DH-003-004`, so its contamination is non-governance-bearing, but it is real and must be cleared before the Prompt-15 verdict is re-issued.
 
-## C. Denied fourteenth path
+## C. `.lovable/plan.md` inspection (read-only)
 
-- `docs/roadmaps/README.md` blob at HEAD is `23178e164f058f2519f0e626af04a4ec24b73fca`, identical to the pre-Prompt-14 blob; header `version: 1.3.0`.
-- The path does not appear in the net diff. Restoration is durable.
+Current content is the Prompt-15 verification report. Line 54 is the sole cross-task sentence. No RM-DH-004 governance state, no import architecture tables and no Prompt-52 verdict remain in force anywhere else.
 
-## D. Governance and registry state
+## D. Decision-summary defect — reproduced and bounded
 
-| Path | Version |
-|---|---|
-| `docs/roadmaps/rm-dh-003-.../roadmap.md` | 1.7.0 |
-| `docs/roadmaps/rm-dh-003-.../decisions.md` | 1.8.0 |
-| `docs/roadmaps/rm-dh-003-.../changelog.md` | 1.3.6 |
-| `docs/workstreams/README.md` | 1.6.0 |
-| `docs/README.md` | 1.14.6 |
-| WS-0012 and WS-0013 package files (4 each) | 1.0.0 |
+Live evidence:
 
-- `DEC-RM-DH-003-012` present at `decisions.md:591`; canonical range remains 001–011 in the summary line with 012 as the appended decision — the summary sentence still reads "next free `DEC-RM-DH-003-012`" while 012 now exists. This is a stale-summary defect, non-blocking, correctable in the next governance-persistence prompt.
-- Registry rows 53–54 record both Workstreams as `Stage 0 — PACKAGE CREATED — INVESTIGATION NOT YET RUN` / `ACTIVE — STARTED — INVESTIGATION NOT YET RUN`.
-- WS-DH-2026-0014 through -0020 remain registered-only, not created, not started.
+- `docs/roadmaps/rm-dh-003-.../decisions.md` **line 26** states: canonical Decision IDs consecutive `DEC-RM-DH-003-001` through `DEC-RM-DH-003-011`, "The next free Decision ID is `DEC-RM-DH-003-012`."
+- The same file contains `## DEC-RM-DH-003-012` at **line 591**, Status Approved.
+- Therefore line 26 is stale by exactly one decision: the range should read 001 through 012, next free 013.
 
-## E. Packages, start states and isolation
+Scope of the defect — every other location is already correct:
 
-- Both packages contain exactly the four required files (`README.md`, `roadmap.md`, `decisions.md`, `changelog.md`).
-- Every investigation row in both `roadmap.md` files is `NOT STARTED`; zero local Prompts consumed in either lane.
-- Each lane carries its own Parallel Task ID and Prompt Lineage; no cross-lane content contamination found.
-- Project Knowledge remains NOT INSTALLED; no advancement to Sub-phase 3.2 and no Closure recorded.
+| Path | Statement | State |
+|---|---|---|
+| `decisions.md:26` | range 001–011, next free 012 | **STALE — sole defect** |
+| `decisions.md:12` (front-matter source) | records the append of `-012` | correct |
+| `changelog.md:313` | range 001–012, next free 013 | correct |
+| `docs/README.md:128` | 001 through 012, next free 013 | correct |
+| `roadmap.md` | carries no canonical Decision-range sentence | not applicable |
+| WS-0012 / WS-0013 packages | local ID conventions only, zero local decisions | correct |
 
-## F. Findings
+No Workstream package, no central index and no registry repeats the stale state. The defect is **documentation-truthfulness only**; it does not renumber, duplicate or invalidate any decision, and `DEC-RM-DH-003-012` remains validly recorded.
 
-- Blocking: none.
-- Non-blocking: the canonical Decision-ID range sentence in `decisions.md` is one revision stale relative to the appended `DEC-RM-DH-003-012`.
+## E. Git state (post-C2)
 
-## G. Stopping point
+- Branch `edit/edt-ab339794-9b0b-4ccd-b332-f8684cb6dd94`.
+- HEAD `9a24446bc89b12200ee5c7dd448f60baa707b000`, parents `8c514c59cc09ac0ed347bd98b6c76d280a694061` and `f5f0a2f384404f7de28b3f11a0062b33ea7b4cf5`.
+- C2 final HEAD `d40156d6cf003a73849fac82fba1e4611c8612a3` is an ancestor.
+- Working tree clean.
+- Post-C2 drift consists **only** of `.lovable/plan.md` writes (commits `1bbd1d8dc`, `8c514c59c`, `f5f0a2f38`, `9a24446bc`). Zero governance-content drift; the thirteen-path Prompt-14 artifact is unaltered.
 
-VERIFICATION COMPLETE — NO WRITES — AWAITING EXPLICIT OWNER PACKAGE/START ACCEPTANCE FOR WS-DH-2026-0012 AND WS-DH-2026-0013.
+## F. Smallest evidence-based correction scope
 
----
+Two paths, no more:
 
-Note: the previously drafted Prompt-52 (RM-DH-004 Phase 2 import-foundation) audit was superseded in this file by the Prompt-15 verification above; it can be reissued on request.
+1. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/decisions.md` — a single-sentence synchronization of line 26 to range `DEC-RM-DH-003-001` through `DEC-RM-DH-003-012`, next free `DEC-RM-DH-003-013`, with the corresponding version bump and source-note entry. No decision body is touched, renumbered or reordered.
+2. `.lovable/plan.md` — remove the trailing cross-task sentence and any residual Prompt-52 framing (platform artifact; governed by the `DEC-RM-DH-003-004` exception).
+
+Whether the `decisions.md` correction also requires a `changelog.md` entry is a governance-convention question for the Owner; `changelog.md` is already factually correct.
+
+## G. Verdicts
+
+- Prior Prompt-15 Pass: **WITHDRAWN**.
+- Contamination: **REPORT-LEVEL AND PLANNING-ARTIFACT ONLY — NO GOVERNANCE, GIT, PACKAGE OR DATABASE CONTAMINATION**.
+- Decision-summary defect: **CONFIRMED, SINGLE-PATH, SINGLE-SENTENCE, NON-MATERIAL TO DECISION VALIDITY**.
+- Drift: **NONE outside `.lovable/plan.md`**.
+- Correction executed: **NONE — read-only run**.
+
+## H. Stopping point
+
+C1 INVESTIGATION COMPLETE — NO WRITES — AWAITING OWNER AUTHORIZATION OF THE BOUNDED TWO-PATH CORRECTION AND SUBSEQUENT RE-ISSUE OF THE PROMPT-15 VERIFICATION.
