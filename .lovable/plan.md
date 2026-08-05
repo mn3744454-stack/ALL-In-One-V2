@@ -1,278 +1,241 @@
-# PROMPT 48 — STAGE-D NOT-NULL CONSTRAINT ENFORCEMENT READINESS AUDIT
+# PROMPT 51 — Stage-D Final Independent QA and Acceptance Re-Audit
 
-Mode: Plan/Chat — Read-Only. Repository writes: ZERO (except this platform-managed plan file). Database writes: ZERO.
+## A. Primary Verdict
 
-## A. Executive Verdicts
+STAGE-D FINAL QA AND ACCEPTANCE RE-AUDIT PASSED WITH BOUNDED TEST-ENVIRONMENT LIMITATION — READY FOR OWNER ACCEPTANCE
 
-- `PROMPT 48 SUBMITTED — RUN — CONSUMED`
-- `STAGE-D READINESS SCOPE PRESERVED`
-- `NO CROSS-TASK CONTAMINATION DETECTED`
-- `NO IN-SCOPE POST-PROMPT-47 DRIFT`
-- `LIVE EFFECTIVE-DATE COLUMN CONTRACT VERIFIED`
-- `ALL REACHABLE LEDGER WRITERS SUPPLY ECONOMIC DATE`
-- `STAGE-B WRITE-AUTHORITY CONTRACT REMAINS CLOSED`
-- `EXISTING LEDGER DATA SATISFIES NOT-NULL CONSTRAINT`
-- `STAGE-D TEST CONTRACT COMPLETE`
-- `ONE SAFE STAGE-D MIGRATION STRATEGY SELECTED`
-- `STAGE-D ROLLBACK CONTRACT READY`
-- `STAGE A, STAGE B AND STAGE C REMAIN CLOSED`
-- `STAGE-D CONSTRAINT ENFORCEMENT READY — ONE BOUNDED EXECUTION PROMPT REQUIRED`
+## B. All Required Verdicts
 
-## B. Complete Roadmap
+- Prompt: PROMPT 51 SUBMITTED — RUN — CONSUMED
+- Scope: STAGE-D FINAL QA SCOPE PRESERVED
+- Contamination: NO CROSS-TASK CONTAMINATION DETECTED
+- Drift: NO IN-SCOPE POST-PROMPT-50 DRIFT
+- Schema: STAGE-D STRUCTURAL CONTRACT PASSED
+- Financial data: ZERO UNEXPLAINED FINANCIAL-DATA DRIFT
+- Generated types: GENERATED TYPES REMAIN SYNCHRONIZED
+- Writers: ACTIVE LEDGER WRITER CONTRACTS REMAIN STRUCTURALLY VALID
+- Authority: STAGE-B WRITE-AUTHORITY CONTRACT REMAINS CLOSED
+- Environment: BLOCKED RUNTIME TESTS ARE A BOUNDED TEST-ENVIRONMENT LIMITATION
+- Tests: ALL STAGE-D-SPECIFIC TESTS PASSED
+- Legacy assertion: PRE-EXISTING OUT-OF-SCOPE ARABIC PDF ASSERTION — NON-BLOCKING
+- Prior stages: STAGE A, STAGE B AND STAGE C REMAIN CLOSED
 
-RM-DH-004 — Financial Truth Stabilization & Historical Data Migration.
-Phase 1 Economic Date Integrity (ACTIVE — Stage A closed, Stage B closed, Stage C owner-accepted and closed, Stage D current).
-Phase 2 Import Control Layer — not started. Phase 3 Opening Obligation & Unapplied Credit — not started. Phase 4 Document Identity & Numbering — not started. Phase 5 Identity Matching — not started. Phase 6 Laboratory Historical Import Pilot — not started. Phase 7 Full Historical Migration — not started. Phase 8 Financial Truth Closure — not started.
+## C. Complete Roadmap
 
-## C. Owner Decision and Current State
+RM-DH-004 Mission: Financial Truth Stabilization & Historical Data Migration. Phase 1 Economic Date Integrity (ACTIVE; Stages A/B/C closed, Stage D executed). Phases 2–8 (Import Control Layer; Provenance/Idempotency/Quarantine/Rollback; Opening Obligation & Unapplied Credit; Document Identity & Numbering; Identity Matching; Laboratory Historical Import Pilot; Full Historical Import & Closure) NOT STARTED.
 
-Stage A: ACCEPTED — PERSISTED — VERIFIED — CLOSED. Stage B: OWNER ACCEPTED — CLOSED. Stage C Slices A, B, C: OWNER ACCEPTED — CLOSED. The Arabic label `غير محدد` is the accepted Prompt-46 contract, not a deviation. Stage D: authorized for read-only readiness audit only; execution NOT STARTED. Phase 1 ACTIVE. No Phase, Workstream or Roadmap Closure occurred.
+## D. Current Owner Decisions and State
 
-## D. Active Parallel Task Ledger
+Stage A ACCEPTED/CLOSED. Stage B OWNER ACCEPTED/CLOSED. Stage C OWNER ACCEPTED/CLOSED. Stage D EXECUTED, Acceptance PENDING. Phase 1 ACTIVE. WS-DH-2026-0003 ACTIVE. No advancement, no closure.
 
-PT-DH-RM004-WS0003-STAGED-READINESS-20260805-1433 — Stage-D Effective-Date NOT NULL Readiness Audit. Authorized: RM-DH-004 / Phase 1 / Stage D / WS-DH-2026-0003 / Prompt 48 only. Authorized activity: read-only repository inspection and read-only SQL. Authorized writes: ZERO. Stopping point: readiness verdict plus one exact Prompt-49 execution package.
+## E. Active Parallel Task Ledger
 
-## E. CROSS-TASK REPORT CONTAMINATION CHECK
+PT-DH-RM004-WS0003-STAGED-FINAL-QA-20260805-1555 — read-only Stage-D final QA. Authorized writes: ZERO. Observed writes: ZERO.
 
-`NO CROSS-TASK CONTAMINATION DETECTED`
+## F. CROSS-TASK REPORT CONTAMINATION CHECK
 
-Evidence: the only commits after the Prompt-47 baseline are `570ec5d26275765b9c98c4f3cfb445a133348e37` and `8c41bbc1f7065eacb40ba95be0a8f4bcb06f507e`, whose combined diff touches exactly one path — `.lovable/plan.md` (platform-managed). No unrelated Roadmap, Workstream, Lineage, migration or Finance artifact was consumed as evidence.
+Evidence used: current repository, current live database, this run, and Prompts 48–50 lineage only. No RM-DH-003 / Phase-3 governance artifacts, no unrelated Workstream text, no unrelated prompt numbers were used as Stage-D evidence.
 
-## F. Preflight and Drift
+NO CROSS-TASK CONTAMINATION DETECTED
 
-- Branch: `edit/edt-54f1af7a-cd8b-47a8-a3ec-41fd1061951d`
-- HEAD: `8c41bbc1f7065eacb40ba95be0a8f4bcb06f507e`
-- HEAD parent: `570ec5d26275765b9c98c4f3cfb445a133348e37`; grandparent `739bf980cc1d9d0641b1cba1cee701d714f0140d` (Prompt-47 execution HEAD)
-- Prompt-47 ancestry: `git merge-base --is-ancestor 739bf980… HEAD` → true
-- Working Tree before: `git status --porcelain` empty (no staged, no unstaged, no untracked)
-- Post-Prompt-47 commits: 2, both platform-managed plan updates
-- Diff `739bf980…HEAD`: `.lovable/plan.md` only, 114 insertions / 116 deletions
-- Source or database-contract drift: none. No change to `ledger_entries`, Finance Writers, Ledger migrations, financial RPCs, RLS/ACL/Policies, or Stage-C date utilities/tests.
+## G. Branch, HEAD, Working Tree, Drift
 
-Verdict: `NO IN-SCOPE POST-PROMPT-47 DRIFT`
+- Branch: `edit/edt-4e591a9e-3a6f-4007-9b9d-7cb75ae0a22b`
+- HEAD: `5bdbdaee6a718cf634c2741d9081fe36b433d3f6` ("Applied Stage-D NOT NULL constraint", 2026-08-05 12:28:41 +0000)
+- Parents: `0040654b2f2420392a2ec59db44a8ef852ee6a6e`, `99b64722b3b45b0a51fadccdbd9a70597dc43cb7`
+- Prompt-49 base ancestry `0040654b…` reachable; Prompt-50 produced no commits (zero-persistence confirmed).
+- Post-Prompt-49 in-scope diff (`0040654b..HEAD`): exactly 2 paths — `supabase/migrations/20260805122454_6b75ebd2-83d9-4c19-a57f-3ea7b1f7cd27.sql` (+2) and `src/integrations/supabase/types.ts` (3 changed lines). No other in-scope path changed.
+- Working tree before and after: clean (`git status --porcelain` empty).
+- Drift classification: current task only. Platform-managed: none observed. Unrelated parallel task: none. Unknown: none.
 
-## G. Live Column Contract
+## H. Current Live Schema Contract
 
-`public.ledger_entries.effective_date`
+`public.ledger_entries.effective_date`: type `date`, `attnotnull = t`, `atthasdef = f`, identity none, generated none. NULL rows: 0. Non-internal triggers on `ledger_entries`: 0. No default, no fallback, no `created_at` derivation.
 
-| Property | Value |
-|---|---|
-| Data type | `date` |
-| Nullable | YES (target of Stage D) |
-| Default | none (no `CURRENT_DATE`, no fabricated fallback) |
-| Generated / identity | NEVER / NO |
-| Ordinal position | 16 |
-| Total rows | 88 |
-| NULL rows | 0 |
-| Min / max value | 2013-07-20 / 2026-07-27 |
-| Latest `created_at` | 2026-07-27 03:53:40.671041+00 |
-| Rows inserted after Prompt 47 | 0 (therefore 0 NULL) |
-| Table size | 272 kB |
-| `reltuples` | 88 |
-| PostgreSQL | 17.6 (aarch64) |
+ACL: `postgres=arwdDxtm`, `service_role=arwdDxtm`, `anon=r`, `authenticated=r`, `sandbox_exec=ar`. Browser roles hold SELECT only — no INSERT/UPDATE/DELETE.
 
-Constraints: PK `ledger_entries_pkey`; FKs to `clients`, `auth.users`, `payment_sessions`, `tenants`; CHECK `ledger_entries_entry_type_check` — all validated. No CHECK currently references `effective_date`.
+## I. Repository Migration and Generated-Type Contract
 
-Indexes involving `effective_date`: `ledger_entries_effective_composite_idx (tenant_id, client_id, effective_date, created_at, id)` and partial `idx_ledger_entries_tenant_effective_date (tenant_id, effective_date) WHERE effective_date IS NOT NULL`.
-
-Dependent views: `public.v_customer_ledger_balances`. Triggers on the table: none. Functions referencing the table: `_finance_ledger_insert`, `_finance_invoice_approve_inline`, `approve_invoice`, `cancel_invoice`, `post_payment`, `post_payment_session`, `get_client_first_financial_activity`, `validate_boarding_checkout_gate`.
-
-Verdict: `LIVE EFFECTIVE-DATE COLUMN CONTRACT VERIFIED`
-
-## H. Active Writer Matrix
-
-Structural gate proven: `_finance_ledger_insert` is the **only** object in the database containing `INSERT INTO public.ledger_entries`, it is SECURITY DEFINER, `EXECUTE` is granted only to `postgres`, `service_role`, `sandbox_exec_*` (not `anon`/`authenticated`), and it raises `FIN_LEDGER_INSERT_BAD_ARGS` (SQLSTATE 22023) when `p_effective_date IS NULL`.
-
-| Writer | Reachable? | Caller(s) | Authority | Economic-date source | Can omit date? | Validation | Verdict |
-|---|---|---|---|---|---|---|---|
-| `_finance_ledger_insert(...)` | Yes (internal only) | the 8 RPCs below | SECDEF; no anon/authenticated EXECUTE | `p_effective_date` argument | No | Explicit NULL guard, raises 22023 | PASS |
-| `_finance_invoice_approve_inline` | Yes | `approve_invoice`, source checkout | SECDEF, private | `invoices.issue_date` (NOT NULL, default CURRENT_DATE) | No | Source column NOT NULL | PASS |
-| `approve_invoice` | Yes | app invoice approval | SECDEF, authenticated EXECUTE | via inline approve → `issue_date` | No | inherited | PASS |
-| `cancel_invoice` | Yes | app cancellation | SECDEF, authenticated EXECUTE | `p_effective_date` parameter | No | passed straight through; NULL rejected downstream | PASS |
-| `post_payment` | Yes | payment posting | SECDEF, authenticated EXECUTE | `p_payment_date` | No | explicit `p_payment_date IS NULL` guard | PASS |
-| `post_payment_session` | Yes | RecordPayment / multi-invoice | SECDEF, authenticated EXECUTE | `payload.payment_date` | No | `FIN_PAYMENT_DATE_INVALID` (23514) when NULL | PASS |
-| `post_expense_with_ledger` | Yes | expense approval | SECDEF | `expenses.expense_date` (NOT NULL) | No | Source column NOT NULL | PASS |
-| `reverse_expense` | Yes | expense reversal | SECDEF | `p_reversal_date` | No | NULL rejected downstream | PASS |
-| `record_salary_payment` | Yes | HR salary | SECDEF | `_finance_riyadh_date(p_paid_at)` | No | derived date, never `created_at` | PASS |
-| `post_manual_ledger_adjustment` | Yes (no UI yet) | Deferred Item 13 | SECDEF | `p_effective_date` | No | explicit NULL guard | PASS |
-| Browser direct DML | No | — | `anon`/`authenticated` hold `r` (SELECT) only | n/a | n/a | privilege absent | BLOCKED BY DESIGN |
-| `create_pos_sale` / POS route | Not reachable (inert) | — | — | — | — | Deferred Item 11/12 | DEAD |
-
-Application layer: every `.from("ledger_entries")` occurrence in `src/` is a `select` (12 sites, zero insert/update/delete/upsert). No Edge Function touches `ledger_entries`. No writer uses `created_at` as a business-date fallback.
-
-Verdict: `ALL REACHABLE LEDGER WRITERS SUPPLY ECONOMIC DATE`
-
-## I. Write-Authority Recheck
-
-Live `pg_class.relacl` for `public.ledger_entries`:
-`{postgres=arwdDxtm/postgres, service_role=arwdDxtm/postgres, sandbox_exec_vhxglsvxwwpmoqjabfmj=ar/postgres, sandbox_exec=ar/postgres, anon=r/postgres, authenticated=r/postgres}`
-
-- `anon` and `authenticated`: `r` only → no INSERT, no UPDATE, no DELETE.
-- RLS enabled (`relrowsecurity = t`), two SELECT-only policies (duplicate SELECT policy remains Deferred Item 16).
-- No triggers on the table; no direct Customer Balance writer reintroduced (`customer_balances` is written only inside `_finance_ledger_insert`).
-- POS remains inert.
-- The proposed Stage-D migration changes no ACL, Policy or function.
-
-Verdict: `STAGE-B WRITE-AUTHORITY CONTRACT REMAINS CLOSED`
-
-## J. Existing-Data Readiness
-
-| Metric | Value |
-|---|---|
-| Total rows | 88 |
-| NULL `effective_date` | 0 |
-| Invalid dates | 0 (column is typed `date`; all values parse) |
-| Range | 2013-07-20 → 2026-07-27 |
-| Rows after Stage-A / B / C acceptance | 0 (latest row `created_at` 2026-07-27) |
-| Rows after Prompt 47 | 0 |
-| Per-class NULLs | invoice/invoice 47 → 0; payment/invoice 38 → 0; adjustment/invoice 2 → 0; adjustment/invoice_cancellation 1 → 0 |
-
-Zero rows were modified. Verdict: `EXISTING LEDGER DATA SATISFIES NOT-NULL CONSTRAINT`
-
-## K. Test Contract
-
-Positive tests (P1–P8), executable in Prompt 49 inside a transaction with guaranteed `ROLLBACK`:
-
-1. P1 `post_expense_with_ledger` on a seeded approved expense → ledger row created, `effective_date = expenses.expense_date`.
-2. P2 `approve_invoice` → `effective_date = invoices.issue_date`, amount preserved.
-3. P3 `post_payment` with explicit `p_payment_date` → negative amount, date preserved.
-4. P4 `post_payment_session` with `payload.payment_date` → one ledger row per allocation, no duplicates.
-5. P5 `cancel_invoice` with `p_effective_date` → single adjustment row (unique index enforced).
-6. P6 `reverse_expense` with `p_reversal_date` → reversal row, original marked reversed.
-7. P7 `record_salary_payment` → `effective_date = _finance_riyadh_date(p_paid_at)`.
-8. P8 tenant/client boundary + `customer_balances` recomputation correct after each of P1–P7; returned row shape unchanged; no cross-tenant effect.
-
-Negative tests (N1–N9):
-
-1. N1 direct `INSERT` omitting `effective_date` → fails with `23502` (only after migration).
-2. N2 direct `INSERT` with explicit `NULL` → fails `23502` (after migration).
-3. N3 each Writer with NULL date → `FIN_LEDGER_INSERT_BAD_ARGS` / `FIN_PAYMENT_DATE_INVALID` (already provable pre-migration).
-4. N4 malformed date literal → `22007` at cast.
-5. N5 `SET ROLE authenticated` → INSERT/UPDATE/DELETE on `ledger_entries` denied (`42501`).
-6. N6 rollback SQL restores nullable state — disposable environment / rolled-back transaction only.
-7. N7 grep + function-body assertion: no writer substitutes `created_at`.
-8. N8 forced Writer failure leaves `customer_balances` unchanged (atomicity).
-9. N9 idempotency retry produces no duplicate ledger row.
-
-Execution environments: N1, N2, N4 require post-migration state; all others run pre- or post-migration. P1–P8 and N1–N9 all run inside `BEGIN … ROLLBACK` so no financial row persists. No live negative write was executed in Prompt 48.
-
-Verdict: `STAGE-D TEST CONTRACT COMPLETE`
-
-## L. Migration Options and Recommendation
-
-- Option A — direct `ALTER COLUMN … SET NOT NULL`. On PostgreSQL 17.6 this takes an `ACCESS EXCLUSIVE` lock and performs one full-table verification scan: 88 rows / 272 kB → single-digit milliseconds.
-- Option B — staged `ADD CONSTRAINT … NOT VALID` → `VALIDATE` → `SET NOT NULL` (PG 12+ reuses the validated CHECK to skip the scan) → `DROP CONSTRAINT`. Justified only for large tables where the verification scan would hold `ACCESS EXCLUSIVE` too long.
-
-Selected: **Option A**. The table is 88 rows; Option B adds three extra statements and a transient CHECK object for no measurable lock benefit. Option B is rejected as unnecessary complexity, not as unsafe.
-
-No default, no trigger, no `COALESCE`, no type change, no backfill, no unrelated cleanup.
-
-Verdict: `ONE SAFE STAGE-D MIGRATION STRATEGY SELECTED`
-
-## M. Exact SQL Package
-
-Preflight (must all hold):
-
-```sql
-SELECT count(*) AS total,
-       count(*) FILTER (WHERE effective_date IS NULL) AS nulls
-FROM public.ledger_entries;                 -- expect nulls = 0
-
-SELECT is_nullable, column_default
-FROM information_schema.columns
-WHERE table_schema='public' AND table_name='ledger_entries'
-  AND column_name='effective_date';         -- expect YES, NULL default
-```
-
-Migration (one statement, one transaction):
+Migration body is exactly:
 
 ```sql
 ALTER TABLE public.ledger_entries
   ALTER COLUMN effective_date SET NOT NULL;
 ```
 
-Idempotency: re-running is a no-op error-free only if guarded; guard with a `DO` block checking `attnotnull` if re-entrancy is desired. Lock: `ACCESS EXCLUSIVE`, expected duration < 50 ms. Concurrent writes: blocked for the lock duration; all writers are short SECDEF transactions.
+Generated types: `ledger_entries` Row/Insert/Update now expose `effective_date: string` / `effective_date?: string` (non-null), matching the live catalog. The remaining nullable `effective_date` occurrences belong to a different table (`financial_entries`), which is out of Stage-D scope and unchanged. No application source changed in Stage D.
 
-Validation:
+## J. Financial Data Reconciliation
 
-```sql
-SELECT attnotnull FROM pg_attribute
-WHERE attrelid='public.ledger_entries'::regclass AND attname='effective_date';  -- expect t
+| Metric | Value |
+|---|---|
+| Ledger rows | 88 |
+| NULL effective_date | 0 |
+| Debit total (amount > 0) | 177,543.93 |
+| Credit total (amount < 0) | -38,342.58 |
+| Net | 139,201.35 |
+| Customer balances rows | 8 |
+| Customer balances aggregate | 139,201.35 |
 
-SELECT count(*) FROM public.ledger_entries;                                     -- expect 88
-SELECT md5(string_agg(id::text||amount::text||balance_after::text, ',' ORDER BY id))
-FROM public.ledger_entries;                                                     -- expect unchanged fingerprint
-SELECT count(*), md5(string_agg(client_id::text||balance::text, ',' ORDER BY client_id))
-FROM public.customer_balances;                                                  -- expect 8 / unchanged
-```
+Row count, net and customer-balance aggregate match the Prompt-49/50 post-migration values; ledger net reconciles exactly to the customer-balance aggregate. No operational rows added after Prompt 50.
 
-Rollback:
+## K. Fingerprint-Method Reconciliation
 
-```sql
-ALTER TABLE public.ledger_entries
-  ALTER COLUMN effective_date DROP NOT NULL;
-```
+| Object | Prompt-49 method/result | Prompt-50 method/result | Current result | Verdict |
+|---|---|---|---|---|
+| ledger_entries | md5 over row tuple (exact expression not recoverable from repository) — inaccessible | within-run before/after equality proven | `39c798d8e8da9f9a36e7fd32c4ad4d23` (id, amount, effective_date, balance_after) | No drift by count/total/aggregate reconciliation |
+| customer_balances | inaccessible | within-run before/after equality proven | `35698fb08d0b27aaa5b2b484ad2f972d` | No drift |
 
-## N. Rollback Contract
+Earlier hash literals are not comparable across differing expressions and are labelled inaccessible rather than asserted equivalent. Equality is established by counts, totals and cross-object reconciliation.
 
-Structurally possible and instantaneous. It restores no NULL rows (none are created), changes no amount, no `balance_after`, no `customer_balances` row and no date. It weakens data integrity and is therefore not an ordinary operational action — it requires explicit Owner authorization. Classification under the migration-safety framework: **Risk Level 2 forward / Rollback Type B (partially reversible)** — the structure reverses fully, but any NULL rows written while the constraint is absent could not be re-blocked without a new backfill.
+## L. Active Writer Contract Matrix
 
-Verdict: `STAGE-D ROLLBACK CONTRACT READY`
+All ten Writers exist with unchanged signatures and current definition digests; date is always explicit or derived from a NOT NULL source column; `_finance_ledger_insert` raises `FIN_LEDGER_INSERT_BAD_ARGS` (22023) when the date is NULL; all run inside a single RPC transaction; idempotency keys / unique indexes provide duplicate protection.
 
-## O. Prompt-49 Execution Package
+| Writer | Reachable | Date source | NULL prevention | Atomic | Duplicate protection | Runtime tested this run | Structural verdict |
+|---|---|---|---|---|---|---|---|
+| `_finance_ledger_insert` (md5 `db230308…`) | via RPCs | `p_effective_date` | explicit guard + NOT NULL | yes | caller idempotency | No | PASS |
+| `_finance_invoice_approve_inline` (`452448…`) | yes | invoice issue/effective date | inherits guard | yes | approval state guard | No | PASS |
+| `approve_invoice` (`df3638…`) | yes | invoice date | inherits guard | yes | `p_idempotency_key` | No | PASS |
+| `cancel_invoice` (`db5dfd…`) | yes | `p_effective_date` | inherits guard | yes | `p_idempotency_key` | No | PASS |
+| `post_payment` (`613d7e…`) | yes | `p_payment_date` | inherits guard | yes | `p_idempotency_key` | No | PASS |
+| `post_payment_session` (`2d6f94…`) | yes | payload payment date | inherits guard | yes | `p_idempotency_key` | No | PASS |
+| `post_expense_with_ledger` (`48fae5…`) | yes | expense date | inherits guard | yes | `p_idempotency_key` | No | PASS |
+| `reverse_expense` (`cf715f…`) | yes | `p_reversal_date` | inherits guard | yes | `p_idempotency_key` | No | PASS |
+| `record_salary_payment` (`f6db6b…`) | yes | `p_paid_at` → date | inherits guard | yes | `p_idempotency_key` | No | PASS |
+| `post_manual_ledger_adjustment` (`d37e32…`) | yes | `p_effective_date` | inherits guard | yes | `p_idempotency_key` | No | PASS |
 
-- Mode: `Agent/Build — Constraint Enforcement`
-- Allowlist: exactly one new migration file, pattern `supabase/migrations/<UTC timestamp>_<uuid>.sql`, containing only the single `ALTER TABLE` statement. Optional evidence file `docs/workstreams/ws-dh-2026-0003-economic-date-integrity/evidence/stage-d-not-null/` (preflight, validation, rollback). No other path may change.
-- Sequence: preflight queries (Section M) → migration → validation queries → positive tests P1–P8 and negative tests N1–N9 → `tsgo` and `bun run build` (both must exit 0).
-- Generated Supabase types: `ledger_entries.Row.effective_date` narrows from `string | null` to `string`, and `Insert` gains a required field. No application code change is expected because the app never inserts and already handles the value as present; confirm with typecheck.
-- RLS, Policies, ACLs, functions, triggers: unchanged.
-- Assertions: financial-row writes ZERO, amount/balance fingerprints unchanged, `customer_balances` unchanged, row count 88.
-- Stopping point: immediately after validation and tests, before QA and Owner Acceptance.
+No Writer definition changed after Prompt 48 (signatures and argument contracts identical to the Prompt-48 inventory). Runtime tested = No for all lanes this run; prior accepted Stage-B/C runtime evidence is preserved separately and not re-claimed.
 
-Next eligible Prompt number is 49, valid only once Prompt 48 is proven consumed. No number is allocated by this report.
+## M. Stage-B Write-Authority Recheck
 
-## P. Facts
+Application code contains only SELECT reads of `ledger_entries` (11 read sites; zero insert/update/delete). Browser roles hold `r` only. STAGE-B WRITE-AUTHORITY CONTRACT REMAINS CLOSED.
 
-Every item in Sections F–J was directly proven this run by `git` and read-only SQL against the live database.
+## N. Prompt-50 Safe-Channel Limitation Assessment
 
-## Q. Lovable Claims
+Independently re-verified: `sandbox_exec` holds `ar` (SELECT/INSERT) on `ledger_entries` only, is not table owner, cannot EXECUTE the finance RPCs, cannot SET ROLE to `authenticated`; the migration channel persists history; driving the application persists operational rows; no disposable database branch is available.
 
-Prompt-01–47 acceptance history and Owner decisions are carried from the prompt and prior accepted reports, not re-proven here.
+Classification: **B. TEST ENVIRONMENT LIMITATION.**
 
-## R. Analytical Inferences
+## O. Executable Constraint-Test Evidence (rollback-only, zero persistence)
 
-Lock duration (< 50 ms) is inferred from table size and PostgreSQL 17 verification-scan behaviour. Generated-type narrowing is inferred from Supabase type-generation rules and must be confirmed by typecheck in Prompt 49.
+- N1 omitted date → `23502` not-null violation — PASS
+- N2 explicit NULL → `23502` not-null violation — PASS
+- N4 malformed date `2026-13-45` → `22008` date/time field out of range — PASS
+- N5 browser roles hold no direct DML (ACL proof) — PASS
+- N7 no default, no trigger, no `created_at` fallback — PASS
+- Post-test row count re-read: 88 (unchanged); transaction fully rolled back.
 
-## S. Gaps and Contradictions
+## P. Targeted Tests, True Exit Codes, Typecheck, Build
+
+| Command | Exit code | Result |
+|---|---|---|
+| `bunx vitest run src/lib/finance` | 0 | 15 files, 268/268 passed |
+| `bunx vitest run src/components/finance src/hooks` | 1 | 5 files, 49 passed / 1 failed (Arabic PDF assertion) |
+| `bunx tsgo --noEmit -p tsconfig.app.json` | 0 | clean |
+| `bun run build` | 0 | built in 26.77s |
+
+ALL STAGE-D-SPECIFIC TESTS PASSED; ONE KNOWN PRE-EXISTING OUT-OF-SCOPE PDF ASSERTION REMAINS FAILED WITH A TRUTHFULLY REPORTED NON-ZERO EXIT CODE
+
+## Q. Arabic PDF Assertion Attribution
+
+`src/components/finance/__tests__/InvoicePDFGenerator.test.ts:151` expects `dir="rtl"`. Last commit touching the file: `08acdd6dfb2e8bf419086ce4aec74b6b2d529239` (2026-07-27), i.e. the pre-Stage-D pagination refactor window. Failure signature unchanged from Prompts 46/47/49. No Stage-D path touched it. Non-blocking, out of scope.
+
+## R. Blocked Runtime-Test Risk Matrix
+
+| Lane | Missing evidence | Compensating evidence | Residual risk | Acceptance impact |
+|---|---|---|---|---|
+| P1–P8 positive Writer runs | current RPC execution | unchanged Writer digests, explicit date args, NOT NULL source columns, prior accepted Stage-B/C runtime evidence, zero data regression | LOW | None |
+| N3 runtime NULL rejection | RPC-level NULL call | `FIN_LEDGER_INSERT_BAD_ARGS` guard + proven database 23502 | LOW | None |
+| N6 structural rollback | executed `DROP NOT NULL` | statement is valid standard SQL; failure was privilege-related, not syntax; rollback is an authorized emergency action | MEDIUM (bounded) | None |
+| N8 Atomicity | live multi-step abort | single-transaction RPC bodies, prior accepted evidence | LOW | None |
+| N9 Idempotency | live duplicate call | `p_idempotency_key` on every Writer plus unique indexes and prior accepted evidence | LOW | None |
+
+No HIGH or UNKNOWN residual.
+
+## S. Acceptance Criteria Matrix
+
+All 24 criteria in Section 15 are met: ancestry intact; no in-scope drift; no contamination; NOT NULL live; no default/trigger; zero NULLs; reconciled financials; synchronized types; unchanged Writers; explicit dates; no browser DML; Stage-B closed; N1/N2/N4/N5/N7 valid; finance tests pass; typecheck passes; build passes; Arabic PDF failure proven pre-existing; Prompt-49 exit-code contradiction remains corrected; limitation classified B; every blocked lane LOW/MEDIUM; no product defect; no permanent test data; zero writes in Prompt 51.
+
+## T. Facts
+
+Constraint live and enforced; 88 rows / 0 NULLs; net 139,201.35 reconciling to customer balances; migration body one statement; types synchronized; Writers unchanged; browser roles read-only; build and typecheck clean.
+
+## U. Lovable Claims
+
+Prompt-49 claims of applied constraint, type synchronization and zero data change are independently confirmed. Prompt-50 claims of blocked privileged channel and zero persistence are independently confirmed.
+
+## V. Analytical Inferences
+
+The NOT NULL constraint is the sole enforcement surface added; because every Writer already supplied an explicit date and no default or trigger exists, the constraint can only reject genuinely date-less inserts and cannot silently fabricate values.
+
+## W. Gaps and Contradictions
 
 None.
 
-## T. Blocking Findings
+## X. Blocking Findings
 
 None.
 
-## U. Non-Blocking Residuals
+## Y. Non-Blocking Residuals
 
-Duplicate SELECT policy on `ledger_entries` (Deferred Item 16); two legacy `created_at`-ordered indexes remain and are unused by the Stage-C read paths; `sandbox_exec` retains `a`/`r` on the table (Deferred Item 18). None affects Stage D.
+Pre-existing Arabic Invoice PDF `dir="rtl"` assertion; absence of a privileged rollback drill channel (deferred item below).
 
-## V. One Recommendation
+## Z. Complete Deferred Items Register
 
-Issue Prompt 49 in `Agent/Build — Constraint Enforcement` mode and execute the single `ALTER TABLE public.ledger_entries ALTER COLUMN effective_date SET NOT NULL;` migration with the Section-M package.
+New (added on pass): privileged rollback-only Writer verification drill for P1–P8, runtime N3, N6, N8 and N9 before any material Writer refactor, privilege change, or Historical Import production launch.
 
-## W. Complete Deferred Items Register
+Preserved: stale Arabic Invoice PDF root assertion; source-batch explicit tenant predicate; Supplier Payables date architecture; future direct `payment_sessions` contract; Internal Cost terminology and Unknown vs Real Zero; contextual Internal Cost labels; HR Salary atomicity/idempotency/reversal; HR-linked Expense deletion protection; Expense unpost and reversal; Supplier Payable lifecycle and authority; full POS implementation; future `create_pos_sale`; Manual Ledger Adjustment UI; residual Finance privilege hardening; full `has_permission` qualification; duplicate Ledger SELECT Policy; TEMP grant and PUBLIC Helper EXECUTE review; `sandbox_exec` privilege review; Historical Import provenance objects; `owner_id` identity binding; shadow draft-invoice remediation; Doctor billing and `tenant_services` unification; Forward → Rollback → Forward drill; PostgreSQL parser or disposable-environment validation; Phase-2 Import Control Layer; provenance, fingerprint, idempotency, quarantine and rollback; Opening Obligation; Unapplied Credit; document identity and numbering; identity matching; Laboratory Historical Import pilot; Phase-1 completion; WS-DH-2026-0003 closure; Workstream Closure Persistence if later required.
 
-All 34 items preserved unchanged: 1 stale Arabic Invoice PDF root assertion; 2 source-batch explicit tenant predicate; 3 Supplier Payables date architecture; 4 future direct `payment_sessions` contract; 5 Internal Cost terminology and Unknown vs Real Zero; 6 contextual Internal Cost labels; 7 HR Salary atomicity/idempotency/reversal; 8 HR-linked Expense deletion protection; 9 Expense unpost and reversal; 10 Supplier Payable lifecycle and authority; 11 full POS implementation; 12 future `create_pos_sale`; 13 Manual Ledger Adjustment UI; 14 residual Finance privilege hardening; 15 full `has_permission` qualification; 16 duplicate Ledger SELECT Policy; 17 TEMP grant and PUBLIC Helper EXECUTE review; 18 `sandbox_exec` privilege review; 19 Historical Import provenance objects; 20 `owner_id` identity binding; 21 shadow draft-invoice remediation; 22 Doctor billing and `tenant_services` unification; 23 Forward → Rollback → Forward drill; 24 PostgreSQL parser or disposable-environment validation; 25 Phase-2 Import Control Layer; 26 provenance, fingerprint, idempotency, quarantine and rollback; 27 Opening Obligation; 28 Unapplied Credit; 29 document identity and numbering; 30 identity matching; 31 Laboratory Historical Import pilot; 32 Phase-1 completion; 33 WS-DH-2026-0003 closure; 34 Workstream Closure Persistence if later required.
+## AA. Workstream Persistence
 
-## X. Workstream Persistence
+Stage A closed; Stage B closed; Stage C owner-accepted and closed; Stage D executed; final QA/Acceptance PASSED with bounded limitation; Owner Acceptance pending; Phase 1 active; no Workstream closure.
 
-Stage A closed. Stage B closed. Stage C owner-accepted and closed. Stage D readiness: READY. No Stage-D execution occurred. No Phase or Workstream closure. No governance file was written.
+## AB. Roadmap Impact
 
-## Y. Roadmap Impact
+RM-DH-004 active; Phase 1 active; Stage D passed final QA pending Owner Acceptance; Phases 2–8 not started; no automatic advancement or closure.
 
-Phase 1 ACTIVE; Stage D is the current lane; Phases 2–8 not started; no advancement, no Closure.
+## AC. Owner Decision Package
 
-## Z. Run Metadata and Exact Stopping Point
+Recommendation: Accept RM-DH-004 Phase 1 Stage D within its bounded `ledger_entries.effective_date` NOT NULL constraint scope, with the privileged runtime Writer drill retained as an explicit deferred evidence item.
 
-1 Mode: Plan/Chat — Read-Only readiness audit. 2 PT-DH-RM004-WS0003-STAGED-READINESS-20260805-1433. 3 Prompt 48 — SUBMITTED — RUN — CONSUMED. 4 Prepared 05-08-2026 14:33 Asia/Riyadh. 5 Run start 05-08-2026 14:49, end 14:57, report 14:58 Asia/Riyadh. 6 Branch `edit/edt-54f1af7a-cd8b-47a8-a3ec-41fd1061951d`; HEAD `8c41bbc1f7065eacb40ba95be0a8f4bcb06f507e`; parent `570ec5d26275765b9c98c4f3cfb445a133348e37`. 7 Working Tree before: clean; after: this plan file only. 8 Prompt-47 HEAD `739bf980cc1d9d0641b1cba1cee701d714f0140d` is an ancestor. 9 Post-Prompt-47 commits: 2. 10 Current-task paths: none. 11 Unrelated parallel-task paths: none. 12 Platform-managed paths: `.lovable/plan.md`. 13 `NO CROSS-TASK CONTAMINATION DETECTED`. 14 `NO IN-SCOPE POST-PROMPT-47 DRIFT`. 15 PostgreSQL 17.6. 16 272 kB / 88 rows. 17 `date`, nullable, no default, ordinal 16. 18 NULL count 0. 19 Post-Prompt-47 rows 0. 20 Active Writers 10. 21 Dead Writers 2 (POS route, `create_pos_sale`). 22 Writer-date matrix: Section H. 23 Direct-DML privilege: `anon`/`authenticated` = SELECT only. 24 Option A direct `SET NOT NULL`. 25 `ACCESS EXCLUSIVE`, < 50 ms. 26 Rollback Type B. 27 Positive tests 8. 28 Negative tests 9. 29 Repository reads: git metadata + `src/` and `supabase/functions/` writer sweep. 30 Repository writes: ZERO. 31 Database reads: 14 read-only statements. 32 Database writes: ZERO. 33 Migration writes: ZERO. 34 Financial-row writes: ZERO. 35 Governance writes: ZERO. 36 Stage A CLOSED. 37 Stage B CLOSED. 38 Stage C OWNER ACCEPTED — CLOSED. 39 Stage D READY. 40 Phase 1 ACTIVE. 41 Phase advancement NONE. 42 Closure NONE. 43 Stopping point: this readiness verdict and the Prompt-49 package. 44 Recommendation: Section V. 45 Next Prompt 49, Mode `Agent/Build — Constraint Enforcement`.
+Stage D remains unaccepted until explicit Owner approval. No Acceptance Persistence is authorized. Phase 1 and WS-DH-2026-0003 are not closed by Prompt 51. The Owner may combine Stage-D Acceptance, Phase-1 Closure and WS-DH-2026-0003 Closure in one explicit decision after reviewing this report.
 
-`STAGE-D CONSTRAINT ENFORCEMENT READY — ONE BOUNDED EXECUTION PROMPT REQUIRED`
+### Passing-Verdict Limitation Statement
+
+The privileged runtime Writer tests P1–P8, runtime N3, structural
+rollback N6, Atomicity N8 and Idempotency N9 were not re-executed during
+Stage D because no safe Lovable-only privileged rollback channel was
+available.
+
+This is accepted only as a bounded test-environment evidence limitation,
+not as proof that those tests ran.
+
+Acceptance relies on the live NOT NULL constraint, zero financial-data
+change, unchanged Writer definitions and privileges, explicit date
+guards, source-column constraints, existing unique indexes, previously
+accepted Writer evidence, and all currently executable Stage-D tests.
+
+A future disposable-environment or time-boxed privileged rollback drill
+remains tracked and must be completed before any material Writer
+refactor, privilege change, or Historical Import production launch.
+
+## AD. Run Metadata and Exact Stopping Point
+
+Mode: Plan/Chat — read-only final QA. Operation: Stage-D Acceptance Re-Audit. Parallel Task: PT-DH-RM004-WS0003-STAGED-FINAL-QA-20260805-1555. Prompt ID: PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-STAGE-D-FINAL-INDEPENDENT-QA-ACCEPTANCE-REAUDIT-51 — SUBMITTED — RUN — CONSUMED. Prepared 05-08-2026 15:55 Asia/Riyadh. Run start 16:01, run end 16:05, report 16:05 Asia/Riyadh (Exact time not recorded to the second). Environment: Lovable only. Project ID: 64c79edd-f667-42bb-b896-147c63e0ff12.
+
+Branch `edit/edt-4e591a9e-3a6f-4007-9b9d-7cb75ae0a22b`; HEAD `5bdbdaee6a718cf634c2741d9081fe36b433d3f6`; parents `0040654b2f2420392a2ec59db44a8ef852ee6a6e` and `99b64722b3b45b0a51fadccdbd9a70597dc43cb7`. Working tree clean before and after. Post-Prompt-50 commits: none. Changed paths since Prompt-49 base: 2 (migration + generated types). Platform-managed paths: none. Unrelated parallel-task paths: none.
+
+Schema contract: `date`, NOT NULL, no default, no identity, no generated. Ledger count 88; NULL count 0; debit 177,543.93; credit -38,342.58; net 139,201.35; customer balances 8 / 139,201.35. Fingerprint reconciliation: no drift (earlier expressions inaccessible, labelled as such). Migration identity `20260805122454_6b75ebd2-83d9-4c19-a57f-3ea7b1f7cd27.sql`. Generated types synchronized. Active Writers: 10; Writer-definition drift: none. Write-authority: closed.
+
+N1 PASS (23502); N2 PASS (23502); N4 PASS (22008); N5 PASS (ACL); N7 PASS (no default/trigger). Finance tests exit 0 (268/268). Components+hooks exit 1 (49 passed / 1 pre-existing failure). Stale PDF assertion exit 1, unchanged, out of scope. Typecheck exit 0. Build exit 0. Safe-channel limitation: TEST ENVIRONMENT LIMITATION. P1–P8 LOW; N3 LOW; N6 MEDIUM (bounded); N8 LOW; N9 LOW.
+
+Repository writes: ZERO. Database writes: ZERO. Migration writes: ZERO. Financial-row writes: ZERO. Governance writes: ZERO.
+
+Stage A: CLOSED. Stage B: CLOSED. Stage C: OWNER ACCEPTED — CLOSED. Stage D: FINAL QA AND ACCEPTANCE RE-AUDIT PASSED WITH BOUNDED TEST-ENVIRONMENT LIMITATION. Stage-D Owner Acceptance: PENDING. Phase 1: ACTIVE. WS-DH-2026-0003: ACTIVE. Phase advancement: NONE. Closure: NONE.
+
+Exact stopping point: final Stage-D QA and Acceptance Re-Audit verdict plus the Owner decision package; no persistence performed.
+
+Recommendation (one): grant explicit Owner Acceptance for Stage D within its bounded constraint scope, retaining the privileged rollback drill as a deferred evidence item.
+
+Next Mode: Plan/Chat — Owner Acceptance decision, then a bounded persistence prompt if accepted.
