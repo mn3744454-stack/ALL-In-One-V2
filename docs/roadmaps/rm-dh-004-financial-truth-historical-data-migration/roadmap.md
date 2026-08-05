@@ -448,16 +448,17 @@ No private Client names or private financial details are recorded here.
 
 ## Remaining Work
 
-1. independent Acceptance Re-Audit of this Prompt-53 governance reconciliation and of the new `WS-DH-2026-0006` package;
-2. after that Re-Audit passes and the Owner separately authorizes it, the `WS-DH-2026-0006` Technical Foundation Audit and Execution Contract;
-3. all later Phase-2 technical slices, each requiring separate Owner authorization;
-4. Phases 4 through 8 in their existing numbering and identities.
+1. Prompt 55 — the `WS-DH-2026-0006` Stage 1 Technical Foundation Audit and Execution Contract, only after a separate explicit Owner authorization;
+2. all later Phase-2 technical slices, each requiring separate Owner authorization;
+3. Phases 4 through 8 in their existing numbering and identities.
 
 ## Current Stopping Point
 
 Phase 1 — Economic Date Integrity is `COMPLETE — OWNER ACCEPTED — CLOSED`, and `WS-DH-2026-0003` is `OWNER ACCEPTED — CLOSED`. Stages A, B, C and D are closed within their accepted bounds. The `public.ledger_entries.effective_date NOT NULL` contract is a closed Phase-1 contract and must not be changed.
 
-Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase. Its governance is reconciled and the dedicated `WS-DH-2026-0006` package exists at version `1.0.0`.
+Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase. Its Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-004`, following the passed independent re-verification of the Prompt-53 governance execution, the bounded package correction and Correction Continuation C2. The dedicated `WS-DH-2026-0006` package is at version `1.2.0`.
+
+Stage 1 — Technical Foundation Audit / Execution Contract has **not** started and requires a separate explicit Owner authorization. No Technical Foundation Execution Contract exists.
 
 Phase-2 technical implementation has **not** started. No import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists or was created. No Phase-2 Acceptance, Workstream Closure, Roadmap Closure or production readiness is claimed.
 
@@ -465,9 +466,9 @@ The former Phase 3 — Import Control Plane retains its historical identity but 
 
 ## Next Permitted Action
 
-Independent Acceptance Re-Audit of the Prompt-53 governance reconciliation and the `WS-DH-2026-0006` package.
+Prompt 55 — Plan/Chat — `WS-DH-2026-0006` Stage 1 Technical Foundation Audit / Execution Contract, only upon explicit Owner submission and authorization. Prompt 55 has not been consumed.
 
-Stated separately: that Re-Audit is read-only and must stop before any technical slice, before any migration or Storage object, before any parsing or staging work and before any database change.
+Stated separately: no technical slice, migration, Storage object, parsing, staging or database change is authorized by this Acceptance Persistence.
 
 
 
