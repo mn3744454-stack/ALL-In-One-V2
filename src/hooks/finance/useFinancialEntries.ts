@@ -3,6 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  FINANCIAL_ENTRY_SOURCE_DATE_CONTRACTS,
+  attachBusinessDates,
+  buildSourceDateLookup,
+  groupSourceIdsByType,
+  sortFinancialEntries,
+  sourceSelectColumns,
+} from "@/lib/finance/financialEntryBusinessDate";
+
 
 export interface FinancialEntry {
   id: string;
