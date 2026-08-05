@@ -114,9 +114,9 @@ NONE
 
 This register is the planned technical order. It is separate from, and does not replace, the Stage Register above. No technical step is implemented, executed, accepted or closed.
 
-| # | Planned step | State after this correction |
+| # | Planned step | Current state |
 |---:|---|---|
-| 1 | Governance reconciliation | EXECUTED — INDEPENDENT RE-VERIFICATION PENDING |
+| 1 | Governance reconciliation | COMPLETE — OWNER ACCEPTED (DEC-RM-DH-004-004) |
 | 2 | Technical Foundation Audit / Execution Contract | NOT STARTED |
 | 3 | Shared control-plane schema, storage and permissions | NOT STARTED |
 | 4 | Upload and registry visibility | NOT STARTED |
@@ -128,7 +128,7 @@ This register is the planned technical order. It is separate from, and does not 
 | 10 | Controlled real-client pilot | NOT STARTED |
 | 11 | Later Domain Adapters | NOT STARTED |
 
-Step 1 must not be marked COMPLETE before independent re-verification and Owner Acceptance.
+Step 1 is marked COMPLETE only because independent re-verification passed and the Owner granted explicit Acceptance. Steps 2 through 11 remain unimplemented and unauthorized.
 
 ## Dependencies
 
