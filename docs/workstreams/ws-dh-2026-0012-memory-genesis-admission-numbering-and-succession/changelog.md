@@ -137,3 +137,23 @@ Corrected historical Local Prompt 02 write set:
 **Exact stopping point.** `WS-DH-2026-0012` is OWNER ACCEPTED and CLOSED; no further work is permitted inside this Workstream.
 
 **Next action.** ChatGPT final review of the closure, then a separate Owner decision on whether and when to authorize the `WS-DH-2026-0013` investigation.
+
+### 2026-08-06 — Local Prompt 04 Correction Continuation C2 — DEC-WS-DH-2026-0012-002 exact 36-point contract repair
+
+**Execution prompt.** `PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04` — Correction Continuation C2, Parallel Task `PT-DH-WS0012-P04-C2-DECISION-002-EXACT-CONTRACT-REPAIR`, Agent/Build, repository write 2026-08-06 (Asia/Riyadh — UTC+03:00). Exact Owner authorization time not recorded; exact write clock time not recorded — the authoritative write chronology is the Git evidence bound to this correction. **Same Local Prompt 04 — no new local Prompt number consumed.**
+
+**Basis.** Local Prompt 04-C1 (`PT-DH-WS0012-P04-C1-DECISION-002-CONTRACT-VERIFICATION`, read-only) returned VERIFICATION FAILED: the persisted Approved Contract contained exactly 23 numbered points and, while no required obligation was absent in effect and none was contradicted, fifteen expected points survived only through incorporation of `DEC-WS-DH-2026-0012-001`. The material standalone repair surface was expected points 5, 7, 9, 19, 20, 26, 29, 31, 32 and 35.
+
+**Correction performed.** The consolidated 23-point Approved Contract of `DEC-WS-DH-2026-0012-002` was replaced in full by exactly the authoritative **36 numbered, self-contained Owner-contract points**. No point 37 or higher exists, no point number is duplicated or omitted, and no required obligation depends solely on incorporation by reference. The three additive, non-contract subjects of the superseded structure — the fourteen unresolved duplicate/overlap clusters, the no-code/no-database/no-Skill/no-Knowledge change boundary, and the Decision-count and next-ID bookkeeping — are retained beneath the contract as unnumbered administrative and execution notes, together with the persisted Stage states and the lineage reference to `DEC-WS-DH-2026-0012-001`.
+
+**Preserved.** Decision ID `DEC-WS-DH-2026-0012-002`; its title; Status APPROVED; Owner Mohamed Nour; approval 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00); governing execution prompt and Parallel Task references; the passed Stage-6 evidence basis; the Rejected alternative section; `DEC-WS-DH-2026-0012-001` and its complete 27-point contract; Stage 6 RUN — PASSED — OWNER ACCEPTED — PERSISTED; Stage 7 completion; `WS-DH-2026-0012` OWNER ACCEPTED — CLOSED; bounded installation readiness; Project Knowledge NOT INSTALLED.
+
+**Not performed.** No new Decision, no renumbering or reuse of a Decision, `DEC-WS-DH-2026-0012-003` remains NOT CREATED; Local Prompt 05 remains NOT CONSUMED; no Stage-state change; no new Acceptance or Closure act; no Memory ID allocation, Candidate admission, Memory body or `mem://index.md` change; no application-code inspection or modification; no database access; no schema, migration, RLS, RPC or Edge Function change; no Skill, Workspace Knowledge or `AGENTS.md` change; no Documentation 01–13 use; no `RM-DH-004` inspection or change; no `WS-DH-2026-0013` run or start; no start of `WS-DH-2026-0014` or `WS-DH-2026-0015`; no Sub-phase 3.2 advancement; no closure of Sub-phase 3.1, Phase 3 or `RM-DH-003`.
+
+**Paths changed.** Exactly three: this package's `decisions.md` (1.3.0 → 1.4.0) and this changelog (1.4.0 → 1.5.0); `docs/README.md` (1.19.0 → 1.20.0). No fourth path was written. `.lovable/plan.md` is platform-managed and is not a governance artifact.
+
+**Numbering.** Local Prompts consumed 4 (01 with C1–C5, 02 with C1–C2, 03, 04 with C1–C2); next eligible local Prompt `05` — NOT CONSUMED. Local Decisions consumed 2; latest `DEC-WS-DH-2026-0012-002`; next eligible `DEC-WS-DH-2026-0012-003` — NOT CREATED.
+
+**Exact stopping point.** Immediately after the bounded three-path Decision repair. `WS-DH-2026-0012` remains OWNER ACCEPTED and CLOSED; no further work is permitted inside this Workstream.
+
+**Next action.** ChatGPT final verification of `DEC-WS-DH-2026-0012-002` and final confirmation of the `WS-DH-2026-0012` Closure.
