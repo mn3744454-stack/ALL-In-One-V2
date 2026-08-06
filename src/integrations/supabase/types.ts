@@ -5795,6 +5795,491 @@ export type Database = {
           },
         ]
       }
+      import_batch_files: {
+        Row: {
+          batch_id: string
+          created_at: string
+          created_by: string | null
+          duplicate_acknowledged_at: string | null
+          duplicate_acknowledged_by: string | null
+          duplicate_of_id: string | null
+          id: string
+          ordinal: number
+          processing_status: string
+          reprocess_of_id: string | null
+          role: string
+          source_file_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          created_by?: string | null
+          duplicate_acknowledged_at?: string | null
+          duplicate_acknowledged_by?: string | null
+          duplicate_of_id?: string | null
+          id?: string
+          ordinal: number
+          processing_status?: string
+          reprocess_of_id?: string | null
+          role?: string
+          source_file_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          created_by?: string | null
+          duplicate_acknowledged_at?: string | null
+          duplicate_acknowledged_by?: string | null
+          duplicate_of_id?: string | null
+          id?: string
+          ordinal?: number
+          processing_status?: string
+          reprocess_of_id?: string | null
+          role?: string
+          source_file_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batch_files_batch_fk"
+            columns: ["tenant_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "import_batch_files_duplicate_of_fk"
+            columns: ["tenant_id", "batch_id", "duplicate_of_id"]
+            isOneToOne: false
+            referencedRelation: "import_batch_files"
+            referencedColumns: ["tenant_id", "batch_id", "id"]
+          },
+          {
+            foreignKeyName: "import_batch_files_reprocess_of_fk"
+            columns: ["tenant_id", "batch_id", "reprocess_of_id"]
+            isOneToOne: false
+            referencedRelation: "import_batch_files"
+            referencedColumns: ["tenant_id", "batch_id", "id"]
+          },
+          {
+            foreignKeyName: "import_batch_files_source_file_fk"
+            columns: ["tenant_id", "source_file_id"]
+            isOneToOne: false
+            referencedRelation: "import_source_files"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
+      import_batches: {
+        Row: {
+          batch_code: string
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          declared_currency: string | null
+          declared_record_count: number | null
+          declared_total_amount: number | null
+          description: string | null
+          domain_code: string
+          id: string
+          metadata: Json
+          source_owner_note: string | null
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          batch_code: string
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          declared_currency?: string | null
+          declared_record_count?: number | null
+          declared_total_amount?: number | null
+          description?: string | null
+          domain_code?: string
+          id?: string
+          metadata?: Json
+          source_owner_note?: string | null
+          status?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          batch_code?: string
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          declared_currency?: string | null
+          declared_record_count?: number | null
+          declared_total_amount?: number | null
+          description?: string | null
+          domain_code?: string
+          id?: string
+          metadata?: Json
+          source_owner_note?: string | null
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_tenant_fk"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_batches_tenant_fk"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_events: {
+        Row: {
+          actor_id: string | null
+          aggregate_id: string
+          aggregate_type: string
+          correlation_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          prior_state: string | null
+          resulting_state: string | null
+          tenant_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          aggregate_id: string
+          aggregate_type: string
+          correlation_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          prior_state?: string | null
+          resulting_state?: string | null
+          tenant_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          aggregate_id?: string
+          aggregate_type?: string
+          correlation_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          prior_state?: string | null
+          resulting_state?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_events_tenant_fk"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_events_tenant_fk"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_issues: {
+        Row: {
+          batch_file_id: string | null
+          batch_id: string
+          created_at: string
+          created_by: string | null
+          detail: Json
+          field_path: string | null
+          id: string
+          issue_code: string
+          resolution_evidence: Json
+          resolved_at: string | null
+          resolved_by: string | null
+          scope: string
+          severity: string
+          source_owner_explanation: string | null
+          staging_row_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          batch_file_id?: string | null
+          batch_id: string
+          created_at?: string
+          created_by?: string | null
+          detail?: Json
+          field_path?: string | null
+          id?: string
+          issue_code: string
+          resolution_evidence?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scope: string
+          severity: string
+          source_owner_explanation?: string | null
+          staging_row_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          batch_file_id?: string | null
+          batch_id?: string
+          created_at?: string
+          created_by?: string | null
+          detail?: Json
+          field_path?: string | null
+          id?: string
+          issue_code?: string
+          resolution_evidence?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scope?: string
+          severity?: string
+          source_owner_explanation?: string | null
+          staging_row_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_issues_batch_file_fk"
+            columns: ["tenant_id", "batch_id", "batch_file_id"]
+            isOneToOne: false
+            referencedRelation: "import_batch_files"
+            referencedColumns: ["tenant_id", "batch_id", "id"]
+          },
+          {
+            foreignKeyName: "import_issues_batch_fk"
+            columns: ["tenant_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "import_issues_staging_row_fk"
+            columns: [
+              "tenant_id",
+              "batch_id",
+              "batch_file_id",
+              "staging_row_id",
+            ]
+            isOneToOne: false
+            referencedRelation: "import_staging_rows"
+            referencedColumns: ["tenant_id", "batch_id", "batch_file_id", "id"]
+          },
+        ]
+      }
+      import_source_files: {
+        Row: {
+          byte_size: number
+          created_at: string
+          declared_mime: string | null
+          detected_mime: string | null
+          id: string
+          legal_hold: boolean
+          legal_hold_reason: string | null
+          legal_hold_set_at: string | null
+          legal_hold_set_by: string | null
+          mime_verified_at: string | null
+          original_filename: string
+          quarantine_status: string
+          retention_class: string | null
+          retention_expires_at: string | null
+          scan_status: string
+          scanned_at: string | null
+          scanner_name: string | null
+          scanner_version: string | null
+          sha256_hex: string
+          storage_bucket: string | null
+          storage_object_path: string | null
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          byte_size: number
+          created_at?: string
+          declared_mime?: string | null
+          detected_mime?: string | null
+          id?: string
+          legal_hold?: boolean
+          legal_hold_reason?: string | null
+          legal_hold_set_at?: string | null
+          legal_hold_set_by?: string | null
+          mime_verified_at?: string | null
+          original_filename: string
+          quarantine_status?: string
+          retention_class?: string | null
+          retention_expires_at?: string | null
+          scan_status?: string
+          scanned_at?: string | null
+          scanner_name?: string | null
+          scanner_version?: string | null
+          sha256_hex: string
+          storage_bucket?: string | null
+          storage_object_path?: string | null
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          byte_size?: number
+          created_at?: string
+          declared_mime?: string | null
+          detected_mime?: string | null
+          id?: string
+          legal_hold?: boolean
+          legal_hold_reason?: string | null
+          legal_hold_set_at?: string | null
+          legal_hold_set_by?: string | null
+          mime_verified_at?: string | null
+          original_filename?: string
+          quarantine_status?: string
+          retention_class?: string | null
+          retention_expires_at?: string | null
+          scan_status?: string
+          scanned_at?: string | null
+          scanner_name?: string | null
+          scanner_version?: string | null
+          sha256_hex?: string
+          storage_bucket?: string | null
+          storage_object_path?: string | null
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_source_files_tenant_fk"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_source_files_tenant_fk"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_staging_rows: {
+        Row: {
+          batch_file_id: string
+          batch_id: string
+          canonical_hash: string | null
+          canonical_payload: Json | null
+          confidence: number | null
+          confidence_evidence: Json
+          correction_version: number
+          created_at: string
+          created_by: string | null
+          extraction_version: number
+          id: string
+          raw_payload: Json
+          row_status: string
+          source_locator: Json
+          source_ordinal: number
+          supersedes_row_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          batch_file_id: string
+          batch_id: string
+          canonical_hash?: string | null
+          canonical_payload?: Json | null
+          confidence?: number | null
+          confidence_evidence?: Json
+          correction_version?: number
+          created_at?: string
+          created_by?: string | null
+          extraction_version?: number
+          id?: string
+          raw_payload: Json
+          row_status?: string
+          source_locator?: Json
+          source_ordinal: number
+          supersedes_row_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          batch_file_id?: string
+          batch_id?: string
+          canonical_hash?: string | null
+          canonical_payload?: Json | null
+          confidence?: number | null
+          confidence_evidence?: Json
+          correction_version?: number
+          created_at?: string
+          created_by?: string | null
+          extraction_version?: number
+          id?: string
+          raw_payload?: Json
+          row_status?: string
+          source_locator?: Json
+          source_ordinal?: number
+          supersedes_row_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_staging_rows_batch_file_fk"
+            columns: ["tenant_id", "batch_id", "batch_file_id"]
+            isOneToOne: false
+            referencedRelation: "import_batch_files"
+            referencedColumns: ["tenant_id", "batch_id", "id"]
+          },
+          {
+            foreignKeyName: "import_staging_rows_batch_fk"
+            columns: ["tenant_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "import_staging_rows_supersedes_fk"
+            columns: [
+              "tenant_id",
+              "batch_id",
+              "batch_file_id",
+              "supersedes_row_id",
+            ]
+            isOneToOne: false
+            referencedRelation: "import_staging_rows"
+            referencedColumns: ["tenant_id", "batch_id", "batch_file_id", "id"]
+          },
+        ]
+      }
       incoming_horse_movements: {
         Row: {
           acknowledged_at: string | null
