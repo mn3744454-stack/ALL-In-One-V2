@@ -1,281 +1,287 @@
-# WS-DH-2026-0012 — Local Prompt 01 — Memory Genesis, Admission, Numbering and Succession
+# WS-DH-2026-0012 — Local Prompt 01 — Correction Continuation C1
 
-Mode: Plan/Chat — Read-only. Repository writes: none other than this platform-managed planning artifact. Database access: none. Application-code inspection: none.
+Memory-corpus evidence coverage and claim-boundary correction. Same local Prompt 01 — no new local number consumed. Mode: Plan/Chat — read-only.
 
-## 1. Executive verdict
+## 1. Verdict
 
-WS-DH-2026-0012 LOCAL PROMPT 01 INVESTIGATIVE AUDIT COMPLETE — MEMORY GENESIS, ADMISSION, NUMBERING AND SUCCESSION CURRENT STATE MAPPED — GENUINE OPTIONS COMPARED — RECOMMENDATION READY FOR OWNER ALIGNMENT
+WS-DH-2026-0012 LOCAL PROMPT 01-C1 CORRECTION COMPLETE — MEMORY CORPUS EVIDENCE COVERAGE COMPLETED — UNSUPPORTED CORPUS-WIDE CLAIMS WITHDRAWN OR PROVEN — LIVE MEMORY SUBSTRATE AND REPOSITORY GOVERNANCE CORRECTLY DISTINGUISHED — RECOMMENDATION READY FOR OWNER ALIGNMENT
 
-Decisive finding: **there is no Memory governance layer in existence today.** The live Lovable Memory store is a flat, slug-addressed, single-version key/value set with no numeric identity, no version history, no provenance, no evidence time, no acceptance state, no supersession record and no succession mechanism. The `MEM-NNN` identifier space referenced by RM-DH-003 governance exists **only as four reserved-ID literals** in five governance documents; no `MEM-001`…`MEM-104` register, no per-ID record and no ID-to-object binding exists anywhere in the repository. Every governance property the Prompt asks about (admission gate, numbering contract, amendment/correction/supersession distinction, lineage, precedence) is **absent, not merely weak**. Nothing is contradictory or contaminated, so the run is complete rather than blocked — but the target architecture must be built, not repaired.
+Coverage achieved this run: **99 of 99 stored Memory bodies read in full**, comprising 91 of the 95 index-referenced objects plus 8 stored objects the index does not reference. The remaining 4 index-referenced URIs **do not exist** — they are dangling index links, not read failures. That is a material new finding, but it does not prevent current-state mapping, so the verdict is COMPLETE rather than BLOCKED.
 
-## 2. Evidence and access boundary
+## 2. Acknowledgement of the prior evidence-boundary error
 
-Inspected (read-only):
-- Live Memory index `mem://index.md` (full contents) and one representative Memory body (`mem://finance/payment-status-integrity-rule`).
-- The four WS-DH-2026-0012 package files.
-- `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/{roadmap,decisions,changelog,README}.md`.
-- Repository-wide identifier sweep for `MEM-[0-9]{3}`.
-- Git branch/HEAD/parents/working tree.
-- Platform-managed planning artifacts `.lovable/plan.md` and `.lovable/plan/`.
-- Active Skill inventory listing only (names, no content revision).
+The Prompt-01 report inspected the index plus **one** Memory body and then made absolute statements about all 95. That was an evidence-boundary violation: the conclusions may have been directionally right, but they were not earned. It also collapsed ten distinct governance questions into the single sentence "there is no Memory governance layer in existence today", which is false as written — repository governance for Memory demonstrably exists under RM-DH-003 and this Workstream package. Both errors are corrected below by exhaustive body inspection and by a ten-part governance-layer determination.
 
-Not inspected, per the Prompt: application source, database, Documentation 01–13, ChatGPT-private artifacts, RM-DH-004 content, WS-DH-2026-0013 detail.
+## 3. Prior claims — withdrawn, narrowed or proven
 
-Inaccessible: Memory object frontmatter (`name`, `description`, `type`) — reads return the body only; Memory creation/update timestamps, authorship and prior versions — no such surface exists; Lovable Memory internal storage and its Git history — Memory is not repository-tracked.
+| # | Prompt-01 claim | Disposition after C1 |
+|---|---|---|
+| 1 | All 95 objects contain zero provenance | **Narrowed and proven for the readable corpus.** 99 of 99 readable bodies contain zero governance provenance (0 Decision, Roadmap, Workstream, Prompt, MEM or date references). It cannot be asserted for the 4 dangling URIs, which have no content at all. |
+| 2 | Every object is orphaned from evidence | **Narrowed and proven for the readable corpus** on the same basis. |
+| 3 | No Memory cites a Decision / Roadmap / Workstream / Prompt / source | **Proven for the 99 readable bodies** (exact counts in §7). The word "source" occurs in 14 bodies but always as product vocabulary ("source mode", "single source of truth"), never as an evidence citation. |
+| 4 | No contradiction exists across the corpus | **Withdrawn.** No exhaustive semantic contradiction analysis was performed in Prompt 01 and none is claimed now. C1 reports candidate overlaps and duplications only; contradiction adjudication is deferred. |
+| 5 | No Memory contains dates, acceptance, supersession, correction or succession language | **Partly withdrawn, partly proven.** Dates: proven absent (0/99). Succession/predecessor language: proven absent (0/99). Acceptance/authority wording: **present in 15 bodies**, supersession-style wording in 1, correction wording in 1 — all in a product sense, none as Memory-lifecycle state. The original absolute phrasing is withdrawn. |
+| 6 | No Skill cites Memory | **Withdrawn, not investigated.** Skill-body inspection is outside this Workstream's evidence boundary. No Skill content was read in this run. |
+| 7 | "There is no Memory governance layer in existence today" | **Withdrawn and replaced** by the ten-part determination in §13. |
 
-## 3. Repository state
+Preserved unchanged from Prompt 01: the 9 Core + 95 referenced = 104 index composition; slug-addressed `mem://` identity with no `MEM-NNN` implementation; no repository register binding MEM-001…MEM-104; the four reserved IDs; the absence of structured authorship/version/timestamps on the read surface; the distinction between repository governance and live substrate; Option 2 as a provisional leading option; zero writes; Prompt 01 consumed, Prompt 02 not consumed; WS-DH-2026-0013 unrun; no Acceptance or Closure.
+
+## 4. Repository state
 
 | Item | Value |
 |---|---|
 | Branch | `edit/edt-5ffe8f3a-3a94-4ac5-a114-9b87e16e2d9f` |
 | HEAD | `154b77eb06c6f4b9738c8988a5766516e7ba5991` |
 | Parents | `1ce13b08085dfa14d8693493144e22c31392e4b2`, `2146577787ba51d77dec091ed33ca38288cf94f6` |
-| Commit date | 2026-08-06 00:26:43 +0000 |
-| Working tree before | clean |
-| Working tree after | one platform-managed path (`.lovable/plan.md`) |
+| Working tree before C1 | one platform-managed path (`.lovable/plan.md`, the Prompt-01 report) |
+| Working tree after C1 | same single platform-managed path, rewritten with this C1 report |
+| Repository files changed | none |
 
-## 4. Memory-source map
+## 5. Current index count
 
-| # | Source | Location | Creator | Mode | Provenance retained | Authority | Produces |
-|---|---|---|---|---|---|---|---|
-| S1 | Lovable Memory objects | `mem://<namespace>/<slug>` | Agent, from user statements | Manual-triggered, agent-authored, agent-judged | **None** — body only | Behaves as binding rule, always in context via index | Immediately active. No candidate state exists |
-| S2 | Memory index Core rules | `mem://index.md` §Core | Agent | Same as S1 | None | Highest de-facto authority (injected into every action) | Immediately active |
-| S3 | Repository governance | `docs/roadmaps/**`, `docs/workstreams/**` | Agent under Owner-authorized Prompt | Manual, Prompt-bound | Strong — version, date, source, supersedes, Decision ID, Git history | Authoritative for governance | Persisted record, not Memory |
-| S4 | Decisions | `decisions.md` files | Owner approval, agent persistence | Manual | Strong — `DEC-…` IDs, consecutive, never reused | Authoritative | Decision, not Memory |
-| S5 | Skills | `.workspace/skills/dayli-01…26` | Owner (Settings > Skills) | Manual | Repository-visible names only | Binding behavioural instruction | Instruction, not Memory |
-| S6 | Platform planning artifacts | `.lovable/plan.md`, `.lovable/plan/*.md` | Platform | Automated | Filename date only; overwritten per plan | Ephemeral | Neither Memory nor governance |
-| S7 | Chat-derived requirements | Conversation | Owner/ChatGPT | Transient | None once the window rolls | Not durable | Nothing durable unless promoted to S1/S3 |
+`mem://index.md`: **9 Core rules + 95 referenced Memory objects = 104 visible index entries.** Unchanged from Prompt 01.
 
-**Conflation finding.** "Memory" (S1/S2), "Project Knowledge" (not installed), repository governance (S3/S4), Skills (S5) and planning artifacts (S6) are today **four separate mechanisms with four separate lifecycles and no cross-references between them**. No Memory cites a Decision; no Decision cites a Memory ID; no Skill cites a Memory. The governance layer (S3/S4) is rigorous; the Memory layer (S1/S2) is ungoverned. The risk is not conflation but **disconnection**.
+## 6. Corpus-access matrix
 
-## 5. Current inventory and namespace assessment
-
-`mem://index.md` currently holds:
-- **9 Core rules** (unnumbered, unaddressed, un-citable, injected into every action).
-- **95 referenced Memory objects** addressed as `mem://<segment>/(<segment>/)?<slug>`.
-- 9 + 95 = **104**.
-
-Observed top-level namespaces: `architecture`, `features`, `security`, `ux`, `domain`, `finance`, `localization`, `laboratory`, `breeding`, plus a cross-session user file `mem://~user`. Nesting depth is inconsistent (`mem://finance/...` vs `mem://architecture/finance/...`; `mem://laboratory/...` vs `mem://features/...`). Namespace assignment is agent discretion at write time with no taxonomy contract.
-
-**Baseline reconciliation (inference, not proof).** The reported Stage-A baseline of "104 permanent official Memory IDs, 100 directly read, 4 inaccessible" is numerically consistent with today's index: 95 addressable objects + 9 Core rules = 104, of which the 9 Core rules are not individually addressable and were plausibly the un-read remainder. This is **not confirmed** — Stage A recorded exactly four inaccessible IDs, not nine — and the reconciliation is offered as the leading hypothesis requiring Owner confirmation, not as a fact.
-
-## 6. Admission-contract findings
-
-**There is no admission contract.** Tested against the eleven criteria in §5.B:
-
-| Requirement | Current state |
+| Population | Count |
 |---|---|
-| Explicit Owner approval | **Absent.** The agent decides and writes. |
-| Source evidence | **Absent.** Bodies carry no citation. |
-| Stable scope and subject | **Absent.** No scope field. |
-| Contradiction review | **Absent.** No mechanism. |
-| Duplicate search | Advisory only ("check for existing memories"); not enforced. |
-| Authority classification | Partial — a `type` field (design/constraint/preference/feature/reference) is written but **not readable back**. |
-| Effective date / evidence time | **Absent.** |
-| Roadmap / Workstream / Lineage binding | **Absent.** |
-| Privacy and cross-project isolation | Partial — `mem://~user` is explicitly cross-project; project memories are project-scoped by the platform. |
-| Acceptance status | **Absent.** Written = active. |
-| Permanent ID allocation | **Absent.** The slug is the only identity and it is mutable. |
+| Index-referenced objects | 95 |
+| Index-referenced objects successfully read | **91** |
+| Index-referenced objects that do not exist (dangling links) | **4** |
+| Stored objects not referenced by the index (orphans) | **8** |
+| Distinct stored bodies read in full this run | **99** |
+| Read failures / permission denials | 0 |
 
-Nothing currently prevents an unsupported claim, a temporary note, a stale report or an inference from becoming durable Memory. The only gate is agent judgement at write time.
+**Dangling index links (URI resolves to nothing):**
+`mem://architecture/finance/doctor-billing-mismatch`, `mem://domain/horses/pony-classification-logic`, `mem://domain/stable/package-billing-cycles`, `mem://features/stable/room-event-history-strategy`. Confirmed by a direct read of the first, which returned "does not exist".
 
-## 7. Numbering, collision and reserved-ID findings
+**Unindexed orphan objects (exist, invisible in the always-in-context index):**
+`mem://architecture/stable/connected-transfer-lifecycle`, `mem://features/breeding/connected-mode-status`, `mem://features/breeding/safety-logic`, `mem://features/horses/ownership-display`, `mem://features/hr/payroll-quick-create-employee`, `mem://features/stable/admission-pricing`, `mem://style/arabic-terminology-standard`, `mem://ux/date-time-standard`.
 
-- **Namespaces:** one — the `mem://` URI space. No numeric namespace is in use.
-- **ID format:** path slug. It identifies a **subject**, not a record, version or assertion.
-- **Numbering:** none. Global vs namespace-local is moot.
-- **Gaps:** not applicable.
-- **Reuse / renumbering:** unconstrained — a slug can be rewritten or its file replaced with no trace. This is the single largest identity risk.
-- **Collision control:** none. Two Memories on one subject can coexist under different slugs; the index shows near-duplicate subjects already (e.g. `mem://finance/payment-status-integrity-rule` and the Core rule on the same topic; several overlapping housing entries).
-- **Binding to source / Roadmap / Workstream / evidence time / environment:** none exists.
-- **Reserved IDs.** `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095` appear **only** in: `docs/roadmaps/rm-dh-003-…/{roadmap,decisions,changelog}.md` and `docs/workstreams/ws-dh-2026-0012-…/{README,roadmap}.md`. They are governance literals with **no corresponding object, register row or content anywhere**. Their status is therefore: permanently reserved, inaccessible, unmapped to any live Memory, and not reconstructible from current evidence.
-- **Collision assessment:** the `MEM-NNN` space is entirely unallocated in practice; the slug space is allocated but unprotected. No new ID was allocated by this run.
+Two of these orphans carry rules the wider Dayli Horse instruction set treats as global — the خيل Arabic equine terminology standard and the 12-hour / صباحاً-مساءً date-time display standard. They are stored but not surfaced by the index.
 
-## 8. Amendment, correction and supersession findings
+## 7. Corpus classification counts
 
-The only available operation is **write-file-at-path**, i.e. destructive overwrite, plus delete. Consequently:
+Denominator = 99 readable bodies.
 
-| Distinction | Supported today |
+| # | Classification | Count |
+|---|---|---|
+| 1 | Index-referenced bodies expected | 95 |
+| 2 | Bodies successfully inspected | 99 (91 indexed + 8 orphans) |
+| 3 | Bodies inaccessible | 0 read failures; 4 non-existent URIs |
+| 4 | Explicit provenance / evidence-source citation | **0** |
+| 5 | Decision (`DEC-…`) references | **0** |
+| 6 | Roadmap (`RM-DH-…`) or Workstream (`WS-DH-…`) references | **0** |
+| 7 | Prompt references | **0** |
+| 8 | Dates or evidence time (any format, incl. bare year) | **0** |
+| 9 | Acceptance or authority language | **15** — all product-domain ("canonical component", invoice status `approved`, "authoritative 19-parameter signature"). Governance acceptance: 0 |
+| 10 | Amendment / correction language | **1** (`mem://security/horses/classification-audit-log`) — describes a product audit trail, not Memory amendment |
+| 11 | Supersession / succession language | **1** supersession-style (`mem://features/stable/housing-vacate-and-checkout-logic`, "replaced by" a UI action); predecessor/successor references: **0** |
+| 12 | Apparent duplicate or overlapping clusters | see §10 |
+| 13 | Potential contradictions requiring Owner review | 0 adjudicated; 3 candidates listed in §10 |
+| 14 | Potential cross-project / cross-Roadmap contamination | **0** — no body references any Roadmap, Workstream, other project or non-Dayli-Horse subject |
+| — | Environment / branch references | **0** governance-relevant (2 bodies match the bare word "production" in a product sense) |
+| — | Legacy / history wording ("deprecating", "previously", "legacy") | 8 — all describing product evolution, none describing Memory lifecycle |
+| — | Body size | 205 to 2,060 characters; median 584 |
+
+## 8. Structured-metadata findings
+
+- **2 of 99** bodies begin with a YAML frontmatter block carrying `name`, `description`, `type` (`mem://features/hr/payroll-quick-create-employee`, `mem://laboratory/submission-architecture`).
+- **97 of 99** have no frontmatter at all — the body is the entire object.
+- No object exposes authorship, creation time, modification time, version number, prior versions or acceptance state through any read surface.
+- The write-side instruction set defines a frontmatter contract (`name`, `description`, `type` across five types). Compliance with that contract is therefore approximately **2%**, and the two compliant objects are not distinguished from the rest at read time.
+
+This is **absence of structured platform metadata**. It is a separate condition from §9 and must not be merged with it.
+
+## 9. Textual-body provenance findings
+
+Independently of metadata, the body text itself contains no provenance in any object: zero Decision, Roadmap, Workstream, Prompt, MEM, date or evidence-time references across all 99. The 15 "authority" hits and 14 "source" hits are Dayli Horse product vocabulary and carry no governance meaning. The 1 supersession hit and 1 correction hit likewise describe product behaviour.
+
+This is **absence of textual references inside the body** — proven for the readable corpus, and unknowable for the 4 dangling URIs, which is the third and separate condition (**inaccessible or unknown evidence**).
+
+## 10. Duplicate and contradiction findings
+
+**Measured lexical overlap.** Only one pair of namespaced bodies exceeds a 0.22 Jaccard token overlap: `mem://domain/horses/breeding-eligibility-rules` and `mem://domain/horses/classification-model`. Namespaced-to-namespaced duplication is therefore low.
+
+**Core-rule duplication is the real cluster.** Each of the 9 Core rules in the index restates the subject of at least one namespaced object:
+
+| Core rule subject | Namespaced object restating it |
 |---|---|
-| Amendment (wording, meaning unchanged) | No |
-| Correction (error fixed) | No |
-| Supersession (obsolete finding replaced) | No |
-| Revocation (false Memory withdrawn) | No — only silent deletion |
-| Deprecation | No |
-| Archival | No |
-| Reopening | No |
+| Mobile-first / RTL flex | `mem://ux/mobile-first-design-standard`, `mem://ux/rtl-layout-quality-standard` |
+| Workspace-class dialogs | `mem://ux/stable/complex-dialog-layout-standard` |
+| Neutral form defaults / cascade reset | `mem://ux/horses/wizard-selection-standards` |
+| In-Context Creation Bridge | `mem://ux/stable/creation-bridge-pattern` |
+| Bilingual naming | `mem://localization/bilingual-naming-architecture` |
+| Archive / deactivate over hard delete | `mem://architecture/stable/housing-lifecycle-model` |
+| `hasPermission()` / 104 granular keys | `mem://security/permission-system-vocabulary`, `mem://security/granular-backend-enforcement` |
+| Dual-scoping RLS | `mem://security/community-workspace-rls-logic` |
+| Financial status integrity | `mem://finance/payment-status-integrity-rule` |
 
-All seven collapse into one indistinguishable act. **Silent-overwrite risk is maximal and unmitigated:** a Memory can be materially reversed with no prior version, no reason, no author, no date and no audit entry, and nothing in the index would signal that it changed.
+Two representations of the same rule exist with different wording, different granularity and no link between them. Nothing keeps them synchronized.
 
-## 9. Succession and lineage findings
+**Candidate contradictions for Owner review (not adjudicated here):**
+1. Core-rule wording versus namespaced-body wording for the nine subjects above — divergence is possible and undetectable without comparison.
+2. The four dangling index entries describe subjects (doctor billing mismatch, pony classification, package billing cycles, room event history) that the index still advertises as live rules but for which no content exists.
+3. Global rules stored only as unindexed orphans (خيل terminology, date-time display) are not visible in the always-injected index, so they may be silently violated.
 
-No succession mechanism exists — no predecessor/successor fields, no reason-for-succession, no effective time, no Owner decision link, no zero-regression obligation, no historical discoverability. Split, merge and many-to-one succession are consequently unsupported. Today, a "successor" is simply a new file that silently outranks or duplicates the old one.
+## 11. Cross-project and cross-Roadmap findings
 
-## 10. Provenance and precedence map
+Zero cross-project or cross-Roadmap contamination in the readable corpus. No body references RM-DH-003, RM-DH-004, any Workstream, any other project, or any non-Dayli-Horse subject. All 99 objects are Dayli Horse product-domain content.
 
-Precedence is asserted in `WS-DH-2026-0012/README.md` §Evidence priority as: (1) repository contents, (2) live system state where authorized, (3) accepted canonical documentation incl. Rounds 1–5, (4) Owner-approved decisions, (5) the Memory inventory. Observed reality:
+Residual structural risk, unchanged from Prompt 01: because no object carries a Roadmap or Workstream binding, a future finding from one Roadmap would be indistinguishable from another once written. That is a design gap, not an observed contamination.
 
-- **Documented precedence is not machine-enforced anywhere.** It binds this Workstream's reasoning only.
-- **The de-facto precedence is inverted at runtime:** Core rules in `mem://index.md` are injected into *every* action, so ungoverned Memory outranks rigorously governed repository documentation in practice.
-- **Repository governance (S3/S4)** carries full provenance: version, date, `last-verified`, `supersedes`/`superseded-by`, source Prompt, Decision ID, Git commit lineage.
-- **Memory (S1/S2)** carries none. Every one of the 95 objects is, by definition, orphaned from evidence.
-- **Cross-project isolation:** `mem://~user` is intentionally cross-project; project memories are platform-scoped to this project. No cross-Roadmap tagging exists inside Memory, so an RM-DH-004 finding and an RM-DH-003 finding are indistinguishable once written.
-- **Traceability:** for live truth expressed in Memory, **no path back to a source exists** in any of the 95 objects.
+`mem://~user` (cross-session user preferences) was not readable in this run and is reported as inaccessible.
 
-## 11. Contradictions, gaps and risks
+## 12. Reserved-ID findings
 
-| # | Finding | Class | Severity |
+`MEM-079`, `MEM-084`, `MEM-090`, `MEM-095` appear only as literals in five governance documents (`docs/roadmaps/rm-dh-003-…/{roadmap,decisions,changelog}.md`, `docs/workstreams/ws-dh-2026-0012-…/{README,roadmap}.md`). Corpus inspection adds one negative confirmation: **zero of the 99 Memory bodies contain any `MEM-NNN` string**, so no live object can be matched to a reserved ID by content. They remain permanently reserved, inaccessible, unmapped and must not be reconstructed, reused or reassigned. The four dangling index URIs found in §6 are **not** evidence of the reserved IDs and must not be equated with them.
+
+## 13. Corrected governance-layer conclusion
+
+| # | Layer | Exists? | Evidence |
 |---|---|---|---|
-| R1 | 95 Memory objects with zero provenance, evidence time or acceptance state | Gap | High |
-| R2 | Destructive overwrite is the only edit path; no version history | Gap | High |
-| R3 | `MEM-NNN` identity space referenced in governance but unimplemented and unmapped | Contradiction between governance narrative and live state | High |
-| R4 | 9 Core rules are un-addressable and un-citable yet have the highest runtime authority | Gap | High |
-| R5 | Memory authority exceeds its evidence; governed docs outranked at runtime by ungoverned Memory | Risk | High |
-| R6 | Overlapping/duplicate subjects across slugs (housing, finance, classification clusters) | Duplication | Medium |
-| R7 | Memory metadata written (`name`/`description`/`type`) is not readable back — write/read asymmetry | Gap | Medium |
-| R8 | Inconsistent namespace depth and taxonomy | Gap | Medium |
-| R9 | No cross-Roadmap tagging inside Memory; RM-DH-003 and RM-DH-004 findings indistinguishable | Contamination risk | Medium |
-| R10 | Stage-A "104 / 100 / 4" baseline cannot be reproduced exactly from live evidence | Unresolved evidence | Medium |
-| R11 | Four reserved IDs have no content, no register and no recovery path | Unknown | Low-Medium |
+| 1 | Repository governance for Memory | **YES** | RM-DH-003 Phase 3, Track A, the Phase 3 Memory boundary, DEC-RM-DH-003-012 / -013, and this Workstream package |
+| 2 | Live-Memory permanent numeric identity | **NO** | 0 of 99 bodies carry an ID; identity is a mutable slug |
+| 3 | Candidate / admission state | **NO** | No state field exists; written equals active |
+| 4 | Structured provenance metadata | **NO** | 97 of 99 have no frontmatter; the 2 that do carry no provenance fields |
+| 5 | Structured version history | **NO** | No version, no prior copies, no read surface for either |
+| 6 | Correction and supersession states | **NO** | 0 lifecycle-state occurrences; overwrite is the only edit path |
+| 7 | Succession graph | **NO** | 0 predecessor/successor references |
+| 8 | Owner-approval binding | **NO** | 0 Decision references in any body |
+| 9 | Automated or enforced duplicate detection | **NO** | Advisory instruction only; 9 Core-rule duplications and 4 dangling links persist undetected |
+| 10 | Project Knowledge installation | **NO** | Recorded as NOT INSTALLED in the RM-DH-003 roadmap |
 
-No contradiction between two *live* sources was found; the contradictions are between the governance narrative and the live Memory substrate.
+Corrected conclusion: **repository governance for Memory exists and is rigorous; an implemented live-Memory admission, permanent-identity, versioning, provenance and succession substrate has not been proven to exist, and eight of the nine substrate properties are proven absent across the entire readable corpus.**
 
-## 12. Genuine option comparison
+## 14. Corrected option comparison
 
-Only three options are supported by the evidence. A fourth ("repair the existing register") is not genuine — no register exists.
+**Option 1 — platform-native only, improved by convention.** C1 weakens this further: the index itself is now proven unreliable (4 dangling links, 8 invisible orphans, 9 duplicated Core rules), so convention alone has already failed under observation. Not recommended.
 
-**Option 1 — Platform-native only.** Keep Memory exactly as-is; improve write discipline by convention.
-Truth preservation: poor. Auditability: none. Simplicity: highest. Scalability: poor. Collision resistance: none. Amendment/succession safety: none. Isolation: platform-default. Maintenance: lowest cost, highest silent-drift risk. 104-baseline compatibility: trivial. Installation path: none.
+**Option 2 — repository-authoritative register, live Memory as a projection.** Strengthened. The register would have caught all three defect classes found this run: dangling references (register-to-object integrity), orphans (every object must hold an ID), and Core-rule duplication (one subject, one ID, one authoritative statement, with the index entry as a generated projection). It reuses the `DEC-…` conventions the project already operates well and keeps evidence in Git, which the Workstream already accepts as the primary evidence base.
 
-**Option 2 — Repository-authoritative register with Memory as a projection.** A governed `docs/knowledge/memory/` register owns permanent IDs, metadata, provenance, versions, supersession and succession under Git; the live Memory store holds only a short projection of currently-active rules, each carrying its permanent ID.
-Truth preservation: strong (Git is immutable and already the accepted evidence base). Auditability: strong. Simplicity: moderate. Scalability: strong. Collision resistance: strong (register allocates IDs). Amendment/succession safety: strong (record vs version vs assertion separable). Isolation: strong (Roadmap/Workstream binding is a required field). Maintenance: moderate, and it reuses the `DEC-…` conventions the project already operates well. 104-baseline compatibility: good — the current 95 + 9 become admitted candidates re-issued with permanent IDs, including a documented, non-reconstructed status for the four reserved IDs. Installation path: direct — Stage B/C/D consume the register.
+**Option 3 — database-backed registry.** Unchanged: strong properties, highest cost, places governance metadata inside the product database against current convention, and conflicts with this Workstream's explicit no-database authority.
 
-**Option 3 — Database-backed Memory registry.** Model the register as tables with RLS.
-Truth preservation: strong. Auditability: strong. Simplicity: poor. Scalability: strong. Collision resistance: strong. Amendment/succession safety: strong. Isolation: strong. Maintenance: highest — requires schema, migration, RLS, RPC and Acceptance work, and it places governance metadata inside the product database, which conflicts with the current convention that governance lives in the repository. 104-baseline compatibility: good. Installation path: indirect. It also contradicts this Workstream's explicit no-database authority.
+**Option 2 remains the recommendation**, with its status now decomposed:
 
-**Recommendation: Option 2.**
+- **Proven by evidence:** the substrate gaps it addresses (§13 rows 2–9), the corpus size (99 stored / 95 referenced / 4 dangling / 8 orphaned), the duplication pattern, and Git's suitability as an immutable evidence store.
+- **Inferred, not proven:** that a repository register can be reliably kept in sync with the live Memory store, since no automated projection mechanism has been demonstrated.
+- **Dependent on Owner policy:** ID scheme continuity with `MEM-NNN`; whether Core rules receive IDs; review cadence; who may admit.
+- **Dependent on later Workstreams:** organizational taxonomy (Sub-phase 3.2 / WS-DH-2026-0015) and installation (Sub-phase 3.7 / WS-DH-2026-0020).
 
-## 13. Recommended target governance contract (proposal only — not persisted, not implemented)
+**Handling of the existing corpus — corrected.** Retrospective en-bloc admission is **not** recommended and the evidence does not support it: 0 of 99 objects satisfy any admission criterion, 4 advertised rules have no content, 8 rules are invisible, and 9 subjects exist in two competing forms. The evidence-supported sequence is:
 
-1. **Candidate vs admitted.** Every Memory begins as a Candidate record. Only an Owner-approved admission transition makes it Admitted and eligible for projection into the live Memory store.
-2. **Permanent identity.** `MEM-NNN`, consecutive, zero-padded, allocated only by the register, never reused, never renumbered. Gaps are valid and permanent. `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095` remain permanently reserved, inaccessible, and are never reconstructed or reassigned. Numbering is global, not namespace-local; the namespace is a classification attribute, not part of identity.
-3. **Required metadata.** ID; subject; scope; assertion text; authority class; evidence references; evidence time; environment; Roadmap; Workstream; Lineage; Prompt; Decision ID; admission state; effective date; version; `supersedes`/`superseded-by`; predecessor/successor; review trigger set.
-4. **Admission gate.** Source evidence present; scope stable; duplicate search performed; contradiction review performed; authority classified; evidence time recorded; Roadmap/Workstream bound; cross-project isolation reviewed; Owner approval recorded; then and only then an ID is allocated.
-5. **Amendment and correction.** Both create a new version of the same ID with a reason code, preserving the prior version. Amendment must not change meaning; Correction must state the defect it repairs.
-6. **Supersession and succession.** Supersession creates a new ID and marks the predecessor `superseded-by`, never deleting it. Succession records predecessor and successor IDs, unchanged authoritative content, rejected findings, reason, evidence boundary, effective time, Owner decision and a zero-regression statement. Split (1→N), merge (N→1) and many-to-one are expressed as edges, not overwrites.
-7. **Revocation, deprecation, archival, reopening** are four distinct, separately recorded state transitions. Deletion of a record is prohibited absolutely.
-8. **Provenance.** No Memory is admitted without at least one evidence reference resolvable to repository state, live system state under authorization, or a recorded Owner decision.
-9. **Conflict handling.** The documented evidence-precedence order is restated in the register; a Memory whose authority exceeds its evidence is demoted to Candidate on discovery.
-10. **Review and maintenance.** Mandatory review triggers: code or database change touching the subject; Owner decision; Roadmap advancement; Acceptance or Closure; changed evidence; detected contradiction; elapsed time; source inaccessibility; project or account-type expansion. Staleness is detected by `last-verified` age against the trigger set.
-11. **Owner authority.** Admission, supersession, revocation and Closure are Owner-only. The agent may propose only.
-12. **Installation boundary.** The register is not Project Knowledge. Project Knowledge installation remains Sub-phase 3.7 / `WS-DH-2026-0020` and is unaffected by this contract.
+1. Treat all 99 stored objects as **Candidates only**, with zero admitted at cutover.
+2. **Cluster first** — resolve the 9 Core-rule duplications and the one measured overlapping pair into single subjects before any ID is allocated.
+3. Resolve the 4 dangling index entries explicitly as either "content lost" or "never existed"; do not silently drop them.
+4. Bring the 8 orphans into the same candidate pool as first-class subjects.
+5. **Re-admit individually**, each with evidence, evidence time and Owner approval; unverifiable candidates stay Candidate indefinitely rather than being admitted or deleted.
 
-## 14. Exact Owner decisions required
+## 15. Corrected recommendation
 
-1. Approve or reject **Option 2** as the target architecture.
-2. Confirm or reject the 104-baseline reconciliation hypothesis in §5 (95 addressable + 9 Core = 104), or authorize a bounded reconciliation step.
-3. Confirm that the four reserved IDs remain permanently reserved and are never reconstructed.
-4. Decide whether the 9 un-addressable Core rules must receive permanent IDs in the target register.
-5. Decide whether existing 95 objects are admitted retrospectively en bloc, or re-admitted individually with evidence.
-6. Decide whether Memory carries a mandatory Roadmap/Workstream binding field (recommended: yes).
-7. Authorize or withhold the next Workstream stage.
+Adopt **Option 2** as the target architecture, with candidate-only cutover, duplicate-cluster resolution before ID allocation, and individual evidence-based re-admission. No ID was allocated in this run and no contract is persisted.
 
-## 15. Proposed next Workstream stage and stopping point
+## 16. Exact Owner decisions required
 
-Live stage after this run: **Stage 0 executed by this Prompt; Stages 1–7 remain NOT STARTED.** Advancement requires Owner Alignment (Stage 5) before any persistence. Proposed next stage: **Stage 1 — Memory Inventory and Provenance Investigation**, read-only, subject to a separate explicit Owner authorization and a separate local Prompt number.
+1. Approve or reject Option 2 as corrected in §14–§15.
+2. Approve candidate-only cutover and individual re-admission (explicitly rejecting en-bloc admission).
+3. Direct the disposition of the 4 dangling index entries.
+4. Direct the disposition of the 8 unindexed orphans, including the two global-rule orphans (خيل terminology, date-time standard).
+5. Decide whether the 9 Core rules receive permanent IDs or are generated projections of admitted Memories.
+6. Confirm the four reserved IDs remain permanently reserved and unreconstructed.
+7. Decide whether a mandatory Roadmap/Workstream binding field is required (recommended: yes).
+8. Authorize or withhold Stage 1.
 
-## 16. Facts
+## 17. Remaining inaccessible evidence
 
-- Branch, HEAD, parents and clean pre-run working tree as recorded in §3.
-- `mem://index.md` contains 9 Core rules and 95 Memory references.
-- A Memory read returns the body only; no frontmatter, no version, no date.
-- `MEM-[0-9]{3}` occurs in exactly five repository files and matches only the four reserved IDs.
-- `docs/roadmaps/rm-dh-003-…/roadmap.md` §"Phase 3 Memory boundary" states Stage A is substantively complete at 104 IDs (100 read, 4 inaccessible), that the 104 are an inventory not approved rules, that Stage B is not started and Project Knowledge is not installed.
-- The RM-DH-003 roadmap records WS-DH-2026-0012 as `ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN` and Deferred Item 15 as awaiting read-only persistence verification.
-- 26 active Skills `dayli-01`…`dayli-26` are installed.
+- Content of the 4 dangling URIs — non-existent, unrecoverable from this surface.
+- `mem://~user` cross-session preference file.
+- Authorship, creation and modification times, and all prior versions of every object.
+- Whether any object was ever overwritten or deleted.
+- Original content and reason for reservation of the four reserved IDs.
+- The Stage-A extraction artifact that produced the 104 / 100 / 4 figures.
+- Skill bodies — excluded by boundary, deliberately not read.
 
-## 17. Lovable-accessible claims
+## 18. Facts
 
-- Memory instructions define five types (design, constraint, preference, feature, reference) and a frontmatter block with `name`, `description`, `type`; the read surface does not return them.
-- Memory files are written by the agent and are not repository-tracked.
-- `mem://~user` is a cross-project user-preference file.
+- Branch, HEAD, parents and working tree per §4.
+- Index: 9 Core + 95 referenced = 104 entries.
+- 99 stored bodies read in full; 91 of the 95 index-referenced objects resolve; 4 do not exist; 8 stored objects are unindexed.
+- 0 of 99 bodies contain a Decision, Roadmap, Workstream, Prompt, MEM ID, date or evidence-time reference.
+- 2 of 99 bodies carry frontmatter; 97 do not.
+- 15 bodies use authority wording, 14 use "source"/"evidence" wording, 1 uses supersession wording, 1 uses correction wording — all product-domain.
+- 0 predecessor/successor references; 0 cross-project or cross-Roadmap references.
+- Exactly one namespaced pair exceeds 0.22 lexical overlap; all 9 Core rules restate a namespaced subject.
+- `MEM-[0-9]{3}` occurs in exactly five repository files and in zero Memory bodies.
 
-## 18. Inferences
+## 19. Lovable claims
 
-- The 104 baseline most plausibly equals 95 addressable objects plus 9 Core rules (§5) — hypothesis, unconfirmed.
-- Overlapping subjects (R6) suggest duplicate admission has already occurred, though without metadata this cannot be proven per object.
-- Core rules likely outrank namespaced Memories at runtime because they are always injected; this is inferred from the instruction text, not measured.
+- The memory instruction set defines five types and a `name`/`description`/`type` frontmatter contract; observed compliance is 2 of 99.
+- `mem://~user` is described as a cross-project user-preference file.
+- Memory objects are not repository-tracked and carry no platform-exposed history.
 
-## 19. Unknowns or inaccessible evidence
+## 20. Inferences
 
-- Memory frontmatter, authorship, creation and modification times, and all prior versions.
-- Whether any Memory has ever been overwritten or deleted.
-- The original content, subject and reason for reservation of `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095`.
-- The exact Stage-A extraction artifact that produced the 104/100/4 figures — no `MEM-NNN` register survives in the repository.
-- Whether the platform enforces any server-side Memory limit, dedup or retention rule.
+- The Core-rule duplication mapping in §10 is a high-confidence reading of index text against body subjects, not a proven textual identity.
+- The 104-baseline reconciliation (95 + 9) remains the leading hypothesis; C1 adds a complication — the store actually holds 99 bodies, so a 99 + 9 = 108 reading is also arithmetically available, and the baseline cannot be settled from current evidence.
+- The 4 dangling links most plausibly indicate deleted or renamed objects whose index entries were not updated; no evidence proves which.
 
-## 20. CROSS-TASK REPORT CONTAMINATION CHECK
+## 21. Gaps and contradictions
+
+Confirmed gaps: no permanent identity, no admission state, no provenance, no version history, no lifecycle states, no succession graph, no Owner-approval binding, no duplicate detection. New gaps found by C1: index-to-object referential integrity is broken in 4 places; 8 objects including 2 global rules are invisible to the always-injected index; the frontmatter contract is 2% observed. Standing contradiction: the governance narrative describes a `MEM-NNN` inventory that the live substrate does not implement in any form.
+
+## 22. CROSS-TASK REPORT CONTAMINATION CHECK
 
 NO CROSS-TASK CONTAMINATION DETECTED
 
-Note: `.lovable/plan.md` previously held the RM-DH-004 / WS-DH-2026-0006 Part-3 report. It has been fully replaced by this WS-DH-2026-0012 report; no RM-DH-004 content remains in this artifact and no RM-DH-004 content was used as evidence here.
+`.lovable/plan.md` previously held the RM-DH-004 / WS-DH-2026-0006 Part-3 report; it was replaced by the Prompt-01 report and is now replaced by this C1 report. No RM-DH-004 content remains and none was used as evidence.
 
-## 21. WORKSTREAM PERSISTENCE
+## 23. WORKSTREAM PERSISTENCE
 
 ```text
 WS-DH-2026-0012:
-ACTIVE — INVESTIGATIVE AUDIT RUN — PACKAGE/START OWNER ACCEPTANCE PRESERVED —
+ACTIVE — LOCAL PROMPT 01 INVESTIGATION RUN — CORRECTION CONTINUATION C1 RUN —
 NO GOVERNANCE CONTRACT PERSISTED
 
 LOCAL PROMPT 01:
 SUBMITTED — RUN — CONSUMED
 
+CORRECTION C1:
+SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
+
 NEXT LOCAL PROMPT:
 02 — NOT CONSUMED
-
-STAGE STATUS:
-Stage 0 executed by this run. Stages 1–7 NOT STARTED.
-Repository package files still record Stage 0 as CURRENT — NOT STARTED,
-because no persistence is authorized by this Prompt.
-Advancement requires Owner Alignment.
-
-INVESTIGATION RESULT:
-COMPLETE
 
 OWNER ACCEPTANCE:
 NOT GRANTED BY THIS RUN
 ```
 
-## 22. ROADMAP IMPACT
+## 24. ROADMAP IMPACT
 
-- RM-DH-003 remains ACTIVE. Phase 3 remains ACTIVE. Sub-phase 3.1 remains current.
-- WS-DH-2026-0012 investigation ran read-only. WS-DH-2026-0013 remains unrun.
-- No Sub-phase 3.2 advancement. Project Knowledge remains NOT INSTALLED.
-- RM-DH-004 remains separate. No Acceptance, no Closure.
+RM-DH-003 remains ACTIVE. Phase 3 remains ACTIVE. Sub-phase 3.1 remains current. WS-DH-2026-0012 remains the current Workstream. WS-DH-2026-0013 remains unrun. No Sub-phase 3.2 advancement. Project Knowledge remains NOT INSTALLED. RM-DH-004 remains separate. No Acceptance, no Closure.
 
-## 23. Run metadata and exact stopping point
+## 25. Run metadata and exact stopping point
 
 | Item | Value |
 |---|---|
-| Mode / operation | Plan/Chat — read-only investigative audit |
-| Prompt ID | `PROMPT-DH-WS0012-MEMORY-GENESIS-INVESTIGATIVE-AUDIT-01` — SUBMITTED, RUN, CONSUMED |
-| Lineage / local number | WS-DH-2026-0012 Memory Genesis Investigative Lineage / `01` |
-| Parallel Task ID | `PT-DH-WS0012-MEMORY-GENESIS-INVESTIGATION-01` |
-| Owner authorization | 06-08-2026 — August, 04:12, Asia/Riyadh (UTC+03:00) |
-| Run time | 2026-08-06 ~01:30 UTC / ~04:30 Asia/Riyadh |
-| Branch / HEAD / parents | see §3 |
-| Working tree | clean before; one platform-managed path after |
-| Evidence inspected | §2 |
-| Inaccessible sources | §19 |
-| Memory namespaces inspected | `mem://index.md`; namespaces architecture, features, security, ux, domain, finance, localization, laboratory, breeding; one body read |
-| Memory IDs inspected | none allocated; four reserved IDs located as literals only |
+| Mode / operation | Plan/Chat — read-only corpus evidence correction |
+| Parent Prompt | `PROMPT-DH-WS0012-MEMORY-GENESIS-INVESTIGATIVE-AUDIT-01` — Continuation C1, RUN |
+| Lineage / local number | WS-DH-2026-0012 Memory Genesis Investigative Lineage / `01` (no new number consumed) |
+| Parallel Task ID | `PT-DH-WS0012-MEMORY-GENESIS-P01-C1-CORPUS-EVIDENCE` |
+| Owner authorization | 06-08-2026 — August; exact C1 authorization time not recorded |
+| Run time | 2026-08-06 ~02:00 UTC / ~05:00 Asia/Riyadh |
+| Branch / HEAD / parents | §4 |
+| Working tree before / after | one platform-managed path in both states |
+| Index count | 104 visible entries (9 Core + 95 referenced) |
+| Bodies attempted / read / inaccessible | 103 URIs attempted (95 indexed + 8 orphans); 99 read; 4 non-existent |
+| Corpus classifications | §7 |
 | Repository writes | None |
 | Database access | None |
 | Application-code inspection | None |
+| Skill-body inspection | None |
 | Project Knowledge activity | None |
 | Platform-managed paths | `.lovable/plan.md` (this report) |
 | Contamination verdict | NO CROSS-TASK CONTAMINATION DETECTED |
 
-**Exact stopping point.** Stopped immediately after issuing this investigative report. No correction, no persistence, no implementation, no Decision, no package modification, no ID allocation.
+**Exact stopping point.** Stopped immediately after issuing this corrected read-only report. No persistence, no package modification, no Decision, no ID allocation, no Stage advancement.
 
 **Next action.** ChatGPT review, Arabic explanation and Owner Alignment.
