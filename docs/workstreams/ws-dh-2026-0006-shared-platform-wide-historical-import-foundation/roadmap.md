@@ -37,19 +37,22 @@ Track:
 Track 2 — Import Architecture & Control
 
 Workstream Status:
-ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
+ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Stage:
-Stage 0 — Governance Package — COMPLETE — OWNER ACCEPTED — PERSISTED; Stage 1 — Technical Foundation Audit — NOT STARTED and NOT AUTHORIZED
+Stage 0 — Governance Package — COMPLETE — OWNER ACCEPTED — PERSISTED; Stage 1 — Technical Foundation Audit and Execution Contract — OWNER ACCEPTED — PERSISTED; Stage-1 technical implementation — NOT STARTED; Stage 2 — NOT STARTED
 
 Owner Acceptance of Stage 0:
 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004
+
+Owner Acceptance of Stage 1:
+07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-005
 
 Owner:
 Mohamed Nour
 
 Technical Environment:
-Lovable only unless explicitly changed by the owner
+Lovable only unless explicitly changed by the owner — current environment is NON-PRODUCTION
 
 Local Prompts Consumed:
 0
@@ -57,14 +60,20 @@ Local Prompts Consumed:
 Local Decisions Consumed:
 0
 
-Governing Roadmap Decision:
-DEC-RM-DH-004-003
+Governing Roadmap Decisions:
+DEC-RM-DH-004-003; DEC-RM-DH-004-004; DEC-RM-DH-004-005
 
 Technical Foundation Audit:
-NOT AUTHORIZED — NOT STARTED
+COMPLETE — OWNER ACCEPTED — PERSISTED
 
 Execution Contract:
-NOT AUTHORIZED — DOES NOT EXIST
+EXISTS — OWNER ACCEPTED — PERSISTED — single authoritative artifact: `stage-1-technical-foundation-execution-contract.md` (38 sections)
+
+Technical Execution Authorization:
+NOT GRANTED
+
+Bound Evidence Artifact:
+Dayli_Horse_Historical_Import_Evidence_Pack_v0.4.xlsx — SHA-256 ed34d290e58173033856ac0a66fda60487e4b66e2df224ee63375352347acc7a — 59424 bytes — NOT COMMITTED TO REPOSITORY — NOT UPLOADED TO APPLICATION STORAGE
 
 Slices Defined:
 0
@@ -88,10 +97,10 @@ QA:
 NOT STARTED
 
 Acceptance Re-Audit:
-STAGE 0 — PASSED INDEPENDENT RE-VERIFICATION; TECHNICAL STAGES — NOT STARTED
+STAGE 0 — PASSED INDEPENDENT RE-VERIFICATION; STAGE 1 — OWNER ACCEPTED; TECHNICAL STAGES — NOT STARTED
 
 Owner Acceptance:
-GRANTED FOR STAGE 0 GOVERNANCE ONLY — 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004; NO TECHNICAL ACCEPTANCE
+GRANTED FOR STAGE 0 GOVERNANCE (06-08-2026 — 00:24 — DEC-RM-DH-004-004) AND FOR THE STAGE 1 EXECUTION CONTRACT (07-08-2026 — 00:12 — DEC-RM-DH-004-005), both Asia/Riyadh — UTC+03:00; NO TECHNICAL ACCEPTANCE
 
 Closure:
 NONE
@@ -102,9 +111,9 @@ NONE
 | # | Stage | State |
 |---:|---|---|
 | 0 | Governance Package | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004) |
-| 1 | Technical Foundation Audit (read-only) | NOT STARTED — requires explicit Owner authorization |
+| 1 | Technical Foundation Audit and Execution Contract (read-only) | OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-005) — technical implementation NOT STARTED |
 | 2 | Owner Alignment on Import Foundation Architecture | NOT STARTED |
-| 3 | Execution Contract | NOT STARTED |
+| 3 | Execution Contract | ABSORBED INTO STAGE 1 — the single authoritative contract artifact is persisted; execution remains NOT AUTHORIZED |
 | 4 | Slice Execution | NOT STARTED |
 | 5 | QA | NOT STARTED |
 | 6 | Acceptance Re-Audit | NOT STARTED |
