@@ -114,6 +114,10 @@ Stage 7 is **not** Project Knowledge installation. This Workstream may assess la
 | `01 / C4` | Comparison of Memory assertions against accepted Rounds 1–5; superseded only in its mixed counting model and its unsupported complete-classification claim | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
 | `01 / C5` | Auditable URI-by-URI classification ledger and count-integrity repair — final technical verdict PASSED | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
 | `02` | Bounded governance persistence of the verified run history and the Stage-5 Owner Alignment decision | SUBMITTED — RUN — CONSUMED |
+| `02 / C1` | Read-only governance-persistence evidence and scope verification; defects `D-C1-01` … `D-C1-04` raised | RUN UNDER LOCAL PROMPT 02 — NO NEW NUMBER CONSUMED |
+| `02 / C2` | Bounded governance-content repair of `D-C1-01` … `D-C1-04` | RUN UNDER LOCAL PROMPT 02 — NO NEW NUMBER CONSUMED |
+| `03` | Independent read-only Stage-6 QA and Acceptance Re-Audit of the persisted governance state | SUBMITTED — RUN — CONSUMED — PASSED |
+| `04` | Stage-7 persistence of the Stage-6 result, Owner Acceptance, bounded installation readiness and Closure | SUBMITTED — RUN — CONSUMED |
 
 ## Persisted investigation findings
 
