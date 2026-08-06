@@ -1,13 +1,14 @@
 <!--
 id: DHB-WS-2026-0006-README
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (package README)
-version: 1.3.0
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-08-05
 last-verified: 2026-08-07
 supersedes: []
 superseded-by: null
+source: v1.4.0 — RM-DH-004 / Phase 2 — Stage-2 Slice-3A Owner-Alignment Governance Persistence under PROMPT 56 — SAME-SUBJECT CONTINUATION G1 (Parallel Task ID PT-DH-RM004-WS0006-P56-G1-SLICE3A-ALIGN-PERSIST-20260807-0122), approved Decision DEC-RM-DH-004-006, Owner Alignment granted 07-08-2026 at 01:22 Asia/Riyadh (UTC+03:00): records Stage-2 readiness as COMPLETE — OWNER ALIGNED — PERSISTED with Stage-2 technical implementation NOT STARTED and Slice 3A READY FOR A SEPARATELY AUTHORIZED PROMPT, and binds the single authoritative artifact stage-2-slice-3a-readiness-owner-alignment.md. Slice-3A Decisions D1 through D5 are aligned and D6 is deferred to Slice 3B. The Stage-1 contract artifact is unchanged, no local Workstream Decision was created, no technical execution is authorized, and Prompt 57 remains UNCONSUMED AND UNAUTHORIZED. The earlier provenance chain is preserved verbatim on the following source lines.
 source: v1.3.0 — RM-DH-004 / Phase 2 — Stage-1 Owner Acceptance and Governance Persistence under PROMPT 55 — SAME-SUBJECT CONTINUATION C1 (Parallel Task ID PT-DH-RM004-WS0006-P55-C1-STAGE1-PERSIST-20260807-0012), approved Decision DEC-RM-DH-004-005, Owner Acceptance granted 07-08-2026 at 00:12 Asia/Riyadh (UTC+03:00): records the accepted Stage-1 status and adds the single authoritative Stage-1 Execution Contract artifact to package navigation. Identity and scope are unchanged; all dynamic state remains in roadmap.md. Earlier provenance is preserved verbatim on the following source lines.
 source: v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records the accepted Stage-0 status. Identity and scope are unchanged; all dynamic state remains in roadmap.md. The earlier provenance is preserved verbatim on the following source line.
 source: authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, local Prompt number 53, Parallel Task ID PT-DH-RM004-WS0006-P53-GOVERNANCE-RECONCILIATION-20260805-2216), under approved Decision DEC-RM-DH-004-003. This file carries stable identity only; all dynamic WS-DH-2026-0006 state lives in roadmap.md. No technical Historical Import implementation exists.
@@ -26,7 +27,7 @@ source-sha256: n/a
 
 **Track:** Track 2 — Import Architecture & Control
 
-**Status:** ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED — TECHNICAL IMPLEMENTATION NOT STARTED
+**Status:** ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 READINESS OWNER ALIGNED AND PERSISTED — STAGE 2 TECHNICAL IMPLEMENTATION NOT STARTED
 
 ## Identity and Lineage
 
@@ -119,7 +120,7 @@ This correction itself does not achieve Workstream Acceptance.
 
 ## Current State
 
-Stage 1 — the Technical Foundation Audit and its complete Execution Contract — is `OWNER ACCEPTED — PERSISTED` under `DEC-RM-DH-004-005` (07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00). Contract persistence is governance only and is **not** implementation.
+Stage 1 — the Technical Foundation Audit and its complete Execution Contract — is `OWNER ACCEPTED — PERSISTED` under `DEC-RM-DH-004-005` (07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00). Stage 2 — Shared Control Plane readiness is `COMPLETE — OWNER ALIGNED — PERSISTED` under `DEC-RM-DH-004-006` (07-08-2026 — 01:22 — Asia/Riyadh — UTC+03:00), with Slice-3A Decisions D1 through D5 aligned and D6 deferred to Slice 3B. Contract and readiness persistence is governance only and is **not** implementation.
 
 No technical work has been performed. Specifically, there is **no**:
 
@@ -138,6 +139,7 @@ No Slice has been defined, authorized or executed. Technical execution authoriza
 
 - [`roadmap.md`](./roadmap.md) — authoritative current state and Stage register.
 - [`stage-1-technical-foundation-execution-contract.md`](./stage-1-technical-foundation-execution-contract.md) — the single authoritative Owner-accepted 38-section Stage-1 Execution Contract.
+- [`stage-2-slice-3a-readiness-owner-alignment.md`](./stage-2-slice-3a-readiness-owner-alignment.md) — the single authoritative Owner-aligned Stage-2 / Slice-3A readiness contract.
 - [`decisions.md`](./decisions.md) — local Workstream decisions.
 - [`changelog.md`](./changelog.md) — chronological record.
 
@@ -152,7 +154,8 @@ No Slice has been defined, authorized or executed. Technical execution authoriza
 - [`DEC-RM-DH-004-003 — Phase 2 Governance Reconciliation and Creation of the WS-DH-2026-0006 Package`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-003--phase-2-governance-reconciliation-and-creation-of-the-ws-dh-2026-0006-package)
 - [`DEC-RM-DH-004-004 — Owner Acceptance of Phase-2 Stage-0 Governance Reconciliation and the WS-DH-2026-0006 Governance Package`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-004--owner-acceptance-of-phase-2-stage-0-governance-reconciliation-and-the-ws-dh-2026-0006-governance-package)
 - [`DEC-RM-DH-004-005 — Owner Acceptance of the Complete Stage-1 Technical Foundation Execution Contract`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-005--owner-acceptance-of-the-complete-stage-1-technical-foundation-execution-contract)
+- [`DEC-RM-DH-004-006 — Owner Alignment on the Stage-2 Slice-3A Core Control Plane Readiness Contract`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-006--owner-alignment-on-the-stage-2-slice-3a-core-control-plane-readiness-contract)
 
 ## Stopping Point
 
-Governance persistence only. The complete Stage-1 Execution Contract is persisted and Owner accepted; Stage-1 technical implementation and Stage 2 have not started. The next permitted step is separately Owner-authorized technical execution planning. Prompt 55 is CONSUMED; Prompt 56 and the next technical Prompt number remain UNCONSUMED AND UNAUTHORIZED. No Workstream Closure and no Roadmap Closure is granted.
+Governance persistence only. The complete Stage-1 Execution Contract is persisted and Owner accepted, and the Stage-2 / Slice-3A readiness contract is persisted and Owner aligned; Stage-1 and Stage-2 technical implementation have not started and Slice 3A is `READY FOR A SEPARATELY AUTHORIZED PROMPT — NOT STARTED`. The next permitted step is separately Owner-authorized Slice-3A technical execution. Prompt 55 and Prompt 56 are CONSUMED; Prompt 57 and the next technical Prompt number remain UNCONSUMED AND UNAUTHORIZED. No Workstream Closure and no Roadmap Closure is granted.
