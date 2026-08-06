@@ -1,121 +1,149 @@
-# Prompt 55 — Continuation A1 — Corrected Proposed Execution Contract (read-only, not persisted)
+# Prompt 55 — Continuation A2 — Part 1 — Evidence Reconciliation (read-only)
 
-RM-DH-004 / Phase 2 / WS-DH-2026-0006 / Stage 1. Repository, database, Storage, permissions, RLS writes: ZERO.
+RM-DH-004 / Phase 2 / WS-DH-2026-0006 / Stage 1. Repository writes: ZERO. Database writes: ZERO. Storage writes: ZERO. No contract design, no slices, no recommendation.
 
-## A. Correction acknowledgement and withdrawal
+## A. Primary evidence verdict
 
-All 11 elements listed in §3 of the parent prompt are withdrawn and are not carried into this contract: automatic `public` placement, service_role as tenant authority, broad browser DML, `UNIQUE (tenant_id, batch_id, file_sha256)`, tenant-global canonical-row uniqueness, one synchronous `import_approve_and_post`, unproven selective Finance rollback, hardcoded tenant-admin deletion authority, coarse permissions, mandatory destructive down-migration per slice, and migrations before the environment gate is resolved.
+All four evidence areas are resolved from live database and repository state, with two exceptions that remain gaps and cannot be closed from inside this environment: (1) whether Lovable supports a second isolated environment for this project, and (2) the authoritative PostgREST exposed-schema configuration (`db_schemas`), which is not readable from SQL. One prior A1 claim is materially corrected: browser-role direct DML on Finance tables is **not** universally revoked.
 
-## B. Preserved verified facts
+## B. Run identity and live boundary
 
-- Fact (DB, this turn): 158 tables in `public`; no other application schema exists. Repository convention is `public` + Data API exposure + RLS + explicit GRANTs.
-- Fact (DB): zero Historical Import objects — no batch, file registry, staging, issue, mapping, dry-run, job, posting-link or event table.
-- Fact (DB): 2 Storage buckets, both private (`horse-media` 50MB with MIME allowlist, `database_export_20_07_26` unrestricted). No import bucket.
-- Fact (DB): canonical Finance writers exist and are SECURITY DEFINER with `search_path=''` — `create_invoice_with_items`, `update_invoice_with_items`, `approve_invoice`, `cancel_invoice`, `post_payment`, `post_invoice_payments`, `post_expense_with_ledger`, `post_manual_ledger_adjustment`, `reverse_expense`.
-- Fact (DB): `finance_request_idempotency` + `_finance_idempotency_begin/_complete` + `_finance_advisory_lock_key` provide an existing idempotency and locking precedent to reuse, not reinvent.
-- Fact (DB): `ledger_entries.effective_date` is NOT NULL (Phase-1 closed contract). `permission_definitions(key, module, resource, action, is_delegatable, …)` is the atomic permission vocabulary; `has_permission()` is the enforcement helper.
-- Preserved directions: Shared Core + Domain Adapter, Finance-first, Excel/PDF first, CSV supported, images registry-only, no OCR, zero inferred identity matching, no POS, no browser-direct financial DML, immutable provenance.
+| Item | Value |
+|---|---|
+| Branch | `edit/edt-89994f7b-ac29-44b2-89ab-c73094c31a73` |
+| HEAD (40 char) | `308a0e8aca12733b2ac31486ac7f63a31ae79580` |
+| Parent 1 | `2571abd82241ba7288a7c4b277a2f07bc2ead9b6` |
+| Parent 2 | `ff014a9045c7800dfe83862485afeebb28e32c6d` |
+| Working tree | clean — zero staged, zero unstaged, zero untracked paths |
+| Lovable project ID | `64c79edd-f667-42bb-b896-147c63e0ff12` |
+| Database/project ref | `vhxglsvxwwpmoqjabfmj` |
+| Evidence time | 2026-08-06 00:00 UTC / 03:00 Asia/Riyadh |
+| Drift since A1 | HEAD is the platform merge whose first parent `2571abd8…` is the A1-era verified commit; no governance or code path changed; database unchanged |
 
-## C. Corrected assumptions
+## C. Public relation-count reconciliation
 
-1. `public` is proposed **because the repository has no non-exposed application schema**, not by default; every object below still declares exposure, grants and DML policy explicitly.
-2. `service_role` is an infrastructure role for server-side jobs only, never a tenant authorization mechanism, never browser-reachable.
-3. Reversal capability is **unproven for payments and ledger postings** — `cancel_invoice`, `reverse_expense` and `post_manual_ledger_adjustment` exist; no canonical payment/session reversal function was found. This blocks the posting slice until resolved.
-4. Posting volume characteristics are unknown; sync vs async is deliberately left open pending §T Decision 2 evidence.
+SQL executed:
 
-## D. Environment decision gate (BLOCKING)
+```sql
+select relkind, count(*) from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+ where n.nspname = 'public' group by 1 order by 1;
+```
 
-One Lovable Cloud Postgres project exists; no staging/import database. A Git branch gives no database isolation. **No migration, bucket, permission, policy or route may be created until the Owner selects A or B.**
+Result:
 
-Recommendation: **Option B — controlled implementation in the current environment**, because Lovable Cloud provides one managed project per app and a second environment would fork schema, permission and Finance-RPC lineage that Phase-1 just stabilized. Conditions: additive-only DDL, no change to existing Finance tables/functions, new objects inert until explicitly enabled, tenant-scoped test data only, rollback script per slice, and no production posting before the pilot gate.
+| relkind | meaning | count |
+|---|---|---|
+| `r` | ordinary base tables | **158** |
+| `v` | views | **6** |
+| `m` | materialized views | 0 (absent) |
+| `p` | partitioned tables | 0 (absent) |
+| `f` | foreign tables | 0 (absent) |
+| `i` | indexes | 627 |
 
-## E–I. Corrected contract — objects, states, permissions, ACL
+1. Authoritative current result: **158 base tables**, 6 views, 0 materialized/partitioned/foreign tables.
+2. Yes — earlier counts mixed relation types. 158 + 6 = 164, which exactly reproduces the earlier "164 tables" figure.
+3. Precise reason: the 164 figure counted views alongside base tables (or used an `information_schema.tables` style query that returns `BASE TABLE` and `VIEW` together); the 158 figure filtered `relkind='r'`.
+4. Effect on Historical Import scope: **none**. No import-control relation exists under either count, and no view participates in Finance write paths.
 
-All tables: schema `public`, Data API exposed, RLS enabled, `tenant_id uuid not null`, `GRANT SELECT ON … TO authenticated` only where a read surface genuinely exists, `GRANT ALL … TO service_role`, **no** anon grant, **no** browser INSERT/UPDATE/DELETE. All mutations are RPC-mediated; RPCs are SECURITY DEFINER with `SET search_path = ''` and fully qualified names; private helpers are `REVOKE ALL FROM PUBLIC, anon, authenticated`.
+## D. Environment-isolation evidence
 
-| Object | Purpose | Key fields | Immutable | Unique / index | Browser SELECT | Retention / rollback |
+**Facts (live):**
+- Exactly one Postgres project is reachable from this session: ref `vhxglsvxwwpmoqjabfmj`, bound to Lovable project `64c79edd-f667-42bb-b896-147c63e0ff12`.
+- No second database, no staging schema, and no import/staging namespace exists. Non-system schemas present: `public`, `auth`, `storage`, `realtime`, `graphql`, `graphql_public`, `extensions`, `net`, `cron`, `vault`, `supabase_migrations`.
+- The current session is on a Lovable edit branch (`edit/edt-89994f7b…`) while reading and writing the same single database ref; branch state and database state are independent.
+- Storage contains 2 private buckets only (`horse-media`, `database_export_20_07_26`); no import bucket.
+
+**Lovable claims (platform documentation/product level, not verifiable from SQL):** one managed Cloud Postgres project is provisioned per Lovable project; there is no self-serve provisioning surface for a second database within the same project.
+
+**Inferences:** because migrations, Grants, RLS and Storage objects are applied to the single ref regardless of Git branch, a Git branch provides **no** database, Storage, permission or migration isolation.
+
+**Gaps:** whether Lovable offers a proven supported path to a second isolated environment for this project (for example a separate Lovable project acting as staging, with schema and permission lineage kept in sync) is **unresolved** and cannot be established from this environment. No option is selected in this Part.
+
+## E. Finance reversal capability matrix
+
+All rows verified from `pg_proc` (`prosecdef`, `proconfig`) and `proacl`. Every listed function is `plpgsql`, `SECURITY DEFINER`, `SET search_path = ''`.
+
+| Operation | Creation / posting path | Callable by | Reversal / compensating path | Reversal semantics | Evidence | Import posting implication |
 |---|---|---|---|---|---|---|
-| import_batches | batch lifecycle root | tenant_id, domain, status, created_by, approved_by, frozen_at | tenant_id, domain, created_by | idx(tenant,status); one active posting per batch | yes (import.batch.view) | never deleted |
-| import_source_files | file identity & provenance | storage_path, file_sha256, size, mime, original_name, legal_hold, retained_until, deleted_at | sha256, size, mime, original_name | `UNIQUE(tenant_id, domain, file_sha256)` — cross-batch | yes | evidence survives file deletion |
-| import_staging_rows | typed source rows | source_file_id, sheet, row_ordinal, raw jsonb, canonical jsonb, canonical_row_hash, state | source identity, raw | `UNIQUE(source_file_id, sheet, row_ordinal)`; **hash indexed, not unique** | yes | rows retained |
-| import_row_issues | validation/quarantine findings | staging_row_id, severity, code, message_en/ar, resolved_by | code, raised_at | idx(batch, severity) | yes | retained |
-| import_mappings | header→field mapping versions | domain, version, mapping jsonb | mapping per version | UNIQUE(tenant,domain,name,version) | yes | retained |
-| import_dry_run_results | simulated outcome & variance | batch_id, run_no, totals jsonb, variance jsonb | whole row | UNIQUE(batch_id, run_no) | yes | retained |
-| import_batch_approvals | immutable approval record | batch_id, frozen_fingerprint, approver, decided_at | whole row | UNIQUE(batch_id, sequence) | yes | never deleted |
-| import_jobs | posting/parse job control | batch_id, kind, status, checkpoint, lock_key | kind, batch_id | partial UNIQUE(batch_id,kind) where active | yes | retained |
-| import_job_attempts | retry evidence | job_id, attempt_no, started/ended, error | whole row | UNIQUE(job_id, attempt_no) | yes | retained |
-| import_postings | provenance links (graph edges) | posting_group_id, staging_row_id, output_type, output_id, rpc_name, request_key, reversal_of | whole row | UNIQUE(tenant, output_type, output_id, request_key) | yes | reversal recorded as new row |
-| import_events | immutable audit stream | batch_id, event_type, actor, payload, occurred_at | whole row | idx(batch, occurred_at) | yes (import.audit.view) | never deleted |
+| Invoice creation | `create_invoice_with_items(uuid,uuid,jsonb)` | authenticated | `delete_draft_invoice(uuid,uuid,uuid)` (draft only) | deletion, pre-ledger only | pg_proc | safe: pre-posting undo exists |
+| Invoice update | `update_invoice_with_items(uuid,uuid,uuid,jsonb)` | authenticated | same-path re-write while draft | mutation, not reversal | pg_proc | safe pre-approval |
+| Invoice approval | `approve_invoice(uuid,uuid,uuid)`; server variant `_finance_invoice_approve_inline` (service_role only) | authenticated / service_role | `cancel_invoice(...)` | **canonical reversal** — inserts a compensating `adjustment` / `invoice_cancellation` ledger entry of `-amount`, sets status `cancelled`, never deletes | `prosrc` of `cancel_invoice` read this turn | reversible **only while unpaid** |
+| Invoice cancellation | `cancel_invoice(uuid,uuid,uuid,date,text)` | authenticated | n/a (is itself the reversal) | compensating adjustment; idempotent; refuses if any payment ledger entry or pending/paid `payment_intents` exist | `prosrc` | **hard block**: a paid or partially paid imported invoice cannot be cancelled |
+| Invoice items | `invoice_items` written inside the invoice RPCs, with `_invoice_items_fill_snapshots` / `_invoice_items_validate_source` triggers | via RPC | no item-level reversal function | none | pg_proc | reversal is document-level only |
+| Payment | `post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)` | authenticated / service_role | **none found** | **no reversal** | full `pg_proc` scan for `%revers%`, `%void%`, `%refund%`, `%cancel%`, `%payment%` returned no payment reversal function | **BLOCKING** for payment import |
+| Invoice-payment allocation | `post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)` writing `payment_allocations` | authenticated | **none found** | **no reversal** | pg_proc | **BLOCKING** |
+| Payment session | `post_payment_session(uuid,uuid,jsonb)`; read via `get_payment_session` | authenticated / service_role | **none found** | **no reversal** | pg_proc | **BLOCKING** |
+| Expense | `create_expense`, `post_expense_with_ledger`, `delete_expense` | authenticated / service_role | `reverse_expense(uuid,uuid,uuid,text,date)` | canonical reversal exists (name and signature confirmed; internal semantics not re-read this turn) | pg_proc | reversible, semantics to confirm before use |
+| Manual ledger adjustment | `post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)` | authenticated / service_role | itself (an opposite-sign adjustment) | compensating entry | pg_proc | **must not** be treated as a universal reversal path for other object types |
+| Generated ledger entries | private `_finance_ledger_insert(...)` | **service_role only** (no authenticated EXECUTE) | no direct reversal; only via the owning document's reversal | none standalone | pg_proc `proacl` | ledger truth is append-only; correct |
+| Billing links | private `_finance_billing_link_upsert(...)` | **no explicit grant** (owner/definer only) | no reversal function | none | pg_proc `proacl` | provenance of links needs its own contract |
 
-RLS pattern: `SELECT USING (tenant_id = current tenant AND public.has_permission(auth.uid(), '<key>'))`; no INSERT/UPDATE/DELETE policies for `authenticated` at all — writes only via SECURITY DEFINER RPCs that re-check `has_permission()` and tenant.
+Conclusion of E: canonical reversal is proven for **unpaid invoices** and (by name) **expenses**, and is **absent for payments, invoice-payment allocations, payment sessions and billing links**. No universal reversal path may be inferred from `post_manual_ledger_adjustment`.
 
-### G. Status transitions (RPC-mediated, event-logged)
+## F. Schema and Data-API exposure evidence
 
-`DRAFT → FILE_REGISTERED → STAGED → VALIDATING → {REVIEW_REQUIRED → …, READY_FOR_DRY_RUN} → DRY_RUN_COMPLETE → AWAITING_APPROVAL → APPROVED → POSTING → POSTED → RECONCILED`. Controlled exits: `FAILED`, `QUARANTINED` (blocks approval), `CANCELLED` (pre-approval only), and `ROLLBACK_REQUESTED → ROLLBACK_APPROVED → REVERSING → REVERSED` (post-POSTED only). Enforced by a transition table + trigger rejecting any non-listed pair; no direct status UPDATE path exists.
+- Application schemas: **`public` only**. All 158 application base tables and all 6 views are in `public`. No private or non-exposed application schema exists.
+- Schema-level ACL (`pg_namespace.nspacl`): `public`, `auth`, `storage`, `realtime`, `graphql`, `graphql_public`, `extensions`, `net` grant `USAGE` to `anon`, `authenticated`, `service_role`. `vault` grants `USAGE` to `service_role` only. `cron` and `supabase_migrations` grant none.
+- The authoritative PostgREST exposed-schema list is platform configuration and is **not readable from SQL** — that `public` is the exposed application schema is a Lovable-platform default (claim) corroborated by the client code reading `public` tables directly (fact).
+- Table ACL / RLS patterns observed (`pg_class.relacl`, `pg_policies`), all with RLS enabled:
+  - **Browser-readable + browser-writable (RLS-gated):** `invoices`, `expenses`, `billing_links`, `payment_sessions`, `horses`, `permission_definitions` still carry **full INSERT/UPDATE/DELETE grants to `anon` and `authenticated`**; access is constrained only by RLS policies (`is_tenant_member`, `has_permission(...)`, e.g. `finance.invoice.create` / `.edit` / `.delete`). Most policies target role `public`, not `authenticated`.
+  - **Read-only to browser roles:** `ledger_entries` — `anon:SELECT`, `authenticated:SELECT`, full grants to `service_role`; SELECT policies only, no write policy.
+  - **Server-only:** `finance_request_idempotency` — `service_role` only, RLS enabled, no browser grant.
+  - **RPC-only mutation pattern:** every canonical Finance writer is `SECURITY DEFINER`, `search_path=''`, re-checks `is_active_tenant_member()` and `has_permission()`, and uses `_finance_idempotency_begin/_complete` plus `pg_advisory_xact_lock(_finance_source_lock_key(...))`.
+  - **Private helper pattern:** `_finance_ledger_insert`, `_finance_invoice_approve_inline` → `service_role` EXECUTE only; `_finance_billing_link_upsert` → no explicit grantee.
+- Verdict on placement: proposing Historical Import objects in `public` is **proven repository convention** (there is no alternative application schema and no non-exposed convention to follow), but choosing to *deviate* from that convention — e.g. a non-exposed `import` schema reachable only through RPCs — remains an **open Owner/architecture decision**, not something the current repository settles.
 
-### H. Atomic permissions
+## G. Facts confirmed
 
-All 23 keys from §11 adopted verbatim into `permission_definitions` (module `import`), each independently assignable and bundleable; no hardcoded role names. Enforced separations: review ≠ approval ≠ posting authorization ≠ posting execution; rollback request ≠ approval ≠ execution. A single person holding all keys may complete the workflow, with each stage still emitting a distinct actor-stamped event.
+1. 158 public base tables, 6 views, no matviews/partitioned/foreign tables.
+2. Zero Historical Import substrate of any kind.
+3. Single database ref `vhxglsvxwwpmoqjabfmj`; no second environment reachable; Git branch gives no database isolation.
+4. `cancel_invoice` performs a true compensating ledger reversal and refuses when payments exist.
+5. No canonical reversal exists for payments, allocations, payment sessions or billing links.
+6. `ledger_entries` is append-only to browser roles (SELECT only); `finance_request_idempotency` is service_role only.
+7. `public` is the sole application schema, with `USAGE` to `anon` and `authenticated`.
+8. Two private Storage buckets exist; neither is an import bucket.
 
-## J. Idempotency and fingerprints
+## H. Prior claims withdrawn or superseded
 
-File identity = SHA-256 + size + MIME (immutable). Duplicate detection is **cross-batch** via `UNIQUE(tenant_id, domain, file_sha256)`; a repeat upload surfaces warn/link/reject/authorized-reprocess depending on prior batch state and posting outcome. Row identity = `(source_file_id, sheet, row_ordinal)`. `canonical_row_hash` is **indexed for comparison and evidence only** — never a uniqueness constraint — so legitimate repeated business transactions (identical daily charges) stay importable. Duplicate *posting* is prevented by a per-posting-unit immutable `request_key` reused through the existing `finance_request_idempotency` mechanism. Business duplicates are detected by Domain Adapter rules (document number + economic date + entity) that raise a reviewable issue, never a silent block.
+1. **Withdrawn:** "164 tables" — superseded by 158 base tables + 6 views.
+2. **Withdrawn (material):** A1's preserved statement "no browser-direct financial DML" is **overbroad**. It is true only for `ledger_entries` and `finance_request_idempotency`. `invoices`, `invoice_items`-adjacent tables, `expenses`, `billing_links` and `payment_sessions` retain full browser-role table grants, gated solely by RLS policies. Any future ACL baseline must state this accurately rather than assume a completed revocation.
+3. **Narrowed:** A1's "canonical Finance RPCs provide reversal" — proven for unpaid invoices and (by name) expenses only.
+4. **Superseded:** A1's placement rationale — `public` is convention by absence of any alternative, and deviation remains an open decision.
 
-## K. Posting and resumability
+## I. Unresolved gaps
 
-Approval freezes a batch fingerprint; any later staging edit invalidates approval. Posting authorization and execution are separate permissions and separate RPC calls. Execution runs as a job over bounded chunks, one idempotent transaction per posting unit, with checkpointing in `import_jobs.checkpoint` and attempts recorded; retries resume after the last proven checkpoint and re-posting is impossible because the request key already resolved. Concurrency is blocked by a partial unique active-job index plus `pg_advisory_xact_lock` on `_finance_advisory_lock_key(tenant,'import_batch',batch_id)`. Sync vs async is left open pending volume evidence. `POSTED → RECONCILED` requires a zero-variance reconciliation.
+1. Supported path (if any) for a second isolated Dayli Horse environment.
+2. Authoritative PostgREST exposed-schema configuration.
+3. Internal semantics of `reverse_expense` (signature confirmed, body not re-read this turn).
+4. Reversal strategy for payments, allocations, payment sessions and billing links.
+5. Whether the residual browser-role DML grants on Finance tables are an intentional accepted posture or Stage-B residue.
+6. No representative Excel/PDF specimens, file-size, row-count or batch-volume evidence.
+7. Malware scanning capability.
 
-## L. Provenance graph
+## J. Contradictions
 
-`import_postings` is a many-to-many edge set, not a 1:1 map: one row may yield several outputs, several rows may fold into one invoice via `posting_group_id`, and header/item and payment/ledger relationships are edges carrying output type, output id, RPC name, request key, actor, timestamp and `reversal_of`.
+1. Governance narrative of RPC-mediated financial writes vs live table ACLs that still permit browser-role DML on `invoices`, `expenses`, `billing_links`, `payment_sessions` (RLS-gated). Recorded, not resolved here.
+2. `ledger_entries` carries two overlapping SELECT policies expressing the same tenant-membership rule. Cosmetic; no security effect.
+3. Prior 164 vs 158 count — resolved in section C.
 
-## M. Rollback and reversal
+## K. Evidence Part 2 may rely upon
 
-Schema rollback (drop/repair new objects before real data depends on them) is separate from business reversal. Business reversal uses canonical compensating functions only — **no DELETE of Finance rows, ever**. Proof matrix required before any posting slice: invoices → `cancel_invoice` (available); expenses → `reverse_expense` (available); manual ledger → `post_manual_ledger_adjustment` (available); **payments / payment sessions / invoice payment postings → no canonical reversal function found (gap)**. Until that gap is closed, the payment-posting adapter stays blocked. No destructive automatic down-migration is required once real data exists.
+158 base tables / 6 views / zero import substrate; `public` as sole application schema with `anon`+`authenticated` USAGE; the exact ACL posture per table listed in F; the RPC-only + `SECURITY DEFINER` + `search_path=''` + idempotency + advisory-lock writer pattern; `has_permission()` / `permission_definitions(key, module, resource, action, is_delegatable, …)` as the permission vocabulary; `ledger_entries.effective_date` NOT NULL.
 
-## N. Storage security and retention
+## L. Evidence Part 3 may rely upon
 
-New private bucket `historical-imports`: tenant-prefixed non-guessable paths, write-once (no overwrite/upsert), SHA-256 verified after upload, MIME sniffed server-side against an allowlist (xlsx/xls/csv/pdf; images registry-only), configurable size limit, sanitized original filename stored as metadata, short-lived signed upload/download URLs, no public URL, no file contents in logs, malformed files quarantined. Retention: files kept while pending/review/quarantined/failed/reconciling/under investigation/legal hold; minimum 90 days after successful posting; deletion requires `import.file.delete` (atomic, no role hardcoding) and never removes identity, checksum, provenance, mappings, validation, quarantine, reconciliation, posting links, approvals, rollback evidence or audit events. Retention period stored as configurable metadata. No deletion automation in the first slice. Malware scanning: classified as an **external integration dependency required before the production pilot**, not implemented here.
+The Finance reversal matrix in E verbatim, including the four BLOCKING rows; `cancel_invoice` compensating-entry semantics and its payment-existence refusal; append-only ledger posture; single-database boundary and absence of environment isolation; two private buckets, no import bucket; run identity in B.
 
-## O. Parsing boundary
-
-Server-authoritative; no browser parse is ever authoritative; no library selected yet. Scope: workbook/sheet discovery, AR/EN header mapping, Latin↔Arabic-Indic numeral normalization, date-system detection with Asia/Riyadh handling, formula and merged-cell rules, empty-row policy, row/file caps, PDF digital-text detection with table-extraction confidence and quarantine on ambiguity, CSV encoding/delimiter detection, no OCR.
-
-## P. Bounded execution slices
-
-3A core schema + state machine; 3B permissions, RLS, grants, helpers, negative cross-tenant tests; 3C private bucket, path contract, Storage policies, signed URLs, retention metadata. Each needs separate Owner authorization, exact migration, exact rollback, independent QA, Acceptance Re-Audit, zero-regression evidence. These map onto existing Planned Technical Sequence Step 3 without renumbering any Phase or Step. No slice number is consumed here.
-
-## Q. Dependencies
-
-Phase-1 economic-date contract (closed, unchangeable); canonical Finance RPCs; `has_permission()` / `permission_definitions`; `finance_request_idempotency`; Storage; WS-DH-2026-0007 downstream; WS-DH-2026-0005 POS excluded.
-
-## R. Risks
-
-Single-environment DDL risk; unproven payment reversal; unknown volumes; PDF extraction ambiguity; permission sprawl (23 keys) needing bundles; retention/legal-hold correctness; no malware scanning yet.
-
-## S. Acceptance criteria
-
-All 26 criteria in §19 adopted verbatim as the acceptance set for the Workstream, including zero cross-tenant access, PUBLIC/anon denied, separation-of-duty and all-permissions-single-user tests, retry-zero-duplicate, safe partial-failure resume, concurrency prevention, full provenance linkage, `effective_date` always supplied, quarantine and variance blocking approval, evidence survival after file deletion, proven rollback before pilot, and green build/typecheck/Finance regressions.
-
-## T. Owner decisions required
-
-1. **Environment** — A (new non-production environment) vs B (controlled current environment). Recommendation: **B**, under the conditions in §D.
-2. **Representative source evidence** — representative Excel and PDF specimens, max file size, max rows per file, expected monthly batch volume, required before parser and sync/async selection.
-
-Retention (90-day minimum) and atomic-permission deletion authority are already decided and are not reopened.
-
-## U–Y. Classification
-
-- **Facts:** everything in §B (live DB/Storage/catalog reads this turn).
-- **Lovable claims:** single managed Cloud Postgres project per app; no separate staging DB provisioning surface.
-- **Inferences:** `public` placement by repository convention; async chunked posting suitability; advisory-lock reuse; reconciliation gate.
-- **Gaps:** no canonical payment/ledger reversal function; no volume or specimen evidence; no malware scanning; environment decision unresolved.
-- **Contradictions:** none detected between this contract and the WS-DH-2026-0006 package at v1.2.0.
-
-## Z. Cross-task contamination check
+## M. Cross-task contamination check
 
 NO CROSS-TASK CONTAMINATION DETECTED
 
-## AA. Exact stopping point
+## N. Run metadata and exact stopping point
 
-Corrected proposed Execution Contract issued for external review. Not persisted. Zero repository, database, Storage, permission, RLS and Grant writes. Stage 1 remains open; Slice 3A is not authorized; no new Prompt number consumed; no Stage-1 Acceptance, Workstream Closure or Roadmap Closure is claimed. Next action: Owner decision on §T.
+Parallel Task ID `PT-DH-RM004-WS0006-P55-A2-P1-EVIDENCE-RECONCILIATION-20260806-0253`. Evidence time 2026-08-06 00:00 UTC / 03:00 Asia/Riyadh. Read-only tools used: `git` inspection, `pg_class`/`pg_namespace`/`pg_proc`/`pg_policies`/`information_schema` reads, one `prosrc` read of `cancel_invoice`, one Storage bucket listing.
+
+Stopped after: relation-count reconciliation, environment evidence boundary, Finance reversal matrix, schema/Data-API convention, bounded evidence report. No fixes proposed, no contract designed, no environment option selected, no implementation begun, no Prompt number consumed, no Stage-1 Acceptance, Workstream Closure or Roadmap Closure claimed. Repository, database and Storage writes: ZERO.
+
+Next action: return this Part-1 report for reconciliation before Part 2 is issued.
