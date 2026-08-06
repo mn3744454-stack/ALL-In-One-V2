@@ -1,13 +1,14 @@
 <!--
 id: DHB-RM-004-DECISIONS
 title: RM-DH-004 — Decisions
-version: 1.4.0
+version: 1.5.0
 status: current
 audience: internal
 date: 2026-08-03
 last-verified: 2026-08-07
 supersedes: []
 superseded-by: null
+source: v1.5.0 — RM-DH-004 / Phase 2 — Stage-2 Slice-3A Owner-Alignment Governance Persistence under PROMPT 56 — SAME-SUBJECT CONTINUATION G1 (Parallel Task ID PT-DH-RM004-WS0006-P56-G1-SLICE3A-ALIGN-PERSIST-20260807-0122), Owner Alignment granted 07-08-2026 at 01:22 Asia/Riyadh (UTC+03:00): records exactly one new Decision DEC-RM-DH-004-006 persisting Owner-aligned Slice-3A Decisions D1 through D5 and the deferral of D6 to Slice 3B, and updates the Decision Summary. No earlier Decision is amended, no technical execution is authorized, and Prompt 57 remains UNCONSUMED AND UNAUTHORIZED. The earlier provenance chain is preserved verbatim on the following source lines.
 source: v1.4.0 — RM-DH-004 / Phase 2 — Stage-1 Owner Acceptance and Governance Persistence under PROMPT 55 — SAME-SUBJECT CONTINUATION C1 (Parallel Task ID PT-DH-RM004-WS0006-P55-C1-STAGE1-PERSIST-20260807-0012): records DEC-RM-DH-004-005, the Owner Acceptance of the complete Stage-1 Technical Foundation Execution Contract, granted 07-08-2026 at 00:12 Asia/Riyadh (UTC+03:00). Governance persistence only; no technical execution authorization is granted.; v1.3.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54, Parallel Task ID PT-DH-RM004-WS0006-P54-OWNER-ACCEPTANCE-PERSISTENCE-20260806-0024): appends exactly one new decision, DEC-RM-DH-004-004 — Owner Acceptance of Phase-2 Stage-0 Governance Reconciliation and the WS-DH-2026-0006 Governance Package, granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00). Decisions 001 through 003 are preserved byte-identical and are neither amended nor renumbered. No local Workstream Decision was created. No technical authorization is granted.; authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Records DEC-RM-DH-004-001 only.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06: appends exactly one new decision, DEC-RM-DH-004-002 — Advancement from Phase 0 to Phase 1, recording the explicit Owner advancement decision granted by Mohamed Nour on 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00), its supporting evidence, rationale, rejected alternatives and implications. DEC-RM-DH-004-001 is preserved byte-identical. No other decision was added, and no technical Acceptance or Closure is recorded.
 source-sha256: n/a
 -->
@@ -293,8 +294,74 @@ The Stage-1 read-only Technical Foundation Audit established that no Historical 
 - The complete 47-item Deferred Items Register is preserved unrenumbered in `roadmap.md`.
 - The `WS-DH-2026-0006` local Decision register remains at 0 consumed Decisions; this is a Roadmap-level Decision inherited by the Workstream, not a local Workstream Decision.
 
+## DEC-RM-DH-004-006 — Owner Alignment on the Stage-2 Slice-3A Core Control Plane Readiness Contract
+
+**Date:** 07-08-2026 — 01:22 — Asia/Riyadh — UTC+03:00
+
+**Owner:** Mohamed Nour
+
+**Prompt:** `PROMPT 56 — SAME-SUBJECT CONTINUATION G1` of parent prompt `Prompt 56 — Stage 2 / Slice 3A Technical Execution Readiness and Owner Alignment`. Prompt 56 is CONSUMED; no new Prompt number was consumed and Prompt 57 remains UNCONSUMED AND UNAUTHORIZED.
+
+**Parallel Task ID:** `PT-DH-RM004-WS0006-P56-G1-SLICE3A-ALIGN-PERSIST-20260807-0122`
+
+**Scope:** RM-DH-004 / Phase 2 — Stage 2 — Shared Control Plane, Slice 3A — Core Control Plane, Workstream `WS-DH-2026-0006`.
+
+### Decision
+
+The Owner grants explicit Alignment on the Stage-2 Slice-3A Core Control Plane readiness contract produced by the completed read-only Prompt-56 readiness audit, and authorizes its persistence into repository governance as the single authoritative Slice-3A readiness and Owner-Alignment artifact, stored exactly once as `docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/stage-2-slice-3a-readiness-owner-alignment.md`.
+
+### Owner-Aligned Decisions
+
+| ID | Subject | Owner position |
+|---|---|---|
+| D1 | Slice-3A bounded object scope | APPROVED — exactly six Shared Core tables: `import_batches`, `import_source_files`, `import_batch_files`, `import_staging_rows`, `import_issues`, `import_events`. `import_extraction_runs` and `import_extraction_regions` are deferred to a later extraction-specific Slice; they remain mandatory future components, and forward compatibility is preserved through a medium-agnostic source locator, extraction-version evidence and confidence evidence. No table is authorized or created. |
+| D2 | FORCE ROW LEVEL SECURITY | APPROVED AS A CONDITIONAL TARGET POSTURE — implementable only after a future execution run proves compatibility with the exact live `has_permission()` contract, approved SECURITY DEFINER ownership and execution behavior, trusted-worker and service-role behavior, migration execution, rollback behavior and cross-Tenant negative tests. No silent fallback and no proceed-anyway behavior is permitted; unproven compatibility requires a hard stop, no migration and a return to Owner Alignment. FORCE RLS is not implemented. |
+| D3 | State-value representation | APPROVED — TEXT plus named CHECK constraints. PostgreSQL enums and state lookup tables are not selected for Slice 3A. No constraint or table is authorized or created. |
+| D4 | Generic issue-object naming | APPROVED — for Slice 3A the generic issue table name is `import_issues`; the prior proposed name `import_row_issues` is superseded for Slice-3A implementation. Issues may attach at Batch, file, section, row, field, declared-total variance, identity ambiguity, Bidi uncertainty, MIME mismatch, malware failure, unsupported format and parsing-failure level. Row-level issue support is retained. |
+| D5 | Source-file checksum uniqueness scope | APPROVED — Tenant-scoped uniqueness on `tenant_id + sha256_hex`. No global cross-Tenant unique checksum constraint is authorized. Checksum remains file-identity evidence and is not business-transaction identity; Tenant scoping prevents cross-Tenant existence leakage through unique-constraint violations. |
+| D6 | Private-helper schema location | DEFERRED TO SLICE 3B — no choice is made between the `public` schema with revoked EXECUTE and a separate proven non-exposed private helper schema. No private schema and no private helper is authorized or created by this Decision. |
+
+### Scope Reconciliation with the Stage-1 Contract
+
+1. `D1` refines the implementation boundary for Slice 3A by deferring the extraction-run and extraction-region tables to a later extraction Slice.
+2. `D4` supersedes only the proposed Slice-3A issue-table name `import_row_issues` with `import_issues`.
+3. The complete Historical Import architecture is unchanged.
+4. Extraction evidence remains mandatory in the final architecture.
+5. No accepted Stage-1 security, provenance, Finance, identity, quarantine, source-format or audit requirement is withdrawn.
+
+The Stage-1 Technical Foundation Execution Contract remains the authoritative Stage-1 artifact and is not rewritten, patched or duplicated by this Decision.
+
+### Accepted State
+
+- Phase-2 Stage 2 readiness: `COMPLETE — OWNER ALIGNED — PERSISTED`.
+- Phase-2 Stage 2 technical implementation: `NOT STARTED`.
+- Slice 3A: `READY FOR A SEPARATELY AUTHORIZED PROMPT — NOT STARTED`.
+- Technical execution authorization: `NOT GRANTED`.
+- `WS-DH-2026-0006` Workstream Status: `ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 READINESS OWNER ALIGNED AND PERSISTED — STAGE 2 TECHNICAL IMPLEMENTATION NOT STARTED`.
+
+### Rationale
+
+The read-only Prompt-56 readiness audit established that no Historical Import substrate exists, that new `public`-schema objects inherit permissive default ACLs, and that several structural choices materially affect Tenant isolation and leakage risk. Fixing those choices in an accepted written Owner-Alignment contract before any migration keeps a later execution run measurable against a stable boundary rather than an evolving verbal one.
+
+### Explicit Non-Decisions
+
+- This Decision does **not** authorize any application code, SQL, migration, database write, table creation, RLS or FORCE RLS change, policy, Grant, Revoke, permission-definition write, RPC, function, trigger, generated database type, Storage write, bucket creation or Edge Function.
+- It does **not** claim that FORCE ROW LEVEL SECURITY has been implemented or proven.
+- It does **not** authorize Slice 3A, Slice 3B or Slice 3C implementation.
+- It does **not** reopen, amend or weaken `DEC-RM-DH-004-005` or the Stage-1 contract.
+- It does **not** grant Workstream Acceptance of technical work, Workstream Closure, Phase Closure or Roadmap Closure.
+- It does **not** clear SRC-008 from Hard Quarantine or lift the payment-bearing posting gate.
+- It does **not** consume a new Prompt number; Prompt 57 remains UNCONSUMED AND UNAUTHORIZED.
+
+### Implications
+
+- The Slice-3A readiness artifact is the authoritative reference for the next, separately authorized Slice-3A execution planning Prompt.
+- Deferred Items 19, 25 and 26 remain **not** technically completed; readiness persistence is not implementation.
+- The complete 47-item Deferred Items Register is preserved unrenumbered in `roadmap.md`.
+- The `WS-DH-2026-0006` local Decision register remains at 0 consumed Decisions; this is a Roadmap-level Decision inherited by the Workstream.
+
 ## Decision Summary
 
-- Decisions recorded: `DEC-RM-DH-004-001` through `DEC-RM-DH-004-005`.
-- Next free Decision ID: `DEC-RM-DH-004-006`.
-- Current accepted governance state: RM-DH-004 ACTIVE; Phase 2 current; Phase-2 Stage 0 `COMPLETE — OWNER ACCEPTED — PERSISTED`; Phase-2 Stage 1 `OWNER ACCEPTED — PERSISTED` with technical implementation `NOT STARTED`; Stage 2 `NOT STARTED`; technical execution authorization `NOT GRANTED`; no Workstream Closure and no Roadmap Closure.
+- Decisions recorded: `DEC-RM-DH-004-001` through `DEC-RM-DH-004-006`.
+- Next free Decision ID: `DEC-RM-DH-004-007`.
+- Current accepted governance state: RM-DH-004 ACTIVE; Phase 2 current; Phase-2 Stage 0 `COMPLETE — OWNER ACCEPTED — PERSISTED`; Phase-2 Stage 1 `OWNER ACCEPTED — PERSISTED` with technical implementation `NOT STARTED`; Phase-2 Stage 2 readiness `COMPLETE — OWNER ALIGNED — PERSISTED` under `DEC-RM-DH-004-006` with Slice-3A Decisions D1 through D5 aligned and D6 deferred to Slice 3B; Stage-2 technical implementation `NOT STARTED`; technical execution authorization `NOT GRANTED`; no Workstream Closure and no Roadmap Closure.
