@@ -23,7 +23,7 @@ This file owns approved local decisions, options, rationale, rejected alternativ
 | Field | Value |
 |---|---|
 | Workstream ID | `WS-DH-2026-0012` |
-| Package version | 1.3.0 |
+| Package version | 1.4.0 |
 | Parent Roadmap | `RM-DH-003` |
 | Parent Phase / Sub-phase | Phase 3 / Sub-phase 3.1 |
 | Governing parent Decision | `DEC-RM-DH-003-012` — Owner Authorization to Create and Start Foundational Workstreams `WS-DH-2026-0012` and `WS-DH-2026-0013` as Isolated Parallel Lanes |
