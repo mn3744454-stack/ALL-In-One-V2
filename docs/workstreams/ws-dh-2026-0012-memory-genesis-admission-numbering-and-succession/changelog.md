@@ -78,4 +78,35 @@ Append-oriented chronological record. Newest entries are added at the bottom of 
 
 **Exact stopping point.** Governance persistence complete; Stage 6 — QA and Acceptance Re-Audit is current and not started.
 
-**Next action.** ChatGPT review, Arabic explanation and preparation of a separate read-only Stage-6 QA and Acceptance Re-Audit Prompt as local Prompt 03.
+**Next action.** Superseded in its path-count statement only. See the 2026-08-06 Local Prompt 02-C2 correction entry below.
+
+### 2026-08-06 — Local Prompt 02-C2: bounded governance-content correction
+
+**Execution prompt.** `PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02` — Correction Continuation **C2**, Parallel Task ID `PT-DH-WS0012-P02-C2-BOUNDED-CONTENT-REPAIR`, Agent/Build, repository write 2026-08-06 (Asia/Riyadh — UTC+03:00). Exact write clock time not recorded. **No new local Prompt number and no new Decision number were consumed.**
+
+**Basis.** The read-only Local Prompt 02-C1 verification confirmed that the substantive governance persistence was correct and found exactly four bounded content defects: `D-C1-01` (stale Stage-0 / investigation-not-yet-run status text in four WS0012 rows of `docs/README.md`), `D-C1-02` (stale zero-Decisions-consumed statement in the WS0012 decisions row of `docs/README.md`), `D-C1-03` (WS0012 `decisions.md` frontmatter 1.1.0 versus identity-table Package version 1.2.0) and `D-C1-04` (the Local Prompt 02 entry recorded seven changed paths).
+
+**Path-record correction.** The Local Prompt 02 report and the entry above recorded **seven** changed paths. The actual Local Prompt 02 governed write set contained **eight** paths. The omitted eighth path was `docs/README.md`. The seven-path statement is **superseded** by the corrected eight-path record below and is retained above for historical continuity rather than erased.
+
+Corrected historical Local Prompt 02 write set:
+
+1. `docs/workstreams/ws-dh-2026-0012-memory-genesis-admission-numbering-and-succession/README.md`
+2. `docs/workstreams/ws-dh-2026-0012-memory-genesis-admission-numbering-and-succession/roadmap.md`
+3. `docs/workstreams/ws-dh-2026-0012-memory-genesis-admission-numbering-and-succession/decisions.md`
+4. `docs/workstreams/ws-dh-2026-0012-memory-genesis-admission-numbering-and-succession/changelog.md`
+5. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md`
+6. `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md`
+7. `docs/workstreams/README.md`
+8. `docs/README.md`
+
+**Paths changed by C2.** Exactly three: `docs/README.md` (1.17.0 → 1.18.0), this package's `decisions.md` (frontmatter 1.1.0 → 1.2.0, matching the identity table) and this changelog (1.2.0 → 1.3.0). No fourth path was written.
+
+**Preserved.** `DEC-WS-DH-2026-0012-001` and all 27 points are substantively unchanged; the rejected en-bloc-admission alternative stands; Stages 0–4 remain RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED; Stage 5 remains OWNER ALIGNMENT COMPLETE — OWNER DECISION PERSISTED; Stage 6 remains CURRENT — NOT STARTED; Stage 7 remains NOT STARTED; the P1/P2 counts, four dangling references, eight unindexed bodies, fourteen duplicate clusters, `F-C5-01` and the reserved IDs `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095` are untouched; the Deferred Items Register remains exactly 20 items.
+
+**Numbering.** Local Prompt 01 CONSUMED; C1–C5 ran under Local Prompt 01 with no new number; Local Prompt 02 CONSUMED; Local Prompt 02-C1 and 02-C2 consumed no new number; next eligible local Prompt `03` — NOT CONSUMED. Local Decisions consumed 1; latest `DEC-WS-DH-2026-0012-001`; next eligible `DEC-WS-DH-2026-0012-002`.
+
+**Exclusions.** No WS0012 `README.md` or `roadmap.md` change, no RM-DH-003 change, no `docs/workstreams/README.md` change, no Deferred Items Register change, no Memory body or `mem://index.md` change, no Memory ID allocation, no Decision creation, no application-code inspection or modification, no database access, no Skill-body inspection, no Workspace Knowledge change, no `AGENTS.md`, no Documentation 01–13 use, no `RM-DH-004` change, no `WS-DH-2026-0013` run, no start of `WS-DH-2026-0014` or `WS-DH-2026-0015`, no Project Knowledge installation, no Sub-phase 3.2 advancement, no Stage-6 QA, no Stage-7 work, no Formal Acceptance and no Closure.
+
+**Exact stopping point.** Bounded three-file governance-content correction complete; Stage 6 — QA and Acceptance Re-Audit remains current and not started.
+
+**Next action.** ChatGPT review of the three-file correction, then preparation of a separate read-only Stage-6 QA and Acceptance Re-Audit Prompt as local Prompt 03.
