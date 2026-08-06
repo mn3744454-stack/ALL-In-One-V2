@@ -179,8 +179,8 @@ SELECT is(
 
 SELECT is(
   (SELECT count(*)::int FROM pg_indexes
-    WHERE schemaname='public' AND tablename LIKE 'import\_%' AND indexdef LIKE '%WHERE%'), 7,
-  'the expected seven partial indexes exist');
+    WHERE schemaname='public' AND tablename LIKE 'import\_%' AND indexdef LIKE '%WHERE%'), 8,
+  'the expected eight partial indexes exist');
 
 SELECT has_index('public','import_batch_files','import_batch_files_tenant_batch_source_uidx',
   'partial unique index on (tenant_id, batch_id, source_file_id) exists');
