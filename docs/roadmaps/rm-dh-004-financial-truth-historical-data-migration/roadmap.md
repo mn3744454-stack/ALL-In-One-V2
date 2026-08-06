@@ -48,25 +48,28 @@ Current Phase:
 RM-DH-004 / Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Current Phase Status:
-CURRENT — STAGE 0 OWNER ACCEPTED AND PERSISTED — STAGE 1 NOT STARTED
+CURRENT — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 1 TECHNICAL IMPLEMENTATION NOT STARTED — STAGE 2 NOT STARTED
 
 Owner Acceptance of Phase-2 Stage 0:
 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004
+
+Owner Acceptance of Phase-2 Stage 1 Execution Contract:
+07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-005
 
 Current Workstream:
 WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Current Workstream Status:
-ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
+ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Workstream Stage:
-STAGE 0 — GOVERNANCE RECONCILIATION — COMPLETE — OWNER ACCEPTED — PERSISTED; STAGE 1 — TECHNICAL FOUNDATION AUDIT / EXECUTION CONTRACT — NOT STARTED AND NOT AUTHORIZED
+STAGE 0 — GOVERNANCE RECONCILIATION — COMPLETE — OWNER ACCEPTED — PERSISTED; STAGE 1 — TECHNICAL FOUNDATION AUDIT AND EXECUTION CONTRACT — OWNER ACCEPTED — PERSISTED; STAGE-1 TECHNICAL IMPLEMENTATION — NOT STARTED; STAGE 2 — NOT STARTED AND NOT AUTHORIZED
 
 Technical Environment:
-Lovable only unless explicitly changed by the owner
+Lovable only unless explicitly changed by the owner — current environment is NON-PRODUCTION
 
 Repository Persistence State:
-RM-DH-004 governance package persisted and reconciled with the Owner-approved current state under Decision DEC-RM-DH-004-003, and the Phase-2 Stage-0 Owner Acceptance is persisted under Decision DEC-RM-DH-004-004. Phase 0 is completed. Phase 1 — Economic Date Integrity is complete, Owner accepted and closed, with Stages A, B, C and D each closed within their accepted bounds. Phase 2 is the current Phase; its Stage 0 — Governance Reconciliation is COMPLETE — OWNER ACCEPTED — PERSISTED and the dedicated WS-DH-2026-0006 package is at version 1.2.0. Stage 1 has not started. No Phase-2 technical implementation exists.
+RM-DH-004 governance package persisted and reconciled with the Owner-approved current state under Decision DEC-RM-DH-004-003; the Phase-2 Stage-0 Owner Acceptance is persisted under Decision DEC-RM-DH-004-004; the Phase-2 Stage-1 Execution Contract Owner Acceptance is persisted under Decision DEC-RM-DH-004-005. Phase 0 is completed. Phase 1 — Economic Date Integrity is complete, Owner accepted and closed, with Stages A, B, C and D each closed within their accepted bounds. Phase 2 is the current Phase; Stage 0 is COMPLETE — OWNER ACCEPTED — PERSISTED, Stage 1 is OWNER ACCEPTED — PERSISTED with the complete 38-section Execution Contract stored exactly once in the WS-DH-2026-0006 package, and the dedicated WS-DH-2026-0006 package is at version 1.3.0. No Phase-2 technical implementation exists.
 
 Phase 0 Status:
 COMPLETED — OWNER ADVANCEMENT APPROVED AND PERSISTED
@@ -75,12 +78,15 @@ Phase 1 Status:
 COMPLETE — OWNER ACCEPTED — CLOSED
 
 Phase 2 Status:
-CURRENT — STAGE 0 OWNER ACCEPTED AND PERSISTED — STAGE 1 NOT STARTED
+CURRENT — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED
 
 Phase 2 Stage 0 — Governance Reconciliation:
 COMPLETE — OWNER ACCEPTED — PERSISTED
 
-Phase 2 Stage 1 — Technical Foundation Audit / Execution Contract:
+Phase 2 Stage 1 — Technical Foundation Audit and Execution Contract:
+OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-005) — contract artifact exists exactly once; technical implementation NOT STARTED; technical execution authorization NOT GRANTED
+
+Phase 2 Stage 2 — Shared Control Plane:
 NOT STARTED — requires separate explicit Owner authorization
 
 Former Phase 3 — Import Control Plane:
