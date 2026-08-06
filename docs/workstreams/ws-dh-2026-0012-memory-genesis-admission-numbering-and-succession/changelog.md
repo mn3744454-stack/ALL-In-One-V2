@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-2026-0012-CHANGELOG
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (changelog)
-version: 1.4.0
+version: 1.5.0
 status: current
 audience: internal
 date: 2026-08-06
