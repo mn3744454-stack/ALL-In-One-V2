@@ -210,18 +210,20 @@ Local Prompt 02 did **not** live-verify code or database state. Required future 
 ## Current stopping point
 
 ```text
-Local Prompt 02 governance persistence is complete.
-Stages 0–4 are run, substantively complete, Owner aligned and persisted.
-Stage 5 Owner Alignment is complete and persisted as DEC-WS-DH-2026-0012-001.
-Stage 6 — QA and Acceptance Re-Audit is current and has not started.
-Stage 7 has not started.
-No Formal Acceptance and no Closure exists.
+Local Prompt 04 Stage-7 persistence is complete.
+Stages 0–4 are Owner accepted and closed within WS-DH-2026-0012.
+Stage 5 Owner Alignment is persisted as DEC-WS-DH-2026-0012-001, Owner accepted and closed within WS-DH-2026-0012.
+Stage 6 QA and Acceptance Re-Audit is run, passed, Owner accepted and persisted.
+Stage 7 is run: Owner Acceptance persisted under DEC-WS-DH-2026-0012-002,
+bounded installation readiness confirmed, WS-DH-2026-0012 CLOSED.
+Project Knowledge remains NOT INSTALLED.
+WS-DH-2026-0013 remains unrun and not started.
+Sub-phase 3.2 remains NOT STARTED. RM-DH-003, Phase 3 and Sub-phase 3.1 are not closed.
 ```
 
 ## Next permitted step
 
 ```text
-Prepare a separate read-only Stage-6 QA and Acceptance Re-Audit Prompt
-as WS-DH-2026-0012 local Prompt 03.
-No Stage-6 work may be performed before that Prompt is authorized and submitted.
+No further work is permitted inside WS-DH-2026-0012; the Workstream is CLOSED.
+A separate explicit Owner authorization is required before WS-DH-2026-0013 may start.
 ```
