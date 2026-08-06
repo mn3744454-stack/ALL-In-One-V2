@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0006-ROADMAP
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (authoritative current state)
-version: 1.2.0
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-08-05
-last-verified: 2026-08-06
+last-verified: 2026-08-07
 supersedes: []
 superseded-by: null
-source: v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records Stage 0 as COMPLETE — OWNER ACCEPTED — PERSISTED, planned technical Step 1 as COMPLETE — OWNER ACCEPTED, and updates the Workstream Status block, stopping point and next permitted step. Stage 1 remains NOT STARTED and requires separate explicit Owner authorization. No technical implementation, no database, migration or Storage activity, and no Workstream or Roadmap Closure.; authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, local Prompt number 53), under approved Decision DEC-RM-DH-004-003. Establishes the authoritative Workstream state at Stage 0. No Stage is complete, no technical Historical Import implementation exists, and no Acceptance or Closure is recorded.
+source: v1.3.0 — RM-DH-004 / Phase 2 — Stage-1 Owner Acceptance and Governance Persistence under PROMPT 55 — SAME-SUBJECT CONTINUATION C1 (parent prompt Prompt 55 — Stage 1 Technical Foundation Audit; Parallel Task ID PT-DH-RM004-WS0006-P55-C1-STAGE1-PERSIST-20260807-0012), approved Decision DEC-RM-DH-004-005, Owner Acceptance granted 07-08-2026 at 00:12 Asia/Riyadh (UTC+03:00): records Stage 1 — Technical Foundation Audit and Execution Contract as OWNER ACCEPTED — PERSISTED with Stage-1 technical implementation NOT STARTED, binds the single authoritative contract artifact stage-1-technical-foundation-execution-contract.md and the bounded Evidence Pack v0.4 reference, and updates the Workstream Status block, Stage Register, planned technical sequence, stopping point and next permitted step. Stage 2 remains NOT STARTED, technical execution authorization is NOT GRANTED, no new Prompt number is consumed, and no database, migration, SQL, Storage, RLS, Grant, permission or application change occurred.; v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records Stage 0 as COMPLETE — OWNER ACCEPTED — PERSISTED, planned technical Step 1 as COMPLETE — OWNER ACCEPTED, and updates the Workstream Status block, stopping point and next permitted step. Stage 1 remains NOT STARTED and requires separate explicit Owner authorization. No technical implementation, no database, migration or Storage activity, and no Workstream or Roadmap Closure.; authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, local Prompt number 53), under approved Decision DEC-RM-DH-004-003. Establishes the authoritative Workstream state at Stage 0. No Stage is complete, no technical Historical Import implementation exists, and no Acceptance or Closure is recorded.
 source-sha256: n/a
 -->
 
@@ -37,19 +37,22 @@ Track:
 Track 2 — Import Architecture & Control
 
 Workstream Status:
-ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
+ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Stage:
-Stage 0 — Governance Package — COMPLETE — OWNER ACCEPTED — PERSISTED; Stage 1 — Technical Foundation Audit — NOT STARTED and NOT AUTHORIZED
+Stage 0 — Governance Package — COMPLETE — OWNER ACCEPTED — PERSISTED; Stage 1 — Technical Foundation Audit and Execution Contract — OWNER ACCEPTED — PERSISTED; Stage-1 technical implementation — NOT STARTED; Stage 2 — NOT STARTED
 
 Owner Acceptance of Stage 0:
 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004
+
+Owner Acceptance of Stage 1:
+07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-005
 
 Owner:
 Mohamed Nour
 
 Technical Environment:
-Lovable only unless explicitly changed by the owner
+Lovable only unless explicitly changed by the owner — current environment is NON-PRODUCTION
 
 Local Prompts Consumed:
 0
@@ -57,14 +60,20 @@ Local Prompts Consumed:
 Local Decisions Consumed:
 0
 
-Governing Roadmap Decision:
-DEC-RM-DH-004-003
+Governing Roadmap Decisions:
+DEC-RM-DH-004-003; DEC-RM-DH-004-004; DEC-RM-DH-004-005
 
 Technical Foundation Audit:
-NOT AUTHORIZED — NOT STARTED
+COMPLETE — OWNER ACCEPTED — PERSISTED
 
 Execution Contract:
-NOT AUTHORIZED — DOES NOT EXIST
+EXISTS — OWNER ACCEPTED — PERSISTED — single authoritative artifact: `stage-1-technical-foundation-execution-contract.md` (38 sections)
+
+Technical Execution Authorization:
+NOT GRANTED
+
+Bound Evidence Artifact:
+Dayli_Horse_Historical_Import_Evidence_Pack_v0.4.xlsx — SHA-256 ed34d290e58173033856ac0a66fda60487e4b66e2df224ee63375352347acc7a — 59424 bytes — NOT COMMITTED TO REPOSITORY — NOT UPLOADED TO APPLICATION STORAGE
 
 Slices Defined:
 0
@@ -88,10 +97,10 @@ QA:
 NOT STARTED
 
 Acceptance Re-Audit:
-STAGE 0 — PASSED INDEPENDENT RE-VERIFICATION; TECHNICAL STAGES — NOT STARTED
+STAGE 0 — PASSED INDEPENDENT RE-VERIFICATION; STAGE 1 — OWNER ACCEPTED; TECHNICAL STAGES — NOT STARTED
 
 Owner Acceptance:
-GRANTED FOR STAGE 0 GOVERNANCE ONLY — 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004; NO TECHNICAL ACCEPTANCE
+GRANTED FOR STAGE 0 GOVERNANCE (06-08-2026 — 00:24 — DEC-RM-DH-004-004) AND FOR THE STAGE 1 EXECUTION CONTRACT (07-08-2026 — 00:12 — DEC-RM-DH-004-005), both Asia/Riyadh — UTC+03:00; NO TECHNICAL ACCEPTANCE
 
 Closure:
 NONE
@@ -102,9 +111,9 @@ NONE
 | # | Stage | State |
 |---:|---|---|
 | 0 | Governance Package | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004) |
-| 1 | Technical Foundation Audit (read-only) | NOT STARTED — requires explicit Owner authorization |
+| 1 | Technical Foundation Audit and Execution Contract (read-only) | OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-005) — technical implementation NOT STARTED |
 | 2 | Owner Alignment on Import Foundation Architecture | NOT STARTED |
-| 3 | Execution Contract | NOT STARTED |
+| 3 | Execution Contract | ABSORBED INTO STAGE 1 — the single authoritative contract artifact is persisted; execution remains NOT AUTHORIZED |
 | 4 | Slice Execution | NOT STARTED |
 | 5 | QA | NOT STARTED |
 | 6 | Acceptance Re-Audit | NOT STARTED |
@@ -117,7 +126,7 @@ This register is the planned technical order. It is separate from, and does not 
 | # | Planned step | Current state |
 |---:|---|---|
 | 1 | Governance reconciliation | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004) |
-| 2 | Technical Foundation Audit / Execution Contract | NOT STARTED |
+| 2 | Technical Foundation Audit / Execution Contract | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-005) — technical implementation NOT STARTED |
 | 3 | Shared control-plane schema, storage and permissions | NOT STARTED |
 | 4 | Upload and registry visibility | NOT STARTED |
 | 5 | Excel ingestion and staging | NOT STARTED |
@@ -128,7 +137,22 @@ This register is the planned technical order. It is separate from, and does not 
 | 10 | Controlled real-client pilot | NOT STARTED |
 | 11 | Later Domain Adapters | NOT STARTED |
 
-Step 1 is marked `COMPLETE — OWNER ACCEPTED — PERSISTED` only because independent re-verification passed, the Owner granted explicit Acceptance and that Acceptance is persisted in repository governance under `DEC-RM-DH-004-004`. Steps 2 through 11 remain unimplemented and unauthorized.
+Step 1 is marked `COMPLETE — OWNER ACCEPTED — PERSISTED` only because independent re-verification passed, the Owner granted explicit Acceptance and that Acceptance is persisted in repository governance under `DEC-RM-DH-004-004`. Step 2 is marked `COMPLETE — OWNER ACCEPTED — PERSISTED` only in the sense that the read-only Technical Foundation Audit was performed and its resulting Execution Contract was explicitly accepted by the Owner and persisted under `DEC-RM-DH-004-005`; contract persistence is **not** implementation. Steps 3 through 11 remain unimplemented and unauthorized.
+
+## Stage-1 Execution Contract Artifact
+
+The single authoritative Stage-1 contract is [`stage-1-technical-foundation-execution-contract.md`](./stage-1-technical-foundation-execution-contract.md). It carries the complete Owner-accepted 38-section contract text. No competing or partial Stage-1 contract exists in this repository.
+
+Bound supporting evidence (reference only, not stored):
+
+| Field | Value |
+|---|---|
+| Artifact | `Dayli_Horse_Historical_Import_Evidence_Pack_v0.4.xlsx` |
+| SHA-256 | `ed34d290e58173033856ac0a66fda60487e4b66e2df224ee63375352347acc7a` |
+| Byte size | `59424` |
+| Status | CHATGPT-ISSUED SUPPORTING EVIDENCE ARTIFACT — BOUND TO STAGE-1 CONTRACT — NOT STORED IN REPOSITORY — NOT UPLOADED TO APPLICATION STORAGE |
+
+Accepted bounded source conclusions: the original Excel binary verification gate is closed; SRC-004 total is verified at 34,160 and the prior SRC-004 paid-5,000 attribution is withdrawn as unsupported; SRC-006 total is verified at 10,915; SRC-007 total is verified at 1,575 across 6 records; SRC-008 remains unverified with declared total 12,070, extracted row sum 10,640 and variance 1,430, and stays in Hard Quarantine; Declared Total Validation applies wherever a declared total exists and an approved alternate reconciliation method is required where none exists; diagnostic inspection and re-extraction are allowed under Quarantine while approval and canonical posting remain blocked; the current Finance ACL posture is mixed and Historical Import must use a stricter independent ACL baseline.
 
 ## Dependencies
 
@@ -150,10 +174,14 @@ Step 1 is marked `COMPLETE — OWNER ACCEPTED — PERSISTED` only because indepe
 
 ## Current Stopping Point
 
-The governance package was originally created at version `1.0.0`, corrected to `1.1.0` under the bounded Prompt-53 same-subject package correction and Correction Continuation C2, and is currently at version `1.2.0` following the Prompt-54 Stage-0 Owner Acceptance Persistence. Stage 0 is `COMPLETE — OWNER ACCEPTED — PERSISTED` under `DEC-RM-DH-004-004`, Owner Acceptance granted 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00. Stage 0 is the only stage with any state. No technical Historical Import work exists in the repository or the database, and no Technical Foundation Execution Contract exists.
+The governance package was originally created at version `1.0.0`, corrected to `1.1.0` under the bounded Prompt-53 same-subject package correction and Correction Continuation C2, advanced to `1.2.0` under the Prompt-54 Stage-0 Owner Acceptance Persistence, and is currently at version `1.3.0` following the Prompt 55 Continuation C1 Stage-1 Owner Acceptance and Governance Persistence. Stage 0 is `COMPLETE — OWNER ACCEPTED — PERSISTED` under `DEC-RM-DH-004-004`. Stage 1 is `OWNER ACCEPTED — PERSISTED` under `DEC-RM-DH-004-005`, Owner Acceptance granted 07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00, and the complete 38-section Execution Contract exists exactly once as an authoritative artifact in this package.
+
+Stage-1 technical implementation has **not** started. Stage 2 has **not** started. No technical Historical Import work exists in the repository, the database or Storage: there is no import batch, source-file registry, Storage bucket, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC. Technical execution authorization is **NOT GRANTED**.
 
 ## Next Permitted Step
 
-1. Prompt 55 — the Stage 1 Technical Foundation Audit / Execution Contract — is the next permitted step and requires a **separate explicit Owner authorization**. Prompt 55 has not been consumed.
-2. Stated separately: the Stage-0 Owner Acceptance does not authorize any technical slice, database change, migration, Storage object, permission/RLS/Grant change, parsing or staging work.
-3. No Workstream Acceptance and no Workstream Closure is granted.
+1. Separately Owner-authorized technical execution planning for Stage 2 — Shared Control Plane. It has not been authorized and has not started.
+2. Prompt 55 is CONSUMED. This Continuation C1 is a same-subject continuation and consumed no new Prompt number. Prompt 56 and the next technical Prompt number remain UNCONSUMED AND UNAUTHORIZED.
+3. Stated separately: the Stage-1 Owner Acceptance authorizes governance persistence only. It does not authorize any technical slice, database change, migration, SQL, Storage object, permission/RLS/Grant change, malware-provider activation, parsing, staging, Finance posting or Finance reversal.
+4. Payment-bearing canonical posting remains prohibited until the payment correction and reversal contract is independently accepted. SRC-008 remains in Hard Quarantine until its 1,430 variance is resolved.
+5. No Workstream Acceptance and no Workstream Closure is granted.

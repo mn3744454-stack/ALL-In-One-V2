@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0006-DECISIONS
 title: WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation (decisions)
-version: 1.2.0
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-08-05
-last-verified: 2026-08-06
+last-verified: 2026-08-07
 supersedes: []
 superseded-by: null
-source: v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records the inherited Roadmap-level Acceptance Decision. No local Decision was created; the local register remains at 0 consumed Decisions and the next free local ID remains DEC-WS-DH-2026-0006-001.; authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53), under approved Decision DEC-RM-DH-004-003. Establishes the local Decision numbering convention and an empty local Decision register.
+source: v1.3.0 — RM-DH-004 / Phase 2 — Stage-1 Owner Acceptance and Governance Persistence under PROMPT 55 — SAME-SUBJECT CONTINUATION C1 (Parallel Task ID PT-DH-RM004-WS0006-P55-C1-STAGE1-PERSIST-20260807-0012), approved Decision DEC-RM-DH-004-005, Owner Acceptance granted 07-08-2026 at 00:12 Asia/Riyadh (UTC+03:00): records the inherited Roadmap-level Stage-1 Acceptance Decision. No local Decision was created; the local register remains at 0 consumed Decisions and the next free local ID remains DEC-WS-DH-2026-0006-001.; v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records the inherited Roadmap-level Acceptance Decision. No local Decision was created; the local register remains at 0 consumed Decisions and the next free local ID remains DEC-WS-DH-2026-0006-001.; authored during RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53), under approved Decision DEC-RM-DH-004-003. Establishes the local Decision numbering convention and an empty local Decision register.
 source-sha256: n/a
 -->
 
@@ -55,6 +55,8 @@ These decisions are inherited from `DEC-RM-DH-004-003`. They are **not** local `
 
 The creation, title, scope and Phase placement of this Workstream are governed by [`DEC-RM-DH-004-003`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-003--phase-2-governance-reconciliation-and-creation-of-the-ws-dh-2026-0006-package).
 
-The Owner Acceptance of the Phase-2 Stage-0 governance reconciliation and of this package, granted 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00, is governed by [`DEC-RM-DH-004-004`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-004--owner-acceptance-of-phase-2-stage-0-governance-reconciliation-and-the-ws-dh-2026-0006-governance-package). That Acceptance is bounded to Stage-0 governance: it grants no technical authorization, no Workstream Acceptance and no Closure, and Stage 1 still requires a separate explicit Owner authorization.
+The Owner Acceptance of the Phase-2 Stage-0 governance reconciliation and of this package, granted 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00, is governed by [`DEC-RM-DH-004-004`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-004--owner-acceptance-of-phase-2-stage-0-governance-reconciliation-and-the-ws-dh-2026-0006-governance-package). That Acceptance is bounded to Stage-0 governance: it grants no technical authorization, no Workstream Acceptance and no Closure.
 
-Both are Roadmap-level Decisions and are not restated as local Decisions. They consume no local Decision ID; the local register remains at 0 consumed Decisions and the next free local ID remains `DEC-WS-DH-2026-0006-001`.
+The Owner Acceptance of the complete Stage-1 Technical Foundation Execution Contract, granted 07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00, is governed by [`DEC-RM-DH-004-005`](../../roadmaps/rm-dh-004-financial-truth-historical-data-migration/decisions.md#dec-rm-dh-004-005--owner-acceptance-of-the-complete-stage-1-technical-foundation-execution-contract). That Acceptance is bounded to governance persistence of the contract artifact `stage-1-technical-foundation-execution-contract.md` and its bounded Evidence Pack v0.4 reference. It grants no technical execution authorization: Stage-1 technical implementation and Stage 2 remain NOT STARTED, and no database, migration, SQL, Storage, RLS, Grant, permission or application change is authorized by it.
+
+All three are Roadmap-level Decisions and are not restated as local Decisions. They consume no local Decision ID; the local register remains at 0 consumed Decisions and the next free local ID remains `DEC-WS-DH-2026-0006-001`.

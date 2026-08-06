@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-004-ROADMAP
 title: RM-DH-004 — Authoritative Current State
-version: 1.4.0
+version: 1.5.0
 status: current
 audience: internal
 date: 2026-08-04
-last-verified: 2026-08-06
+last-verified: 2026-08-07
 supersedes: []
 superseded-by: null
-source: v1.4.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54, Parallel Task ID PT-DH-RM004-WS0006-P54-OWNER-ACCEPTANCE-PERSISTENCE-20260806-0024), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records Phase-2 Stage 0 — Governance Reconciliation as COMPLETE — OWNER ACCEPTED — PERSISTED, records Stage 1 — Technical Foundation Audit / Execution Contract as NOT STARTED, and updates the Roadmap Status block, remaining work, stopping point and next permitted action. No Phase is renumbered, no Workstream ID is created, renumbered or merged, no technical Historical Import implementation occurs, no database, migration or Storage activity occurs, and no Workstream or Roadmap Closure is granted. Prompt 55 remains the next eligible new Prompt. The earlier provenance chain is preserved verbatim and unchanged on the following source lines.
+source: v1.5.0 — RM-DH-004 / Phase 2 — Stage-1 Owner Acceptance and Governance Persistence under PROMPT 55 — SAME-SUBJECT CONTINUATION C1 (Parallel Task ID PT-DH-RM004-WS0006-P55-C1-STAGE1-PERSIST-20260807-0012), approved Decision DEC-RM-DH-004-005, Owner Acceptance granted 07-08-2026 at 00:12 Asia/Riyadh (UTC+03:00): records Phase-2 Stage 1 — Technical Foundation Audit and Execution Contract as OWNER ACCEPTED — PERSISTED with technical implementation NOT STARTED and technical execution authorization NOT GRANTED, records Stage 2 as NOT STARTED, persists the complete 47-item Deferred Items Register, and updates the Roadmap Status block, Phase 2 register entry, remaining work, stopping point and next permitted action. No Phase is renumbered, no Workstream ID is created, renumbered or merged, no database, migration, SQL, Storage, RLS, Grant, permission or application change occurs, and no Workstream or Roadmap Closure is granted. Prompt 55 is CONSUMED and no new Prompt number was consumed. The earlier provenance chain is preserved verbatim and unchanged on the following source lines.; v1.4.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54, Parallel Task ID PT-DH-RM004-WS0006-P54-OWNER-ACCEPTANCE-PERSISTENCE-20260806-0024), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records Phase-2 Stage 0 — Governance Reconciliation as COMPLETE — OWNER ACCEPTED — PERSISTED, records Stage 1 — Technical Foundation Audit / Execution Contract as NOT STARTED, and updates the Roadmap Status block, remaining work, stopping point and next permitted action. No Phase is renumbered, no Workstream ID is created, renumbered or merged, no technical Historical Import implementation occurs, no database, migration or Storage activity occurs, and no Workstream or Roadmap Closure is granted. Prompt 55 remains the next eligible new Prompt. The earlier provenance chain is preserved verbatim and unchanged on the following source lines.
 source: v1.3.0 — RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53 (local Prompt number 53), Parallel Task ID PT-DH-RM004-WS0006-P53-GOVERNANCE-RECONCILIATION-20260805-2216, repository write 05-08-2026 (Asia/Riyadh — UTC+03:00) under approved Decision DEC-RM-DH-004-003: reconciles the persisted RM-DH-004 governance package with the Owner-approved current state. Records Phase 1 — Economic Date Integrity and WS-DH-2026-0003 as COMPLETE — OWNER ACCEPTED — CLOSED with Stages A, B, C and D closed within their accepted bounds; sets the current Phase to Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation with status CURRENT — GOVERNANCE RECONCILED — TECHNICAL IMPLEMENTATION NOT STARTED; records the former Phase 3 — Import Control Plane as SUPERSEDED AND ABSORBED INTO PHASE 2 BY OWNER DECISION — NO SEPARATE EXECUTION without renumbering any Phase; preserves Phases 4–8 unchanged; records the WS-DH-2026-0004 partial-completion and residual disposition, the WS-DH-2026-0005 deferred and inert POS state, and WS-DH-2026-0006 as the current Phase-2 Workstream with a dedicated package created. No technical Historical Import implementation, no Slice execution, no database access, no migration, no Storage activity, no financial or operational data write, no application change, and no Acceptance or Closure for Phase 2. The earlier provenance chain is preserved verbatim and unchanged on the following source line.
 source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under approved Decision DEC-RM-DH-004-001 and execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02. Records the owner-approved four Tracks, sixteen problems, nine Phases and nine Workstreams. No Acceptance and no Closure are recorded.; v1.0.1 — RM-DH-004 / Phase 0 — Acceptance Persistence under execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-04, following the passed read-only Acceptance Re-Audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-REAUDIT-03 (verdict ACCEPTANCE PASSED — READY FOR OWNER ACCEPTANCE, zero blockers, non-blocking observation OBS-01 accepted without correction) and the explicit Owner Acceptance granted by Mohamed Nour. Persists the Governance Persistence Acceptance state, the updated ten-row Phase 0 Stage Register, the satisfied Phase 0 exit criteria, the updated stopping point and the next permitted action. RM-DH-004 remains ACTIVE — PHASE 0; Phase 0 was not advanced; WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING; no Tracks, problems, Phases, Workstreams or dependencies were changed; no technical Acceptance and no Closure are recorded.; v1.1.0 — RM-DH-004 / Phase 0 to Phase 1 Advancement Persistence under execution prompt PROMPT-DH-RM004-P0-PHASE-ADVANCEMENT-PERSISTENCE-06 and approved Decision DEC-RM-DH-004-002, following the passed read-only verification PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-ACCEPTANCE-PERSISTENCE-VERIFICATION-05 (verdicts ACCEPTANCE PERSISTENCE VERIFIED and PHASE 0 READY FOR EXPLICIT OWNER ADVANCEMENT DECISION, fifteen of fifteen readiness conditions passed) and the explicit Owner advancement decision granted by Mohamed Nour on 03-08-2026 at 11:42 Asia/Riyadh (UTC+03:00): sets the current Phase to Phase 1 — Economic Date Integrity, records Phase 0 as completed by owner decision and persistence subject to read-only verification, expands the Phase 0 Stage Register to twelve stages, marks all ten Phase 0 exit criteria satisfied, and updates the Phase Register, remaining work, stopping point and next permitted action. WS-DH-2026-0003 remains ACTIVE — INVESTIGATIVE AUDIT PENDING; the Economic Date Investigative Audit has not started; no Tracks, problems, Workstreams or dependencies were changed; no technical Acceptance and no Closure are recorded; the Phase Advancement Persistence Acceptance Re-Audit is pending. ; v1.1.1 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage A Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-A-ACCEPTANCE-PERSISTENCE-09, following the passed read-only Stage A Acceptance Re-Audit PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-A-ACCEPTANCE-REAUDIT-08 (verdict STAGE A ACCEPTANCE PASSED — READY FOR OWNER ACCEPTANCE, zero blockers, OBS-A-01 non-blocking) and the explicit Owner Acceptance granted by Mohamed Nour on 03-08-2026 at 19:15 Asia/Riyadh (UTC+03:00): records the Stage A execution, Acceptance Re-Audit, Owner Acceptance and Acceptance Persistence states, adds the Stage A Register with the accepted aggregate evidence, and updates the Roadmap Status block, Phase 1 status, remaining work, stopping point and next permitted action. RM-DH-004 remains ACTIVE — PHASE 1 and WS-DH-2026-0003 remains ACTIVE — STAGE A ACCEPTED; STAGE B NOT STARTED. Stage B, Stage C and Stage D have not started, Workstream-wide Technical Acceptance remains incomplete, no new decision ID was created, and no Workstream, Phase or Roadmap Closure occurred.; v1.2.0 — RM-DH-004 / Phase 1 — WS-DH-2026-0003 Stage B Acceptance Persistence under execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-ECONOMIC-DATE-STAGE-B-OWNER-ACCEPTANCE-PERSISTENCE-36, following the passed read-only Stage B Acceptance Re-Audit (Prompt 35, verdict STAGE-B ACCEPTANCE RE-AUDIT PASSED — READY FOR OWNER ACCEPTANCE) and the explicit Owner Acceptance granted by Mohamed Nour on 04-08-2026 at 20:49 Asia/Riyadh (UTC+03:00): records the Stage B execution, Acceptance Re-Audit, Owner Acceptance and Acceptance Persistence states, adds the Stage B Register with the accepted aggregate evidence identities, and updates the Roadmap Status block, Phase 1 status, remaining work, stopping point and next permitted action. Stage B is ACCEPTED — PERSISTED — VERIFICATION PENDING and is not marked verified or completed. RM-DH-004 remains ACTIVE — PHASE 1. Stage C and Stage D have not started, the Emergency Rollback was not executed, no technical acceptance contract was reopened, no application, migration, SQL, Stable Contract or Rollback artifact changed, zero database access occurred, no new decision ID was created, and no Workstream, Phase or Roadmap Closure occurred.
 source-sha256: n/a
@@ -48,25 +48,28 @@ Current Phase:
 RM-DH-004 / Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Current Phase Status:
-CURRENT — STAGE 0 OWNER ACCEPTED AND PERSISTED — STAGE 1 NOT STARTED
+CURRENT — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 1 TECHNICAL IMPLEMENTATION NOT STARTED — STAGE 2 NOT STARTED
 
 Owner Acceptance of Phase-2 Stage 0:
 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-004
+
+Owner Acceptance of Phase-2 Stage 1 Execution Contract:
+07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00 — DEC-RM-DH-004-005
 
 Current Workstream:
 WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Current Workstream Status:
-ACTIVE — STAGE 0 OWNER ACCEPTED AND PERSISTED — TECHNICAL IMPLEMENTATION NOT STARTED
+ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Current Workstream Stage:
-STAGE 0 — GOVERNANCE RECONCILIATION — COMPLETE — OWNER ACCEPTED — PERSISTED; STAGE 1 — TECHNICAL FOUNDATION AUDIT / EXECUTION CONTRACT — NOT STARTED AND NOT AUTHORIZED
+STAGE 0 — GOVERNANCE RECONCILIATION — COMPLETE — OWNER ACCEPTED — PERSISTED; STAGE 1 — TECHNICAL FOUNDATION AUDIT AND EXECUTION CONTRACT — OWNER ACCEPTED — PERSISTED; STAGE-1 TECHNICAL IMPLEMENTATION — NOT STARTED; STAGE 2 — NOT STARTED AND NOT AUTHORIZED
 
 Technical Environment:
-Lovable only unless explicitly changed by the owner
+Lovable only unless explicitly changed by the owner — current environment is NON-PRODUCTION
 
 Repository Persistence State:
-RM-DH-004 governance package persisted and reconciled with the Owner-approved current state under Decision DEC-RM-DH-004-003, and the Phase-2 Stage-0 Owner Acceptance is persisted under Decision DEC-RM-DH-004-004. Phase 0 is completed. Phase 1 — Economic Date Integrity is complete, Owner accepted and closed, with Stages A, B, C and D each closed within their accepted bounds. Phase 2 is the current Phase; its Stage 0 — Governance Reconciliation is COMPLETE — OWNER ACCEPTED — PERSISTED and the dedicated WS-DH-2026-0006 package is at version 1.2.0. Stage 1 has not started. No Phase-2 technical implementation exists.
+RM-DH-004 governance package persisted and reconciled with the Owner-approved current state under Decision DEC-RM-DH-004-003; the Phase-2 Stage-0 Owner Acceptance is persisted under Decision DEC-RM-DH-004-004; the Phase-2 Stage-1 Execution Contract Owner Acceptance is persisted under Decision DEC-RM-DH-004-005. Phase 0 is completed. Phase 1 — Economic Date Integrity is complete, Owner accepted and closed, with Stages A, B, C and D each closed within their accepted bounds. Phase 2 is the current Phase; Stage 0 is COMPLETE — OWNER ACCEPTED — PERSISTED, Stage 1 is OWNER ACCEPTED — PERSISTED with the complete 38-section Execution Contract stored exactly once in the WS-DH-2026-0006 package, and the dedicated WS-DH-2026-0006 package is at version 1.3.0. No Phase-2 technical implementation exists.
 
 Phase 0 Status:
 COMPLETED — OWNER ADVANCEMENT APPROVED AND PERSISTED
@@ -75,12 +78,15 @@ Phase 1 Status:
 COMPLETE — OWNER ACCEPTED — CLOSED
 
 Phase 2 Status:
-CURRENT — STAGE 0 OWNER ACCEPTED AND PERSISTED — STAGE 1 NOT STARTED
+CURRENT — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED
 
 Phase 2 Stage 0 — Governance Reconciliation:
 COMPLETE — OWNER ACCEPTED — PERSISTED
 
-Phase 2 Stage 1 — Technical Foundation Audit / Execution Contract:
+Phase 2 Stage 1 — Technical Foundation Audit and Execution Contract:
+OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-005) — contract artifact exists exactly once; technical implementation NOT STARTED; technical execution authorization NOT GRANTED
+
+Phase 2 Stage 2 — Shared Control Plane:
 NOT STARTED — requires separate explicit Owner authorization
 
 Former Phase 3 — Import Control Plane:
@@ -241,7 +247,7 @@ Stage summary: Stage A — Economic Date Backfill, Stage B — Financial Write A
 ### Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
 
 Status:
-CURRENT — STAGE 0 OWNER ACCEPTED AND PERSISTED — STAGE 1 NOT STARTED
+CURRENT — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED — TECHNICAL IMPLEMENTATION NOT STARTED
 
 Primary Workstream:
 WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation
@@ -448,27 +454,81 @@ No private Client names or private financial details are recorded here.
 
 ## Remaining Work
 
-1. Prompt 55 — the `WS-DH-2026-0006` Stage 1 Technical Foundation Audit and Execution Contract, only after a separate explicit Owner authorization;
+1. Phase-2 Stage 2 — Shared Control Plane technical execution planning, only after a separate explicit Owner authorization;
 2. all later Phase-2 technical slices, each requiring separate Owner authorization;
 3. Phases 4 through 8 in their existing numbering and identities.
+
+## Deferred Items Register
+
+Preserved complete and unrenumbered. Items 19, 25 and 26 must not be marked technically completed; Stage-1 contract persistence is not implementation completion.
+
+| # | Deferred item |
+|---:|---|
+| 1 | Stale Arabic Invoice PDF root assertion. |
+| 2 | Explicit Tenant predicate in source batching. |
+| 3 | Supplier Payables date architecture. |
+| 4 | Future direct `payment_sessions` contract. |
+| 5 | Internal Cost terminology and Unknown versus Real Zero. |
+| 6 | Contextual Internal Cost labels. |
+| 7 | HR Salary atomicity, idempotency and reversal. |
+| 8 | HR-linked Expense deletion protection. |
+| 9 | Expense unpost and reversal. |
+| 10 | Supplier Payable lifecycle and authority. |
+| 11 | Full POS implementation. |
+| 12 | Future `create_pos_sale`. |
+| 13 | Manual Ledger Adjustment UI. |
+| 14 | Residual Finance privilege hardening. |
+| 15 | Full `has_permission` qualification. |
+| 16 | Duplicate Ledger SELECT Policy. |
+| 17 | TEMP Grant and PUBLIC Helper EXECUTE review. |
+| 18 | `sandbox_exec` privilege review. |
+| 19 | Historical Import provenance objects. |
+| 20 | `owner_id` identity binding. |
+| 21 | Shadow draft-invoice remediation. |
+| 22 | Doctor billing and `tenant_services` unification. |
+| 23 | Forward → Rollback → Forward drill. |
+| 24 | PostgreSQL parser and disposable-environment validation. |
+| 25 | Shared Platform-Wide Historical Import Foundation. |
+| 26 | Provenance, fingerprint, idempotency, quarantine and selective rollback. |
+| 27 | Opening Obligation. |
+| 28 | Unapplied Credit. |
+| 29 | Historical document identity and numbering. |
+| 30 | Client, Payer, Horse Owner and Horse matching without best guess. |
+| 31 | Laboratory Historical Import pilot. |
+| 32 | Future Laboratory Import Adapter. |
+| 33 | Future Veterinary and Independent Doctor Import Adapter. |
+| 34 | Future Horses, Owners and Clients Import Adapter. |
+| 35 | Future Stable Operations Import Adapter. |
+| 36 | Privileged Rollback-Only Writer verification drill. |
+| 37 | Workstream Closure Persistence only if proven mandatory. |
+| 38 | File Manager and Media Assets audit. |
+| 39 | File Manager UI, taxonomy, preview and «خيل» remediation. |
+| 40 | Private and shared-link access contract. |
+| 41 | Tenant Storage measurement and quota design. |
+| 42 | Connected Domain Record Exchange expansion. |
+| 43 | Supplier and Pharmacy native financial exchange. |
+| 44 | Temporary export and artifact retention policy. |
+| 45 | Evidence-file retention and deletion policy. |
+| 46 | Duplicate `source:` metadata verification and deferred normalization. |
+| 47 | Synchronization of stale `WS-DH-2026-0003/workstream.md`. |
 
 ## Current Stopping Point
 
 Phase 1 — Economic Date Integrity is `COMPLETE — OWNER ACCEPTED — CLOSED`, and `WS-DH-2026-0003` is `OWNER ACCEPTED — CLOSED`. Stages A, B, C and D are closed within their accepted bounds. The `public.ledger_entries.effective_date NOT NULL` contract is a closed Phase-1 contract and must not be changed.
 
-Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase. Its Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-004`, following the passed independent re-verification of the Prompt-53 governance execution, the bounded package correction and Correction Continuation C2. The dedicated `WS-DH-2026-0006` package is at version `1.2.0`.
+Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase. Its Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-004`. Its Stage 1 — Technical Foundation Audit and Execution Contract is `OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-005`, Owner Acceptance granted 07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00. The dedicated `WS-DH-2026-0006` package is at version `1.3.0` and carries the complete 38-section Execution Contract exactly once.
 
-Stage 1 — Technical Foundation Audit / Execution Contract has **not** started and requires a separate explicit Owner authorization. No Technical Foundation Execution Contract exists.
+Stage-1 technical implementation has **not** started and Stage 2 has **not** started. Technical execution authorization is **NOT GRANTED**.
 
-Phase-2 technical implementation has **not** started. No import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists or was created. No Phase-2 Acceptance, Workstream Closure, Roadmap Closure or production readiness is claimed.
+Phase-2 technical implementation has **not** started. No import batch, source-file registry, Storage bucket, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists or was created. No Phase-2 Acceptance of technical work, Workstream Closure, Roadmap Closure or production readiness is claimed.
 
 The former Phase 3 — Import Control Plane retains its historical identity but is superseded and absorbed into Phase 2 and has no separate execution state. Phases 4 through 8 retain their numbers and identities and remain not started.
 
 ## Next Permitted Action
 
-Prompt 55 — Plan/Chat — `WS-DH-2026-0006` Stage 1 Technical Foundation Audit / Execution Contract, only upon explicit Owner submission and authorization. Prompt 55 has not been consumed.
+Separately Owner-authorized technical execution planning for Phase-2 Stage 2 — Shared Control Plane. Prompt 55 is CONSUMED; this run is a same-subject continuation that consumed no new Prompt number. Prompt 56 and the next technical Prompt number remain UNCONSUMED AND UNAUTHORIZED.
 
-Stated separately: no technical slice, migration, Storage object, parsing, staging or database change is authorized by this Acceptance Persistence.
+Stated separately: no technical slice, migration, SQL, Storage object, RLS/Grant/permission change, malware-provider activation, parsing, staging, Finance posting or Finance reversal is authorized by this Acceptance Persistence. Payment-bearing canonical posting remains prohibited until the payment correction and reversal contract is independently accepted, and SRC-008 remains in Hard Quarantine pending resolution of its 1,430 variance.
 
 
 
