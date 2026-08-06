@@ -1,285 +1,401 @@
-# WS-DH-2026-0012 — Local Prompt 01 — Correction Continuation C4
-
-Memory-to-accepted-truth contradiction verification. Same local Prompt 01 — no new local number consumed. Mode: Plan/Chat — read-only.
+# WS-DH-2026-0012 — Local Prompt 01 · Correction Continuation C5
+## Object-Level Accepted-Truth Classification and Count-Integrity Repair
 
 ## 1. Verdict
 
-WS-DH-2026-0012 LOCAL PROMPT 01-C4 ACCEPTED-TRUTH VERIFICATION COMPLETE — MEMORY-TO-CURRENT-ACCEPTED-TRUTH COMPARISON COMPLETED — STAGE 4 SUBSTANTIVELY COMPLETE — STAGES 0–4 READY FOR OWNER ALIGNMENT
-
-Readiness conclusion: **A** — Stage 4 is now substantively complete; Stages 0–4 are substantively complete, not persisted and not Owner accepted; Stage 5 Owner Alignment is ready.
-
-## 2. C3 Stage-4 error acknowledgement
-
-C3 declared Stage 4 substantively complete on the strength of duplication analysis, correction-path analysis and Memory-to-Memory contradiction discovery. The live criterion reads "contradictions, duplication and correction paths **between Memory objects and current accepted truth**". No comparison against the accepted-truth corpus had been performed. The C3 Stage-4 completion claim is withdrawn and replaced by this run's result. C3's five-state model and its Stage 0–3 conclusions stand.
-
-Interim state now superseded by §14:
-
 ```text
-STAGE 4:
-RUN — DUPLICATION AND CORRECTION-PATH INVESTIGATION COMPLETE —
-INTERNAL MEMORY-CORPUS CONTRADICTION CHECK COMPLETE —
-MEMORY-TO-CURRENT-ACCEPTED-TRUTH COMPARISON PENDING C4 —
-NOT YET SUBSTANTIVELY COMPLETE
+WS-DH-2026-0012 LOCAL PROMPT 01-C5 OBJECT-LEVEL CLASSIFICATION
+CORRECTION COMPLETE —
+STORED MEMORY BODIES CLASSIFIED URI-BY-URI —
+CORE RULES SEPARATELY CLASSIFIED —
+COUNT INTEGRITY VERIFIED —
+STAGE 4 SUBSTANTIVELY COMPLETE —
+STAGES 0–4 READY FOR OWNER ALIGNMENT
 ```
 
-## 3. Repository state
+## 2. C4 classification-unit error acknowledgement
 
-| Item | Value |
+C4 published an A–G table over a 99-body denominator but mixed counting units: one index Core rule was counted inside the body population, category G counted duplicate clusters rather than URIs, and categories A, E and F used grouped subjects with no URI membership ledger. The arithmetic balanced; the object-level assignment was not proven. C4 also wrote "re-confirmed live" for the movement-RPC arity while performing no code or database inspection.
+
+## 3. Exact rejected finding
+
+Rejected: "The C4 A–G count table proves a complete, mutually exclusive classification of all 99 stored Memory bodies, and therefore proves Stage 4 substantively complete."
+
+Replaced by: "C4 identified accepted-truth sources and several material findings, but a complete object-level classification remained unproven until C5 published a URI-by-URI ledger with consistent counting units." No other Prompt-01, C1, C2, C3 or C4 finding is reopened.
+
+## 4. Repository state
+
+| Field | Value |
 |---|---|
-| Branch | `edit/edt-3f740d67-7a54-499a-8d2c-928afb5ff0df` |
-| HEAD | `8dc9ee3a7be30d01e2d97bba4e5aea4f30b9e335` |
-| Parents | `dfa3faa9ed5d531493fa3256772df62dbeb09865`, `601e3af8ae0aa720043f8a11d0a7240c3f296046` |
-| Working tree before C4 | clean for tracked files; platform-managed `.lovable/plan.md` carried the C3 report |
-| Working tree after C4 | clean for tracked files; platform-managed `.lovable/plan.md` rewritten with this C4 report |
-| Repository files changed | none |
+| Branch | `edit/edt-3fcffd28-b479-4355-aff7-2185763befb3` |
+| HEAD | `a57e38c047e1564cb500bcb7bf9879b8f9ae1e28` |
+| Parents | `8dc9ee3a7be30d01e2d97bba4e5aea4f30b9e335`, `c9f009a5388d9fefc5d9417e3893ef742a45bdf0` (merge commit) |
+| Working tree before | clean (no modified tracked files) |
+| Working tree after | `.lovable/plan.md` only (platform-managed report path) |
 
-The C3 HEAD `dfa3faa9…` is the first parent of the current HEAD. No tracked governance or accepted-truth file changed between them.
+## 5. Population proof (P1 / P2)
 
-## 4. Memory-corpus drift result
-
-- The working mirror used by C1 and C3 is **no longer present** in this run's sandbox. That is mirror loss between runs, not evidence of Memory drift.
-- The always-injected `mem://index.md` was re-verified in this run: **9 Core rules + 95 referenced objects**, unchanged from C1 and C3.
-- No index drift, no reference-count drift. Dangling-link and orphan counts cannot be re-verified without a full corpus re-read, which is **not authorized** absent proven drift and was not performed.
-- Consequently this run reuses the C1/C3 body-level classifications, which remain the authoritative corpus evidence. Where a classification below depends on body text rather than index subject text, it is marked as inherited rather than re-observed.
-
-**Material limitation, stated plainly.** Subject-level classification in §7–§8 is derived from the index subject descriptions plus the inherited C1 body inspection. It is not a fresh body-by-body re-read. Individually named findings are evidence-backed; the grouped counts are honest allocations over that evidence, not fresh per-body observations.
-
-## 5. Accepted-truth sources inspected
-
-Rounds 1–5 are recorded as **accepted and closed** in `docs/roadmaps/rm-dh-001-documentation-and-developer-handover/roadmap.md` ("Rounds 1 through 5 are accepted and closed"; Round 2 accepted; Round 4 accepted; Round 5 accepted and closed with non-blocking minor notes).
-
-| Source | Path | Status |
+| Measure | Count | Method |
 |---|---|---|
-| `DHB-R01-ACC` — Round 1 Acceptance and Closure Record | `docs/handoff/rounds/round-01/round-01-acceptance.md` | `status: accepted`, v1.1.0 |
-| `DHB-R01-DEV` — Round 1 developer handoff | `docs/handoff/rounds/round-01/round-01-developer-handoff.md` | canonical-accepted v1.4.0 |
-| `DHB-ARCH-ACCOUNT-TYPES-IDENTITY` | `docs/architecture/account-types-and-identity-model.md` | `status: current`, accepted under `DHB-R01-ACC` |
-| `DHB-ARCH-ACCOUNT-MODULE-REALITY` (Round 2) | `docs/architecture/account-types-and-module-reality.md` | `status: current`, Round 2 accepted |
-| `DHB-ARCH-CORE-FLOWS-LIFECYCLES` (Round 3) | `docs/architecture/core-user-flows-and-operational-lifecycles.md` | `status: current`, Round 3 accepted |
-| `DHB-ARCH-CROSS-ACCOUNT-INTEGRATIONS` (Round 4) | `docs/architecture/cross-account-integrations-consent-and-shared-access.md` | `status: current`, Round 4 accepted |
-| `DHB-ARCH-COMMERCIAL-MONETIZATION` (Round 5) | `docs/architecture/commercial-plans-entitlements-platform-billing-and-monetization.md` | `status: current`, Round 5 accepted and closed |
-| RM-DH-001 roadmap (Rounds acceptance register) | `docs/roadmaps/rm-dh-001-documentation-and-developer-handover/roadmap.md` | current |
-| RM-DH-003 governance and Workstream register | `docs/roadmaps/rm-dh-003-.../roadmap.md`, `WS-DH-2026-0012` package | current |
+| Files in accessible Memory store | 100 | enumeration of the mirrored corpus |
+| `mem://index.md` | 1 | excluded from P1 |
+| **P1 — stored Memory bodies** | **99** | 100 − index |
+| P1 successfully read | 99 | all readable; 0 read failures |
+| Index `mem://` references | 95 | unique URIs parsed from index |
+| Index references that resolve | 91 | 95 − 4 dangling |
+| Dangling index references | 4 | referenced, no stored body |
+| Unindexed stored bodies (orphans) | 8 | stored, not referenced |
+| Reconciliation | 91 + 8 = **99** | matches P1 |
+| **P2 — index Core rules** | **9** | rendered inline in `mem://index.md`, no URI, never counted in P1 |
 
-Accepted Rounds 1–5 are materially **accessible**. The BLOCKED path in §7 of the prompt does not apply.
+No drift: the current proven stored-body population is exactly 99, matching C1.
 
-## 6. Inaccessible accepted sources
+### Dangling index references (4)
 
-- `docs/handoff/rounds/round-02/` through `round-05/` do not exist as folders; Rounds 2–5 are carried entirely by the five `docs/architecture/*` canonical documents plus the RM-DH-001 acceptance register. No separate Round 2–5 acceptance records were found. This is a documentation-layout observation, not a blocker — the canonical outputs are present and registered as accepted.
-- `docs/architecture/README.md` still reads "No canonical files yet", which is stale against the five canonical architecture documents sitting beside it. Noted as an accepted-truth-layer inconsistency, outside this Workstream's repair authority.
-- Excluded by boundary and not used: Documentation 01–13, `RM-DH-004`, `WS-DH-2026-0013`, Skill bodies, application code, database state, `.lovable/plan.md` conclusions as standalone truth.
+- `mem://architecture/finance/doctor-billing-mismatch`
+- `mem://domain/horses/pony-classification-logic`
+- `mem://domain/stable/package-billing-cycles`
+- `mem://features/stable/room-event-history-strategy`
 
-## 7. Classification counts A–G
+### Unindexed stored bodies (8)
 
-Denominator: the 99 stored Memory bodies (inherited C1 corpus).
+- `mem://architecture/stable/connected-transfer-lifecycle`
+- `mem://features/breeding/connected-mode-status`
+- `mem://features/breeding/safety-logic`
+- `mem://features/horses/ownership-display`
+- `mem://features/hr/payroll-quick-create-employee`
+- `mem://features/stable/admission-pricing`
+- `mem://style/arabic-terminology-standard`
+- `mem://ux/date-time-standard`
+
+## 6. Accepted sources inspected (source key)
+
+| Key | Path |
+|---|---|
+| S1 | `docs/architecture/account-types-and-module-reality.md` |
+| S2 | `docs/architecture/core-user-flows-and-operational-lifecycles.md` |
+| S3 | `docs/architecture/cross-account-integrations-consent-and-shared-access.md` |
+| S4 | `docs/architecture/account-types-and-identity-model.md` |
+| S5 | `docs/architecture/commercial-plans-entitlements-platform-billing-and-monetization.md` |
+
+## 7. Classification rule set (reproducible)
+
+- **C** — the Memory's explicit claim conflicts with a located accepted statement.
+- **B** — the subject is covered by accepted text, but the Memory asserts a number, guarantee or scope not present in that text.
+- **A** — the Memory's substantive claim is directly attested by named accepted text at entity/model level.
+- **D** — the Memory is superseded by later accepted truth. None proven in this run.
+- **E** — presentation, wording, layout or terminology standard with no counterpart anywhere in the accepted corpus (`ux/*`, `localization/*`, `style/*`).
+- **F** — behavioural or implementation-level claim whose accepted coverage exists only at entity level; adjudication requires live code/database verification, which is outside WS-DH-2026-0012.
+
+## 8. P1 object ledger (99 rows)
+
+| # | URI | Index | Read | Status | Accepted source | Src status | Reason | Materiality | Impl. verif. | Dup cluster | Finding | Confidence |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | mem://architecture/connections/operational-partner-scoping | indexed | yes | A | S3 connection_horse_access | accepted | granular cross-tenant horse access attested | medium | no | DC-09 |  | strongly supported |
+| 2 | mem://architecture/connections/unified-partner-management | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-09 |  | limited |
+| 3 | mem://architecture/finance/billing-linkage-pattern | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 4 | mem://architecture/finance/event-driven-invoicing-pattern | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 5 | mem://architecture/finance/invoice-item-attribution | indexed | yes | A | S2; S5 invoice_items | accepted | line-level attribution attested | medium | no | NONE |  | strongly supported |
+| 6 | mem://architecture/finance/tenant-currency-model | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 7 | mem://architecture/horses/unified-profile-architecture | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 8 | mem://architecture/identity/unified-people-model | indexed | yes | A | S1 hr_employees; S4 tenant_members | accepted | people bridge attested at entity level | medium | no | NONE |  | strongly supported |
+| 9 | mem://architecture/invitations/invitation-scoping-standard | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-10 |  | limited |
+| 10 | mem://architecture/invitations/unified-invitation-entry | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-10 |  | limited |
+| 11 | mem://architecture/notification-system-standard | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 12 | mem://architecture/party-horse-relationship-model | indexed | yes | A | S1 §G backend objects (horse_owners) | accepted | junction/ownership model attested at entity level | medium | no | NONE |  | strongly supported |
+| 13 | mem://architecture/platform-sharing-reference-pattern | indexed | yes | A | S3 sharing layers | accepted | connections/grants/RLS layering attested | medium | no | NONE |  | strongly supported |
+| 14 | mem://architecture/shared-client-registry-and-identity | indexed | yes | A | S1/S3 shared clients | accepted | shared client registry attested | medium | no | NONE |  | strongly supported |
+| 15 | mem://architecture/stable/boarding-period-tracking | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 16 | mem://architecture/stable/boarding-proration-engine | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 17 | mem://architecture/stable/boarding-stay-and-care-lifecycle | indexed | yes | A | S2 boarding lifecycle | accepted | stay lifecycle and contracts attested | medium | no | NONE |  | strongly supported |
+| 18 | mem://architecture/stable/commercial-truth-hierarchy | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 19 | mem://architecture/stable/connected-transfer-lifecycle | unindexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 20 | mem://architecture/stable/horse-registry-and-onboarding-logic | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 21 | mem://architecture/stable/housing-admissions-unification-model | indexed | yes | A | S2 housing/admission lifecycle | accepted | boarding_admissions as admission truth attested | medium | no | NONE |  | strongly supported |
+| 22 | mem://architecture/stable/housing-and-facility-management | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 23 | mem://architecture/stable/housing-lifecycle-model | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-01 |  | limited |
+| 24 | mem://architecture/stable/housing-paddock-occupancy-model | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 25 | mem://architecture/stable/housing-room-setup-core | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-02 |  | limited |
+| 26 | mem://architecture/stable/housing-type-aware-surfaces | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 27 | mem://architecture/stable/movement-rpc-contract-standard | indexed | yes | C | S2:212 and S1:250,415,751,1031 (20 params) | accepted | Memory asserts a 19-parameter authoritative signature; accepted record states 20 | high | yes | NONE | F-C5-01 | proven |
+| 28 | mem://architecture/stable/provider-cost-integration | indexed | yes | A | S1/S2 supplier_payables | accepted | provider cost object attested | medium | no | NONE |  | strongly supported |
+| 29 | mem://architecture/stable/service-package-model | indexed | yes | A | S1 §G; S2 services | accepted | tenant_services + stable_service_plans attested | medium | no | DC-03 |  | strongly supported |
+| 30 | mem://architecture/stable/service-package-organization | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-03 |  | limited |
+| 31 | mem://architecture/stable/unified-commercial-model | indexed | yes | A | S2 services/commercial flows | accepted | shared catalog linkage attested | medium | no | NONE |  | strongly supported |
+| 32 | mem://architecture/stable/vet-medical-records-system | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 33 | mem://breeding/domain-architecture-standard | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 34 | mem://domain/breeding/terminology-standard | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 35 | mem://domain/horse-owner-tenant-isolation | indexed | yes | A | S4 account types | accepted | Horse Owner as real account type attested | medium | no | DC-07 |  | strongly supported |
+| 36 | mem://domain/horses/breeding-eligibility-rules | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 37 | mem://domain/horses/classification-model | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-08 |  | limited |
+| 38 | mem://domain/stable/housing-facility-taxonomy | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 39 | mem://domain/stable/package-types | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-03 |  | limited |
+| 40 | mem://domain/stable/service-taxonomy | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-03 |  | limited |
+| 41 | mem://features/breeding/connected-mode-status | unindexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 42 | mem://features/breeding/reproduction-form-logic | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 43 | mem://features/breeding/safety-logic | unindexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 44 | mem://features/finance/client-statement-system | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 45 | mem://features/finance/consultation-and-lab-grounding | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 46 | mem://features/finance/credit-limit-enforcement | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 47 | mem://features/finance/invoice-package-consumption | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 48 | mem://features/finance/manual-invoice-management | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 49 | mem://features/horse-unification-strategy | indexed | yes | A | S2/S3 lab_horses + microchip | accepted | dual registry linked by microchip attested | medium | no | NONE |  | strongly supported |
+| 50 | mem://features/horses/ownership-display | unindexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 51 | mem://features/horses/quick-create-bridge-pattern | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-04 |  | limited |
+| 52 | mem://features/horses/quick-create-minimal-mode | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-04 |  | limited |
+| 53 | mem://features/hr/payroll-quick-create-employee | unindexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 54 | mem://features/stable/admission-pricing | unindexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 55 | mem://features/stable/financial-traceability-system | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 56 | mem://features/stable/housing-orphan-repair-logic | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 57 | mem://features/stable/housing-unit-and-numbering-setup | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-02 |  | limited |
+| 58 | mem://features/stable/housing-unit-assignment-flows | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 59 | mem://features/stable/housing-unit-integrity-and-refresh | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 60 | mem://features/stable/housing-vacate-and-checkout-logic | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 61 | mem://features/stable/housing-visibility-and-filtering | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-01 |  | limited |
+| 62 | mem://features/stable/internal-cost-management | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 63 | mem://features/stable/movement-and-logistics | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 64 | mem://features/stable/provider-markup-logic | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 65 | mem://features/stable/room-function-reclassification | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 66 | mem://features/stable/vaccination-and-health-management | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 67 | mem://features/stable/vet-treatment-and-medication-logic | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 68 | mem://features/team/team-partners-hub | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-09 |  | limited |
+| 69 | mem://finance/invoice-accounting-lifecycle | indexed | yes | A | S2 invoice lifecycle | accepted | draft->approved->paid lifecycle attested | medium | no | DC-06 |  | strongly supported |
+| 70 | mem://finance/payment-status-integrity-rule | indexed | yes | A | S2 finance lifecycle | accepted | ledger-derived payment status attested | medium | no | DC-06 |  | strongly supported |
+| 71 | mem://finance/tax-configuration-standard | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 72 | mem://laboratory/domain-architecture-standard | indexed | yes | A | S1/S2 lab_submissions, lab_requests | accepted | lab domain objects attested | medium | no | NONE |  | strongly supported |
+| 73 | mem://laboratory/submission-architecture | indexed | yes | A | S1/S2 lab_submissions | accepted | parent/child submission model attested | medium | no | NONE |  | strongly supported |
+| 74 | mem://laboratory/ui-isolation-boundary | indexed | yes | B | S1 lab_mode; S2 routing | accepted | module isolation covered; redirect/sidebar-guard specifics exceed accepted text | high | yes | NONE |  | strongly supported |
+| 75 | mem://localization/bilingual-naming-architecture | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 76 | mem://localization/stable/account-aware-housing-terminology | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 77 | mem://security/client-tenant-isolation | indexed | yes | A | S3 cross-tenant boundaries | accepted | tenant-scoped client visibility attested | medium | no | DC-07 |  | strongly supported |
+| 78 | mem://security/community-workspace-rls-logic | indexed | yes | A | S4; S2 tenant_id IS NULL | accepted | dual personal/organization scoping attested | medium | no | DC-07 |  | strongly supported |
+| 79 | mem://security/connections/partnership-integrity | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | NONE |  | limited |
+| 80 | mem://security/granular-backend-enforcement | indexed | yes | B | S2 line 118; S5 | accepted | has_permission() RLS enforcement covered; "replacing legacy checks" scope exceeds accepted text | high | yes | DC-05 |  | strongly supported |
+| 81 | mem://security/horses/classification-audit-log | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-08 |  | limited |
+| 82 | mem://security/horses/classification-governance | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-08 |  | limited |
+| 83 | mem://security/invitations/identity-verification-rules | indexed | yes | F | NONE (entity-level only) | n/a | behavioural/implementation claim not adjudicable from accepted corpus | medium | yes | DC-10 |  | limited |
+| 84 | mem://security/permission-system-vocabulary | indexed | yes | B | S1:97,252 (104 keys); Round-5 registry-is-authority wording | accepted | count covered by S1 but Round 5 declines a fixed count | high | yes | DC-05 |  | strongly supported |
+| 85 | mem://security/roles/manager-role-baseline | indexed | yes | B | S1 §H 104-key model | accepted | the 102-key manager baseline figure is not stated in accepted text | high | yes | DC-05 |  | strongly supported |
+| 86 | mem://security/workspace-authorization-and-guards | indexed | yes | A | S2 line 118 | accepted | hasPermission()/has_permission() routing attested | medium | no | DC-05 |  | strongly supported |
+| 87 | mem://style/arabic-terminology-standard | unindexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 88 | mem://ux/date-time-standard | unindexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 89 | mem://ux/horses/registration-classification-step | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | DC-08 |  | proven |
+| 90 | mem://ux/horses/wizard-scroll-behavior | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 91 | mem://ux/horses/wizard-selection-standards | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 92 | mem://ux/mobile-first-design-standard | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | DC-11 |  | proven |
+| 93 | mem://ux/rtl-layout-quality-standard | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | DC-11 |  | proven |
+| 94 | mem://ux/stable/arrivals-departures-toolbar-layout | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | DC-11 |  | proven |
+| 95 | mem://ux/stable/complex-dialog-layout-standard | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 96 | mem://ux/stable/creation-bridge-pattern | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | DC-04 |  | proven |
+| 97 | mem://ux/stable/housing-creation-unification | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | DC-02 |  | proven |
+| 98 | mem://ux/stable/room-detail-panel-standard | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+| 99 | mem://ux/stable/services-packages-truthfulness-standard | indexed | yes | E | NONE | n/a | presentation/wording standard; no accepted-corpus counterpart | low | no | NONE |  | proven |
+
+## 9. P2 Core-rule ledger (9 rows, counted separately)
+
+| # | Subject | Status | Accepted source | Dup cluster | Namespaced counterpart | Materiality | Reason |
+|---|---|---|---|---|---|---|---|
+| 1 | Mobile-first UI; RTL uses flex-grow | E | NONE | DC-11 | `mem://ux/mobile-first-design-standard`, `mem://ux/rtl-layout-quality-standard` | low | presentation standard, no accepted counterpart |
+| 2 | Workspace-class dialog layout | E | NONE | DC-12 | `mem://ux/stable/complex-dialog-layout-standard` | low | presentation standard |
+| 3 | Neutral form defaults, cascade resets | E | NONE | DC-13 | `mem://ux/horses/wizard-selection-standards`, `mem://features/breeding/reproduction-form-logic` | low | UI behaviour standard |
+| 4 | In-Context Creation Bridge | E | NONE | DC-04 | `mem://ux/stable/creation-bridge-pattern` | low | UI pattern standard |
+| 5 | Stacked BilingualName, EN placeholders in AR | E | NONE | DC-14 | `mem://localization/bilingual-naming-architecture` | low | localization presentation standard |
+| 6 | Archive/deactivate instead of hard delete | F | NONE (entity-level `is_archived` in S2) | DC-01 | `mem://architecture/stable/housing-lifecycle-model` | medium | lifecycle enforcement requires live verification |
+| 7 | `hasPermission()` / `has_permission()`, 104 keys | B | S1:97,252; S2:118 | DC-05 | `mem://security/permission-system-vocabulary` | high | mechanism attested; the fixed 104 count is asserted by S1 but declined as authoritative by the Round-5 registry wording |
+| 8 | Dual RLS scoping personal vs organization | A | S4; S2 (`tenant_id IS NULL`) | DC-07 | `mem://security/community-workspace-rls-logic` | high | directly attested |
+| 9 | Financial status derived from ledger | A | S2 finance lifecycle | DC-06 | `mem://finance/payment-status-integrity-rule` | high | directly attested |
+
+**P2 counts:** A = 2, B = 1, C = 0, D = 0, E = 5, F = 1, total = 9.
+
+## 10. P1 A–F counts
 
 | Status | Count |
 |---|---|
-| A — Aligned with accessible accepted truth | 16 |
-| B — Partially supported; Memory scope or wording exceeds the accepted evidence | 4 |
-| C — Contradicted by accessible accepted truth | **1** |
-| D — Superseded or stale against accessible accepted truth | 0 |
-| E — Not covered by the accessible accepted-truth corpus | 27 |
-| F — Live-implementation verification required; outside this Workstream | 41 |
-| G — Duplicate or overlapping subject; no separate truth verdict until clustered | 10 |
-| **Total** | **99** |
+| A — aligned | 20 |
+| B — partially supported | 4 |
+| C — contradicted | 1 |
+| D — superseded/stale | 0 |
+| E — not covered | 15 |
+| F — live verification required | 59 |
+| **P1_TOTAL** | **99** |
 
-## 8. Memory-to-accepted-truth matrix
+## 11. Count-integrity validation
 
-**A — Aligned (16).** Grouped subjects: invoice accounting lifecycle; payment status integrity; billing linkage; boarding stay lifecycle; housing admissions unification; horse-owner tenant isolation; client tenant isolation; community workspace RLS; workspace authorization and guards; granular backend enforcement; platform sharing reference pattern; horse unification strategy; lab submission architecture; operational partner scoping; unified people model; movement and logistics.
+| Check | Result |
+|---|---|
+| P1_A+P1_B+P1_C+P1_D+P1_E+P1_F | 99 |
+| P1_TOTAL | 99 |
+| Unique URI count | 99 — equals P1_TOTAL |
+| Duplicate URI rows | 0 |
+| Omitted URIs | 0 |
+| Invalid / multi-status rows | 0 |
+| Core rules appearing as P1 rows | 0 |
+| P2 total (separate) | 9 |
+| Duplicate clusters (overlay, never summed into status totals) | 14 |
 
-- Accepted sources: `DHB-ARCH-CORE-FLOWS-LIFECYCLES` §16.1–16.2 (invoice statuses `draft, approved, shared, partial, paid, overdue, cancelled`; approval freezes totals and posts ledger in the same transaction; balances "derived, never manually set"), §9.2 and the synchronization rule ("`boarding_admissions` is the truth surface for custody. Direct inserts into `housing_unit_occupants` are prohibited"), §capability matrix line describing the owner workspace as "a paid industry tenant workspace, not a module-bearing establishment", the module-availability matrix (`laboratory`, `housing`, `breeding` gating), and `lab_horses` as microchip-linked lightweight identity; `DHB-ARCH-ACCOUNT-TYPES-IDENTITY` §2 (`horse_owner` is one of the 10 implemented `tenant_type` values); `DHB-ARCH-CROSS-ACCOUNT-INTEGRATIONS` (workspace-membership and cross-account access layers).
-- Materiality: these are the load-bearing financial, custody, tenancy and authorization rules. Alignment is the single most reassuring result of this run.
-- Owner decision required: none.
+## 12. Duplicate / overlap overlay
 
-**B — Partially supported (4).**
-
-1. `mem://security/permission-system-vocabulary` — asserts a **fixed** vocabulary of 104 granular keys. Round 3 (`DHB-ARCH-CORE-FLOWS-LIFECYCLES` §118) supports it verbatim: "the 104-key granular permission model (`hasPermission()` in the UI, `has_permission()` in RLS)". The **later** Round 5 document (`DHB-ARCH-COMMERCIAL-MONETIZATION` §128) deliberately declines to fix a count: "The live permission registry is the authority for the key set; no fixed count is asserted here." Unsupported excess: the fixed number `104` as a durable rule. Materiality: medium — the count is a snapshot, and the newest accepted source treats the registry, not the number, as authority. Owner decision: whether Memory may state fixed counts at all, or must defer to a live registry.
-2. The Core-rule restatement of the same 104-key claim inherits the same excess.
-3. `mem://security/roles/manager-role-baseline` — the manager-permission baseline is not stated in any accepted document; only the general role/permission machinery (`tenant_roles`, `tenant_role_permissions`, `permission_bundles`, `member_permissions`) is accepted. Unsupported excess: the specific baseline composition. Materiality: medium.
-4. `mem://laboratory/ui-isolation-boundary` — Round 3 accepts a three-valued `lab_mode` gate (`full` / `requests` / `none`) per account type. Memory states a stronger claim of complete lab-mode isolation from stable-mode services via URL redirects. Unsupported excess: the redirect-level isolation guarantee. Materiality: low-medium.
-
-**C — Contradicted (1).**
-
-- `mem://architecture/stable/movement-rpc-contract-standard` — states a **19-parameter** standard for `record_horse_movement_with_housing`. Accepted Round 3 (`DHB-ARCH-CORE-FLOWS-LIFECYCLES` §9.2) states, re-confirmed live: "`record_horse_movement_with_housing` has exactly one overload with `pronargs = 20`."
-- Classification: **changed number / taxonomy** — a direct numeric contradiction of an arity contract, most plausibly a Memory that went stale when a parameter was added. Not wording drift: an arity mismatch is behaviourally material for any caller built from the Memory.
-- Accepted source status: Round 3, accepted, `status: current`, live-re-confirmed.
-- Materiality: **high** — this is the one Memory a developer could act on and get wrong.
-- Owner decision required: yes — direct correction of the Memory (or its rejection as a candidate) at admission.
-
-**D — Superseded or stale (0).** No Memory was found to be superseded by a later accepted Decision. The permission-count tension in B(1) was considered for D and deliberately classified B instead: Round 5 declines to assert a count rather than asserting a different one, so there is no superseding value.
-
-**E — Not covered by the accepted-truth corpus (27).** Grouped subjects: mobile-first design standard; RTL layout quality; Arabic terminology standard (خيل); date/time display standard (12-hour, صباحاً/مساءً); bilingual naming architecture; workspace-class dialog layout; complex dialog layout; wizard scroll behaviour; wizard selection standards; creation-bridge and quick-create patterns; services/packages truthfulness; arrivals-departures toolbar layout; room detail panel standard; registration classification step; account-aware housing terminology; breeding terminology standard; and related UI/UX and localization standards. The accepted Round 1–5 corpus documents architecture, lifecycles, commercial model and integrations — it does not document UI/UX or localization standards at all. Materiality: these are real operating rules with **no accepted-truth counterpart**, which is itself a governance finding. Owner decision: whether UI/UX and localization standards need an accepted-truth home before such Memories can be admitted.
-
-**F — Live-implementation verification required (41).** Grouped subjects: vet medical records and treatment/medication logic; vaccination management; breeding domain and reproduction form logic; horse classification, eligibility, governance and audit-log details; housing unit numbering, occupancy, orphan repair, reclassification and vacate/checkout mechanics; service package model, organization, types and billing cycles; tax configuration; boarding proration; invoice item attribution; consultation and lab grounding; credit-limit enforcement; internal cost management; notification standard; and similar mechanism-level rules. Each asserts specific table, RPC, trigger or component behaviour that no accepted document restates at that granularity. Per the C4 evidence boundary these are **not** classified aligned or contradicted. Materiality: unknown by construction. Owner decision: whether admission of mechanism-level Memories requires code/database verification in a later authorized Workstream.
-
-**G — Duplicate or overlapping (10).** The nine subjects that exist simultaneously as a Core rule and a namespaced body (mobile-first/RTL, workspace dialogs, neutral defaults, creation bridge, bilingual naming, archive-over-delete, permission vocabulary, dual-scoping RLS, financial status integrity), plus the one measured lexical overlap pair (`domain/horses/breeding-eligibility-rules` and `domain/horses/classification-model`). No separate truth verdict is issued until these are clustered into single subjects. Owner decision: cluster before ID allocation, as already recommended.
-
-## 9. Direct contradictions
-
-One, listed in full at §8-C: the 19-versus-20 parameter arity of `record_horse_movement_with_housing`. No other direct contradiction between any Memory subject and accessible accepted truth was found.
-
-## 10. Partially supported or excessive claims
-
-Four, listed at §8-B, with the unsupported excess named in each case: the fixed 104-key count (twice, in the Core rule and the namespaced body), the manager-role baseline composition, and the redirect-level laboratory isolation guarantee.
-
-## 11. Superseded or stale claims
-
-None proven against accepted truth. Separately, and outside the Memory corpus, `docs/architecture/README.md` is itself stale against the five canonical architecture documents.
-
-## 12. Claims requiring code or database verification
-
-41 subjects, grouped at §8-F. Classified as **LIVE-IMPLEMENTATION VERIFICATION REQUIRED — OUTSIDE WS-DH-2026-0012 EVIDENCE BOUNDARY**. None is asserted aligned or contradicted.
-
-## 13. Duplicate clusters
-
-Ten subjects at §8-G: nine Core-rule/namespaced-body pairs plus one measured overlap pair. Unchanged from C1; no new cluster found.
-
-## 14. Exact Stage-4 completion result
-
-| Stage-4 completion test | Result | Evidence |
+| Cluster | Overlap type | Members |
 |---|---|---|
-| 1. Duplication investigated | PASS | C1 lexical scan; nine Core-rule duplications; one overlap pair |
-| 2. Correction paths investigated | PASS | C1: destructive overwrite is the only edit path; no amendment or supersession state |
-| 3. Internal Memory contradictions investigated | PASS | C3 bounded scan: 0 divergent enumerations, 0 Core-rule/body contradictions |
-| 4. Memory-to-accessible-accepted-truth contradictions investigated | **PASS** | This run: all 99 subjects classified A–G against Rounds 1–5; 1 direct contradiction found |
-| 5. Inaccessible / implementation-dependent claims separated | PASS | 41 subjects held at F; 27 at E; neither treated as aligned or contradicted |
-| 6. All material contradictions and stale claims presented for Owner Alignment | PASS | §9–§11 and the Owner decision list at §17 |
+| DC-01 | lifecycle vs filtering restatement | housing-lifecycle-model; housing-visibility-and-filtering; Core rule 6 |
+| DC-02 | creation-path restatement | housing-creation-unification; housing-room-setup-core; housing-unit-and-numbering-setup |
+| DC-03 | catalog/packaging taxonomy overlap | service-package-model; service-package-organization; package-types; service-taxonomy |
+| DC-04 | creation-bridge restatement | creation-bridge-pattern; quick-create-bridge-pattern; quick-create-minimal-mode; Core rule 4 |
+| DC-05 | authorization vocabulary overlap | permission-system-vocabulary; granular-backend-enforcement; workspace-authorization-and-guards; manager-role-baseline; Core rule 7 |
+| DC-06 | financial-status restatement | payment-status-integrity-rule; invoice-accounting-lifecycle; Core rule 9 |
+| DC-07 | tenant-isolation restatement | client-tenant-isolation; community-workspace-rls-logic; horse-owner-tenant-isolation; Core rule 8 |
+| DC-08 | classification governance overlap | classification-model; classification-governance; registration-classification-step; classification-audit-log |
+| DC-09 | partner-management overlap | unified-partner-management; operational-partner-scoping; team-partners-hub |
+| DC-10 | invitation overlap | invitation-scoping-standard; unified-invitation-entry; identity-verification-rules |
+| DC-11 | mobile/RTL layout overlap | mobile-first-design-standard; rtl-layout-quality-standard; arrivals-departures-toolbar-layout; Core rule 1 |
+| DC-12 | dialog layout restatement | complex-dialog-layout-standard; Core rule 2 |
+| DC-13 | neutral-default restatement | wizard-selection-standards; reproduction-form-logic; Core rule 3 |
+| DC-14 | bilingual naming restatement | bilingual-naming-architecture; Core rule 5 |
 
-**STAGE 4 — RUN — SUBSTANTIVELY COMPLETE — NOT PERSISTED — NOT OWNER ACCEPTED.**
+Duplication is recorded as an overlay only; every clustered object still carries exactly one primary status.
 
-## 15. Stage 0–4 final substantive-state table
+## 13. Named contradiction findings
 
-| Stage | Title | Persisted | Run | Substantively complete | Owner accepted |
-|---|---|---|---|---|---|
-| `0` | Scope, Evidence Boundary and Prompt-Lineage Verification | NOT STARTED | YES | YES | NO |
-| `1` | Memory Inventory and Provenance Investigation | NOT STARTED | YES | YES | NO |
-| `2` | Admission, Rejection and Supersession Rules Investigation | NOT STARTED | YES | YES | NO |
-| `3` | Numbering, Succession and Reserved-ID Investigation | NOT STARTED | YES | YES | NO |
-| `4` | Contradiction, Duplication and Correction Investigation | NOT STARTED | YES | **YES** (this run) | NO |
+**F-C5-01 — Movement RPC arity.**
 
-The live package still records the investigation as NOT YET RUN with 0 local Prompts consumed and no findings. That record is stale against reality; correcting it is a persistence act, not authorized here.
+- URI: `mem://architecture/stable/movement-rpc-contract-standard`
+- Memory claim: "the database maintains only one authoritative 19-parameter signature (V3). All client-side callers must pass the full 19-parameter set explicitly."
+- Accepted Round record states: `record_horse_movement_with_housing` has **20 parameters**, single overload (`S2:212`; `S1:250`, `S1:415`, `S1:751`, `S1:1031` — "Canonical current-truth: … has 20 parameters. No overload exists.").
+- Classification: **C — contradicted by accessible accepted truth**, materiality high, confidence proven against the accepted record.
+- C5 performed **no** application-code and **no** database inspection. Accepted Round records state 20 parameters; C5 did not live-verify code or database state.
 
-## 16. Stage-5 readiness
+## 14. Partial-support findings (B)
 
-**READY.** Stage 5 — Owner Alignment may be entered, subject to separate explicit Owner authorization. Nothing in Stages 0–4 remains investigatively open. Persistence may precede or follow alignment at the Owner's direction.
+| URI | Accepted coverage | Unsupported excess |
+|---|---|---|
+| `mem://security/permission-system-vocabulary` | S1:97 and S1:252 state a 104-key permission model; S2:118 states the vocabulary governs UI and RLS | The fixed count is stated by S1 but the Round-5 wording treats the registry — not a fixed number — as authority; the Memory presents 104 as permanent truth |
+| `mem://security/roles/manager-role-baseline` | S1 §H attests the 104-key model and `has_permission()` enforcement | The specific "102 permission keys" manager baseline appears in no accepted text |
+| `mem://laboratory/ui-isolation-boundary` | S1 attests `lab_mode`, laboratory capability, and module routing | Sidebar gating, route guards and the redirect-with-notice behaviour are not stated in accepted text |
+| `mem://security/granular-backend-enforcement` | S2:118 and S5 attest `has_permission()` in RLS | "Replacing generic legacy checks" across core operational RLS is not attested corpus-wide |
 
-## 17. Exact Owner decisions required
+## 15. Superseded or stale findings (D)
 
-1. Accept or reject the C4 finding that Stage 4, and therefore Stages 0–4, are substantively complete.
-2. Authorize or withhold entry into Stage 5 — Owner Alignment.
-3. Authorize or withhold persistence of the Prompt-01 / C1 / C2 / C3 / C4 findings and Stage statuses into the `WS-DH-2026-0012` package.
-4. Direct correction or candidate-rejection of the contradicted movement-RPC arity Memory (19 versus accepted 20).
-5. Decide whether Memory may assert fixed counts (the 104-key case) or must defer to a live registry, per the Round 5 position.
-6. Decide whether UI/UX and localization standards (27 subjects at E) require an accepted-truth home before admission.
-7. Decide whether mechanism-level Memories (41 subjects at F) require code/database verification in a later authorized Workstream before admission.
-8. Approve or reject Option 2 as the target Memory governance architecture.
-9. Approve candidate-only cutover with individual evidence-based re-admission, rejecting en-bloc admission.
-10. Direct the disposition of the 4 dangling index entries and the 8 unindexed orphans.
-11. Decide whether the 9 Core rules receive permanent IDs or become generated projections; approve clustering before ID allocation.
-12. Confirm the four reserved IDs remain permanently reserved and unreconstructed.
-13. Decide whether a mandatory Roadmap/Workstream binding field is required (recommended: yes).
-14. Authorize or withhold consumption of local Prompt 02.
+None proven in this run. D = 0 for P1 and P2.
 
-## 18. Remaining evidence gaps
+## 16. Implementation-verification-required findings (F)
 
-- Fresh body-level re-read of the 99 bodies was not performed; classification inherits C1 body evidence (§4).
-- 41 subjects cannot be verified without code or database access, excluded here by boundary.
-- 27 subjects have no accepted-truth counterpart anywhere in Rounds 1–5.
-- Content of the 4 dangling URIs; `mem://~user`; authorship, timestamps and prior versions of every Memory object; whether any object was overwritten or deleted; original content and reason for reservation of the four reserved IDs; the Stage-A extraction artifact behind the 104 / 100 / 4 figures.
-- No separate Round 2–5 acceptance records exist as distinct files; acceptance is carried by the RM-DH-001 register.
+59 P1 objects and 1 Core rule assert behavioural guarantees (triggers, indexes, cascades, hooks, form logic, redirect behaviour, proration maths, occupancy transitions) whose accepted coverage stops at entity level. These are not contradictions and not alignments; they are undecidable from the accepted corpus alone and belong to a live-verification lane outside WS-DH-2026-0012.
 
-## 19. Facts
+## 17. Stage-4 result
 
-- Branch, HEAD, parents and working tree per §3; C3 HEAD is the first parent of the current HEAD.
-- `mem://index.md` re-verified: 9 Core rules + 95 references, unchanged.
-- Rounds 1–5 recorded accepted and closed in the RM-DH-001 roadmap; five canonical architecture documents plus the Round 1 accepted set are present and readable.
-- Accepted truth states 10 implemented `tenant_type` values including `horse_owner`, 3 planned types, and forbids claiming 13 implemented.
-- Accepted truth states invoice statuses `draft, approved, shared, partial, paid, overdue, cancelled`; balances derived from the ledger and never manually set; `voided` unreachable; no refund or credit-note workflow.
-- Accepted truth states `boarding_admissions` is the custody truth surface and direct `housing_unit_occupants` inserts are prohibited.
-- Accepted Round 3 states `record_horse_movement_with_housing` has exactly one overload with `pronargs = 20`; the corresponding Memory states 19.
-- Accepted Round 3 states a 104-key permission model; accepted Round 5 declines to assert any fixed key count.
-- Classification totals: A 16, B 4, C 1, D 0, E 27, F 41, G 10 — 99.
+| Test | Result |
+|---|---|
+| P1 population proven | Yes — 99, reconciled 91 + 8 |
+| Every P1 URI classified exactly once | Yes — 99 rows, 0 duplicates, 0 omissions |
+| Core rules classified separately | Yes — 9 P2 rows, excluded from P1 |
+| Duplicate clusters as overlay | Yes — 14 clusters, not summed into status totals |
+| Accepted sources traceable per object | Yes — S1–S5 keys per row |
+| Contradiction / partial / stale / implementation-dependent distinguishable | Yes |
+| Material findings ready for Owner Alignment | Yes |
 
-## 20. Lovable-accessible claims
+**Stage 4 — SUBSTANTIVELY COMPLETE (not persisted, not Owner accepted).**
 
-- `mem://index.md` is always injected and is the only Memory surface guaranteed readable each run; individual bodies require explicit reads and no working mirror persists between runs.
-- Memory objects are not repository-tracked and expose no authorship, version or history metadata.
+## 18. Stage 0–4 substantive state
 
-## 21. Inferences
+| Stage | Title | Substantive state |
+|---|---|---|
+| 0 | Scope, evidence boundary, Prompt lineage | Substantively complete — not persisted |
+| 1 | Memory inventory and provenance | Substantively complete — not persisted |
+| 2 | Admission, rejection, supersession | Substantively complete — not persisted |
+| 3 | Numbering, succession, reserved IDs | Substantively complete — not persisted |
+| 4 | Contradiction, duplication, correction | Substantively complete — not persisted |
+| 5 | Owner Alignment | Ready — not started |
+| 6 | QA and Acceptance Re-Audit | Not started |
+| 7 | Persistence, installation readiness, Closure | Not started |
 
-- The grouped A/B/E/F/G counts are honest allocations over index subjects plus inherited C1 body evidence, not fresh per-body observations. The named findings in B and C are directly evidence-backed.
-- The 19-versus-20 arity gap most plausibly reflects a parameter added after the Memory was written; no evidence establishes when or why.
-- Zero direct contradictions across 98 of 99 subjects is consistent with a corpus authored close to the implementation, and does not imply the corpus is verified — 41 subjects remain unverifiable within this boundary.
+## 19. Stage-5 readiness
 
-## 22. CROSS-TASK REPORT CONTAMINATION CHECK
+Ready. Stages 0–4 are substantively complete with an auditable object ledger and no unresolved counting defect.
 
+## 20. Owner decisions required
+
+1. Approve or reject **Option 2** (repository-authoritative Memory register, candidate-only cutover, no retrospective en-bloc admission).
+2. Decide the resolution path for **F-C5-01** (19 vs 20 movement-RPC parameters): correct the Memory, or authorize a live-verification lane to re-establish the canonical arity.
+3. Decide whether the fixed 104-permission-count wording is retired in favour of registry-as-authority.
+4. Decide the treatment of the 4 dangling index references and the 8 unindexed orphan bodies.
+5. Decide whether the 59 F-status objects are routed to a separate live-verification Workstream.
+6. Authorize (or withhold) Stage 5 Owner Alignment and the eventual persistence of Stages 0–4.
+
+## 21. Remaining evidence gaps
+
+- No live code or database verification was authorized; all F objects remain undecided.
+- Documentation 01–13 remains excluded, so historical provenance of Memory bodies is unrecoverable in this lane.
+- No `MEM-NNN` identity exists in the live Memory substrate; the 104-ID inventory remains repository-side governance language only.
+- Accepted Rounds 1–5 do not cover UI/UX, wording or localization standards, so 15 E objects have no adjudication path in this corpus.
+
+## 22. Facts
+
+99 stored Memory bodies; 1 index; 9 Core rules; 95 index references; 91 resolved; 4 dangling; 8 orphans; 0 read failures; P1 A20/B4/C1/D0/E15/F59; P2 A2/B1/C0/D0/E5/F1; 14 duplicate clusters; 1 contradiction against accepted text.
+
+## 23. Lovable-accessible claims
+
+The Memory corpus mirror, `mem://index.md`, the five accepted architecture documents, and Git branch/HEAD/parents were directly readable in this run.
+
+## 24. Inferences
+
+The E/F split is an evidence-boundary inference, not an adjudication: an F object is unproven, not wrong. The Core-rule duplication overlay infers counterpart relationships from subject identity, not from stored linkage metadata.
+
+## 25. CROSS-TASK REPORT CONTAMINATION CHECK
+
+```text
 NO CROSS-TASK CONTAMINATION DETECTED
+```
 
-`.lovable/plan.md` carried the C3 report and now carries this C4 report. No `RM-DH-004`, `WS-DH-2026-0006`, `WS-DH-2026-0013`, Documentation 01–13, Skill-body, application-code or database content was used as evidence.
-
-## 23. WORKSTREAM PERSISTENCE
+## 26. WORKSTREAM PERSISTENCE
 
 ```text
 WS-DH-2026-0012:
-ACTIVE —
-LOCAL PROMPT 01 INVESTIGATION RUN —
-C1 CORPUS CORRECTION RUN —
-C2 RESPONSIBILITY-MAPPING CORRECTION RUN —
-C3 STAGE RECONCILIATION RUN —
-C4 ACCEPTED-TRUTH VERIFICATION RUN —
+ACTIVE — LOCAL PROMPT 01 INVESTIGATION RUN — C1 CORPUS CORRECTION RUN —
+C2 RESPONSIBILITY-MAPPING CORRECTION RUN — C3 STAGE RECONCILIATION RUN —
+C4 ACCEPTED-TRUTH VERIFICATION RUN — C5 OBJECT-LEVEL CLASSIFICATION CORRECTION RUN —
 NO GOVERNANCE CONTRACT PERSISTED
 
-LOCAL PROMPT 01:
-SUBMITTED — RUN — CONSUMED
-
-C1:
-SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
-
-C2:
-SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
-
-C3:
-SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
-
-C4:
-SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
-
-NEXT LOCAL PROMPT:
-02 — NOT CONSUMED
-
-OWNER ACCEPTANCE:
-NOT GRANTED BY THIS RUN
+LOCAL PROMPT 01: SUBMITTED — RUN — CONSUMED
+C1: SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
+C2: SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
+C3: SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
+C4: SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
+C5: SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
+NEXT LOCAL PROMPT: 02 — NOT CONSUMED
+OWNER ACCEPTANCE: NOT GRANTED BY THIS RUN
 ```
 
-## 24. ROADMAP IMPACT
+## 27. ROADMAP IMPACT
 
-RM-DH-003 remains ACTIVE. Phase 3 remains ACTIVE. Sub-phase 3.1 remains current. `WS-DH-2026-0012` remains the current Workstream. `WS-DH-2026-0013` remains unrun. `WS-DH-2026-0014` and `WS-DH-2026-0015` remain BLOCKED, REGISTERED — NOT YET CREATED, NOT STARTED. No Sub-phase 3.2 advancement. Project Knowledge remains NOT INSTALLED. `RM-DH-004` remains separate. No Acceptance, no Closure.
+- RM-DH-003 remains ACTIVE; Phase 3 remains ACTIVE; Sub-phase 3.1 remains current.
+- WS-DH-2026-0012 remains the current Workstream; WS-DH-2026-0013 remains unrun.
+- WS-DH-2026-0014 and WS-DH-2026-0015 remain blocked.
+- No Sub-phase 3.2 advancement. Project Knowledge remains NOT INSTALLED.
+- RM-DH-004 remains separate. No Acceptance or Closure.
 
-## 25. Run metadata and exact stopping point
+## 28. RUN METADATA AND EXACT STOPPING POINT
 
-| Item | Value |
+| Field | Value |
 |---|---|
-| Mode / operation | Plan/Chat — read-only Memory-to-accepted-truth verification |
-| Parent Prompt / status | `PROMPT-DH-WS0012-MEMORY-GENESIS-INVESTIGATIVE-AUDIT-01` — Continuation C4, RUN |
-| Lineage / local number | WS-DH-2026-0012 Memory Genesis Investigative Lineage / `01` (no new number consumed) |
-| Parallel Task ID | `PT-DH-WS0012-P01-C4-MEMORY-ACCEPTED-TRUTH-CHECK` |
-| Owner authorization | 06-08-2026 — August; exact C4 authorization time not recorded |
-| Run time | 2026-08-06 ~02:35 UTC / ~05:35 Asia/Riyadh |
-| Branch / HEAD / parents | §3 |
-| Working tree before / after | Tracked files clean in both states; only the platform-managed report path changed |
-| Memory-corpus drift check | Mirror not retained between runs; index re-verified at 9 Core + 95 references, no drift; no full corpus re-read performed or authorized |
-| Accepted artifacts inspected | Round 1 acceptance record and developer handoff; five canonical `docs/architecture/*` documents (Rounds 1–5); RM-DH-001 roadmap acceptance register; RM-DH-003 roadmap and `WS-DH-2026-0012` package |
-| Inaccessible accepted sources | No `round-02`–`round-05` folders; no separate Round 2–5 acceptance records; `docs/architecture/README.md` stale |
-| Memory classifications | A 16, B 4, C 1, D 0, E 27, F 41, G 10 — 99 total |
-| Bounded comparison checks | Account types and identity; permission architecture and key count; invoice status and lifecycle; ledger, balance and payment integrity; custody, admission, housing and movement lifecycle including RPC arity; laboratory gating and identity; breeding module gating; owner-workspace tenancy; cross-account access layers; localization, date/time, RTL, mobile-first and dialog standards (no accepted counterpart) |
+| Mode / operation | Plan/Chat — read-only object-level classification correction |
+| Parent Prompt ID | PROMPT-DH-WS0012-MEMORY-GENESIS-INVESTIGATIVE-AUDIT-01 — C5 |
+| Workstream lineage / local number | WS-DH-2026-0012 / Local Prompt 01 (no new number consumed) |
+| Parallel Task ID | PT-DH-WS0012-P01-C5-OBJECT-CLASSIFICATION-LEDGER |
+| Owner authorization | Exact C5 authorization time not recorded |
+| Run / report time | 06-08-2026 — August, 06:05 (Asia/Riyadh — UTC+03:00) |
+| Branch / HEAD / parents | see §4 |
+| Working tree before / after | clean / `.lovable/plan.md` only |
+| P1 / P2 populations inspected | 99 / 9 |
+| P1 ledger rows | 99 |
+| P2 ledger rows | 9 |
+| Count integrity | VERIFIED |
+| Accepted sources inspected | S1–S5 |
 | Repository writes | None |
 | Database access | None |
 | Application-code inspection | None |
 | Skill-body inspection | None |
 | Project Knowledge activity | None |
-| Platform-managed paths | `.lovable/plan.md` (this report) |
+| Platform-managed paths | `.lovable/plan.md` (report surface only) |
 | Contamination verdict | NO CROSS-TASK CONTAMINATION DETECTED |
 
-**Exact stopping point.** Stopped immediately after issuing this bounded accepted-truth verification report. No persistence, no package modification, no Memory or index modification, no Decision, no Memory ID allocation, no Stage advancement, no Prompt 02 consumption.
-
-**Next action.** ChatGPT review, Arabic explanation and Owner Alignment.
+**Exact stopping point:** the object-level classification correction report is complete. No persistence, no Acceptance, no Closure. Next action: ChatGPT review, Arabic explanation, and Owner Alignment for Stages 0–4.
