@@ -234,4 +234,4 @@ None. RM-DH-003 remains ACTIVE, Phase 3 remains ACTIVE, Sub-phase 3.1 remains cu
 - Platform-managed paths: `.lovable/plan.md` holds this read-only report only; it is not a governance artifact and carries no Stage, Decision, Acceptance or Closure authority.
 - Contamination verdict: NO CROSS-TASK CONTAMINATION DETECTED.
 - Exact stopping point: immediately after this read-only Decision-contract report. No repository write, no commit, no Decision creation or modification, no Stage-status change, no Prompt-05 consumption.
-- Next action: ChatGPT comparison and final Owner determination on whether the bounded Decision-002 repair in §15 is authorized.
+- Next action: ChatGPT final comparison and either closure verification or preparation of one bounded Decision-002 repair under the same Local Prompt 04.
