@@ -454,27 +454,81 @@ No private Client names or private financial details are recorded here.
 
 ## Remaining Work
 
-1. Prompt 55 — the `WS-DH-2026-0006` Stage 1 Technical Foundation Audit and Execution Contract, only after a separate explicit Owner authorization;
+1. Phase-2 Stage 2 — Shared Control Plane technical execution planning, only after a separate explicit Owner authorization;
 2. all later Phase-2 technical slices, each requiring separate Owner authorization;
 3. Phases 4 through 8 in their existing numbering and identities.
+
+## Deferred Items Register
+
+Preserved complete and unrenumbered. Items 19, 25 and 26 must not be marked technically completed; Stage-1 contract persistence is not implementation completion.
+
+| # | Deferred item |
+|---:|---|
+| 1 | Stale Arabic Invoice PDF root assertion. |
+| 2 | Explicit Tenant predicate in source batching. |
+| 3 | Supplier Payables date architecture. |
+| 4 | Future direct `payment_sessions` contract. |
+| 5 | Internal Cost terminology and Unknown versus Real Zero. |
+| 6 | Contextual Internal Cost labels. |
+| 7 | HR Salary atomicity, idempotency and reversal. |
+| 8 | HR-linked Expense deletion protection. |
+| 9 | Expense unpost and reversal. |
+| 10 | Supplier Payable lifecycle and authority. |
+| 11 | Full POS implementation. |
+| 12 | Future `create_pos_sale`. |
+| 13 | Manual Ledger Adjustment UI. |
+| 14 | Residual Finance privilege hardening. |
+| 15 | Full `has_permission` qualification. |
+| 16 | Duplicate Ledger SELECT Policy. |
+| 17 | TEMP Grant and PUBLIC Helper EXECUTE review. |
+| 18 | `sandbox_exec` privilege review. |
+| 19 | Historical Import provenance objects. |
+| 20 | `owner_id` identity binding. |
+| 21 | Shadow draft-invoice remediation. |
+| 22 | Doctor billing and `tenant_services` unification. |
+| 23 | Forward → Rollback → Forward drill. |
+| 24 | PostgreSQL parser and disposable-environment validation. |
+| 25 | Shared Platform-Wide Historical Import Foundation. |
+| 26 | Provenance, fingerprint, idempotency, quarantine and selective rollback. |
+| 27 | Opening Obligation. |
+| 28 | Unapplied Credit. |
+| 29 | Historical document identity and numbering. |
+| 30 | Client, Payer, Horse Owner and Horse matching without best guess. |
+| 31 | Laboratory Historical Import pilot. |
+| 32 | Future Laboratory Import Adapter. |
+| 33 | Future Veterinary and Independent Doctor Import Adapter. |
+| 34 | Future Horses, Owners and Clients Import Adapter. |
+| 35 | Future Stable Operations Import Adapter. |
+| 36 | Privileged Rollback-Only Writer verification drill. |
+| 37 | Workstream Closure Persistence only if proven mandatory. |
+| 38 | File Manager and Media Assets audit. |
+| 39 | File Manager UI, taxonomy, preview and «خيل» remediation. |
+| 40 | Private and shared-link access contract. |
+| 41 | Tenant Storage measurement and quota design. |
+| 42 | Connected Domain Record Exchange expansion. |
+| 43 | Supplier and Pharmacy native financial exchange. |
+| 44 | Temporary export and artifact retention policy. |
+| 45 | Evidence-file retention and deletion policy. |
+| 46 | Duplicate `source:` metadata verification and deferred normalization. |
+| 47 | Synchronization of stale `WS-DH-2026-0003/workstream.md`. |
 
 ## Current Stopping Point
 
 Phase 1 — Economic Date Integrity is `COMPLETE — OWNER ACCEPTED — CLOSED`, and `WS-DH-2026-0003` is `OWNER ACCEPTED — CLOSED`. Stages A, B, C and D are closed within their accepted bounds. The `public.ledger_entries.effective_date NOT NULL` contract is a closed Phase-1 contract and must not be changed.
 
-Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase. Its Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-004`, following the passed independent re-verification of the Prompt-53 governance execution, the bounded package correction and Correction Continuation C2. The dedicated `WS-DH-2026-0006` package is at version `1.2.0`.
+Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase. Its Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-004`. Its Stage 1 — Technical Foundation Audit and Execution Contract is `OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-005`, Owner Acceptance granted 07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00. The dedicated `WS-DH-2026-0006` package is at version `1.3.0` and carries the complete 38-section Execution Contract exactly once.
 
-Stage 1 — Technical Foundation Audit / Execution Contract has **not** started and requires a separate explicit Owner authorization. No Technical Foundation Execution Contract exists.
+Stage-1 technical implementation has **not** started and Stage 2 has **not** started. Technical execution authorization is **NOT GRANTED**.
 
-Phase-2 technical implementation has **not** started. No import batch, source-file registry, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists or was created. No Phase-2 Acceptance, Workstream Closure, Roadmap Closure or production readiness is claimed.
+Phase-2 technical implementation has **not** started. No import batch, source-file registry, Storage bucket, staging table, validation, quarantine, dry run, reconciliation, parser, adapter or posting RPC exists or was created. No Phase-2 Acceptance of technical work, Workstream Closure, Roadmap Closure or production readiness is claimed.
 
 The former Phase 3 — Import Control Plane retains its historical identity but is superseded and absorbed into Phase 2 and has no separate execution state. Phases 4 through 8 retain their numbers and identities and remain not started.
 
 ## Next Permitted Action
 
-Prompt 55 — Plan/Chat — `WS-DH-2026-0006` Stage 1 Technical Foundation Audit / Execution Contract, only upon explicit Owner submission and authorization. Prompt 55 has not been consumed.
+Separately Owner-authorized technical execution planning for Phase-2 Stage 2 — Shared Control Plane. Prompt 55 is CONSUMED; this run is a same-subject continuation that consumed no new Prompt number. Prompt 56 and the next technical Prompt number remain UNCONSUMED AND UNAUTHORIZED.
 
-Stated separately: no technical slice, migration, Storage object, parsing, staging or database change is authorized by this Acceptance Persistence.
+Stated separately: no technical slice, migration, SQL, Storage object, RLS/Grant/permission change, malware-provider activation, parsing, staging, Finance posting or Finance reversal is authorized by this Acceptance Persistence. Payment-bearing canonical posting remains prohibited until the payment correction and reversal contract is independently accepted, and SRC-008 remains in Hard Quarantine pending resolution of its 1,430 variance.
 
 
 
