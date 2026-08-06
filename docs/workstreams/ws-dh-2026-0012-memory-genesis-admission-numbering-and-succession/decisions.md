@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0012-DECISIONS
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (decisions)
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
 date: 2026-08-06
 last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
-source: v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02, Owner Alignment decision granted by Mohamed Nour on 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): records exactly one new local Decision, DEC-WS-DH-2026-0012-001, containing the complete Owner Alignment contract. No other Decision was created, no Decision was renumbered or reused, no Memory ID was allocated and no Live Memory object or mem://index.md entry was modified; v1.0.0 — authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and parent Decision DEC-RM-DH-003-012.
+source: v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 Correction Continuation C2 (bounded governance-content repair under PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02, no new local Prompt number and no new Decision consumed): repairs defect D-C1-03 by aligning this file's frontmatter version with the identity-table Package version. DEC-WS-DH-2026-0012-001 and its complete 27-point contract are preserved substantively unchanged, no Decision was created, renumbered or reused, no Memory ID was allocated and no Formal Acceptance or Closure occurred; v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02, Owner Alignment decision granted by Mohamed Nour on 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): records exactly one new local Decision, DEC-WS-DH-2026-0012-001, containing the complete Owner Alignment contract. No other Decision was created, no Decision was renumbered or reused, no Memory ID was allocated and no Live Memory object or mem://index.md entry was modified; v1.0.0 — authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and parent Decision DEC-RM-DH-003-012.
 source-sha256: n/a
 -->
 
