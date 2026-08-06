@@ -6,7 +6,8 @@ WS-DH-2026-0012 LOCAL PROMPT 04-C1 DECISION-002 CONTRACT
 VERIFICATION FAILED —
 ONE OR MORE OF THE 36 REQUIRED OWNER-CONTRACT POINTS ARE MISSING,
 PARTIAL, WEAKENED, EXPANDED OR CONTRADICTED —
-BOUNDED DECISION REPAIR REQUIRED
+BOUNDED DECISION REPAIR REQUIRED —
+WS-DH-2026-0012 CLOSURE REQUIRES CORRECTION BEFORE FINAL VERIFICATION
 
 Nature of the failure: no expected point is absent, weakened or contradicted **in effect**, but 15 expected points survive only through the incorporation-by-reference clause (actual point 9) rather than as standalone obligations in `DEC-WS-DH-2026-0012-002`, and four of those carry medium-to-high governance materiality under the §10 materiality test. Conclusion B applies.
 
@@ -223,8 +224,8 @@ None. RM-DH-003 remains ACTIVE, Phase 3 remains ACTIVE, Sub-phase 3.1 remains cu
 - Parent Prompt ID: `PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04`; Continuation C1 — SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED.
 - Workstream Lineage: `WS-DH-2026-0012` / Memory Genesis Investigative Lineage; local number 04 (C1).
 - Parallel Task ID: `PT-DH-WS0012-P04-C1-DECISION-002-CONTRACT-VERIFICATION`.
-- Owner authorization: 06-08-2026 — August; exact C1 authorization time not recorded.
-- Run and report time: 06-08-2026 — August, 15:14 (Asia/Riyadh — UTC+03:00).
+- Owner authorization: 06-08-2026 — August at 15:26 (Asia/Riyadh — UTC+03:00).
+- Run and report time: 06-08-2026 — August, 15:27 (Asia/Riyadh — UTC+03:00).
 - Branch / HEAD / parents / working tree: as §3.
 - `decisions.md` blob hash: `a1c77db605f1308cc814ebdbe623c394ce478454`.
 - Actual Decision points inspected: 23 numbered + 3 unnumbered substantive clauses.
@@ -233,4 +234,4 @@ None. RM-DH-003 remains ACTIVE, Phase 3 remains ACTIVE, Sub-phase 3.1 remains cu
 - Platform-managed paths: `.lovable/plan.md` holds this read-only report only; it is not a governance artifact and carries no Stage, Decision, Acceptance or Closure authority.
 - Contamination verdict: NO CROSS-TASK CONTAMINATION DETECTED.
 - Exact stopping point: immediately after this read-only Decision-contract report. No repository write, no commit, no Decision creation or modification, no Stage-status change, no Prompt-05 consumption.
-- Next action: ChatGPT comparison and final Owner determination on whether the bounded Decision-002 repair in §15 is authorized.
+- Next action: ChatGPT final comparison and either closure verification or preparation of one bounded Decision-002 repair under the same Local Prompt 04.
