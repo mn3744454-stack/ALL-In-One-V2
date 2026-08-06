@@ -126,7 +126,7 @@ This register is the planned technical order. It is separate from, and does not 
 | # | Planned step | Current state |
 |---:|---|---|
 | 1 | Governance reconciliation | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-004) |
-| 2 | Technical Foundation Audit / Execution Contract | NOT STARTED |
+| 2 | Technical Foundation Audit / Execution Contract | COMPLETE — OWNER ACCEPTED — PERSISTED (DEC-RM-DH-004-005) — technical implementation NOT STARTED |
 | 3 | Shared control-plane schema, storage and permissions | NOT STARTED |
 | 4 | Upload and registry visibility | NOT STARTED |
 | 5 | Excel ingestion and staging | NOT STARTED |
@@ -137,7 +137,22 @@ This register is the planned technical order. It is separate from, and does not 
 | 10 | Controlled real-client pilot | NOT STARTED |
 | 11 | Later Domain Adapters | NOT STARTED |
 
-Step 1 is marked `COMPLETE — OWNER ACCEPTED — PERSISTED` only because independent re-verification passed, the Owner granted explicit Acceptance and that Acceptance is persisted in repository governance under `DEC-RM-DH-004-004`. Steps 2 through 11 remain unimplemented and unauthorized.
+Step 1 is marked `COMPLETE — OWNER ACCEPTED — PERSISTED` only because independent re-verification passed, the Owner granted explicit Acceptance and that Acceptance is persisted in repository governance under `DEC-RM-DH-004-004`. Step 2 is marked `COMPLETE — OWNER ACCEPTED — PERSISTED` only in the sense that the read-only Technical Foundation Audit was performed and its resulting Execution Contract was explicitly accepted by the Owner and persisted under `DEC-RM-DH-004-005`; contract persistence is **not** implementation. Steps 3 through 11 remain unimplemented and unauthorized.
+
+## Stage-1 Execution Contract Artifact
+
+The single authoritative Stage-1 contract is [`stage-1-technical-foundation-execution-contract.md`](./stage-1-technical-foundation-execution-contract.md). It carries the complete Owner-accepted 38-section contract text. No competing or partial Stage-1 contract exists in this repository.
+
+Bound supporting evidence (reference only, not stored):
+
+| Field | Value |
+|---|---|
+| Artifact | `Dayli_Horse_Historical_Import_Evidence_Pack_v0.4.xlsx` |
+| SHA-256 | `ed34d290e58173033856ac0a66fda60487e4b66e2df224ee63375352347acc7a` |
+| Byte size | `59424` |
+| Status | CHATGPT-ISSUED SUPPORTING EVIDENCE ARTIFACT — BOUND TO STAGE-1 CONTRACT — NOT STORED IN REPOSITORY — NOT UPLOADED TO APPLICATION STORAGE |
+
+Accepted bounded source conclusions: the original Excel binary verification gate is closed; SRC-004 total is verified at 34,160 and the prior SRC-004 paid-5,000 attribution is withdrawn as unsupported; SRC-006 total is verified at 10,915; SRC-007 total is verified at 1,575 across 6 records; SRC-008 remains unverified with declared total 12,070, extracted row sum 10,640 and variance 1,430, and stays in Hard Quarantine; Declared Total Validation applies wherever a declared total exists and an approved alternate reconciliation method is required where none exists; diagnostic inspection and re-extraction are allowed under Quarantine while approval and canonical posting remain blocked; the current Finance ACL posture is mixed and Historical Import must use a stricter independent ACL baseline.
 
 ## Dependencies
 
