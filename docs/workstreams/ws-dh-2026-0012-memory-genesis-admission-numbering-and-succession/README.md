@@ -201,23 +201,34 @@ This Workstream has:
 - **no** authority to accept or close itself;
 - **no** authority over `RM-DH-004`.
 
+## Downstream Workstream boundaries
+
+- `WS-DH-2026-0013` — Codebase Refactoring Baseline — remains **UNRUN AND NOT STARTED**; it is the next eligible foundational audit and requires a separate explicit Owner authorization.
+- `WS-DH-2026-0014` and `WS-DH-2026-0015` remain **BLOCKED**.
+- The 59 F-status bodies remain routed to a later separately authorized technical-verification lane.
+- The 15 E-status bodies remain without an accepted-truth home.
+- `F-C5-01` remains uncorrected and assigned to bounded live implementation verification.
+- Project Knowledge installation remains a separate later Workstream under Sub-phase 3.7.
+- Closing this Workstream does not resolve, cancel or supersede any later technical-verification, organizational, migration, reconstruction, re-audit or installation Workstream.
+
 ## Stopping point
 
 ```text
-Local Prompt 02 governance persistence is complete.
-Stages 0–4 are run, substantively complete, Owner aligned and persisted.
-Stage 5 Owner Alignment is complete and its decision is persisted as DEC-WS-DH-2026-0012-001.
-Stage 6 — QA and Acceptance Re-Audit is current and has not started.
-Stage 7 has not started.
-No Formal Acceptance, no Acceptance Re-Audit result and no Closure exists.
+Local Prompt 04 Stage-7 persistence is complete.
+Stages 0–4 are run, substantively complete, Owner aligned, persisted, Owner accepted and closed within WS-DH-2026-0012.
+Stage 5 Owner Alignment is complete, persisted as DEC-WS-DH-2026-0012-001, Owner accepted and closed within WS-DH-2026-0012.
+Stage 6 QA and Acceptance Re-Audit is run, passed, Owner accepted, persisted and closed within WS-DH-2026-0012.
+Stage 7 is run: Owner Acceptance persisted, bounded installation readiness confirmed, WS-DH-2026-0012 closed.
+WS-DH-2026-0012 is OWNER ACCEPTED — CLOSED.
 No Memory ID was allocated and no Live Memory object or index entry was modified.
+Project Knowledge remains NOT INSTALLED. RM-DH-003, Phase 3 and Sub-phase 3.1 are not closed.
 ```
 
 ## Next action
 
 ```text
-Prepare a separate read-only Stage-6 QA and Acceptance Re-Audit Prompt
-as WS-DH-2026-0012 local Prompt 03, after ChatGPT review and Arabic explanation.
+ChatGPT final review of the WS-DH-2026-0012 closure, then a separate Owner
+decision on whether and when to authorize the WS-DH-2026-0013 investigation.
 ```
 
 ## Package navigation
