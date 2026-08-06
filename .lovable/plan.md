@@ -1,221 +1,236 @@
-# WS-DH-2026-0012 — Local Prompt 03 — Stage-6 QA and Acceptance Re-Audit (read-only report)
+# WS-DH-2026-0012 — Local Prompt 04-C1 — DEC-WS-DH-2026-0012-002 Contract-Completeness Verification (read-only report)
 
 ## 1. Verdict
 
-WS-DH-2026-0012 LOCAL PROMPT 03 STAGE-6 QA AND ACCEPTANCE RE-AUDIT
-PASSED —
-GIT LINEAGE, GOVERNANCE CONTENT, DECISION CONTRACT, STAGE STATES,
-NUMBERING, CORPUS SUMMARY, DEFERRED ITEMS AND ZERO-REGRESSION
-BOUNDARIES VERIFIED —
-READY FOR SEPARATELY AUTHORIZED STAGE-7 PERSISTENCE,
-INSTALLATION-READINESS AND OWNER-CLOSURE DECISION
+WS-DH-2026-0012 LOCAL PROMPT 04-C1 DECISION-002 CONTRACT
+VERIFICATION FAILED —
+ONE OR MORE OF THE 36 REQUIRED OWNER-CONTRACT POINTS ARE MISSING,
+PARTIAL, WEAKENED, EXPANDED OR CONTRADICTED —
+BOUNDED DECISION REPAIR REQUIRED
+
+Nature of the failure: no expected point is absent, weakened or contradicted **in effect**, but 15 expected points survive only through the incorporation-by-reference clause (actual point 9) rather than as standalone obligations in `DEC-WS-DH-2026-0012-002`, and four of those carry medium-to-high governance materiality under the §10 materiality test. Conclusion B applies.
 
 ## 2. Mode and evidence boundary
 
-Mode: Plan/Chat — read-only. Repository writes: none. Commits: none. Database access: none. Application-code inspection: none. Migration, RLS, RPC, Skill body, Workspace Knowledge, AGENTS.md, Documentation 01–13, RM-DH-004 content and WS-DH-2026-0013 findings: not inspected. Live Memory activity: none. Project Knowledge activity: none.
+Mode: Plan/Chat — read-only. Repository writes: none. Commits: none. Database access: none. Application-code inspection: none. Live Memory activity: none. Project Knowledge activity: none. Decision creation or modification: none. Local Prompt 05: not consumed.
 
-Evidence inspected: the four WS0012 package files, RM-DH-003 `roadmap.md` and `changelog.md`, `docs/workstreams/README.md`, `docs/README.md`, and Git metadata (branch, HEAD, parents, commit write sets, blob hashes, working tree).
+Evidence inspected: the current `decisions.md` of the WS0012 package (full file), and Git metadata (branch, HEAD, parents, working tree, blob hash). No other repository content, no Documentation 01–13, no RM-DH-004, no Skill body, no application code, no database.
 
-## 3. Branch, HEAD and parents
-
-```text
-Branch:  edit/edt-1c9355f5-1a49-4243-8d0d-d42e1d5ef642
-
-HEAD:    cb4e174b06cf706330595acf75f27f9e352c8026
-Parents: 0d2e2423bc83cc76da84f5dc41189c7dc21f25e4
-         634af9d14f4b9aa037ed32be031869d6244c1116
-
-634af9d14f4b9aa037ed32be031869d6244c1116
-Parent:  31d891cedc17c26b1908af2ee4a41d041ea37e9d
-
-31d891cedc17c26b1908af2ee4a41d041ea37e9d
-Parent:  1c84666c80d440ce040f1aaa56876bb2443f5deb
-```
-
-HEAD contains the C2 final state and both declared C2 anchors (`634af9d1…` and its parent `31d891ce…`) are ancestors of HEAD.
-
-## 4. Working Tree
+## 3. Branch, HEAD, parents and Working Tree
 
 ```text
+Branch:  edit/edt-acfe0574-ab59-4ce6-9eef-595d479aa6e7
+HEAD:    42062322754ecc2d04e16d355e8c2238d441843e
+Parents: e46bef060f51f5a1d81a91cccc9703bb8343884a
+         8ac8fca5aa6e72df7ee06c8b54c4564304a7600b
+
 git status --porcelain -> empty
 Working Tree: CLEAN for tracked files
 ```
 
-## 5. Local Prompt 02 and C2 Git lineage
+## 4. decisions.md blob hash
 
 ```text
-Local Prompt 02 persistence commit:
-0d2e2423bc83cc76da84f5dc41189c7dc21f25e4
-Parents: fbe8ed06b560a79d77e5e9a5c457180fc9b6f4d3
-         a745d1d8ec6fb22ee06d3955ed3f2ba5b1e6d0bd
-Write set: exactly 8 governance paths (listed in §6)
-
-C2 correction commits: 31d891ce…, 634af9d1…, merged at cb4e174b…
-Aggregate C2 write set (0d2e2423 -> HEAD): exactly 3 paths
+Path: docs/workstreams/ws-dh-2026-0012-memory-genesis-admission-numbering-and-succession/decisions.md
+Blob (HEAD): a1c77db605f1308cc814ebdbe623c394ce478454
+File length: 155 lines
 ```
 
-Aggregate C2 diff `0d2e2423bc83cc76da84f5dc41189c7dc21f25e4 → cb4e174b06cf706330595acf75f27f9e352c8026`:
+## 5. Actual Decision-point count
 
-1. `docs/README.md`
-2. `docs/workstreams/ws-dh-2026-0012-…/decisions.md`
-3. `docs/workstreams/ws-dh-2026-0012-…/changelog.md`
+`DEC-WS-DH-2026-0012-002` contains exactly **23** numbered points under the heading `### Approved contract`. The reported count of 23 is confirmed correct. `DEC-WS-DH-2026-0012-001` remains at 27 numbered points, unchanged.
 
-No application, database, migration, Memory, Skill, `AGENTS.md`, RM-DH-004 or unrelated-Workstream path entered either write set. No later conflicting drift is present.
+## 6. Unnumbered substantive clauses
 
-## 6. Path and blob-hash evidence (current HEAD)
+Three unnumbered elements carry contract substance and are **not** counted among the 23:
 
-| Path | Blob (HEAD) |
-|---|---|
-| `…ws-dh-2026-0012-…/README.md` | `647fccd9e7d658ca0128ec6aec901065d5108e8b` |
-| `…ws-dh-2026-0012-…/roadmap.md` | `776ec2619c0c3529ab0ed7f6e1bc433f98f3a69d` |
-| `…ws-dh-2026-0012-…/decisions.md` | `2a26e30c31602882cc227930f49a9d421efdb4fc` |
-| `…ws-dh-2026-0012-…/changelog.md` | `82a23e5099c1ff813f8a7c2fe1f036bfc0097f7f` |
-| `docs/roadmaps/rm-dh-003-…/roadmap.md` | `c4c774ba8d3da1987bd86a2d074a6cebdaab7c8c` |
-| `docs/roadmaps/rm-dh-003-…/changelog.md` | `ed64f1c02696108f9611f5c4db125d6c3683c870` |
-| `docs/workstreams/README.md` | `7bc53e79e97b23aacb7532b05df24c142b647fac` |
-| `docs/README.md` | `a19b21048d9857ed10cf070d1d4629320f8cc68b` |
+1. The Decision metadata table — Decision ID, Title, Status `APPROVED`, Approved by Mohamed Nour, approval date/time 06-08-2026 at 14:12 Asia/Riyadh, governing execution prompt, Parallel Task ID, and **Basis: passed Stage-6 QA and Acceptance Re-Audit run under read-only local Prompt 03**. The Owner-acceptance act itself (expected point 1) rests substantially here.
+2. The `### Rejected alternative` paragraph — rejects closing the Workstream as "complete and installed" and rejects admitting the 99 Candidate bodies on closure. This carries the en-bloc-rejection substance of expected point 6.
+3. The pre-existing `## Boundaries` item 5 in the same file — "`DEC-WS-DH-2026-0012-002` records Owner Acceptance, bounded installation readiness and Closure of this Workstream only; it implements no Memory governance rule and installs no Project Knowledge."
 
-Pre-C2 / post-C2 blobs for the three repaired paths (baseline `0d2e2423`, final HEAD):
+Compound points (one numbered point carrying more than one expected obligation): actual 10 (expected 22 + 23), actual 11 (expected 8 + 9 + 19 + 20 partial), actual 17 (expected 31 + 32 + 33 partial), actual 18 (expected 27 both limbs), actual 5 and 7 (expected 24 + 25).
 
-| Path | Pre-C2 | Post-C2 = HEAD |
-|---|---|---|
-| `docs/README.md` | changed within C2 chain | `a19b21048d9857ed10cf070d1d4629320f8cc68b` |
-| `…/decisions.md` | changed within C2 chain | `2a26e30c31602882cc227930f49a9d421efdb4fc` |
-| `…/changelog.md` | `621dedf209782deaf5664cdc5af1862459f4cd30` | `82a23e5099c1ff813f8a7c2fe1f036bfc0097f7f` |
+## 7. 36-to-23 mapping ledger
 
-## 7. Decision QA
+| # | Expected substance | Actual point(s) | Classification | Excerpt / location | Materiality | Repair |
+|---|---|---|---|---|---|---|
+| 1 | Owner accepts Prompt-03 technical result | metadata table + A1 | SUBSTANTIVELY EQUIVALENT | "Basis: Passed Stage-6 QA and Acceptance Re-Audit… "; A1 "is **PASSED** and is persisted as the governing acceptance evidence" | low | no |
+| 2 | Stage 6 RUN — PASSED — OWNER ACCEPTED — PERSISTED | A4 | EXACT | "Stage 6 is **RUN — PASSED — OWNER ACCEPTED — PERSISTED — CLOSED WITHIN…**" | none | no |
+| 3 | WS completed authorized investigation, alignment, persistence, QA scope | A2, A3, A4, A5, A6 | MERGED WITH OTHER REQUIRED POINTS | Stage-state ladder 2–6 | none | no |
+| 4 | Option 2 remains approved | A9 | SUBSTANTIVELY EQUIVALENT (by reference) | "`DEC-WS-DH-2026-0012-001` and its complete 27-point contract remain in force, substantively unchanged" | low | no |
+| 5 | All 99 stored bodies remain Candidates only | A9 (ref), A12 (subset only) | PARTIALLY PRESENT | A12 covers only the 8 unindexed bodies; the 99-body Candidate-only rule is not restated | medium | yes |
+| 6 | En-bloc admission remains rejected | Rejected-alternative clause + A9 | SUBSTANTIVELY EQUIVALENT | "…admitting the 99 Candidate bodies on closure. Rejected because…" | low | no |
+| 7 | Admission individual, evidence-based, Owner-approved | A9 (ref only) | PARTIALLY PRESENT | no standalone clause in DEC-002 | medium | yes |
+| 8 | Four dangling refs remain unresolved missing-content candidates | A11 | EXACT | "remain UNRESOLVED MISSING-CONTENT CANDIDATES" | none | no |
+| 9 | Dangling refs not deleted/reconstructed/equated with reserved IDs | A11 (equation limb only), A9 | PARTIALLY PRESENT | A11 preserves "remain distinct from"; silent-deletion and reconstruction prohibitions not restated | medium | yes |
+| 10 | Eight unindexed bodies remain Candidates, not auto-admitted | A12 | EXACT | "remain a Candidate pool and are not admitted" | none | no |
+| 11 | Core rules must not be an uncontrolled authority layer | A9 (ref only) | PARTIALLY PRESENT | absent from DEC-002 body | low | no |
+| 12 | Core rules to become controlled generated projections | A9 (ref only) | PARTIALLY PRESENT | absent from DEC-002 body | low | no |
+| 13 | Fixed counts are evidence-time snapshots | A9 (ref only) | PARTIALLY PRESENT | absent from DEC-002 body | low | no |
+| 14 | Live registries govern changing counts | A9 (ref only) | PARTIALLY PRESENT | absent from DEC-002 body | low | no |
+| 15 | F-C5-01 needs bounded live verification before correction | A16 | EXACT | "remains uncorrected and requires bounded live implementation verification before any correction" | none | no |
+| 16 | 59 F-status bodies unadmitted as proven truth | A14 | SUBSTANTIVELY EQUIVALENT | "remain routed to a later separately authorized technical-verification lane" | low | no |
+| 17 | 59 F-status routed to later authorized lane | A14 | EXACT | as above | none | no |
+| 18 | 15 E-status need accepted-truth home / Owner decision | A15 | EXACT | "remain without an accepted-truth home pending an explicit Owner decision" | none | no |
+| 19 | Four reserved IDs permanently reserved, inaccessible, unreconstructed | A11 (naming only), A9 | PARTIALLY PRESENT | A11 names the four IDs but does not restate permanence/inaccessibility/non-reconstruction | medium | yes |
+| 20 | Reserved IDs never reused, reassigned or inferred | A11 ("remain distinct from"), A9 | PARTIALLY PRESENT | reuse/reassignment prohibition not restated | medium | yes |
+| 21 | Mandatory binding fields for admitted Memory | A9 (ref only) | PARTIALLY PRESENT | absent from DEC-002 body | low | no |
+| 22 | No Memory ID allocated | A10 | EXACT | "No Memory ID is allocated…" | none | no |
+| 23 | No Memory body or index entry modified | A10 | EXACT | "…no Memory body and no `mem://index.md` entry is modified by this Decision" | none | no |
+| 24 | Outputs accepted as governed inputs for later Workstreams | A7 | EXACT | "ready as governed inputs for downstream Roadmap Workstreams" | none | no |
+| 25 | Bounded installation readiness confirmed | A5, A7 | EXACT | "BOUNDED INSTALLATION READINESS CONFIRMED" | none | no |
+| 26 | PK installation **not authorized** and has not occurred | A8 (occurrence limb only) + Boundaries §5 | PARTIALLY PRESENT | "Project Knowledge remains **NOT INSTALLED** and remains governed by Sub-phase 3.7" — states the fact, not the authorization prohibition | high | yes |
+| 27 | WS0013 unrun and requires separate Owner authorization | A18 | EXACT | "remains **UNRUN AND NOT STARTED** and requires a separate explicit Owner authorization" | none | no |
+| 28 | WS0014 / WS0015 remain blocked | A19 | EXACT | "remain **BLOCKED**" | none | no |
+| 29 | Sub-phase 3.1 remains current because WS0013 has not run | A17 (non-closure limb), A18 | PARTIALLY PRESENT | non-closure is stated; "remains current" and its causal ground are not | high | yes |
+| 30 | Sub-phase 3.2 remains NOT STARTED | A20 | SUBSTANTIVELY EQUIVALENT | "No Sub-phase 3.2 advancement is authorized" — prohibition rather than state declaration | low | no |
+| 31 | RM-DH-003 remains ACTIVE | A17 | PARTIALLY PRESENT | "Closure of `WS-DH-2026-0012` is **not** closure of… `RM-DH-003`" — open, but ACTIVE not asserted | medium | yes |
+| 32 | Phase 3 remains ACTIVE | A17 | PARTIALLY PRESENT | as above for Phase 3 | medium | yes |
+| 33 | No closure granted to RM-DH-003, Phase 3 or Sub-phase 3.1 | A17 | EXACT | as above (all three named) | none | no |
+| 34 | WS-DH-2026-0012 alone is accepted and closed | A6 + A17 | SUBSTANTIVELY EQUIVALENT | "`WS-DH-2026-0012` is **OWNER ACCEPTED — CLOSED**" bounded by A17 | low | no |
+| 35 | Closure does not resolve/cancel/supersede later Workstreams | A8, A14, A18, A19 (enumerated cases only) | PARTIALLY PRESENT | no general non-supersession clause; only case-by-case survivals | medium | yes |
+| 36 | Prompt 04 authorized only to persist Decision, Stage-6, Stage-7 and closure | A22 | SUBSTANTIVELY EQUIVALENT | "authorized only for bounded governance persistence of this Decision and the Stage-6 result within the eight governed paths" — Stage-7 and closure limbs implied by A5/A6, not enumerated | low | no |
 
-- Exactly one local Decision exists: `DEC-WS-DH-2026-0012-001`.
-- Title, Owner (Mohamed Nour), date 06-08-2026 — August, time 06:55, timezone Asia/Riyadh — UTC+03:00, status OWNER APPROVED — PERSISTED BY LOCAL PROMPT 02: all correct.
-- Contract points present: **27** (counted). No point weakened, expanded or contradicted.
-- Rejected en-bloc-admission alternative: present with rationale.
-- No second local Decision; next free ID recorded as `DEC-WS-DH-2026-0012-002`.
-- RM-DH-003 canonical Decision range remains `001`–`013` with next free `014`; no RM-DH-003 number was consumed by this Workstream persistence.
+## 8. Reverse 23-point mapping
 
-## 8. Stage-state QA
+| Actual | Represents expected | Combines multiple obligations | New unauthorized substance | Changes governance effect |
+|---|---|---|---|---|
+| A1 | 1, 2 (partial) | yes | no | no |
+| A2 | 3 (partial) | no | no | no — adds "CLOSED WITHIN WS-0012" scoping consistent with 34 |
+| A3 | 3 (partial) | no | no | no |
+| A4 | 2, 3 (partial) | yes | no | no |
+| A5 | 25, 3 (partial) | yes | no | no |
+| A6 | 34 | no | no | no |
+| A7 | 24, 25 | yes | no | no |
+| A8 | 26 (partial) | no | adds Sub-phase 3.7 governance pointer (consistent, non-conflicting) | narrows: states non-installation, not non-authorization |
+| A9 | 4, 5, 7, 11, 12, 13, 14, 21 (by incorporation) | yes — carries 8 expected points by reference | no | preserves by reference; weaker visibility than standalone points |
+| A10 | 22, 23 | yes | no | no |
+| A11 | 8, 9 (partial), 19 (partial), 20 (partial) | yes | no | narrows 9/19/20 to the non-equation limb |
+| A12 | 10 | no | no | no |
+| A13 | none of 1–36 | no | **yes — new**: "14 duplicate or overlap clusters remain recorded only and unresolved" | additive, non-conflicting, consistent with Prompt-03 evidence |
+| A14 | 16, 17 | yes | no | no |
+| A15 | 18 | no | no | no |
+| A16 | 15 | no | no | no |
+| A17 | 31, 32, 33 | yes | no | asserts non-closure, not ACTIVE status |
+| A18 | 27, 29 (partial) | yes | no | no |
+| A19 | 28 | no | no | no |
+| A20 | 30 | no | no | prohibition rather than state declaration |
+| A21 | none of 1–36 | no | **yes — new**: no code/DB/schema/migration/RLS/RPC/Edge/Skill/Knowledge/AGENTS change authorized or performed | additive, restrictive, protective; no weakening |
+| A22 | 36 | no | adds "within the eight governed paths" | narrows scope enumeration (Stage-7/closure limbs implicit) |
+| A23 | none of 1–36 | no | **yes — new**: Decision-count and next-ID bookkeeping | administrative only |
+| Rejected-alternative clause | 6 | no | no | no |
 
-| Stage | Persisted state | Consistent across README, roadmap, RM-DH-003, indexes |
-|---|---|---|
-| 0–4 | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED | Yes |
-| 5 | OWNER ALIGNMENT COMPLETE — OWNER DECISION PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED | Yes |
-| 6 | CURRENT — NOT STARTED (repository) | Yes |
-| 7 | NOT STARTED | Yes |
+The 23-point structure is a **largely valid consolidation** but not a fully self-contained restatement: eight expected points survive only through A9's incorporation of DEC-001.
 
-This run reports Stage 6 as RUN and PASSED in this report only. That result is **not written** to the repository; the repository still records Stage 6 as CURRENT — NOT STARTED.
-
-## 9. Prompt and Decision numbering QA
+## 9. Count reconciliation
 
 ```text
-Local Prompt 01:        SUBMITTED — RUN — CONSUMED
-Local Prompt 01 C1–C5:  RUN UNDER LOCAL PROMPT 01 — NO ADDITIONAL NUMBER CONSUMED
-Local Prompt 02:        SUBMITTED — RUN — CONSUMED
-Local Prompt 02-C1:     RUN — NO ADDITIONAL NUMBER CONSUMED
-Local Prompt 02-C2:     RUN — NO ADDITIONAL NUMBER CONSUMED
-Local Prompt 03:        SUBMITTED — RUN — CONSUMED (this run)
-Next eligible Prompt:   04 — NOT CONSUMED
-Local Decisions:        1 consumed; next DEC-WS-DH-2026-0012-002
+Expected points:                                   36
+Actual numbered points:                            23
+Unnumbered substantive clauses:                     3
+
+EXACT:                                             13   (2,8,10,15,17,18,22,23,24,25,27,28,33)
+SUBSTANTIVELY EQUIVALENT:                           7   (1,4,6,16,30,34,36)
+MERGED WITH OTHER REQUIRED POINTS (valid):          1   (3)
+PARTIALLY PRESENT:                                 15   (5,7,9,11,12,13,14,19,20,21,26,29,31,32,35)
+MISSING:                                            0
+MATERIALLY WEAKENED:                                0
+MATERIALLY EXPANDED:                                0
+CONTRADICTED:                                       0
+Actual points with new unauthorized substance:      3   (A13, A21, A23 — all additive, non-conflicting)
 ```
 
-Repository files still record "Official Prompts consumed: 2 / Next eligible 03 — NOT CONSUMED", which is correct: Prompt-03 consumption is a Stage-7 persistence matter, not a Stage-6 write.
+Explanation of the 13-point arithmetic difference:
 
-## 10. Corpus and reserved-identity QA
+- 13 expected points are absorbed by valid consolidation into compound actual points (A1, A4, A5, A7, A10, A11, A14, A17, A18) and into the three unnumbered clauses;
+- 8 expected points (4, 5 partial, 7, 11, 12, 13, 14, 21) are carried by the single incorporation clause A9;
+- 0 expected points are genuinely absent in effect;
+- 8 expected points (5, 7, 9, 19, 20, 26, 29, 31/32, 35) are defective **as standalone obligations** and are the repair surface.
 
-P1: 99 stored bodies; A 20 / B 4 / C 1 / D 0 / E 15 / F 59; 99 ledger rows; 99 unique URIs; 0 duplicate rows; 0 omitted URIs; 0 invalid or multi-status rows. Verified consistent.
+## 10. Missing points
 
-P2: 9 Core rules; A 2 / B 1 / C 0 / D 0 / E 5 / F 1; counted separately from the 99-body denominator. Verified.
+None. No expected point is absent in governance effect.
 
-Index and object integrity: 95 references, 91 resolving, 4 dangling, 8 unindexed stored bodies, 14 unresolved duplicate/overlap clusters. Verified.
+## 11. Partially present or weakened points
 
-Reserved identities `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095`: present in all four package files as permanently reserved, inaccessible and unreconstructed; none allocated, reused or equated with a dangling URI; no new `MEM-NNN` ID allocated.
+15 partially present (listed in §9). High materiality: 26, 29. Medium materiality: 5, 7, 9, 19, 20, 31, 32, 35. Low materiality: 11, 12, 13, 14, 21 — these are target-direction statements already fully in force through DEC-001 and A9.
 
-`F-C5-01` remains recorded as MEMORY-TO-ACCEPTED-ROUND CONTRADICTION — LIVE IMPLEMENTATION VERIFICATION REQUIRED BEFORE CORRECTION, in both `README.md` and `roadmap.md`, with the three-branch future logic preserved. No live verification was performed here.
+## 12. Expanded or unauthorized points
 
-## 11. Index and version QA
+A13, A21 and A23 introduce substance not among the 36. All three are additive and restrictive or administrative; none expands Owner authority, none contradicts an expected point, and none authorizes an act the 36-point contract withheld. No material expansion.
 
-| File | Frontmatter version | Expected |
-|---|---|---|
-| WS0012 README.md | 1.2.0 | matches index cell 1.2.0 |
-| WS0012 roadmap.md | 1.2.0 | matches index cell 1.2.0 |
-| WS0012 decisions.md | 1.2.0 | frontmatter and identity table both 1.2.0 ✓ (D-C1-03 repaired) |
-| WS0012 changelog.md | 1.3.0 | matches index cell 1.3.0 ✓ |
-| RM-DH-003 roadmap.md | 1.9.0 | consistent |
-| RM-DH-003 changelog.md | 1.4.0 | consistent |
-| docs/workstreams/README.md | 1.9.0 | consistent |
-| docs/README.md | 1.18.0 | ✓ |
+## 13. Contradicted points
 
-The four WS0012 rows in `docs/README.md` (lines 135–138) contain no stale Stage-0, "investigation not yet run" or zero-Decisions-consumed statement; they record Decision `001` and next `002`, and the Stage-6 current/not-started state. Remaining "investigation not yet run" text in the index belongs solely to WS-DH-2026-0013. No unrelated index row was changed.
+None.
 
-## 12. Deferred Items QA
+## 14. Validly merged points
 
-Exactly **20** items exist; no Item 21 or higher. Item 15 records the current WS0012 state through Stage-6 current/not-started; Item 20 records Sub-phase 3.1 foundational state including WS-DH-2026-0013 unrun, no Sub-phase 3.2 advancement and Project Knowledge NOT INSTALLED. Items 1–14 and 16–19 are substantively preserved.
+Expected 3 across A2–A6; 22+23 in A10; 24+25 in A5/A7; 8+9 in A11; 16+17 in A14; 31+32+33 in A17; 27+29 in A18; 1+2 across the metadata table and A1; 6 in the Rejected-alternative clause.
 
-## 13. Zero-regression QA
+## 15. Exact material-repair scope (not performed)
 
-WS-DH-2026-0013 remains unrun; WS-DH-2026-0014 and WS-DH-2026-0015 remain blocked; no RM-DH-004 content entered the WS0012 package or this report; no Memory or index write; no application-code inspection or write; no database activity; no Skill, Workspace Knowledge or AGENTS.md activity; no Project Knowledge installation; no Sub-phase 3.2 advancement; no Formal Owner Acceptance and no Closure recorded.
+Smallest sufficient repair — append clarifying points to `DEC-WS-DH-2026-0012-002` without renumbering or altering existing points 1–23, and without touching DEC-001:
 
-## 14. Remaining gaps
+1. Restate that all 99 stored Memory bodies remain Candidates only and that admission must be individual, evidence-based and explicitly Owner-approved (expected 5, 7).
+2. Restate that the four dangling references must not be silently deleted or reconstructed (expected 9), and that `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095` remain permanently reserved, inaccessible, unreconstructed and never reused, reassigned or inferred (expected 19, 20).
+3. State that Project Knowledge installation **is not authorized** and has not occurred (expected 26) — high materiality.
+4. State that Sub-phase 3.1 remains **current** because `WS-DH-2026-0013` has not run, and that `RM-DH-003` and Phase 3 remain **ACTIVE** (expected 29, 31, 32) — high/medium materiality.
+5. State that this Closure does not resolve, cancel or supersede the later technical-verification, organizational, migration, reconstruction, re-audit or Project Knowledge installation Workstreams (expected 35).
 
-1. Cosmetic, non-blocking: Deferred Item 15 in RM-DH-003 `roadmap.md` opens a bold marker (`**`) that is not closed and ends without a full stop, unlike Items 16–20. Content is correct; presentation only. No Stage-6 pass criterion depends on it.
-2. Exact repository write clock times for the Prompt-02 and C2 commits remain unrecorded (already disclosed in the changelog).
-3. Stage-6 result is not persisted by this read-only run.
+Optional, low materiality: restate expected 11–14 and 21 inline rather than by reference, and enumerate the Stage-7 and closure limbs in A22.
 
-## 15. Facts
+Any such repair would be a bounded same-subject correction under Local Prompt 04 (no new local number, no new Decision ID, DEC-001 untouched, no Stage-status change, no closure change). It requires separate Owner authorization; nothing was written in this run.
 
-Branch, HEAD, parents, clean working tree, the 8-path Prompt-02 write set, the 3-path aggregate C2 write set, all blob hashes above, the 27 contract points, the 20 Deferred Items, and all version values were read directly from the repository in this run.
+## 16. Facts
 
-## 16. Lovable-accessible claims
+Branch, HEAD, both parents, clean working tree, the `decisions.md` blob hash `a1c77db6…`, the 155-line file length, the 23 numbered points of DEC-002, the 27 preserved points of DEC-001, the three unnumbered substantive clauses, and every excerpt quoted above were read directly from the repository in this run.
 
-All checked evidence was accessible via Git and the eight governance files. No inaccessible artifact was relied upon.
+## 17. Lovable-accessible claims
 
-## 17. Inferences
+All evidence was accessible via Git and the single governance file inspected. No inaccessible artifact was relied upon. The 36-point expected contract was supplied by the Owner in the Local Prompt 04-C1 text and is used as the authoritative comparison baseline, not read from the repository.
 
-That C2 repaired defects D-C1-01, D-C1-02 and D-C1-04 is inferred from the current content of `docs/README.md` and `changelog.md` plus the aggregate diff path set; D-C1-03 is directly verified by the matching 1.2.0 values.
+## 18. Inferences
 
-## 18. Contradictions
+That expected points 4, 5, 7, 11, 12, 13, 14 and 21 remain in force is **inferred** from A9's incorporation of the DEC-001 27-point contract, not from standalone text in DEC-002. That expected 26's authorization limb is preserved is inferred from Boundaries §5 and A8 read together; that inference is the weakest in this report and is the basis for the high materiality rating.
 
-None material. One cosmetic formatting inconsistency is recorded in §14.
+## 19. Gaps and contradictions
 
-## 19. CROSS-TASK REPORT CONTAMINATION CHECK
+Gaps: no standalone restatement of the eight incorporation-carried points; no explicit ACTIVE/current status assertions; no general non-supersession clause; A22 does not enumerate the Stage-7 and closure limbs. Contradictions: none found between DEC-002 and DEC-001, and none between DEC-002 and the 36-point contract.
+
+## 20. CROSS-TASK REPORT CONTAMINATION CHECK
 
 NO CROSS-TASK CONTAMINATION DETECTED
 
-## 20. Workstream persistence
+## 21. Workstream persistence
 
 ```text
-WS-DH-2026-0012:
-ACTIVE —
-STAGES 0–4 RUN, SUBSTANTIVELY COMPLETE, OWNER ALIGNED AND PERSISTED —
-STAGE 5 OWNER ALIGNMENT COMPLETE AND PERSISTED —
-STAGE 6 QA AND ACCEPTANCE RE-AUDIT RUN AND PASSED —
-STAGE-6 RESULT NOT YET PERSISTED —
-STAGE 7 NOT STARTED —
-NO FORMAL OWNER ACCEPTANCE —
-NO CLOSURE
-
-LOCAL PROMPT 01: SUBMITTED — RUN — CONSUMED
-LOCAL PROMPT 02: SUBMITTED — RUN — CONSUMED
-LOCAL PROMPT 03: SUBMITTED — RUN — CONSUMED
-NEXT LOCAL PROMPT: 04 — NOT CONSUMED
+WS-DH-2026-0012:            OWNER ACCEPTED — CLOSED (as found; unchanged)
+LOCAL PROMPT 04:            SUBMITTED — RUN — CONSUMED
+LOCAL PROMPT 04-C1:         SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED
+NEXT LOCAL PROMPT:          05 — NOT CONSUMED
+DECISION UNDER VERIFICATION: DEC-WS-DH-2026-0012-002 (23 points, unmodified)
+DEC-WS-DH-2026-0012-003:    NOT CREATED
+PROJECT KNOWLEDGE:          NOT INSTALLED
 ```
 
-## 21. Roadmap impact
+## 22. Roadmap impact
 
-RM-DH-003 remains ACTIVE. Phase 3 remains ACTIVE. Sub-phase 3.1 remains current. The WS-DH-2026-0012 Stage-6 result awaits later persistence. WS-DH-2026-0013 remains unrun. WS-DH-2026-0014 and WS-DH-2026-0015 remain blocked. No Sub-phase 3.2 advancement. Project Knowledge remains NOT INSTALLED. RM-DH-004 remains separate. Formal Owner Acceptance NONE. Closure NONE.
+None. RM-DH-003 remains ACTIVE, Phase 3 remains ACTIVE, Sub-phase 3.1 remains current, Sub-phase 3.2 remains NOT STARTED, WS-DH-2026-0013 remains unrun and not started, WS-DH-2026-0014 and WS-DH-2026-0015 remain blocked, RM-DH-004 remains separate and uninspected. No Stage status, Decision, Acceptance or Closure was changed by this run.
 
-## 22. Run metadata and exact stopping point
+## 23. Run metadata and exact stopping point
 
-- Mode and operation: Plan/Chat — read-only Stage-6 QA and Acceptance Re-Audit.
-- Prompt ID: `PROMPT-DH-WS0012-STAGE6-QA-AND-ACCEPTANCE-REAUDIT-03` — SUBMITTED — RUN — CONSUMED (report only).
-- Workstream Lineage: `WS-DH-2026-0012` / Memory Genesis Investigative Lineage; local number 03.
-- Parallel Task ID: `PT-DH-WS0012-P03-STAGE6-QA-ACCEPTANCE-REAUDIT`.
-- Owner authorization: exact Local Prompt 03 authorization time not yet recorded.
-- Run and report time: 06-08-2026 — August, 14:01 (Asia/Riyadh — UTC+03:00).
-- Branch / HEAD / parents / working tree: as §3–§4.
-- Commits inspected: `cb4e174b…`, `634af9d1…`, `31d891ce…`, `0d2e2423…`, `a745d1d8…`, `fbe8ed06…`, `1c84666c…`.
-- Paths and blob hashes inspected: as §6.
-- Governance files inspected: the eight paths listed in §6.
-- Database activity: None. Application-code content inspection: None. Live Memory activity: None. Project Knowledge activity: None.
-- Platform-managed paths: `.lovable/plan.md` holds this read-only report only; it is not a governance artifact and carries no Stage, Decision or Acceptance authority.
+- Mode and operation: Plan/Chat — read-only Decision-002 contract-completeness verification.
+- Parent Prompt ID: `PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04`; Continuation C1 — SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED.
+- Workstream Lineage: `WS-DH-2026-0012` / Memory Genesis Investigative Lineage; local number 04 (C1).
+- Parallel Task ID: `PT-DH-WS0012-P04-C1-DECISION-002-CONTRACT-VERIFICATION`.
+- Owner authorization: 06-08-2026 — August; exact C1 authorization time not recorded.
+- Run and report time: 06-08-2026 — August, 15:14 (Asia/Riyadh — UTC+03:00).
+- Branch / HEAD / parents / working tree: as §3.
+- `decisions.md` blob hash: `a1c77db605f1308cc814ebdbe623c394ce478454`.
+- Actual Decision points inspected: 23 numbered + 3 unnumbered substantive clauses.
+- Expected contract points compared: 36.
+- Repository writes: None. Database access: None. Application-code inspection: None. Live Memory activity: None. Project Knowledge activity: None.
+- Platform-managed paths: `.lovable/plan.md` holds this read-only report only; it is not a governance artifact and carries no Stage, Decision, Acceptance or Closure authority.
 - Contamination verdict: NO CROSS-TASK CONTAMINATION DETECTED.
-- Exact stopping point: immediately after this read-only Stage-6 report. No repository write, no commit, no Decision, no Stage-status change, no Prompt-04 consumption.
-- Next action: ChatGPT review and Owner decision on a separate Stage-7 Prompt.
+- Exact stopping point: immediately after this read-only Decision-contract report. No repository write, no commit, no Decision creation or modification, no Stage-status change, no Prompt-05 consumption.
+- Next action: ChatGPT comparison and final Owner determination on whether the bounded Decision-002 repair in §15 is authorized.
