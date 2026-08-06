@@ -47,7 +47,8 @@ RM-DH-004 governs:
 Currently packaged Workstreams:
 
 - [`WS-DH-2026-0003 — Economic Date Integrity`](../../workstreams/ws-dh-2026-0003-economic-date-integrity/workstream.md) — Phase 1; complete, Owner accepted and closed.
-- [`WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`](../../workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/README.md) — Phase 2; current Workstream; Stage 0 governance Owner accepted and persisted; Stage 1 not started; technical implementation not started.
+- [`WS-DH-2026-0006 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation`](../../workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/README.md) — Phase 2; current Workstream; Stage 0 governance Owner accepted and persisted; Stage 1 Execution Contract Owner accepted and persisted; Stage-1 technical implementation and Stage 2 not started.
+- [`WS-DH-2026-0006 Stage-1 Technical Foundation Execution Contract`](../../workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/stage-1-technical-foundation-execution-contract.md) — the single authoritative Owner-accepted 38-section Stage-1 contract.
 
 ## Current State Summary
 
@@ -55,10 +56,11 @@ Dynamic state is authoritative only in [`roadmap.md`](./roadmap.md). This summar
 
 - RM-DH-004 is ACTIVE; Phase 2 — Shared Platform-Wide Historical Import Foundation — Finance-First Implementation is the current Phase.
 - Phase-2 Stage 0 — Governance Reconciliation is `COMPLETE — OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-004` (Owner Acceptance 06-08-2026 — 00:24 — Asia/Riyadh — UTC+03:00).
-- Stage 1 — Technical Foundation Audit / Execution Contract is `NOT STARTED` and requires a separate explicit Owner authorization.
+- Phase-2 Stage 1 — Technical Foundation Audit and Execution Contract is `OWNER ACCEPTED — PERSISTED` under Decision `DEC-RM-DH-004-005` (Owner Acceptance 07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00).
+- Stage-1 technical implementation and Stage 2 have not started; technical execution authorization is `NOT GRANTED`.
 - No technical Historical Import implementation exists.
 - No Workstream Closure and no Roadmap Closure is granted.
-- Prompt 55 is the next eligible new Prompt and has not been consumed.
+- Prompt 55 is CONSUMED; Prompt 56 remains UNCONSUMED AND UNAUTHORIZED.
 
 ## Ownership Boundaries
 
