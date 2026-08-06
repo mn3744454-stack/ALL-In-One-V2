@@ -1,14 +1,14 @@
 <!--
 id: DHB-RM-004-README
 title: RM-DH-004 — Dayli Horse Financial Truth Stabilization & Historical Data Migration Roadmap (package README)
-version: 1.2.0
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-08-03
-last-verified: 2026-08-06
+last-verified: 2026-08-07
 supersedes: []
 superseded-by: null
-source: v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54, Parallel Task ID PT-DH-RM004-WS0006-P54-OWNER-ACCEPTANCE-PERSISTENCE-20260806-0024), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records the accepted Phase-2 Stage-0 current-state summary. No new Prompt number was consumed and Prompt 55 remains next eligible. The earlier provenance is preserved verbatim on the following source lines.
+source: v1.3.0 — RM-DH-004 / Phase 2 — Stage-1 Owner Acceptance and Governance Persistence under PROMPT 55 — SAME-SUBJECT CONTINUATION C1 (Parallel Task ID PT-DH-RM004-WS0006-P55-C1-STAGE1-PERSIST-20260807-0012), approved Decision DEC-RM-DH-004-005, Owner Acceptance granted 07-08-2026 at 00:12 Asia/Riyadh (UTC+03:00): records the accepted Phase-2 Stage-1 current-state summary and adds the Stage-1 Execution Contract artifact to navigation. No new Prompt number was consumed. The earlier provenance is preserved verbatim on the following source lines.; v1.2.0 — RM-DH-004 / Phase 2 — Stage-0 Owner Acceptance Persistence under PROMPT 54 — SAME-SUBJECT OWNER ACCEPTANCE PERSISTENCE CONTINUATION (parent prompt PROMPT-DH-RM004-PHASE2-PROMPT53-GOVERNANCE-EXECUTION-INDEPENDENT-ACCEPTANCE-REAUDIT-54, Parallel Task ID PT-DH-RM004-WS0006-P54-OWNER-ACCEPTANCE-PERSISTENCE-20260806-0024), approved Decision DEC-RM-DH-004-004, Owner Acceptance granted 06-08-2026 at 00:24 Asia/Riyadh (UTC+03:00): records the accepted Phase-2 Stage-0 current-state summary. No new Prompt number was consumed and Prompt 55 remains next eligible. The earlier provenance is preserved verbatim on the following source lines.
 source: v1.1.0 — RM-DH-004 / Phase 2 — Bounded Governance Reconciliation and WS-DH-2026-0006 Package Execution (execution prompt PROMPT-DH-SHARED-OPERATIONAL-FINANCE-HISTORICAL-MIGRATION-RM-DH-004-PHASE-2-BOUNDED-GOVERNANCE-RECONCILIATION-AND-WS0006-PACKAGE-EXECUTION-53, approved Decision DEC-RM-DH-004-003), 05-08-2026 (Asia/Riyadh — UTC+03:00): adds the WS-DH-2026-0006 package to the navigation list and records the two currently packaged Workstreams. This file continues to carry stable identity only; all dynamic RM-DH-004 state remains in roadmap.md. The earlier provenance is preserved verbatim on the following source line.
 source: authored during RM-DH-004 / Phase 0 — Governance Persistence (Workstream WS-DH-2026-0003), under approved Decision DEC-RM-DH-004-001 and execution prompt PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-EXECUTION-02, following the passed planning audit PROMPT-DH-RM004-P0-GOVERNANCE-PERSISTENCE-PLANNING-AUDIT-01. This file carries stable identity only; all dynamic RM-DH-004 state lives in roadmap.md.
 source-sha256: n/a
