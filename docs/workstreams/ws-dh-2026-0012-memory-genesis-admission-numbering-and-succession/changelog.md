@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0012-CHANGELOG
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (changelog)
-version: 1.3.0
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-08-06
 last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
-source: v1.3.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 Correction Continuation C2 (bounded governance-content repair, no new local Prompt number and no new Decision consumed): appends exactly one C2 correction entry that supersedes the seven-path statement of the Local Prompt 02 entry with the corrected eight-path write set including docs/README.md. No prior entry was deleted or rewritten, no Decision was created and no Formal Acceptance or Closure occurred; v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02 and local Decision DEC-WS-DH-2026-0012-001, Owner authorization 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): appends exactly one Local Prompt 02 entry summarizing Local Prompt 01 and Correction Continuations C1–C5, the persisted Stage states and the Owner Alignment decision. No separate C1–C5 entries were created, no Live Memory or database activity occurred and no Formal Acceptance or Closure was granted; v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and approved Decision DEC-RM-DH-003-013: appends exactly one entry recording package/start Owner Acceptance. The earlier entry is preserved unchanged; no investigation ran and no local Prompt was consumed; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012. Records package creation and Owner start authorization only.
+source: v1.4.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 04 Stage-7 Acceptance, Installation-Readiness and Closure Persistence under execution prompt PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04 and local Decision DEC-WS-DH-2026-0012-002, Owner authorization and Owner Acceptance 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00): appends exactly one Local Prompt 04 entry recording the passed Stage-6 QA and Acceptance Re-Audit result of read-only Local Prompt 03, the final Stage 0–7 states, bounded installation readiness, the eight-path write set and the Closure of WS-DH-2026-0012. No prior entry was deleted or rewritten, no Memory ID was allocated and Project Knowledge remains NOT INSTALLED; v1.3.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 Correction Continuation C2 (bounded governance-content repair, no new local Prompt number and no new Decision consumed): appends exactly one C2 correction entry that supersedes the seven-path statement of the Local Prompt 02 entry with the corrected eight-path write set including docs/README.md. No prior entry was deleted or rewritten, no Decision was created and no Formal Acceptance or Closure occurred; v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02 and local Decision DEC-WS-DH-2026-0012-001, Owner authorization 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): appends exactly one Local Prompt 02 entry summarizing Local Prompt 01 and Correction Continuations C1–C5, the persisted Stage states and the Owner Alignment decision. No separate C1–C5 entries were created, no Live Memory or database activity occurred and no Formal Acceptance or Closure was granted; v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and approved Decision DEC-RM-DH-003-013: appends exactly one entry recording package/start Owner Acceptance. The earlier entry is preserved unchanged; no investigation ran and no local Prompt was consumed; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012. Records package creation and Owner start authorization only.
 source-sha256: n/a
 -->
 
@@ -110,3 +110,29 @@ Corrected historical Local Prompt 02 write set:
 **Exact stopping point.** Bounded three-file governance-content correction complete; Stage 6 — QA and Acceptance Re-Audit remains current and not started.
 
 **Next action.** ChatGPT review of the three-file correction, then preparation of a separate read-only Stage-6 QA and Acceptance Re-Audit Prompt as local Prompt 03.
+
+### 2026-08-06 — Local Prompt 04: Stage-7 Acceptance, Installation Readiness and Closure
+
+**Execution prompt.** `PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04` (local Prompt 04), Agent/Build, Parallel Task ID `PT-DH-WS0012-P04-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE`.
+
+**Owner authorization and Owner Acceptance.** Granted by Mohamed Nour on 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00).
+
+**Governing Decision.** `DEC-WS-DH-2026-0012-002` — Owner Acceptance, Installation-Readiness Determination and Closure of `WS-DH-2026-0012`, 23-point contract recorded in [`decisions.md`](./decisions.md).
+
+**Preceding read-only Prompt.** Local Prompt 03, `PROMPT-DH-WS0012-STAGE6-QA-AND-ACCEPTANCE-REAUDIT-03`, ran the independent Stage-6 QA and Acceptance Re-Audit and returned **PASSED**. That result is persisted by this entry.
+
+**Recorded state.** Workstream Status **OWNER ACCEPTED — CLOSED**; Final Stage **Stage 7 — RUN — COMPLETE**; Stages 0–4 **RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012**; Stage 5 **OWNER ALIGNMENT COMPLETE — OWNER DECISION PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012**; Stage 6 **RUN — PASSED — OWNER ACCEPTED — PERSISTED — CLOSED WITHIN WS-DH-2026-0012**; Stage 7 **RUN — OWNER ACCEPTANCE PERSISTED — BOUNDED INSTALLATION READINESS CONFIRMED — WS-DH-2026-0012 OWNER ACCEPTED — WS-DH-2026-0012 CLOSED**.
+
+**Installation readiness.** BOUNDED INSTALLATION READINESS CONFIRMED — READY FOR DOWNSTREAM GOVERNED USE — PROJECT KNOWLEDGE NOT INSTALLED.
+
+**Paths changed.** Exactly eight: this package's `README.md` (1.2.0 → 1.3.0), `roadmap.md` (1.2.0 → 1.3.0), `decisions.md` (1.2.0 → 1.3.0) and this changelog (1.3.0 → 1.4.0); `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/roadmap.md` (1.9.0 → 1.10.0, including repair of the unclosed bold marker in Deferred Item 15); `docs/roadmaps/rm-dh-003-roadmap-and-workstream-governance/changelog.md` (1.4.0 → 1.5.0); `docs/workstreams/README.md` (1.9.0 → 1.10.0); `docs/README.md` (1.18.0 → 1.19.0). No ninth path was written.
+
+**Preserved.** `DEC-WS-DH-2026-0012-001` and all 27 points stand unchanged; the P1/P2 counts (99 bodies, 9 Core rules), the four dangling index references, the eight unindexed bodies, the fourteen duplicate clusters, `F-C5-01`, the 59 F-status and 15 E-status bodies and the reserved IDs `MEM-079`, `MEM-084`, `MEM-090`, `MEM-095` are untouched; the Deferred Items Register remains exactly 20 items.
+
+**Numbering.** Local Prompts consumed 4 (01 with C1–C5, 02 with C1–C2, 03, 04); next eligible local Prompt `05` — NOT CONSUMED. Local Decisions consumed 2; latest `DEC-WS-DH-2026-0012-002`; next eligible `DEC-WS-DH-2026-0012-003` — NOT CREATED.
+
+**Not performed.** No Memory ID allocation, no Memory Candidate admission, no Memory body or `mem://index.md` change, no Project Knowledge installation, no Persistent Knowledge Stage B start, no application-code inspection or modification, no database access, no schema, migration, RLS, RPC or Edge Function change, no Skill or Workspace Knowledge change, no `AGENTS.md`, no Documentation 01–13 use, no `RM-DH-004` change, no `WS-DH-2026-0013` run or start, no start of `WS-DH-2026-0014` or `WS-DH-2026-0015`, no Sub-phase 3.2 advancement and no closure of Sub-phase 3.1, Phase 3 or `RM-DH-003`.
+
+**Exact stopping point.** `WS-DH-2026-0012` is OWNER ACCEPTED and CLOSED; no further work is permitted inside this Workstream.
+
+**Next action.** ChatGPT final review of the closure, then a separate Owner decision on whether and when to authorize the `WS-DH-2026-0013` investigation.

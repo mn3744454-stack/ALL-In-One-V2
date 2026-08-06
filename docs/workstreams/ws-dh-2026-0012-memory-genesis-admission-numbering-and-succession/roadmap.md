@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0012-ROADMAP
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (authoritative current state)
-version: 1.2.0
+version: 1.3.0
 status: current
 audience: internal
 date: 2026-08-06
 last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
-source: v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02 and local Decision DEC-WS-DH-2026-0012-001, Owner authorization and Owner Alignment 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): records Stages 0–4 as RUN, SUBSTANTIVELY COMPLETE, OWNER ALIGNED and PERSISTED, Stage 5 as OWNER ALIGNMENT COMPLETE and OWNER DECISION PERSISTED, Stage 6 as CURRENT — NOT STARTED, Stage 7 as NOT STARTED, Local Prompt 01 with Correction Continuations C1–C5 and Local Prompt 02 as consumed, and next eligible local Prompt 03 — NOT CONSUMED. No Live Memory object or mem://index.md entry was modified, no Memory ID was allocated, no application code was inspected, no database was accessed, no Sub-phase 3.2 advancement occurred and no Formal Acceptance or Closure was granted; v1.1.0 — Owner-Acceptance Persistence under PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and Decision DEC-RM-DH-003-013; v1.0.0 — package creation under PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and Decision DEC-RM-DH-003-012.
+source: v1.3.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 04 Stage-7 Acceptance, Installation-Readiness and Closure Persistence under execution prompt PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04 and local Decision DEC-WS-DH-2026-0012-002, Owner authorization and Owner Acceptance 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00): persists the passed Stage-6 QA and Acceptance Re-Audit result of read-only Local Prompt 03, records Stages 0–7 final states, records Local Prompts 03 and 04 as consumed with next eligible 05 NOT CONSUMED, records two local Decisions consumed with next eligible DEC-WS-DH-2026-0012-003, confirms bounded installation readiness and closes the Workstream as OWNER ACCEPTED — CLOSED. No Memory object or mem://index.md entry was modified, no Memory ID was allocated, no Candidate was admitted, no application code was inspected, no database was accessed, Project Knowledge remains NOT INSTALLED, WS-DH-2026-0013 remains unrun, Sub-phase 3.2 remains NOT STARTED and no RM-DH-003, Phase 3 or Sub-phase 3.1 closure occurred; v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02 and local Decision DEC-WS-DH-2026-0012-001, Owner authorization and Owner Alignment 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): records Stages 0–4 as RUN, SUBSTANTIVELY COMPLETE, OWNER ALIGNED and PERSISTED, Stage 5 as OWNER ALIGNMENT COMPLETE and OWNER DECISION PERSISTED, Stage 6 as CURRENT — NOT STARTED, Stage 7 as NOT STARTED, Local Prompt 01 with Correction Continuations C1–C5 and Local Prompt 02 as consumed, and next eligible local Prompt 03 — NOT CONSUMED. No Live Memory object or mem://index.md entry was modified, no Memory ID was allocated, no application code was inspected, no database was accessed, no Sub-phase 3.2 advancement occurred and no Formal Acceptance or Closure was granted; v1.1.0 — Owner-Acceptance Persistence under PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and Decision DEC-RM-DH-003-013; v1.0.0 — package creation under PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and Decision DEC-RM-DH-003-012.
 source-sha256: n/a
 -->
 
@@ -26,18 +26,13 @@ Parent:
 RM-DH-003 / Phase 3 / Sub-phase 3.1
 
 Workstream Status:
-ACTIVE —
-STAGES 0–4 RUN, SUBSTANTIVELY COMPLETE, OWNER ALIGNED AND PERSISTED —
-STAGE 5 OWNER ALIGNMENT COMPLETE AND PERSISTED —
-STAGE 6 CURRENT — NOT STARTED —
-NO FORMAL ACCEPTANCE —
-NO CLOSURE
+OWNER ACCEPTED — CLOSED
 
-Current Stage:
-Stage 6 — QA and Acceptance Re-Audit — CURRENT — NOT STARTED
+Final Stage:
+Stage 7 — Persistence, Installation Readiness and Owner Closure Decision — RUN — COMPLETE
 
-Stages substantively complete and persisted:
-0, 1, 2, 3, 4
+Stages Owner accepted and closed within this Workstream:
+0, 1, 2, 3, 4, 5, 6, 7
 
 Investigation:
 RUN under Local Prompt 01 and Correction Continuations C1–C5
@@ -50,40 +45,50 @@ Stage 5 Owner Alignment:
 APPROVED 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00).
 Persisted under DEC-WS-DH-2026-0012-001 (Local Prompt 02).
 
+Stage 6 QA and Acceptance Re-Audit:
+RUN AND PASSED by read-only Local Prompt 03.
+OWNER ACCEPTED and PERSISTED by Local Prompt 04.
+
+Formal Owner Acceptance and Closure:
+GRANTED 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00).
+Persisted under DEC-WS-DH-2026-0012-002 (Local Prompt 04).
+
+Installation readiness:
+BOUNDED INSTALLATION READINESS CONFIRMED —
+READY FOR DOWNSTREAM GOVERNED USE —
+PROJECT KNOWLEDGE NOT INSTALLED
+
 Official local Prompts consumed:
-2
+4
 
 Next eligible local Prompt:
-03 — NOT CONSUMED
+05 — NOT CONSUMED
 
 Local Decisions consumed:
-1 — DEC-WS-DH-2026-0012-001
+2 — DEC-WS-DH-2026-0012-001 and DEC-WS-DH-2026-0012-002
 
 Next eligible local Decision:
-DEC-WS-DH-2026-0012-002
+DEC-WS-DH-2026-0012-003 — NOT CREATED
 
-QA:
-Not performed
-
-Formal Acceptance:
+Sub-phase 3.2 advancement:
 NONE
 
-Closure:
-NONE
+Project Knowledge:
+NOT INSTALLED
 ```
 
 ## Stage register
 
 | Stage | Title | Status |
 |---|---|---|
-| `0` | Scope, Evidence Boundary and Prompt-Lineage Verification | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED |
-| `1` | Memory Inventory and Provenance Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED |
-| `2` | Admission, Rejection and Supersession Rules Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED |
-| `3` | Numbering, Succession and Reserved-ID Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED |
-| `4` | Contradiction, Duplication and Correction Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED |
-| `5` | Owner Alignment | OWNER ALIGNMENT COMPLETE — OWNER DECISION PERSISTED — NOT FORMALLY ACCEPTED — NOT CLOSED |
-| `6` | QA and Acceptance Re-Audit | CURRENT — NOT STARTED |
-| `7` | Persistence, Installation Readiness and Owner Closure Decision | NOT STARTED |
+| `0` | Scope, Evidence Boundary and Prompt-Lineage Verification | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012 |
+| `1` | Memory Inventory and Provenance Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012 |
+| `2` | Admission, Rejection and Supersession Rules Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012 |
+| `3` | Numbering, Succession and Reserved-ID Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012 |
+| `4` | Contradiction, Duplication and Correction Investigation | RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012 |
+| `5` | Owner Alignment | OWNER ALIGNMENT COMPLETE — OWNER DECISION PERSISTED — OWNER ACCEPTED — CLOSED WITHIN WS-DH-2026-0012 |
+| `6` | QA and Acceptance Re-Audit | RUN — PASSED — OWNER ACCEPTED — PERSISTED — CLOSED WITHIN WS-DH-2026-0012 |
+| `7` | Persistence, Installation Readiness and Owner Closure Decision | RUN — OWNER ACCEPTANCE PERSISTED — BOUNDED INSTALLATION READINESS CONFIRMED — WS-DH-2026-0012 OWNER ACCEPTED — WS-DH-2026-0012 CLOSED |
 
 Stage 7 is **not** Project Knowledge installation. This Workstream may assess later installation readiness; Project Knowledge installation remains governed by the later authorized Workstream and Sub-phase 3.7.
 
@@ -109,6 +114,10 @@ Stage 7 is **not** Project Knowledge installation. This Workstream may assess la
 | `01 / C4` | Comparison of Memory assertions against accepted Rounds 1–5; superseded only in its mixed counting model and its unsupported complete-classification claim | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
 | `01 / C5` | Auditable URI-by-URI classification ledger and count-integrity repair — final technical verdict PASSED | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
 | `02` | Bounded governance persistence of the verified run history and the Stage-5 Owner Alignment decision | SUBMITTED — RUN — CONSUMED |
+| `02 / C1` | Read-only governance-persistence evidence and scope verification; defects `D-C1-01` … `D-C1-04` raised | RUN UNDER LOCAL PROMPT 02 — NO NEW NUMBER CONSUMED |
+| `02 / C2` | Bounded governance-content repair of `D-C1-01` … `D-C1-04` | RUN UNDER LOCAL PROMPT 02 — NO NEW NUMBER CONSUMED |
+| `03` | Independent read-only Stage-6 QA and Acceptance Re-Audit of the persisted governance state | SUBMITTED — RUN — CONSUMED — PASSED |
+| `04` | Stage-7 persistence of the Stage-6 result, Owner Acceptance, bounded installation readiness and Closure | SUBMITTED — RUN — CONSUMED |
 
 ## Persisted investigation findings
 
@@ -201,18 +210,20 @@ Local Prompt 02 did **not** live-verify code or database state. Required future 
 ## Current stopping point
 
 ```text
-Local Prompt 02 governance persistence is complete.
-Stages 0–4 are run, substantively complete, Owner aligned and persisted.
-Stage 5 Owner Alignment is complete and persisted as DEC-WS-DH-2026-0012-001.
-Stage 6 — QA and Acceptance Re-Audit is current and has not started.
-Stage 7 has not started.
-No Formal Acceptance and no Closure exists.
+Local Prompt 04 Stage-7 persistence is complete.
+Stages 0–4 are Owner accepted and closed within WS-DH-2026-0012.
+Stage 5 Owner Alignment is persisted as DEC-WS-DH-2026-0012-001, Owner accepted and closed within WS-DH-2026-0012.
+Stage 6 QA and Acceptance Re-Audit is run, passed, Owner accepted and persisted.
+Stage 7 is run: Owner Acceptance persisted under DEC-WS-DH-2026-0012-002,
+bounded installation readiness confirmed, WS-DH-2026-0012 CLOSED.
+Project Knowledge remains NOT INSTALLED.
+WS-DH-2026-0013 remains unrun and not started.
+Sub-phase 3.2 remains NOT STARTED. RM-DH-003, Phase 3 and Sub-phase 3.1 are not closed.
 ```
 
 ## Next permitted step
 
 ```text
-Prepare a separate read-only Stage-6 QA and Acceptance Re-Audit Prompt
-as WS-DH-2026-0012 local Prompt 03.
-No Stage-6 work may be performed before that Prompt is authorized and submitted.
+No further work is permitted inside WS-DH-2026-0012; the Workstream is CLOSED.
+A separate explicit Owner authorization is required before WS-DH-2026-0013 may start.
 ```
