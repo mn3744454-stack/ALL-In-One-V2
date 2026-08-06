@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0012-DECISIONS
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (decisions)
-version: 1.3.0
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-08-06
 last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
-source: v1.3.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 04 Stage-7 Acceptance, Installation-Readiness and Closure Persistence under execution prompt PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04, Owner Acceptance granted by Mohamed Nour on 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00): records exactly one new local Decision, DEC-WS-DH-2026-0012-002, containing the complete Owner Acceptance, bounded installation-readiness and Closure contract. DEC-WS-DH-2026-0012-001 and its 27 points are preserved unchanged, no Decision was renumbered or reused, no Memory ID was allocated, no Memory body or mem://index.md entry was modified and Project Knowledge remains NOT INSTALLED; v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 Correction Continuation C2 (bounded governance-content repair under PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02, no new local Prompt number and no new Decision consumed): repairs defect D-C1-03 by aligning this file's frontmatter version with the identity-table Package version. DEC-WS-DH-2026-0012-001 and its complete 27-point contract are preserved substantively unchanged, no Decision was created, renumbered or reused, no Memory ID was allocated and no Formal Acceptance or Closure occurred; v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02, Owner Alignment decision granted by Mohamed Nour on 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): records exactly one new local Decision, DEC-WS-DH-2026-0012-001, containing the complete Owner Alignment contract. No other Decision was created, no Decision was renumbered or reused, no Memory ID was allocated and no Live Memory object or mem://index.md entry was modified; v1.0.0 — authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and parent Decision DEC-RM-DH-003-012.
+source: v1.4.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 04 Correction Continuation C2 (DECISION-002 EXACT 36-POINT CONTRACT REPAIR under PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04, no new local Prompt number and no new Decision consumed): replaces the superseded consolidated 23-point Approved Contract of DEC-WS-DH-2026-0012-002 with exactly the authoritative 36 self-contained Owner-contract points, so that no material obligation depends solely on incorporation of DEC-WS-DH-2026-0012-001. The three additive non-contract subjects are preserved as unnumbered administrative notes. The Decision ID, title, Owner Mohamed Nour, approval date 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00), status, governing Prompt, Parallel Task ID and Stage-6 evidence basis are unchanged; DEC-WS-DH-2026-0012-001 and its 27 points are unchanged; no Decision was created, renumbered or reused; DEC-WS-DH-2026-0012-003 remains NOT CREATED; Local Prompt 05 remains NOT CONSUMED; no Stage state, Acceptance act or Closure act changed; no Memory ID was allocated, no Memory body or mem://index.md entry was modified and Project Knowledge remains NOT INSTALLED. The earlier provenance chain is preserved verbatim below. v1.3.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 04 Stage-7 Acceptance, Installation-Readiness and Closure Persistence under execution prompt PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04, Owner Acceptance granted by Mohamed Nour on 06-08-2026 — August at 14:12 (Asia/Riyadh — UTC+03:00): records exactly one new local Decision, DEC-WS-DH-2026-0012-002, containing the complete Owner Acceptance, bounded installation-readiness and Closure contract. DEC-WS-DH-2026-0012-001 and its 27 points are preserved unchanged, no Decision was renumbered or reused, no Memory ID was allocated, no Memory body or mem://index.md entry was modified and Project Knowledge remains NOT INSTALLED; v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 Correction Continuation C2 (bounded governance-content repair under PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02, no new local Prompt number and no new Decision consumed): repairs defect D-C1-03 by aligning this file's frontmatter version with the identity-table Package version. DEC-WS-DH-2026-0012-001 and its complete 27-point contract are preserved substantively unchanged, no Decision was created, renumbered or reused, no Memory ID was allocated and no Formal Acceptance or Closure occurred; v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02, Owner Alignment decision granted by Mohamed Nour on 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): records exactly one new local Decision, DEC-WS-DH-2026-0012-001, containing the complete Owner Alignment contract. No other Decision was created, no Decision was renumbered or reused, no Memory ID was allocated and no Live Memory object or mem://index.md entry was modified; v1.0.0 — authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and parent Decision DEC-RM-DH-003-012.
 source-sha256: n/a
 -->
 
@@ -23,7 +23,7 @@ This file owns approved local decisions, options, rationale, rejected alternativ
 | Field | Value |
 |---|---|
 | Workstream ID | `WS-DH-2026-0012` |
-| Package version | 1.3.0 |
+| Package version | 1.4.0 |
 | Parent Roadmap | `RM-DH-003` |
 | Parent Phase / Sub-phase | Phase 3 / Sub-phase 3.1 |
 | Governing parent Decision | `DEC-RM-DH-003-012` — Owner Authorization to Create and Start Foundational Workstreams `WS-DH-2026-0012` and `WS-DH-2026-0013` as Isolated Parallel Lanes |
@@ -126,29 +126,54 @@ Retrospective en-bloc admission of the existing Memory corpus as approved Projec
 
 ### Approved contract
 
-1. The Stage-6 QA and Acceptance Re-Audit result of read-only local Prompt 03 is **PASSED** and is persisted as the governing acceptance evidence for this Workstream.
-2. Stages 0–4 are **RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN `WS-DH-2026-0012`**.
-3. Stage 5 is **OWNER ALIGNMENT COMPLETE — OWNER DECISION PERSISTED — OWNER ACCEPTED — CLOSED WITHIN `WS-DH-2026-0012`**.
-4. Stage 6 is **RUN — PASSED — OWNER ACCEPTED — PERSISTED — CLOSED WITHIN `WS-DH-2026-0012`**.
-5. Stage 7 is **RUN — OWNER ACCEPTANCE PERSISTED — BOUNDED INSTALLATION READINESS CONFIRMED — `WS-DH-2026-0012` OWNER ACCEPTED — `WS-DH-2026-0012` CLOSED**.
-6. `WS-DH-2026-0012` is **OWNER ACCEPTED — CLOSED**.
-7. Installation readiness is **BOUNDED**: the outputs of this Workstream are ready as governed inputs for downstream Roadmap Workstreams.
-8. Bounded installation readiness is **not** Project Knowledge installation; Project Knowledge remains **NOT INSTALLED** and remains governed by Sub-phase 3.7.
-9. `DEC-WS-DH-2026-0012-001` and its complete 27-point contract remain in force, substantively unchanged.
-10. No Memory ID is allocated, no Memory Candidate is admitted, no Memory body and no `mem://index.md` entry is modified by this Decision.
-11. The four dangling index references remain UNRESOLVED MISSING-CONTENT CANDIDATES and remain distinct from the reserved IDs `MEM-079`, `MEM-084`, `MEM-090` and `MEM-095`.
-12. The eight unindexed stored bodies remain a Candidate pool and are not admitted.
-13. The 14 duplicate or overlap clusters remain recorded only and unresolved.
-14. The 59 F-status bodies remain routed to a later separately authorized technical-verification lane.
-15. The 15 E-status bodies remain without an accepted-truth home pending an explicit Owner decision.
-16. `F-C5-01` remains uncorrected and requires bounded live implementation verification before any correction.
-17. Closure of `WS-DH-2026-0012` is **not** closure of Sub-phase 3.1, Phase 3 or `RM-DH-003`.
-18. `WS-DH-2026-0013` remains **UNRUN AND NOT STARTED** and requires a separate explicit Owner authorization.
-19. `WS-DH-2026-0014` and `WS-DH-2026-0015` remain **BLOCKED**.
-20. No Sub-phase 3.2 advancement is authorized.
-21. No application code, database, schema, migration, RLS, RPC, Edge Function, Skill, Workspace Knowledge or `AGENTS.md` change is authorized or performed.
-22. Local Prompt 04 is authorized only for bounded governance persistence of this Decision and the Stage-6 result within the eight governed paths.
-23. Local Decisions consumed in this Lineage: 2. Next eligible local Decision: `DEC-WS-DH-2026-0012-003` — NOT CREATED.
+1. The Owner accepts the technical result of `PROMPT-DH-WS0012-STAGE6-QA-AND-ACCEPTANCE-REAUDIT-03`.
+2. Stage 6 — QA and Acceptance Re-Audit is accepted as: **RUN — PASSED — OWNER ACCEPTED — PERSISTED**.
+3. The Owner confirms that `WS-DH-2026-0012` completed its authorized investigation, Owner Alignment, governance-persistence and independent QA scope.
+4. Option 2 remains approved: **REPOSITORY-AUTHORITATIVE MEMORY REGISTER WITH LIVE MEMORY AS A CONTROLLED PROJECTION**.
+5. All 99 stored Memory bodies remain Candidates only.
+6. Retrospective en-bloc admission remains rejected.
+7. Admission must remain individual, evidence-based and subject to explicit Owner approval.
+8. The four dangling index references remain unresolved missing-content candidates.
+9. The four dangling references must not be silently deleted, reconstructed or equated with the four reserved MEM IDs.
+10. The eight unindexed stored bodies remain in the Candidate pool and are not automatically admitted.
+11. Core rules must not become an uncontrolled independent authority layer.
+12. The target direction remains for Core rules to become controlled, generated projections of admitted repository-governed Memory records.
+13. Fixed counts such as 104 permission keys are evidence-time snapshots and are not permanent authority.
+14. Live authoritative registries or sources govern changing counts.
+15. `F-C5-01` must undergo bounded live implementation verification before any Memory or accepted-document correction.
+16. The 59 F-status Memory bodies remain unadmitted as proven implementation truth.
+17. The 59 F-status bodies remain assigned to a later separately authorized technical-verification lane.
+18. The 15 E-status UX, localization and terminology bodies require an accepted-truth home or explicit Owner decision before admission.
+19. `MEM-079`, `MEM-084`, `MEM-090` and `MEM-095` remain permanently reserved, inaccessible and unreconstructed.
+20. The four reserved IDs must never be reused, reassigned or inferred from the four dangling references.
+21. Every admitted Memory must eventually carry mandatory binding to: Roadmap, Workstream, Lineage, Prompt, Decision where applicable, evidence reference, evidence time, authority state, version and lifecycle state.
+22. No Memory ID is allocated by this Decision.
+23. No existing Memory body or `mem://index.md` entry is modified by this Decision.
+24. `WS-DH-2026-0012` outputs are accepted as governed inputs for later Roadmap Workstreams.
+25. Bounded installation readiness is confirmed for downstream governed use.
+26. Project Knowledge installation is not authorized and has not occurred.
+27. `WS-DH-2026-0013` remains unrun and requires separate Owner authorization before investigation.
+28. `WS-DH-2026-0014` and `WS-DH-2026-0015` remain blocked.
+29. Sub-phase 3.1 remains current because `WS-DH-2026-0013` has not run.
+30. Sub-phase 3.2 remains NOT STARTED.
+31. `RM-DH-003` remains ACTIVE.
+32. Phase 3 remains ACTIVE.
+33. No closure is granted to `RM-DH-003`, Phase 3 or Sub-phase 3.1.
+34. `WS-DH-2026-0012` alone is formally Owner accepted and closed.
+35. This closure does not resolve, cancel or supersede the later technical-verification, organizational, migration, reconstruction, re-audit or Project Knowledge installation Workstreams.
+36. Local Prompt 04 is authorized only to persist this Decision, the Stage-6 passed result, the Stage-7 result and the bounded Workstream closure state.
+
+### Administrative and execution notes (not Approved Contract points)
+
+These notes preserve the historical truth recorded by the superseded consolidated 23-point structure. They are administrative records only and carry no additional Owner-contract obligation.
+
+- Stage states persisted by Local Prompt 04 and unchanged by this correction: Stages 0–4 — RUN — SUBSTANTIVELY COMPLETE — OWNER ALIGNED — PERSISTED — OWNER ACCEPTED — CLOSED WITHIN `WS-DH-2026-0012`; Stage 5 — OWNER ALIGNMENT COMPLETE — OWNER DECISION PERSISTED — OWNER ACCEPTED — CLOSED WITHIN `WS-DH-2026-0012`; Stage 6 — RUN — PASSED — OWNER ACCEPTED — PERSISTED — CLOSED WITHIN `WS-DH-2026-0012`; Stage 7 — RUN — OWNER ACCEPTANCE PERSISTED — BOUNDED INSTALLATION READINESS CONFIRMED — `WS-DH-2026-0012` OWNER ACCEPTED — `WS-DH-2026-0012` CLOSED. `WS-DH-2026-0012` is OWNER ACCEPTED — CLOSED.
+- `DEC-WS-DH-2026-0012-001` and its complete 27-point contract remain in force, substantively unchanged. This reference is preserved for lineage only; no obligation in the 36-point contract above depends on it for material effect.
+- Bounded installation readiness is not Project Knowledge installation; Project Knowledge remains NOT INSTALLED and remains governed by Sub-phase 3.7.
+- The 14 duplicate or overlap clusters remain recorded only and unresolved.
+- No application code, database, schema, migration, RLS, RPC, Edge Function, Skill, Workspace Knowledge or `AGENTS.md` change was authorized or performed by Local Prompt 04 or by this correction.
+- Local Decisions consumed in this Lineage: 2. Next eligible local Decision: `DEC-WS-DH-2026-0012-003` — NOT CREATED.
+- Contract-structure history: the Approved Contract above was persisted by Local Prompt 04 Correction Continuation C2 as exactly 36 self-contained points, replacing the superseded consolidated 23-point structure identified as insufficiently self-contained by Local Prompt 04-C1. The Decision ID, Owner Acceptance, approval date and time, Stage results and Workstream Closure are unchanged; no new Decision, Prompt number, Acceptance act or Closure act was created.
 
 ### Rejected alternative
 
