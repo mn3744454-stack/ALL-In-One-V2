@@ -116,7 +116,7 @@ Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is
 
 ### Sub-phase 3.1 advancement record
 
-- **Sub-phase 3.1 status.** CURRENT — ADVANCEMENT PERSISTED — POST-ADVANCEMENT VERIFICATION PASSED — FIRST TWO FOUNDATIONAL WORKSTREAMS CREATED AND STARTED — INVESTIGATIONS NOT YET RUN.
+- **Sub-phase 3.1 status.** CURRENT — FIRST TWO FOUNDATIONAL WORKSTREAMS CREATED AND STARTED — `WS-DH-2026-0012` STAGES 0–4 RUN AND SUBSTANTIVELY COMPLETE, STAGE 5 OWNER ALIGNMENT PERSISTED UNDER `DEC-WS-DH-2026-0012-001`, STAGE 6 CURRENT AND NOT STARTED — `WS-DH-2026-0013` INVESTIGATION NOT YET RUN.
 - **Owner Advancement.** Approved 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00, and persisted here under `DEC-RM-DH-003-011`.
 - **Post-advancement verification.** Passed under the read-only targeted post-advancement verification (Prompt 13).
 - **Boundary.** Setting Sub-phase 3.1 as the current Sub-phase did **not** by itself start any Workstream. The Workstream starts recorded below rest on the separate Owner authorization of 05-08-2026 at 16:55 under `DEC-RM-DH-003-012`.
