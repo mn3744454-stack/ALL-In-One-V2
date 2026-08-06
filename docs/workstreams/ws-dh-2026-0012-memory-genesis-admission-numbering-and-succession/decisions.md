@@ -1,7 +1,7 @@
 <!--
 id: DHB-WS-2026-0012-DECISIONS
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (decisions)
-version: 1.3.0
+version: 1.4.0
 status: current
 audience: internal
 date: 2026-08-06
