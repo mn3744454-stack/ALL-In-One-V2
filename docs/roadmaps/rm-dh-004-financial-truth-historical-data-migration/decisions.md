@@ -226,8 +226,75 @@ This Acceptance does **not**:
 - Closed Phase-1 contracts, including `public.ledger_entries.effective_date NOT NULL`, are unchanged.
 - The `WS-DH-2026-0006` local Decision register remains at 0 consumed Decisions; this is a Roadmap-level Decision inherited by the Workstream, not a local Workstream Decision.
 
+## DEC-RM-DH-004-005 — Owner Acceptance of the Complete Stage-1 Technical Foundation Execution Contract
+
+**Date:** 07-08-2026 — 00:12 — Asia/Riyadh — UTC+03:00
+
+**Owner:** Mohamed Nour
+
+**Prompt:** `PROMPT 55 — SAME-SUBJECT CONTINUATION C1` of parent prompt `Prompt 55 — Stage 1 Technical Foundation Audit`. Prompt 55 is CONSUMED; no new Prompt number was consumed.
+
+**Parallel Task ID:** `PT-DH-RM004-WS0006-P55-C1-STAGE1-PERSIST-20260807-0012`
+
+**Scope:** RM-DH-004 / Phase 2 — Stage 1, Workstream `WS-DH-2026-0006`.
+
+### Decision
+
+The Owner grants explicit Acceptance of the complete Stage-1 Technical Foundation Execution Contract for the Shared Platform-Wide Historical Import Foundation, and authorizes its persistence into repository governance as the single authoritative Stage-1 contract.
+
+The contract is stored exactly once, in full, as `docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/stage-1-technical-foundation-execution-contract.md`, comprising the complete 38-section Owner-accepted contract text. No competing, partial or superseding Stage-1 contract exists.
+
+### Accepted State
+
+- Phase-2 Stage 1 — Technical Foundation Audit and Execution Contract: `OWNER ACCEPTED — PERSISTED`.
+- Stage-1 technical implementation: `NOT STARTED`.
+- Phase-2 Stage 2 — Shared Control Plane: `NOT STARTED`.
+- Technical execution authorization: `NOT GRANTED`.
+- `WS-DH-2026-0006` Workstream Status: `ACTIVE — STAGE 1 OWNER ACCEPTED AND PERSISTED — STAGE 2 NOT STARTED — TECHNICAL IMPLEMENTATION NOT STARTED`.
+- Current environment: `NON-PRODUCTION`.
+
+### Bound Evidence Artifact
+
+| Field | Value |
+|---|---|
+| Artifact | `Dayli_Horse_Historical_Import_Evidence_Pack_v0.4.xlsx` |
+| SHA-256 | `ed34d290e58173033856ac0a66fda60487e4b66e2df224ee63375352347acc7a` |
+| Byte size | `59424` |
+| Disposition | ChatGPT-issued supporting evidence artifact, bound to this contract by reference only; NOT committed to the repository and NOT uploaded to application Storage. |
+
+### Accepted Bounded Source Conclusions
+
+1. The original Excel binary verification gate is closed.
+2. SRC-004 total is verified at 34,160; the prior SRC-004 paid-5,000 attribution is withdrawn as unsupported by the document.
+3. SRC-006 total is verified at 10,915.
+4. SRC-007 total is verified at 1,575 across 6 records.
+5. SRC-008 remains UNVERIFIED: declared total 12,070, extracted row sum 10,640, variance 1,430; it stays in Hard Quarantine.
+6. Declared Total Validation is mandatory wherever a declared total exists; where no declared total exists, an approved alternate reconciliation method is required.
+7. Diagnostic inspection and re-extraction are permitted while a source is in Quarantine; approval and canonical posting remain blocked.
+8. The current Finance ACL posture is mixed; Historical Import must adopt a stricter, independent ACL baseline rather than inheriting it.
+
+### Rationale
+
+The Stage-1 read-only Technical Foundation Audit established that no Historical Import substrate exists and that the corpus carries verified and unverified segments with differing risk. Persisting the complete contract before any technical work fixes the execution boundary, the quarantine rules and the ACL baseline in governance, so later slices are measured against an accepted written contract rather than an evolving verbal one.
+
+### Explicit Non-Decisions
+
+- This Decision does **not** authorize any technical slice, database access, migration, SQL, RLS, Grant or permission change, Storage bucket or object, Edge Function, malware-provider activation, parsing, staging, Finance posting or Finance reversal.
+- It does **not** grant Workstream Acceptance of technical work, Workstream Closure, Phase Closure or Roadmap Closure.
+- It does **not** reopen or weaken any closed Phase-1 contract, the RPC-mediated financial write authority, or the POS isolation boundary.
+- It does **not** authorize payment-bearing canonical posting, which remains prohibited until the payment correction and reversal contract is independently accepted.
+- It does **not** clear SRC-008 from Hard Quarantine.
+- It does **not** consume a new Prompt number, and Prompt 56 remains UNCONSUMED AND UNAUTHORIZED.
+
+### Implications
+
+- The Stage-1 contract is now the authoritative reference for all later Phase-2 technical planning and execution.
+- Deferred Items 19, 25 and 26 remain **not** technically completed; contract persistence is not implementation completion.
+- The complete 47-item Deferred Items Register is preserved unrenumbered in `roadmap.md`.
+- The `WS-DH-2026-0006` local Decision register remains at 0 consumed Decisions; this is a Roadmap-level Decision inherited by the Workstream, not a local Workstream Decision.
+
 ## Decision Summary
 
-- Decisions recorded: `DEC-RM-DH-004-001` through `DEC-RM-DH-004-004`.
-- Next free Decision ID: `DEC-RM-DH-004-005`.
-- Current accepted governance state: RM-DH-004 ACTIVE; Phase 2 current; Phase-2 Stage 0 `COMPLETE — OWNER ACCEPTED — PERSISTED`; Stage 1 `NOT STARTED`; no Workstream Closure and no Roadmap Closure.
+- Decisions recorded: `DEC-RM-DH-004-001` through `DEC-RM-DH-004-005`.
+- Next free Decision ID: `DEC-RM-DH-004-006`.
+- Current accepted governance state: RM-DH-004 ACTIVE; Phase 2 current; Phase-2 Stage 0 `COMPLETE — OWNER ACCEPTED — PERSISTED`; Phase-2 Stage 1 `OWNER ACCEPTED — PERSISTED` with technical implementation `NOT STARTED`; Stage 2 `NOT STARTED`; technical execution authorization `NOT GRANTED`; no Workstream Closure and no Roadmap Closure.
