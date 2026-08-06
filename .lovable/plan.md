@@ -224,8 +224,8 @@ None. RM-DH-003 remains ACTIVE, Phase 3 remains ACTIVE, Sub-phase 3.1 remains cu
 - Parent Prompt ID: `PROMPT-DH-WS0012-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE-04`; Continuation C1 — SUBMITTED — RUN — NO NEW LOCAL NUMBER CONSUMED.
 - Workstream Lineage: `WS-DH-2026-0012` / Memory Genesis Investigative Lineage; local number 04 (C1).
 - Parallel Task ID: `PT-DH-WS0012-P04-C1-DECISION-002-CONTRACT-VERIFICATION`.
-- Owner authorization: 06-08-2026 — August; exact C1 authorization time not recorded.
-- Run and report time: 06-08-2026 — August, 15:14 (Asia/Riyadh — UTC+03:00).
+- Owner authorization: 06-08-2026 — August at 15:26 (Asia/Riyadh — UTC+03:00).
+- Run and report time: 06-08-2026 — August, 15:27 (Asia/Riyadh — UTC+03:00).
 - Branch / HEAD / parents / working tree: as §3.
 - `decisions.md` blob hash: `a1c77db605f1308cc814ebdbe623c394ce478454`.
 - Actual Decision points inspected: 23 numbered + 3 unnumbered substantive clauses.
