@@ -137,16 +137,30 @@ All 99 stored Memory bodies enter the target architecture as **Candidates only**
 | F-status bodies | 59 | Not admitted as proven implementation truth; routed to a later separately authorized technical-verification lane |
 | E-status bodies | 15 | Require an accepted-truth home or an explicit Owner decision before admission |
 
+### Bounded installation readiness
+
+```text
+BOUNDED INSTALLATION READINESS CONFIRMED —
+READY FOR DOWNSTREAM GOVERNED USE —
+PROJECT KNOWLEDGE NOT INSTALLED
+```
+
+`WS-DH-2026-0012` outputs are **READY AS GOVERNED INPUTS FOR DOWNSTREAM ROADMAP WORKSTREAMS**: the Memory-governance direction is sufficiently investigated, the Owner Alignment contract is persisted, and the findings and exclusions are governed.
+
+This does **not** mean Project Knowledge is installed, Live Memory is migrated, any Memory Candidate is admitted, any `MEM-NNN` ID is allocated, the 59 F-status objects are technically verified, the 15 E-status objects have an accepted-truth home, `F-C5-01` is corrected, `WS-DH-2026-0013` has run, `WS-DH-2026-0014` or `WS-DH-2026-0015` may start, or Sub-phase 3.2 may start.
+
 ## Parallel lane isolation
 
 | Field | Value |
 |---|---|
 | Reserved Parallel Task ID | `PT-DH-WS0012-MEMORY-GENESIS-INVESTIGATION-01` |
 | Local Prompt 02 Parallel Task ID | `PT-DH-WS0012-P02-OWNER-ALIGNMENT-PERSISTENCE-20260806-01` |
+| Local Prompt 03 Parallel Task ID | `PT-DH-WS0012-P03-STAGE6-QA-ACCEPTANCE-REAUDIT` |
+| Local Prompt 04 Parallel Task ID | `PT-DH-WS0012-P04-STAGE7-ACCEPTANCE-CLOSURE-PERSISTENCE` |
 | Official Prompt Lineage | `WS-DH-2026-0012` / Memory Genesis Investigative Lineage |
-| Official Prompts consumed | 2 |
-| Next eligible local Prompt | `03` — NOT CONSUMED |
-| Sibling lane | `WS-DH-2026-0013` — separate lane, separate Lineage, separate Parallel Task ID, still unrun |
+| Official Prompts consumed | 4 |
+| Next eligible local Prompt | `05` — NOT CONSUMED |
+| Sibling lane | `WS-DH-2026-0013` — separate lane, separate Lineage, separate Parallel Task ID, still unrun and not started |
 
 Rules:
 
