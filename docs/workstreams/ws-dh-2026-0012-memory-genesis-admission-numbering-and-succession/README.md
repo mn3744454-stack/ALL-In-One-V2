@@ -29,7 +29,7 @@ source-sha256: n/a
 | Track | A — Memory Governance and Provenance |
 | Owner | Dayli Horse Platform Owner |
 | Governing parent Decision | `DEC-RM-DH-003-012` |
-| Local Decision | `DEC-WS-DH-2026-0012-001` |
+| Local Decisions | `DEC-WS-DH-2026-0012-001`, `DEC-WS-DH-2026-0012-002` |
 
 ## Purpose
 
