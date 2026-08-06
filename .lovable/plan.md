@@ -6,7 +6,8 @@ WS-DH-2026-0012 LOCAL PROMPT 04-C1 DECISION-002 CONTRACT
 VERIFICATION FAILED —
 ONE OR MORE OF THE 36 REQUIRED OWNER-CONTRACT POINTS ARE MISSING,
 PARTIAL, WEAKENED, EXPANDED OR CONTRADICTED —
-BOUNDED DECISION REPAIR REQUIRED
+BOUNDED DECISION REPAIR REQUIRED —
+WS-DH-2026-0012 CLOSURE REQUIRES CORRECTION BEFORE FINAL VERIFICATION
 
 Nature of the failure: no expected point is absent, weakened or contradicted **in effect**, but 15 expected points survive only through the incorporation-by-reference clause (actual point 9) rather than as standalone obligations in `DEC-WS-DH-2026-0012-002`, and four of those carry medium-to-high governance materiality under the §10 materiality test. Conclusion B applies.
 
