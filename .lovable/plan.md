@@ -1,283 +1,248 @@
-# Prompt 55 — Continuation A2 — Part 2 — Data, Tenant-Isolation and Security Model (read-only)
+# Prompt 55 — Continuation A2 — Part 3 — Execution Safety, Reversal, Storage and Delivery Model (read-only)
 
-RM-DH-004 / Phase 2 / WS-DH-2026-0006 / Stage 1. Repository writes: ZERO. Database writes: ZERO. Storage writes: ZERO. No posting, reversal, parser, pilot or environment decision.
+RM-DH-004 / Phase 2 / WS-DH-2026-0006 / Stage 1. Repository writes: ZERO. Database writes: ZERO. Storage writes: ZERO. No final Execution Contract, no slice authorization, no pilot authorization.
 
-## A. Primary Part-2 verdict
+## A. Primary Part-3 verdict
 
-A complete, implementable Shared-Core data, tenant-isolation, ACL, RLS and atomic-permission model is issued as a **proposal only**. It is conditionally coherent: every object, index and permission is defined without undefined columns, and the previously defective `import_row_issues` index and the provenance uniqueness defect are both resolved. One architectural fork (schema placement) remains conditionally recommended pending the unresolved PostgREST exposed-schema evidence carried forward from Part 1.
+The execution-safety model is issuable, with one decisive finding: `reverse_expense` is now **proven** as a canonical compensating reversal (body read this turn), while payments, invoice-payment allocations, payment sessions and billing links remain **without any reversal path**. Consequently the only defensible first Finance pilot is **Pilot B — unpaid invoices plus reversible expenses**, and payment-class imports are **blocked**. The environment fork remains open; Option A is recommended but is not proven available.
 
 ## B. Run identity and live boundary
 
 | Item | Value |
 |---|---|
-| Branch | `edit/edt-2d65afff-ba87-4036-9533-a1abf4d9b41c` |
-| HEAD | `21f6f688109216dd5b590c436ae8542d58b31070` |
-| Parent 1 | `308a0e8aca12733b2ac31486ac7f63a31ae79580` (Part-1 HEAD) |
-| Parent 2 | `70eda600d86051252a96d3701c7f4e58e7ad619f` |
+| Branch | `edit/edt-1ef3d38e-f5ec-4570-b288-933a693dc6a1` |
+| HEAD | `1ce13b08085dfa14d8693493144e22c31392e4b2` |
+| Parent 1 | `21f6f688109216dd5b590c436ae8542d58b31070` (Part-2 HEAD) |
+| Parent 2 | `3874af9200bec36bac5a55102b2b94f30fc379d1` |
 | Working tree | clean — zero staged, unstaged, untracked paths |
 | Lovable project ID | `64c79edd-f667-42bb-b896-147c63e0ff12` |
 | Database ref | `vhxglsvxwwpmoqjabfmj` |
-| Evidence time | 2026-08-06 00:12 UTC / 03:12 Asia/Riyadh |
+| Evidence time | 2026-08-06 00:23 UTC / 03:23 Asia/Riyadh |
 
-**Drift since Part 1: YES (repository only).** A new edit branch and a new platform merge commit exist; the Part-1 HEAD is the first parent. No governance, code or database path relevant to this Workstream changed, the tree is clean, and the database boundary is unchanged. All Part-1 database evidence remains valid; no broad re-discovery was performed.
+**Drift since Part 2: repository only** — a new edit branch and merge commit whose first parent is the Part-2 HEAD. Clean tree. No governance, code or database change relevant to this Workstream. Database boundary unchanged.
 
-## C. Part-1 evidence consumed
+## C. Parts 1 and 2 evidence consumed
 
-All nine controlling items in §3 of this continuation are consumed unchanged: 158 base tables / 6 views / zero import relations; `public` as sole application schema; unresolved PostgREST exposed-schema configuration; mixed Finance ACL posture (`ledger_entries` browser read-only, `finance_request_idempotency` server-only, other Finance tables retaining browser-role DML grants under RLS); the explicit instruction not to copy that permissive posture; the canonical writer pattern; `service_role` as infrastructure only; single database boundary with no Git-branch isolation; Finance reversal gaps deferred to Part 3.
+All seven Part-1 items and six Part-2 items listed in §3 are consumed unchanged. The four ChatGPT reconciliation guards in §4 are adopted: (1) `storage_path` is exposed only through a safe view or RPC, never by direct table SELECT; (2) `import_staging_rows` explicitly carries `tenant_id` and `batch_id` as real columns because indexes, RLS and consistency constraints reference them; (3) posting authorization and posting execution are separate operations, permissions, events and timestamps; (4) a distinct `import.reconciliation.complete` permission is added alongside `import.reconciliation.view`, bringing the atomic set to 25 keys; (5) canonical output identity is `(tenant_id, output_type, output_id)` with many provenance edges pointing at one object — output identity is never duplicated per contributing row or unit; (6) no `has_permission()` signature is hardcoded here — execution-time code must reuse the exact live accepted signature.
 
-## D. Schema-placement fork
+## D. Targeted reads performed
 
-### Alternative A — `public` with RPC-controlled mutation
+1. **`reverse_expense` complete body and ACL** — `pg_proc.prosrc`, `prosecdef`, `proconfig`, `proacl`. Result: `SECURITY DEFINER`, `SET search_path=''`, EXECUTE to `authenticated` and `service_role`.
+2. **Payment / allocation / payment-session reversal candidates** — no new query needed; Part 1 already ran an exhaustive `pg_proc` scan of `public` for `%revers%`, `%void%`, `%refund%`, `%cancel%`, `%adjust%` and `%payment%`. No candidate exists.
+3. **Storage bucket security limits** — carried from Part 1: `horse-media` (private, 50 MB limit, MIME allowlist), `database_export_20_07_26` (private, no limits). No new read.
+4. Git live-state read (section B).
 
-- **Benefits:** matches the only convention the repository actually has; zero new exposure configuration; simplest migrations; UI reads work through the existing Supabase client with no RPC wrapper for list screens; simplest support/debugging.
-- **Risks:** every object sits on an API-exposed schema, so protection depends entirely on withheld grants plus RLS — a single accidental future `GRANT` re-opens raw payloads and Storage paths; sensitive columns (raw payload, storage path, job diagnostics, error text) live in the same relation as safe header data, forcing column-level discipline or split views.
-- **PostgREST dependency:** none — behaves correctly under any exposed-schema configuration.
-- **Migration complexity:** low.
-- **Tenant isolation:** fully dependent on RLS correctness on every table.
-- **UI reads:** direct `select` for allowed surfaces.
-- **Operations:** easiest.
+No broad database re-discovery was performed.
 
-### Alternative B — hybrid `public` + non-exposed internal schema
+## E. Environment fork and recommendation
 
-- **Benefits:** raw payloads, job diagnostics, attempts and Storage internals are unreachable by the Data API *by construction*, not merely by withheld grants — defence in depth beyond RLS; safe headers/views stay in `public`.
-- **Risks:** correctness depends on the internal schema genuinely not being exposed, which Part 1 could not verify; introduces a convention that exists nowhere else in this repository (158/158 application tables are in `public`), raising long-term maintenance and contributor-error risk; cross-schema foreign keys and definer functions need careful `search_path=''` fully-qualified discipline.
-- **PostgREST dependency:** **high and unresolved** — the whole benefit collapses if the internal schema is exposed or later added to the exposed list.
-- **Migration complexity:** moderate.
-- **Tenant isolation:** same RLS obligations on the `public` surface, plus RLS still required on internal tables because `service_role` bypasses it anyway and definer functions must self-check.
-- **UI reads:** all internal data must pass through RPCs or views.
-- **Operations:** harder — support queries and platform tooling assume `public`.
+### Option A — separate non-production environment
 
-## E. Conditional architecture recommendation
+- **Benefits:** destructive rollback drills, RLS/Grant negative tests, Storage policy tests and pilot rehearsals run with zero risk to real financial data; migration mistakes cost nothing; the first three slices can be exercised repeatedly.
+- **Risks:** schema, permission and Finance-RPC lineage can drift between environments, so a change proven safe in non-production may behave differently in production; two environments must be kept synchronized by discipline.
+- **Technical prerequisites:** a second Postgres project with the current schema, the 25+ permission definitions, the Finance RPC set and representative test tenants; a repeatable migration-application order.
+- **Operational prerequisites:** an owner for environment parity; a promotion checklist; a documented rule that no real-client data is copied down.
+- **Data isolation:** complete — separate database ref, separate Storage.
+- **Rollback:** unrestricted, including destructive drills.
+- **Promotion:** forward-only versioned migrations applied to production only after QA and Acceptance Re-Audit in non-production; no schema is ever promoted by copying data.
+- **Unresolved platform dependencies:** whether Lovable supports and supports-well a second project acting as staging for this app, including type generation, linter and backup tooling. Part 1 could not prove this; **it is not proven impossible either**, and a Lovable product claim alone must not be used to rule it out.
 
-**Conditionally recommend Alternative A**, hardened by column separation: keep every object in `public`, grant `authenticated` SELECT only on the safe header/summary tables and permission-filtered views, grant no SELECT at all on raw-payload, job-diagnostic and Storage-path tables, and route every mutation and every sensitive read through narrowly scoped `SECURITY DEFINER` RPCs.
+### Option B — controlled current-environment implementation
 
-Evidence still required before final selection:
-1. the authoritative PostgREST exposed-schema configuration (Part-1 gap 2);
-2. confirmation that a non-exposed schema is durable across platform-managed configuration changes;
-3. whether Lovable's managed tooling (types generation, linter, backups) fully supports a second application schema.
+- **Benefits:** no parity problem; the objects are created exactly once against real schema, real permission definitions and real Finance RPCs; fastest path to Slice 3A.
+- **Risks:** every migration touches the production database; a defective RLS policy, grant or trigger is a live exposure; destructive rollback drills are impossible without risking real data; a mistaken posting call would touch real financial truth.
+- **Technical prerequisites:** additive-only DDL; new objects inert (no UI route, no enabled RPC path) until authorized; per-slice migration plus reviewed rollback script; no modification of any existing Finance object, function signature or grant.
+- **Operational prerequisites:** explicit Owner risk acceptance; a dedicated test tenant; independent QA and Acceptance Re-Audit before activation; no real-client posting.
+- **Data isolation:** logical only — tenant scoping and inertness, not physical.
+- **Rollback:** schema rollback only; no destructive drills.
+- **Promotion:** none — the change is already in production.
+- **Unresolved platform dependencies:** none.
 
-If (1) and (2) resolve favourably, Alternative B becomes the stronger security posture for `import_staging_rows`, `import_job_attempts` and `import_events` specifically. Schema placement is **not** an Owner-approved decision in this Part.
+**Recommendation to evaluate: Option A — separate non-production environment.** It is the only option that permits the rollback drills the acceptance criteria require. This is a recommendation, **not Owner-approved**, and Option A must be confirmed as platform-supported before it is selected; if it proves unsupported, Option B becomes the fallback under the restrictions above.
 
-## F. Complete object matrix
+## F. Posting authorization model
 
-Conventions applied to every object below: `id uuid pk default gen_random_uuid()`; `tenant_id uuid not null references public.tenants(id)`; `created_at`/`created_by` immutable; RLS enabled; **no** `anon` access; **no** `authenticated` INSERT/UPDATE/DELETE anywhere; all mutation via RPC. "A-schema" = placement under Alternative A, "B-schema" = under Alternative B.
+Four distinct stages, each an immutable record plus event, each with its own permission, actor and timestamp:
 
-| # | Object | A / B schema | Data API | Purpose | Key fields | Immutable | Mutable | FKs | Status | CHECKs | Uniqueness | Indexes | Delete | Retention | Browser SELECT | Perm |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | `import_batches` | public / public | exposed | batch lifecycle root | domain, title, status, frozen_fingerprint, frozen_at, counts | tenant_id, domain, created_by, created_at | title, status, frozen_* , notes | tenants | yes | status in enum set; frozen_at not null when status ≥ APPROVED | `(tenant_id, id)` implicit | `(tenant_id, status)`, `(tenant_id, created_at desc)` | never | permanent | yes (safe header) | `import.batch.view` |
-| 2 | `import_source_files` | public / public | exposed | immutable file content identity | file_sha256, byte_size, detected_mime, declared_mime, original_name, storage_bucket, storage_path, legal_hold, retained_until, deleted_at | sha256, size, mimes, original_name, storage_path, created_by | legal_hold, retained_until, deleted_at, deleted_by | tenants | no | `byte_size > 0`; `char_length(file_sha256)=64` | **`(tenant_id, domain, file_sha256)`** — cross-batch | `(tenant_id, legal_hold)`, `(tenant_id, retained_until)` | row never deleted | permanent metadata; object ≥ 90 days post-posting | metadata yes; **`storage_path` not exposed** | `import.file.view` |
-| 3 | `import_batch_files` | public / public | exposed | authorized use of a file by a batch | sequence, attachment_role, processing_intent, duplicate_disposition, reprocess_authorized_by/at/reason | batch_id, source_file_id, sequence, created_by | duplicate_disposition, processing_intent, reprocess fields | batches, source_files, tenants | yes (link state) | disposition in {new, linked, warned, rejected, authorized_reprocess}; reprocess fields all-or-none | `(batch_id, source_file_id)`, `(batch_id, sequence)` | `(tenant_id, source_file_id)` | never | permanent | yes | `import.batch.view` |
-| 4 | `import_staging_rows` | public / **internal** | A: exposed / B: not | typed source rows | batch_file_id, sheet_name, row_ordinal, raw_payload jsonb, canonical_payload jsonb, canonical_row_hash, row_state, correction_version | batch_file_id, sheet, ordinal, raw_payload, correction_version 0 record | canonical_payload, hash, row_state, correction_version | batch_files, batches, tenants | yes | `row_ordinal >= 1`; `correction_version >= 0` | `(batch_file_id, sheet_name, row_ordinal, correction_version)` | `(tenant_id, batch_id, row_state)`, **non-unique** `(tenant_id, canonical_row_hash)` | never | with batch | **RPC-only** (raw payload) | `import.staging.view` |
-| 5 | `import_row_issues` | public / **internal** | A: exposed / B: not | validation & quarantine findings | staging_row_id, tenant_id, batch_id, severity, code, field_path, message_en, message_ar, resolved_by/at, resolution_note | staging_row_id, code, severity, raised_at | resolved_*, resolution_note | staging_rows, batches, tenants | severity + resolved | severity in {info, warning, error, quarantine} | `(staging_row_id, code, field_path)` where unresolved | `(tenant_id, batch_id, severity)`, `(staging_row_id)` | never | with batch | filtered view only | `import.issue.view` |
-| 6 | `import_mappings` | public / public | exposed | versioned header→field mapping | domain, name, version, mapping jsonb, is_active | mapping jsonb per version, version | is_active, description | tenants | active flag | `version >= 1` | `(tenant_id, domain, name, version)` | `(tenant_id, domain, is_active)` | never | permanent | yes | `import.mapping.view` |
-| 7 | `import_dry_run_results` | public / public | exposed | simulated outcome & variance | batch_id, run_no, totals jsonb, variance jsonb, blocking_issue_count, executed_by | entire row | none | batches, tenants | no | `run_no >= 1` | `(batch_id, run_no)` | `(tenant_id, batch_id)` | never | permanent | yes | `import.reconciliation.view` |
-| 8 | `import_batch_approvals` | public / public | exposed | immutable approval evidence | batch_id, sequence, kind (review_complete / approval / post_authorization / rollback_request / rollback_approval), frozen_fingerprint, permission_key_used, actor, decided_at, decision, reason | **entire row** | none | batches, tenants | decision | decision in {granted, refused}; kind in enum | `(batch_id, kind, sequence)` | `(tenant_id, batch_id, kind)` | never | permanent | yes | `import.audit.view` |
-| 9 | `import_jobs` | public / **internal** | A: exposed / B: not | parse/validate/post job control | batch_id, kind, status, checkpoint jsonb, lease_owner, lease_expires_at, lock_key bigint | batch_id, kind, created_by | status, checkpoint, lease_* | batches, tenants | yes | kind in {parse, validate, dry_run, post, reverse} | partial unique `(batch_id, kind)` where status in {queued, running} | `(tenant_id, status)`, `(lease_expires_at)` | never | with batch | progress fields via RPC only | `import.batch.view` |
-| 10 | `import_job_attempts` | public / **internal** | A: exposed / B: not | retry evidence | job_id, attempt_no, started_at, ended_at, outcome, error_code, error_detail, rows_processed | entire row | none | jobs, tenants | outcome | `attempt_no >= 1` | `(job_id, attempt_no)` | `(tenant_id, job_id)` | never | permanent | **server-only** (`error_detail`) | `import.audit.view` |
-| 11 | `import_posting_runs` | public / public | exposed | one authorized posting execution | batch_id, run_no, authorized_by_approval_id, started_at, ended_at, status, units_total/succeeded/failed | batch_id, run_no, authorization link | status, counters, ended_at | batches, approvals, tenants | yes | `run_no >= 1` | `(batch_id, run_no)` | `(tenant_id, batch_id, status)` | never | permanent | yes | `import.batch.view` |
-| 12 | `import_posting_units` | public / public | exposed | idempotent posting unit | posting_run_id, unit_key, request_key uuid, status, rpc_name, attempt_count, last_error_code | unit_key, request_key | status, attempt_count, last_error_code | posting_runs, tenants | yes | status in {pending, in_progress, succeeded, failed, skipped} | `(posting_run_id, unit_key)`; `(tenant_id, request_key)` | `(tenant_id, status)` | never | permanent | yes (no error detail) | `import.batch.view` |
-| 13 | `import_output_objects` | public / public | exposed | canonical object produced | output_type, output_id, posting_unit_id, rpc_name, created_at | entire row | none | posting_units, tenants | no | output_type in domain enum | `(tenant_id, output_type, output_id, posting_unit_id)` | `(tenant_id, output_type, output_id)` | never | permanent | yes | `import.batch.view` |
-| 14 | `import_provenance_edges` | public / public | exposed | many-to-many source↔output graph | staging_row_id, posting_unit_id, output_object_id, edge_role, reversal_of_edge_id | entire row | none | staging_rows, posting_units, output_objects, self | no | edge_role in {produces, contributes_to, header_of, item_of, ledger_of, reverses} | `(staging_row_id, output_object_id, edge_role)` — **never on `output_object_id` alone** | `(output_object_id)`, `(posting_unit_id)`, `(tenant_id)` | never | permanent | yes | `import.audit.view` |
-| 15 | `import_events` | public / **internal** | A: exposed / B: not | immutable audit stream | batch_id, event_type, from_state, to_state, actor, permission_key_used, payload jsonb, occurred_at | **entire row** | none | batches, tenants | states | event_type in enum | `(batch_id, event_seq)` | `(tenant_id, batch_id, occurred_at)`, `(tenant_id, event_type)` | never (append-only trigger) | permanent | filtered view only | `import.audit.view` |
+1. **Review completion** — `import.review.complete`. Computes and records the reviewed batch fingerprint over canonical payloads, active mapping version and included batch-file set. Batch enters `AWAITING_APPROVAL`.
+2. **Approval** — `import.approval.grant`. Writes an immutable approval row bound to that exact fingerprint. Batch enters `APPROVED`. A fingerprint change after this point invalidates the approval.
+3. **Posting authorization** — `import.post.authorize`. Writes an immutable authorization record containing: batch, frozen fingerprint, **authorized output scope** (the explicit set of output types and the included/excluded posting-unit keys), authorized actor, permission key used, timestamp, and **one-time-use status with an expiry**. Batch enters the intermediate state `POST_AUTHORIZED`.
+4. **Posting execution** — `import.post.execute`. A separately permitted actor or trusted worker consumes exactly one valid, unexpired, unconsumed authorization whose fingerprint still matches. Batch enters `POSTING`.
 
-## G. Source-file / batch-file model
+State path: `APPROVED → POST_AUTHORIZED → POSTING → POSTED → RECONCILED`. Authorization and execution are never one status transition and never one undifferentiated RPC. One person holding both permissions may perform both stages; two records, two actors-stamps and two events are still written.
 
-`import_source_files` holds **content and physical identity only** — SHA-256, byte size, declared and sniffed MIME, original filename, bucket, object path, legal hold, retention timestamp, deletion marker. It carries no batch, no lifecycle status and no processing intent.
+## G. Job, retry, resumability and concurrency model
 
-`import_batch_files` holds **a batch's authorized use** of that file — sequence within the batch, attachment role, processing intent, duplicate disposition and explicit reprocess authorization (actor, timestamp, reason).
+- **Posting run** — one authorized execution attempt of one batch, linked to exactly one authorization record, with run number, counters and status.
+- **Posting unit** — the atomic unit of work: a stable `unit_key` derived from the source grouping, plus an **immutable `request_key`** minted once and reused as the idempotency key on the canonical Finance RPC.
+- **Concurrency** — a partial unique index over `(batch_id, kind)` where the job is `queued` or `running`, plus an advisory transaction lock on a key derived from tenant and batch, guarantees **one active posting run per batch**.
+- **Lease** — the worker holds `lease_owner` and `lease_expires_at`; an expired lease can be reclaimed by exactly one successor, never by a concurrent second runner.
+- **Checkpoint** — the last proven unit position, written in the same transaction that commits the unit's success.
+- **Attempts** — every attempt writes an immutable row with outcome, safe error code and internal detail (server-only).
+- **Atomicity** — one unit commits entirely or fails entirely; a failed unit never leaves a half-written Finance document because the canonical RPC is itself transactional and idempotent.
+- **Retry / resume** — a retry re-enters from the checkpoint; already-succeeded units are skipped, and even if re-attempted the canonical RPC's idempotency record returns the stored response instead of posting again, so **zero duplicates**.
+- **Partial failure** — failed units remain visible with their error code; the batch stays in `POSTING` or moves to `FAILED`, and **never** to `POSTED`.
+- **POSTED invariant** — every required unit is `succeeded`, or was explicitly `excluded` **before** authorization (exclusions after authorization invalidate it).
+- **RECONCILED invariant** — reconciliation is completed by a person holding **`import.reconciliation.complete`** (viewing is insufficient), every expected output is proven present through provenance, and variance is zero or explicitly explained and recorded.
 
-Supported outcomes: one batch → many files (many `import_batch_files` rows per `batch_id`); one file → many batches (many rows per `source_file_id`, each requiring its own disposition and, when the file was previously posted, an explicit `authorized_reprocess`); duplicate detection preserved because the file row is never re-created; reprocessing history preserved because each link row is retained.
+**Sync vs async is not selected.** Decision criteria: maximum rows per file, maximum posting units per batch, measured per-unit RPC latency against the platform statement timeout, expected monthly batch volume and concurrency, and whether a batch can plausibly exceed a single safe request window. Chunk size is likewise deferred.
 
-Proposed uniqueness: `import_source_files` unique on `(tenant_id, domain, file_sha256)` — deliberately **not** including `batch_id`, so the same file is detected across batches. `import_batch_files` unique on `(batch_id, source_file_id)` and `(batch_id, sequence)`. Indexes: `(tenant_id, source_file_id)` on the link table for "where else was this file used". **No file hash is ever used as a business-transaction uniqueness rule.**
+## H. Finance reversal capability matrix
 
-## H. Staging and issue model
+`reverse_expense` classification is now evidence-based, not name-based (body read this turn).
 
-`import_staging_rows` identity: `batch_file_id` (which transitively pins source file and batch), `sheet_name`, `row_ordinal`, `raw_payload` (immutable), `canonical_payload`, `canonical_row_hash`, `row_state` (`staged`, `valid`, `warned`, `quarantined`, `corrected`, `excluded`, `posted`), `correction_version`. Uniqueness `(batch_file_id, sheet_name, row_ordinal, correction_version)` so corrections append a version rather than overwrite the original. `canonical_row_hash` is indexed **non-uniquely** and used only for comparison and evidence — never as a tenant-global business rule, so legitimate repeated transactions remain importable.
+| Operation | Creation / posting path | Proven reversal | Exact semantics | Prerequisites | Downstream dependencies | Deletion allowed | Compensating posting possible | First pilot | Blocking reason |
+|---|---|---|---|---|---|---|---|---|---|
+| Invoice creation | `create_invoice_with_items` | `delete_draft_invoice` (draft only) | removes a pre-ledger draft | status `draft` | none | **NO** for posted truth; draft deletion is pre-ledger only | n/a | **yes** | — |
+| Invoice approval | `approve_invoice` (+ `_finance_invoice_approve_inline`, service_role) | `cancel_invoice` | inserts compensating `adjustment` / `invoice_cancellation` ledger entry of `-amount`, sets status `cancelled`, idempotent, never deletes | invoice not draft, not already cancelled, **no payment ledger entry and no pending/paid payment_intent**, effective date ≥ issue date and ≤ today+7 | ledger, customer balance | **NO** | yes | **yes (unpaid only)** | — |
+| Invoice cancellation | `cancel_invoice` | is itself the reversal | as above | as above | ledger | **NO** | yes | yes | — |
+| Invoice items | written inside invoice RPCs with snapshot/validation triggers | none at item level | reversal is document-level only | — | invoice totals, snapshots | **NO** | via invoice cancellation | yes (as part of the invoice) | — |
+| Payments | `post_payment` | **NONE** | n/a | — | invoice status, ledger, billing links, customer balance | **NO** | not proven | **NO** | no canonical reversal exists; a posted payment also permanently blocks `cancel_invoice` on its invoice |
+| Invoice-payment allocations | `post_invoice_payments` → `payment_allocations` | **NONE** | n/a | — | invoice status, ledger | **NO** | not proven | **NO** | no canonical reversal exists |
+| Payment sessions | `post_payment_session` | **NONE** | n/a | — | allocations, horse allocations, ledger | **NO** | not proven | **NO** | no canonical reversal exists |
+| Expenses | `create_expense`, `post_expense_with_ledger` | **`reverse_expense` — PROVEN canonical compensating reversal** | requires `finance.expenses.manage` **and** `finance.adjustment.create`; idempotent; advisory-locked; **inserts a new `reversal` expense** carrying `reverses_expense_id`, mirrors amount/currency/vendor, posts a `-amount` `adjustment` ledger entry, marks the original `ledger_status='reversed'`; original row never deleted | original `ledger_status='posted'`; not already a reversal; **`source_type <> 'hr_salary_payment'`** (HR-sourced expenses are explicitly forbidden) | ledger, supplier payables | **NO** | yes — proven | **yes (non-HR-sourced only)** | — |
+| Manual ledger adjustment | `post_manual_ledger_adjustment` | itself (opposite-sign entry) | **compensating operation, not a canonical reversal** — no object-level reversal contract | — | ledger, customer balance | **NO** | yes | not a pilot output class | must not be used as a generic reversal for other object types |
+| Generated ledger entries | private `_finance_ledger_insert` (service_role only) | none standalone | reversal only via the owning document | — | customer balances | **NO** | only through the owning document | implicit only | — |
+| Billing links | private `_finance_billing_link_upsert` (no explicit grantee) | **NONE** | n/a | — | payment↔invoice traceability | **NO** | not proven | **NO** | no reversal contract; created as a side effect of payment posting |
 
-**Issue-index defect resolution: Model A is chosen.** `import_row_issues` denormalizes `tenant_id` and `batch_id` onto each issue row.
+Explicit classification requested by §9: **payment imports — BLOCKED. Invoice-payment allocation imports — BLOCKED. Payment-session imports — BLOCKED.** No Finance record may be deleted to simulate rollback under any circumstance.
 
-- Fields: `staging_row_id`, `tenant_id`, `batch_id`, `severity`, `code`, `field_path`, `message_en`, `message_ar`, `raised_at`, `resolved_by`, `resolved_at`, `resolution_note`.
-- FKs: `staging_row_id → import_staging_rows`, `batch_id → import_batches`, `tenant_id → tenants`.
-- Indexes: `(tenant_id, batch_id, severity)` and `(staging_row_id)` — every referenced column is defined on this table, which removes the previous undefined-column defect.
-- Consistency enforcement: a `BEFORE INSERT` trigger derives `tenant_id` and `batch_id` from the parent staging row rather than trusting the caller, plus a composite FK to `(id, tenant_id, batch_id)` on the staging row where supported.
-- RLS consequence: the tenant predicate evaluates against a local column, so no sub-select into the parent is needed — simpler and cheaper policies.
-- Query performance: batch-level issue counts and quarantine gates read one index without joining staging rows; the cost is one trigger per insert and a denormalization invariant.
+## I. First Finance pilot options and recommendation
 
-Model B (issue linked only to `staging_row_id`) was rejected: it forces every RLS check and every batch-level count through a join, which is the most frequent query on the review screen.
+- **Pilot A — unpaid invoice creation and approval only.** Fully reversible via `cancel_invoice`. Safest, but excludes expenses, which are also proven reversible, so it under-uses proven capability.
+- **Pilot B — unpaid invoices plus reversible expenses.** Every output class has a proven compensating reversal (`cancel_invoice`, `reverse_expense`).
+- **Pilot C — invoices, expenses and payments.** **Rejected** — payments have no reversal, and a posted payment permanently blocks invoice cancellation, making the whole batch irreversible.
 
-## I. Approval and immutability model
+**Recommended: Pilot B.**
 
-Approval is never a mutable column on `import_batches`. It is one immutable row in `import_batch_approvals` per decision, carrying kind (`review_complete`, `approval`, `post_authorization`, `rollback_request`, `rollback_approval`), sequence, actor, `permission_key_used`, `decided_at`, `decision`, `reason`, and the exact `frozen_fingerprint` accepted. The fingerprint is a deterministic digest over the batch's staging-row canonical payloads, active mapping version and included batch-file set, computed at review completion and stored on both the batch and the approval row.
+- Included objects: unpaid invoices (header + items, approved), and expenses whose `source_type` is not `hr_salary_payment`.
+- Excluded objects: all payments, allocations, payment sessions, billing links, HR-sourced expenses, POS anything, and any invoice that would be imported in a paid or partially paid state.
+- Maximum allowed batch behavior: one tenant, one domain, a bounded row count agreed at authorization time, all units within the authorized output scope, single active posting run, no cross-batch posting.
+- Reconciliation requirement: every expected output present and provenance-linked; totals reconcile to the source; variance zero or explicitly explained; completion by a holder of `import.reconciliation.complete`.
+- Rollback requirement: before authorization, a rehearsed reversal of every included output class must be demonstrated (invoice cancellation and expense reversal), preferably in the non-production environment.
+- Stop condition: any quarantine issue, any unexplained variance, any unit whose output class is outside the authorized scope, or any failure whose reversal cannot be demonstrated — halt the run, leave the batch in `FAILED`, and reverse what was posted.
 
-Invalidation: any correction, mapping change, file addition or re-stage recomputes the fingerprint; if it differs from the fingerprint on the latest approval, the batch cannot enter `POSTING` and must return to review. `import_batches.status` is a derived convenience only — the approval rows are the evidence. Every approval emits a matching immutable `import_events` row. Rows are protected by an append-only trigger rejecting UPDATE and DELETE.
+This is a recommendation only. No pilot is authorized or executed.
 
-## J. Job and attempt data model
+## J. Storage security and retention model
 
-`import_jobs`: `batch_id`, `kind`, `status` (`queued`, `running`, `succeeded`, `failed`, `cancelled`), `checkpoint jsonb` (last proven position, opaque to the browser), `lease_owner`, `lease_expires_at`, `lock_key bigint` (an advisory-lock key derived per batch and kind). A partial unique index on `(batch_id, kind)` where status is `queued` or `running` prevents concurrent duplicate jobs; lease expiry allows recovery of an abandoned worker without a second concurrent runner.
+Owner-approved retention preserved verbatim: files remain while pending, under review, quarantined, failed, reconciling, under investigation or under legal hold; minimum **90 days** after successful canonical posting; **no automatic deletion in the first implementation**; deletion requires `import.file.delete`; deletion never removes checksum, file identity, mappings, validation evidence, quarantine history, approvals, provenance, posting links, reconciliation or audit events.
 
-`import_job_attempts`: `job_id`, `attempt_no`, `started_at`, `ended_at`, `outcome`, `error_code`, `error_detail`, `rows_processed`; unique `(job_id, attempt_no)`; entire row immutable.
+Controls:
 
-Sensitive-field classification: `checkpoint`, `lease_owner`, `error_detail` and any parser stack context are **server-only or RPC-filtered**. The UI receives only a progress summary — status, percent complete, attempt count, and a safe `error_code` with a localized message. No execution model (synchronous or asynchronous) is chosen here.
+- **Private bucket** `historical-imports`, never public, no public URL anywhere.
+- **Tenant path boundary** — every object key is prefixed by tenant, and the server rejects any registration whose path prefix does not match the caller's active tenant.
+- **Non-guessable object key** — random component per object; the key is never derivable from filename or batch id.
+- **No overwrite or upsert** — write-once; a second upload to an existing key is rejected, not merged.
+- **Server-side SHA-256 verification** after upload; a mismatch quarantines the file and blocks registration.
+- **Detected MIME validation** — content sniffed server-side and compared with the declared type; extension is never trusted alone.
+- **Allowed formats** — xlsx, xls, csv, pdf; images accepted as registry-only artifacts; everything else rejected.
+- **Safe original filename handling** — the original name is stored as metadata only, never used as the object key, never interpolated into a path or a shell/SQL context.
+- **File-size control** — a configurable maximum enforced both at the bucket and in the registration RPC (the existing `horse-media` 50 MB precedent shows bucket-level limits are supported).
+- **Signed upload and signed download** only, minted by permission-checked RPCs (`import.file.upload` / `import.file.download`).
+- **Signed URL lifetime principle** — the shortest window that completes the operation; never reusable, never logged, never persisted in a table read by the browser.
+- **No source contents in logs** — no application or edge-function log line may contain file bytes, parsed cell values or signed URLs.
+- **Malformed-file quarantine** — unparseable or ambiguous files enter quarantine and block approval.
+- **Deletion and legal-hold checks** — deletion refuses if legal hold is set, if the retention date has not passed, or if the batch is not in a terminal state; the check runs server-side, not in the UI.
+- **Metadata after object deletion** — the `import_source_files` row persists with checksum, size, MIME, original name, provenance links and a `deleted_at` marker; only the Storage object disappears.
 
-## K. Provenance graph model
+## K. Malware-scanning gate
 
-Four objects form the graph: `import_posting_runs` (one authorized execution of one batch), `import_posting_units` (an idempotent unit of work carrying a stable `unit_key` and an immutable `request_key` reused as the canonical-RPC idempotency key), `import_output_objects` (one canonical object produced, typed), and `import_provenance_edges` (the many-to-many links).
+Three classifications were considered. **Recommendation: malware scanning is required before any real-client upload** — not merely before the production pilot.
 
-Supported shapes: one source row → many outputs (multiple edges from one `staging_row_id`); many source rows → one output (multiple edges to one `output_object_id` with role `contributes_to`); one file → many posting units (through batch-file → staging rows → units); grouped invoice header and items (`header_of` / `item_of` edges into the same posting unit); payment and ledger relationships (`ledger_of`); reversal (`reverses` edge with `reversal_of_edge_id` self-reference); retry evidence (posting-unit attempt count plus the stable `request_key`).
+Rationale: the very first real-client interaction is an upload of an untrusted Excel or PDF, and those formats are common macro and exploit carriers; deferring scanning to the pilot means the risk has already materialized by the time the gate arrives. Effect on the first pilot: Pilot B can be rehearsed end-to-end with internally produced specimen files before scanning exists, but the moment a client-supplied file enters the bucket the scanning gate must be satisfied. Scanning is an external integration dependency and is **not implemented in this Part**.
 
-Uniqueness: `import_output_objects` unique on `(tenant_id, output_type, output_id, posting_unit_id)`; `import_provenance_edges` unique on `(staging_row_id, output_object_id, edge_role)`. **There is deliberately no uniqueness on `output_object_id` alone**, so many edges may point at one grouped document. Indexes: `(output_object_id)` for reverse lookup from a Finance object, `(posting_unit_id)`, `(tenant_id)`. Whether any output type is actually reversible is **not** decided here — Part 3 owns that.
+## L. Parsing and representative-evidence gate
 
-## L. State-transition matrix
+Preserved: Excel first priority; PDF digital-text and table extraction first priority; CSV supported; images registry-only; no OCR; no authoritative browser parsing.
 
-Every transition is RPC-mediated, writes an `import_events` row, and is rejected by a transition-guard trigger if the pair is not listed. No arbitrary status UPDATE path exists.
+Required before selecting parsing libraries or the execution architecture: representative Excel specimens; representative PDF specimens; original source examples from the intended client where permitted; maximum file size; maximum workbook sheet count; maximum rows per file; expected monthly batch volume; Arabic and English header samples; numeral formats (Latin and Arabic-Indic); date formats; Excel date-system examples (1900 vs 1904); merged-cell examples; formula-cell examples; PDF page count; PDF digital vs scanned classification; table-layout variability.
 
-| From | To | Permission | Invariant | Event | Trigger |
-|---|---|---|---|---|---|
-| — | DRAFT | `import.batch.create` | tenant + domain valid | `batch.created` | user |
-| DRAFT | FILE_REGISTERED | `import.file.upload` | ≥1 batch-file with verified checksum; duplicate disposition set | `file.registered` | user |
-| FILE_REGISTERED | STAGED | `import.batch.create` | active mapping selected; parse job succeeded | `batch.staged` | server |
-| STAGED | VALIDATING | `import.batch.create` | ≥1 staging row | `validation.started` | server |
-| VALIDATING | REVIEW_REQUIRED | — | ≥1 unresolved warning/error/quarantine | `validation.review_required` | server |
-| VALIDATING | READY_FOR_DRY_RUN | — | zero unresolved blocking issues | `validation.clean` | server |
-| REVIEW_REQUIRED | REVIEW_REQUIRED | `import.staging.correct` / `import.issue.resolve` | new correction_version; fingerprint recomputed | `row.corrected` / `issue.resolved` | user |
-| REVIEW_REQUIRED | READY_FOR_DRY_RUN | `import.review.complete` | zero unresolved blocking issues | `review.completed` | user |
-| REVIEW_REQUIRED | QUARANTINED | — | unresolvable quarantine issue present | `batch.quarantined` | server |
-| READY_FOR_DRY_RUN | DRY_RUN_COMPLETE | `import.dry_run.execute` | dry-run result row written | `dry_run.completed` | user |
-| DRY_RUN_COMPLETE | AWAITING_APPROVAL | `import.review.complete` | zero unexplained variance; fingerprint frozen | `batch.frozen` | user |
-| AWAITING_APPROVAL | APPROVED | `import.approval.grant` | approval row matches current fingerprint; approver ≠ reviewer where separation enforced | `approval.granted` | user |
-| AWAITING_APPROVAL | REVIEW_REQUIRED | `import.approval.grant` (refusal) | refusal recorded | `approval.refused` | user |
-| APPROVED | POSTING | `import.post.authorize` + `import.post.execute` | post_authorization approval row exists; fingerprint unchanged; no active posting job | `posting.started` | user → server |
-| POSTING | POSTED | — | all posting units succeeded or explicitly skipped | `posting.completed` | server |
-| POSTING | FAILED | — | ≥1 unit failed and run halted | `posting.failed` | server |
-| FAILED | POSTING | `import.post.execute` | resume from checkpoint; succeeded units not re-posted | `posting.resumed` | user |
-| POSTED | RECONCILED | `import.reconciliation.view` + `import.review.complete` | reconciliation variance zero | `batch.reconciled` | user |
-| DRAFT / FILE_REGISTERED / STAGED / VALIDATING / REVIEW_REQUIRED / READY_FOR_DRY_RUN / DRY_RUN_COMPLETE / AWAITING_APPROVAL | CANCELLED | `import.batch.cancel` | nothing posted | `batch.cancelled` | user |
-| POSTED / RECONCILED | ROLLBACK_REQUESTED | `import.rollback.request` | reason recorded | `rollback.requested` | user |
-| ROLLBACK_REQUESTED | ROLLBACK_APPROVED | `import.rollback.approve` | approver distinct from requester where separation enforced | `rollback.approved` | user |
-| ROLLBACK_APPROVED | REVERSING | `import.rollback.execute` | **reversal capability proven for every output type in the batch (Part 3 gate)** | `reversal.started` | user → server |
-| REVERSING | REVERSED | — | every output object has a `reverses` edge | `reversal.completed` | server |
-| REVERSING | FAILED | — | reversal halted | `reversal.failed` | server |
-| QUARANTINED | REVIEW_REQUIRED | `import.issue.resolve` | quarantine cleared | `quarantine.cleared` | user |
-| QUARANTINED / FAILED | CANCELLED | `import.batch.cancel` | nothing posted | `batch.cancelled` | user |
+**May proceed without this evidence:** Slice 3A (core control-plane schema), Slice 3B (authorization and isolation), Slice 3C (private Storage and source-file registration) — none of these parse content.
 
-Terminal states: `POSTED`→`RECONCILED`, `REVERSED`, `CANCELLED`. `QUARANTINED` blocks approval absolutely.
+**Must remain blocked until the evidence exists:** parser library selection, Excel ingestion and staging, PDF extraction, sync-vs-async posting selection, chunk sizing, row/file limit finalization, and any real-client pilot.
 
-## M. Atomic permission matrix
+## M. Bounded future execution sequence
 
-All keys follow the live `permission_definitions(key, module, resource, action, is_delegatable, …)` shape, module `import`. No role name is hardcoded anywhere; the Owner groups keys into reusable bundles through the existing bundle mechanism.
+These map onto the existing Planned Technical Sequence Step 3 and later; **no Phase, Stage or Step is renumbered**, no Prompt numbers are created, and no slice is authorized.
 
-| Key | Resource | Action | Delegatable | Sensitive | UI surface | Backend enforcement | Event |
+| Slice | Dependencies | Authorized scope | Prohibited scope | Rollback type | QA gate | Acceptance gate | Stopping point |
 |---|---|---|---|---|---|---|---|
-| `import.batch.view` | batch | view | yes | no | batch list/detail | RLS SELECT + RPC read | no |
-| `import.batch.create` | batch | create | yes | no | new batch | RPC `import_batch_create` | yes |
-| `import.batch.cancel` | batch | cancel | yes | yes | batch actions | RPC transition guard | yes |
-| `import.file.upload` | file | upload | yes | yes | upload dialog | signed-upload RPC + registration RPC | yes |
-| `import.file.view` | file | view | yes | no | file metadata panel | RLS SELECT (path excluded) | no |
-| `import.file.download` | file | download | yes | yes | download action | signed-URL RPC | yes |
-| `import.file.delete` | file | delete | **no** | yes | retention screen | RPC; retention + legal-hold invariants | yes |
-| `import.file.legal_hold.manage` | file | legal_hold.manage | **no** | yes | retention screen | RPC | yes |
-| `import.mapping.view` | mapping | view | yes | no | mapping panel | RLS SELECT | no |
-| `import.mapping.manage` | mapping | manage | yes | no | mapping editor | RPC | yes |
-| `import.staging.view` | staging | view | yes | yes (raw payload) | review grid | RPC-filtered read | no |
-| `import.staging.correct` | staging | correct | yes | yes | review grid | RPC; new correction_version | yes |
-| `import.issue.view` | issue | view | yes | no | issues panel | filtered view | no |
-| `import.issue.resolve` | issue | resolve | yes | yes | issues panel | RPC | yes |
-| `import.dry_run.execute` | dry_run | execute | yes | yes | dry-run action | RPC | yes |
-| `import.reconciliation.view` | reconciliation | view | yes | no | reconciliation panel | RLS SELECT | no |
-| `import.review.complete` | review | complete | yes | yes | review action | RPC; freezes fingerprint | yes |
-| `import.approval.grant` | approval | grant | **no** | yes | approval action | RPC; fingerprint match | yes |
-| `import.post.authorize` | post | authorize | **no** | yes | posting authorization | RPC; writes approval row | yes |
-| `import.post.execute` | post | execute | **no** | yes | run posting | RPC; requires authorization row | yes |
-| `import.rollback.request` | rollback | request | yes | yes | rollback action | RPC | yes |
-| `import.rollback.approve` | rollback | approve | **no** | yes | rollback approval | RPC | yes |
-| `import.rollback.execute` | rollback | execute | **no** | yes | run reversal | RPC; Part-3 capability gate | yes |
-| `import.audit.view` | audit | view | yes | no | audit stream | filtered view | no |
+| 3A — core control-plane schema | Owner environment decision | batches, source-file and batch-file identity, staging envelope with explicit `tenant_id`/`batch_id`, issues, immutable events, deterministic state constraints | no permissions, no RLS, no Storage, no parsing, no posting | schema rollback (objects unused, no real data) | constraint, transition-guard and immutability tests | independent re-audit of DDL vs the Part-2 model | schema exists and is inert |
+| 3B — authorization and isolation | 3A | 25 atomic permission definitions, RLS policies, explicit Grants, RPC boundaries, private-helper revocation | no Storage, no parsing, no posting | schema + grant rollback | negative cross-tenant read/write tests, anon-denied tests, privilege tests, separation-of-duty tests | independent re-audit of the ACL/RLS matrix | authorization proven, still inert |
+| 3C — private source-file Storage | 3B | private bucket, path contract, Storage policies, upload registration, signed access, retention metadata, legal hold | no parsing, no posting, no real-client file | bucket + policy rollback | upload/download/deletion/legal-hold negative tests, checksum and MIME tests | independent re-audit of the Storage model | registration proven with internal specimens |
+| 3D — Excel ingestion and staging | 3C + representative evidence + parser selection | workbook discovery, header mapping, normalization, staging rows | no PDF, no posting | schema + code rollback | parsing fidelity and normalization tests | re-audit | staging proven |
+| 3E — validation, quarantine, review, correction | 3D | validation engine, issues, correction versions, quarantine gate | no dry run, no posting | code rollback | quarantine-blocks-approval tests | re-audit | review proven |
+| 3F — dry run, reconciliation, approval, post authorization | 3E | dry-run results, variance, approvals, authorization records | no posting execution | code rollback | fingerprint-invalidation and separation tests | re-audit | authorization proven |
+| 3G — bounded Finance posting (Pilot B classes only) | 3F + Owner pilot decision + rehearsed reversal | posting runs, units, output objects, provenance edges, canonical RPC calls for unpaid invoices and non-HR expenses | payments, allocations, sessions, billing links, HR expenses | **business reversal**, not schema rollback | zero-duplicate retry, resume, concurrency, provenance completeness | re-audit | posting proven on test tenant |
+| 3H — PDF digital-text and table extraction | 3D + PDF specimens | digital-text detection, table extraction, confidence, quarantine | no OCR | code rollback | extraction-confidence tests | re-audit | extraction proven |
+| 3I — controlled real-client pilot | 3G + 3H + malware scanning gate | one client, one bounded batch, Pilot B scope | anything outside the authorized output scope | business reversal | full acceptance set | re-audit | pilot evidence produced |
 
-Separation of duties is achievable because review, approval, post authorization and post execution are four distinct keys, and rollback request/approve/execute are three more. A single fully authorized person may hold all keys and complete the workflow; each stage still writes its own actor-stamped approval row and event, so the audit trail stays distinct in both configurations.
+## N. Acceptance criteria
 
-## N. ACL and RLS matrix (proposed, non-executable)
+**Environment** — selected boundary proven; Git branch never treated as database isolation; promotion path documented; a rollback drill performed outside real-client data.
 
-| Object class | anon | authenticated | service_role / trusted job | function owner | migration owner | Justification |
-|---|---|---|---|---|---|---|
-| Safe header tables (1, 2 metadata, 3, 6, 7, 8, 11, 12, 13, 14) | none | **SELECT only** | SELECT, INSERT, UPDATE on the specific tables its jobs touch — **no blanket `GRANT ALL`** | privileges required per function only | full DDL during authorized migration only | UI needs tenant-scoped reads; writes are RPC-only |
-| Sensitive tables (4 staging rows, 5 issues, 9 jobs, 10 attempts, 15 events) | none | **no direct SELECT** — filtered views or RPC only | narrow SELECT/INSERT/UPDATE per job | per function | full DDL in migration only | raw payloads, storage paths and diagnostics must not be broadly readable |
-| Filtered views (safe projections of 4, 5, 15) | none | SELECT | SELECT | — | — | minimum exposure |
-| All objects | no TRUNCATE, no REFERENCES, no TRIGGER to anon/authenticated/service_role | same | same | — | owner only | prevents privilege drift |
-| Public RPCs (batch create, file register, correct, resolve, review complete, approve, authorize, execute, rollback trio, signed URL) | no EXECUTE | **EXECUTE** | EXECUTE | definer | — | the only mutation path |
-| Private helpers (fingerprint, transition guard, lock key, event writer) | none | **EXECUTE revoked from PUBLIC, anon, authenticated** | EXECUTE where a job needs it | definer | — | mirrors the live `_finance_*` helper posture |
+**Security** — zero cross-tenant read or write; zero `anon` access; zero browser-direct protected-table mutation; minimum read exposure (raw payload, `storage_path`, diagnostics never directly selectable); no broad `service_role` dependency and no blanket `GRANT ALL`; every permission enforced server-side using the exact live `has_permission()` signature; separation of duties proven across review / approval / post-authorize / post-execute and rollback request / approve / execute; one fully authorized person can complete all stages while still producing distinct actor-stamped events.
 
-RLS on every table: `SELECT USING (tenant_id = <active tenant> AND public.has_permission(auth.uid(), tenant_id, '<key>'))`; **no** INSERT/UPDATE/DELETE policies for `authenticated` on any import table. Every `SECURITY DEFINER` function uses `SET search_path = ''` with fully qualified names and independently re-validates tenant membership, permission, frozen fingerprint and current state — RLS is never treated as protection for a service-role or definer path. Append-only tables (8, 10, 13, 14, 15) additionally carry triggers rejecting UPDATE and DELETE from any role. The permissive Finance table-grant posture observed in Part 1 is explicitly **not** replicated.
+**Files** — no overwrite; checksum verified server-side; MIME sniffed and validated; size policy enforced; private signed access only; legal hold enforced; 90-day minimum retention enforced; deletion preserves all immutable evidence; malware-scanning gate satisfied per §K.
 
-## O. Read-surface classification
+**Posting** — authorization separate from execution; one active run per batch; zero duplicates after retry; partial failure resumes safely from checkpoint; every output linked through provenance; `effective_date` always source-derived and never defaulted to today; no direct Finance DML anywhere; `POSTED` and `RECONCILED` invariants proven, with reconciliation completed by a holder of `import.reconciliation.complete`.
 
-| Data | Classification |
-|---|---|
-| Batch list, batch details | safe direct tenant-scoped SELECT |
-| Original filename, checksum, size, MIME, upload time | safe direct SELECT |
-| Storage object path / bucket | **internal/server-only** — never returned to the browser |
-| Raw row payload | **RPC-only read**, permission-gated, row-limited |
-| Canonical payload | RPC-only read (permission-filtered) |
-| Issues | permission-filtered view (safe columns, localized messages) |
-| Mappings | safe direct SELECT |
-| Dry-run totals and variance | safe direct SELECT |
-| Approval records | safe direct SELECT (reason text included; no internal diagnostics) |
-| Job progress | **RPC-only** summary — status, percent, attempt count, safe error code |
-| Internal parsing diagnostics, `error_detail`, checkpoint, lease owner | **internal/server-only** |
-| Output object references | safe direct SELECT |
-| Provenance edges | safe direct SELECT (audit permission) |
-| Legal hold flag | safe direct SELECT; hold *internals* and deletion rationale RPC-only |
-| Audit stream | permission-filtered view |
+**Reversal** — reversal classified per output type from function bodies, not names; no financial deletion ever; compensating operations (notably `post_manual_ledger_adjustment`) never labelled canonical reversal; the first pilot contains only output classes with proven reversal.
 
-Minimum exposure is the rule: residence in `public` never by itself justifies exposing raw payloads or diagnostics.
+**Parsing** — representative specimens supplied; ambiguous extraction quarantined; zero best-guess identity matching; no OCR; no authoritative browser parsing.
 
-## P. Service-role / function-owner / migration-owner model
+**Regression** — `bun run build` and typecheck pass; existing Finance tests pass; the Phase-1 `ledger_entries.effective_date NOT NULL` contract remains intact; no existing RPC signature changes without separate authorization.
 
-**service_role / trusted server job** — an infrastructure credential, never browser-reachable, never embedded in client code. It bypasses RLS and is therefore *not* a tenant authorization mechanism: every server routine using it must independently check tenant, permission, frozen fingerprint and state. It receives narrowly scoped privileges on only the objects and functions its jobs touch; no blanket `GRANT ALL` on the import schema.
+## O. Owner decisions required
 
-**Function owner** — the role owning `SECURITY DEFINER` functions. It receives only the object privileges each function genuinely needs. It must not accumulate DDL rights or become a de-facto application superuser, and it must not be reused as the migration owner.
+1. **Environment** — Option A (separate non-production environment) or Option B (controlled current environment). Recommendation: **Option A**, conditional on confirming platform support; Option B under the §E restrictions if Option A proves unsupported. Not approved.
+2. **First Finance pilot boundary** — recommendation: **Pilot B** (unpaid invoices + non-HR reversible expenses). Payments, allocations and payment sessions are blocked by absent reversal.
+3. **Malware-scanning gate** — recommendation: **required before any real-client upload**, not merely before the production pilot.
+4. **Representative source evidence** — the exact list in §L must be supplied before parser implementation, sync/async selection or chunk sizing.
 
-**Migration owner** — creates and alters objects during authorized migration only, and is never used by the application at runtime.
+Not reopened: 90-day minimum retention; atomic deletion permission; no automatic deletion in the first implementation; no best-guess matching; Excel and PDF priority; no OCR.
 
-Privileges that must not be inherited casually between these actors: DDL from migration owner to function owner; blanket table DML from function owner to `service_role`; any EXECUTE on private helpers from `service_role` to `authenticated`; and any bypass assumption from `service_role` to definer functions.
+## P. Facts
 
-## Q. Facts
+`reverse_expense` is `SECURITY DEFINER`, `search_path=''`, EXECUTE to `authenticated` and `service_role`; it requires both `finance.expenses.manage` and `finance.adjustment.create`, is idempotent and advisory-locked, creates a mirror `reversal` expense with `reverses_expense_id`, posts a negative `adjustment` ledger entry, marks the original `ledger_status='reversed'`, deletes nothing, and refuses HR-salary-sourced expenses and already-reversed rows. `cancel_invoice` posts a compensating negative ledger entry and refuses when any payment ledger entry or pending/paid payment intent exists. No reversal function exists for payments, allocations, payment sessions or billing links. Two private Storage buckets exist; `horse-media` demonstrates bucket-level size and MIME limits. Single database ref; repository drift limited to branch/merge with a clean tree.
 
-Carried from Part 1 and re-affirmed in B above: single database boundary; 158 base tables / 6 views / zero import relations; `public` sole application schema; live canonical-writer pattern (`SECURITY DEFINER`, `search_path=''`, tenant + permission checks, idempotency, advisory locks); `has_permission()` and the `permission_definitions` shape; `ledger_entries` browser read-only; `finance_request_idempotency` service-role only; the mixed permissive grants on other Finance tables; repository drift limited to a new branch and merge commit with a clean tree.
+## Q. Lovable claims
 
-## R. Lovable claims
+One managed Postgres project per Lovable project; no self-serve second database inside one project; `public` is the default exposed schema. None of these is used to declare Option A impossible.
 
-One managed Postgres project per Lovable project; `public` is the default Data-API exposed schema; managed type generation and tooling target `public`.
+## R. Technical inferences
 
-## S. Technical inferences
+Option A preference; Pilot B as the smallest safe scope; malware scanning before any real-client upload; the `POST_AUTHORIZED` intermediate state; lease-based worker recovery; the decision criteria for sync vs async; the slice sequence and its gates.
 
-Preference for Alternative A hardened by column separation; Model A for `import_row_issues` denormalization; lease-based job recovery; fingerprint-based approval invalidation; the specific index and uniqueness choices in F, G and K; the classification of which fields are server-only.
+## S. Gaps
 
-## T. Gaps
+1. Platform support for a second isolated environment (blocks Decision 1).
+2. PostgREST exposed-schema configuration (carried from Part 1; blocks final schema placement).
+3. Representative specimens and volume evidence (blocks parser and execution-architecture selection).
+4. Malware-scanning integration choice.
+5. Reversal strategy for payments, allocations, sessions and billing links — required before those classes can ever be imported.
+6. Whether the residual permissive Finance table grants are intentional.
+7. `reverse_expense` behaviour when the original expense participates in supplier payables was not traced.
 
-1. PostgREST exposed-schema configuration (blocks final schema-placement selection).
-2. Whether managed tooling supports a second application schema.
-3. Retention configurability surface (tenant-level vs platform-level) not yet specified.
-4. Volume evidence, which will influence index and chunk-size choices.
-5. Finance reversal capability per output type — Part 3.
-6. Whether the residual permissive Finance grants are intentional — affects whether the stricter import posture creates an inconsistency the Owner must accept.
+## T. Contradictions
 
-## U. Contradictions
+1. The proposed import ACL posture is stricter than the live Finance posture on `invoices`, `expenses`, `billing_links`, `payment_sessions` — intentional, but leaves two standards in one database.
+2. Governance describes fully RPC-mediated financial writes while those tables still carry browser-role DML grants under RLS.
+3. Acceptance requires a destructive rollback drill, which Option B cannot satisfy — this makes Decision 1 consequential rather than procedural.
 
-1. The proposed import ACL posture (no browser DML at all) is stricter than the live Finance posture on `invoices`, `expenses`, `billing_links`, `payment_sessions`. Intentional, per §3.5 of this continuation, but it leaves two different standards in one database until Finance is reconciled separately.
-2. Alternative B's security benefit depends on an unverified platform configuration — recorded, not resolved.
+## U. Evidence ChatGPT may use in final reconciliation
 
-## V. Evidence Part 3 may rely upon
+The proven `reverse_expense` semantics and its two prerequisites and HR exclusion; the proven `cancel_invoice` semantics and its payment-existence refusal; the confirmed absence of any payment, allocation, payment-session or billing-link reversal; the four-stage authorization/execution separation with the `POST_AUTHORIZED` state; the concurrency, checkpoint, lease and request-key model with its zero-duplicate guarantee; the `POSTED` and `RECONCILED` invariants including `import.reconciliation.complete`; the Pilot B scope with its exclusions and stop conditions; the Storage and retention control set; the malware gate recommendation; the parsing evidence gate and what may proceed without it; the nine-slice bounded sequence with dependencies and gates; the full acceptance set in §N; the four Owner decisions in §O; the run identity in §B.
 
-The object matrix in F including all uniqueness and index choices; the source-file vs batch-file separation and its cross-batch uniqueness in G; the correction-versioned staging model and the Model-A issue denormalization in H; the immutable approval and frozen-fingerprint contract in I; the job/attempt/lease/checkpoint data model in J; the four-object many-to-many provenance graph and its `request_key`-per-posting-unit idempotency seam in K; the full state-transition matrix in L, including that `ROLLBACK_APPROVED → REVERSING` is gated on Part-3 reversal proof; the 24 atomic permissions in M; the ACL/RLS baseline in N; the read-surface classification in O; the three-actor privilege model in P.
-
-## W. Cross-task contamination check
+## V. Cross-task report contamination check
 
 NO CROSS-TASK CONTAMINATION DETECTED
 
-## X. Run metadata and exact stopping point
+## W. Run metadata and exact stopping point
 
-Parallel Task ID `PT-DH-RM004-WS0006-P55-A2-P2-DATA-SECURITY-MODEL-20260806-0315`. Evidence time 2026-08-06 00:12 UTC / 03:12 Asia/Riyadh. Only a live-state git read was performed; no broad database re-discovery.
+Parallel Task ID `PT-DH-RM004-WS0006-P55-A2-P3-EXECUTION-SAFETY-20260806-0325`. Evidence time 2026-08-06 00:23 UTC / 03:23 Asia/Riyadh. Targeted reads: `reverse_expense` body and ACL, plus a git live-state read; Part-1 evidence reused for reversal-candidate absence and Storage buckets.
 
-Stopped after: schema-placement comparison, complete bounded object model, source-file/batch-file separation, staging/approval/job/provenance models, state machine, atomic permissions, ACL/RLS and read surfaces. No posting execution, no reversal design, no parser library selection, no environment decision, no final Execution Contract, no Part 3, no Prompt number consumed, no Stage-1 Acceptance, Workstream Closure or Roadmap Closure claimed. Repository, database and Storage writes: ZERO.
+Stopped after: environment comparison, posting authorization/execution separation, job-retry-resumability safety, the complete Finance reversal matrix, the smallest safe pilot recommendation, Storage and malware gates, the parser evidence gate, and the bounded future execution sequence. No final Execution Contract, no slice or pilot authorization, no parser selection, no bucket, no edge function, no posting, no reversal, no Prompt number consumed, no Stage-1 Acceptance, Workstream Closure or Roadmap Closure claimed. Repository, database and Storage writes: ZERO.
 
-Next action: return this Part-2 report for reconciliation before Part 3 is issued.
+Next action: return this Part-3 report for final reconciliation of Parts 1, 2 and 3.
