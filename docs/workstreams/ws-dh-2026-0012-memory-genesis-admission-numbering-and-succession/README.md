@@ -1,14 +1,14 @@
 <!--
 id: DHB-WS-2026-0012-README
 title: WS-DH-2026-0012 — Memory Genesis, Admission, Numbering and Succession (package README)
-version: 1.1.0
+version: 1.2.0
 status: current
 audience: internal
-date: 2026-08-05
-last-verified: 2026-08-05
+date: 2026-08-06
+last-verified: 2026-08-06
 supersedes: []
 superseded-by: null
-source: v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence for the Prompt-16 correction and for the package/start states of WS-DH-2026-0012 and WS-DH-2026-0013, under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 (local parent Prompt number 18) and approved Decision DEC-RM-DH-003-013, Owner Acceptance granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00), exact time not recorded: records PACKAGE/START OWNER ACCEPTED, that the investigation remains NOT YET RUN, that the official local Prompt count remains 0 with next local Prompt 01 NOT CONSUMED, and that the superseded narrative naming Prompt 15 as the next verifier is replaced by the independent Prompt-18 persistence verification followed by a separate explicit Owner authorization. Stage 0 is not marked completed, decisions.md is unchanged, no local Workstream Decision was created, no investigation ran, no application or database change occurred and Project Knowledge remains NOT INSTALLED; authored during RM-DH-003 / Phase 3 / Sub-phase 3.1 — Foundational Workstream Package Creation and Start Persistence, under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 (local parent Prompt number 14) and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00). This file creates the package and records the Owner-authorized start of WS-DH-2026-0012. No investigation was executed, no Memory finding is recorded, no application or database change occurred, and Project Knowledge remains NOT INSTALLED.
+source: v1.2.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Local Prompt 02 governance persistence under execution prompt PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02 (Parallel Task ID PT-DH-WS0012-P02-OWNER-ALIGNMENT-PERSISTENCE-20260806-01) and local Decision DEC-WS-DH-2026-0012-001, Owner authorization and Owner Alignment decision 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00): synchronizes Workstream status, current Stage, Local Prompt history for Prompt 01 and Correction Continuations C1–C5, the Stage-5 Owner Alignment decision, the accepted target architecture, candidate-only treatment, unresolved categories, exclusions and next action. No Live Memory object and no mem://index.md entry was modified, no Memory ID was allocated, no application code was inspected or modified, no database was accessed, Project Knowledge remains NOT INSTALLED, and no Formal Acceptance or Closure occurred; v1.1.0 — RM-DH-003 / Phase 3 / Sub-phase 3.1 — Owner-Acceptance Persistence under execution prompt PROMPT-DH-RM003-P3-OWNER-ACCEPTANCE-AND-FOUNDATIONAL-WORKSTREAM-PERSISTENCE-18 and approved Decision DEC-RM-DH-003-013; v1.0.0 — package creation under execution prompt PROMPT-DH-RM003-P3-FOUNDATIONAL-WORKSTREAMS-CREATION-AND-START-EXECUTION-14 and approved Decision DEC-RM-DH-003-012, Owner start authorization granted 05-08-2026 — August at 16:55 (Asia/Riyadh — UTC+03:00).
 source-sha256: n/a
 -->
 
@@ -28,7 +28,8 @@ source-sha256: n/a
 | Parent Sub-phase | `3.1` — Foundational Read-Only Audits |
 | Track | A — Memory Governance and Provenance |
 | Owner | Dayli Horse Platform Owner |
-| Governing Decision | `DEC-RM-DH-003-012` |
+| Governing parent Decision | `DEC-RM-DH-003-012` |
+| Local Decision | `DEC-WS-DH-2026-0012-001` |
 
 ## Purpose
 
@@ -40,46 +41,90 @@ This Workstream produces an investigation and a proposed governance model. It do
 
 ```text
 Workstream Status:
-ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
+ACTIVE —
+STAGES 0–4 RUN, SUBSTANTIVELY COMPLETE, OWNER ALIGNED AND PERSISTED —
+STAGE 5 OWNER ALIGNMENT COMPLETE AND PERSISTED —
+STAGE 6 CURRENT — NOT STARTED —
+NO FORMAL ACCEPTANCE —
+NO CLOSURE
 
 Current Stage:
-Stage 0 — PACKAGE CREATED — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
+Stage 6 — QA and Acceptance Re-Audit — CURRENT — NOT STARTED
 
 Investigation Status:
-NOT YET RUN
+RUN — STAGES 0–4 SUBSTANTIVELY COMPLETE
 
 Owner Start Authorization:
 Granted 05-08-2026 — August (Asia/Riyadh — UTC+03:00). Exact time not recorded.
 
 Package/Start Owner Acceptance:
 GRANTED 05-08-2026 — August (Asia/Riyadh — UTC+03:00). Exact time not recorded.
-Persisted under DEC-RM-DH-003-013 (Prompt 18).
+Persisted under DEC-RM-DH-003-013 (parent Prompt 18).
+
+Stage 5 Owner Alignment:
+APPROVED 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00).
+Persisted under DEC-WS-DH-2026-0012-001 (Local Prompt 02).
 
 Official local Prompts consumed:
-0
+2 — Local Prompt 01 and Local Prompt 02
 
 Next eligible local Prompt:
-01 — NOT CONSUMED
+03 — NOT CONSUMED
 
-Acceptance:
-Package and start state accepted. No investigation Acceptance.
+Formal Acceptance:
+NONE
 
 Closure:
-None
+NONE
 ```
 
-Workstream start is **not** investigation execution. Investigation execution is **not** Acceptance. Acceptance is **not** Project Knowledge installation. Project Knowledge installation is **not** Closure.
+Workstream start is **not** investigation execution. Investigation execution is **not** Owner Alignment. Owner Alignment is **not** Formal Acceptance. Formal Acceptance is **not** Project Knowledge installation. Project Knowledge installation is **not** Closure.
+
+## Local Prompt history
+
+| Local Prompt | Prompt ID | Mode | State |
+|---|---|---|---|
+| `01` | `PROMPT-DH-WS0012-MEMORY-GENESIS-INVESTIGATIVE-AUDIT-01` | Plan/Chat — Read-only | SUBMITTED — RUN — CONSUMED |
+| `01 / C1` | Corpus-evidence boundary correction | Plan/Chat — Read-only | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
+| `01 / C2` | Workstream responsibility-mapping correction | Plan/Chat — Read-only | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
+| `01 / C3` | Stage-state semantics and completion reconciliation | Plan/Chat — Read-only | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
+| `01 / C4` | Memory-to-accepted-truth verification | Plan/Chat — Read-only | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED |
+| `01 / C5` | Object-level classification and count-integrity repair | Plan/Chat — Read-only | RUN UNDER LOCAL PROMPT 01 — NO NEW NUMBER CONSUMED — PASSED |
+| `02` | `PROMPT-DH-WS0012-OWNER-ALIGNMENT-AND-GOVERNANCE-PERSISTENCE-02` | Agent/Build — bounded governance persistence | SUBMITTED — RUN — CONSUMED |
+
+## Owner Alignment decision
+
+`DEC-WS-DH-2026-0012-001` — Owner Alignment on Repository-Authoritative Memory Governance and Candidate-Only Admission, approved by Mohamed Nour on 06-08-2026 — August at 06:55 (Asia/Riyadh — UTC+03:00). The complete decision contract lives only in [`decisions.md`](./decisions.md) and is referenced here, never duplicated.
+
+### Accepted target architecture
+
+Option 2 — **repository-authoritative Memory register with Live Memory as a controlled projection**.
+
+### Candidate-only treatment
+
+All 99 stored Memory bodies enter the target architecture as **Candidates only**. Retrospective en-bloc admission is rejected. Admission must be individual, evidence-based and subject to explicit Owner approval.
+
+### Unresolved categories
+
+| Category | Count | Recorded treatment |
+|---|---|---|
+| Dangling index references | 4 | UNRESOLVED MISSING-CONTENT CANDIDATES — not deleted, not reconstructed, not equated with the reserved MEM IDs |
+| Unindexed stored bodies | 8 | CANDIDATE POOL — NOT AUTOMATICALLY ADMITTED |
+| Duplicate / overlap clusters | 14 | Recorded only; not merged, deleted, renamed or resolved |
+| Contradiction `F-C5-01` | 1 | MEMORY-TO-ACCEPTED-ROUND CONTRADICTION — LIVE IMPLEMENTATION VERIFICATION REQUIRED BEFORE CORRECTION |
+| F-status bodies | 59 | Not admitted as proven implementation truth; routed to a later separately authorized technical-verification lane |
+| E-status bodies | 15 | Require an accepted-truth home or an explicit Owner decision before admission |
 
 ## Parallel lane isolation
 
 | Field | Value |
 |---|---|
 | Reserved Parallel Task ID | `PT-DH-WS0012-MEMORY-GENESIS-INVESTIGATION-01` |
+| Local Prompt 02 Parallel Task ID | `PT-DH-WS0012-P02-OWNER-ALIGNMENT-PERSISTENCE-20260806-01` |
 | Official Prompt Lineage | `WS-DH-2026-0012` / Memory Genesis Investigative Lineage |
-| Official Prompts consumed | 0 |
-| Next eligible local Prompt | `01` — NOT CONSUMED |
-| Authorized future mode | Plan/Chat — Read-only |
-| Sibling lane | `WS-DH-2026-0013` — separate lane, separate Lineage, separate Parallel Task ID |
+| Official Prompts consumed | 2 |
+| Next eligible local Prompt | `03` — NOT CONSUMED |
+| Sibling lane | `WS-DH-2026-0013` — separate lane, separate Lineage, separate Parallel Task ID, still unrun |
 
 Rules:
 
@@ -112,6 +157,7 @@ This Workstream has:
 
 - **no** implementation authority;
 - **no** refactoring authority;
+- **no** Live Memory write authority;
 - **no** database write authority;
 - **no** migration, RLS, RPC or Edge Function authority;
 - **no** Project Knowledge installation authority;
@@ -122,13 +168,20 @@ This Workstream has:
 ## Stopping point
 
 ```text
-Package created, Owner start authorization persisted, and the package/start state Owner accepted.
-Stage 0 has not been executed.
-No investigation has run and no Memory finding exists.
-The superseded narrative naming Prompt 15 as the next verifier no longer applies.
-The next permitted action is the independent read-only Prompt-18 persistence verification (Prompt 19).
-Only after that verification passes, and after a separate explicit Owner authorization,
-may WS-DH-2026-0012 local Prompt 01 be prepared as an UNSENT DRAFT.
+Local Prompt 02 governance persistence is complete.
+Stages 0–4 are run, substantively complete, Owner aligned and persisted.
+Stage 5 Owner Alignment is complete and its decision is persisted as DEC-WS-DH-2026-0012-001.
+Stage 6 — QA and Acceptance Re-Audit is current and has not started.
+Stage 7 has not started.
+No Formal Acceptance, no Acceptance Re-Audit result and no Closure exists.
+No Memory ID was allocated and no Live Memory object or index entry was modified.
+```
+
+## Next action
+
+```text
+Prepare a separate read-only Stage-6 QA and Acceptance Re-Audit Prompt
+as WS-DH-2026-0012 local Prompt 03, after ChatGPT review and Arabic explanation.
 ```
 
 ## Package navigation
