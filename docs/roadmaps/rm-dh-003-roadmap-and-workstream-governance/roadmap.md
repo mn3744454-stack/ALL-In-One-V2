@@ -1,11 +1,11 @@
 <!--
 id: DHB-RM-003-ROADMAP
 title: RM-DH-003 — Roadmap & Workstream Governance Foundation (authoritative current state)
-version: 1.8.1
+version: 1.9.0
 status: current
 audience: internal
 date: 2026-07-30
-last-verified: 2026-08-05
+last-verified: 2026-08-06
 
 supersedes: []
 superseded-by: null
@@ -32,7 +32,7 @@ Recovery Status:
 Not applicable
 
 Current Roadmap position:
-Phase 3 — ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS; advancement persisted, audits not yet started.
+Phase 3 — ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS; WS-DH-2026-0012 Stages 0–4 run and Owner aligned with Stage 6 current and not started, WS-DH-2026-0013 not yet run.
 ```
 
 ## Phase register
@@ -99,10 +99,10 @@ Phase State:
 ACTIVE — SUB-PHASE 3.1 — FOUNDATIONAL READ-ONLY AUDITS
 
 Execution Checkpoint:
-SUB-PHASE 3.0 COMPLETED AND VERIFIED — SUB-PHASE 3.1 CURRENT — POST-ADVANCEMENT VERIFICATION PASSED — WS-DH-2026-0012 AND WS-DH-2026-0013 PACKAGES CREATED AND STARTED AS ISOLATED PARALLEL LANES — PACKAGE AND START STATES OWNER ACCEPTED UNDER DEC-RM-DH-003-013 — INVESTIGATIONS NOT YET RUN — AWAITING INDEPENDENT PERSISTENCE VERIFICATION AND A SEPARATE EXPLICIT OWNER AUTHORIZATION TO INVESTIGATE
+SUB-PHASE 3.0 COMPLETED AND VERIFIED — SUB-PHASE 3.1 CURRENT — WS-DH-2026-0012 AND WS-DH-2026-0013 PACKAGES CREATED AND STARTED AS ISOLATED PARALLEL LANES — PACKAGE AND START STATES OWNER ACCEPTED UNDER DEC-RM-DH-003-013 — WS-DH-2026-0012 LOCAL PROMPT 01 AND C1–C5 RUN WITH STAGES 0–4 SUBSTANTIVELY COMPLETE, STAGE 5 OWNER ALIGNMENT APPROVED AND PERSISTED UNDER DEC-WS-DH-2026-0012-001 AND STAGE 6 CURRENT AND NOT STARTED — WS-DH-2026-0013 INVESTIGATION NOT YET RUN
 ```
 
-Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is the current Sub-phase. Its first two foundational Workstreams have dedicated packages, Owner-authorized starts and Owner-accepted package and start states, but no investigation has run.
+Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is the current Sub-phase. Its first two foundational Workstreams have dedicated packages, Owner-authorized starts and Owner-accepted package and start states. `WS-DH-2026-0012` has since run its investigation through Stages 0–4 and persisted its Stage-5 Owner Alignment decision; `WS-DH-2026-0013` has not run.
 
 ### Sub-phase 3.0 Acceptance and completion record
 
@@ -116,7 +116,7 @@ Phase 3 is not Closed. Sub-phase 3.0 is completed and verified. Sub-phase 3.1 is
 
 ### Sub-phase 3.1 advancement record
 
-- **Sub-phase 3.1 status.** CURRENT — ADVANCEMENT PERSISTED — POST-ADVANCEMENT VERIFICATION PASSED — FIRST TWO FOUNDATIONAL WORKSTREAMS CREATED AND STARTED — INVESTIGATIONS NOT YET RUN.
+- **Sub-phase 3.1 status.** CURRENT — FIRST TWO FOUNDATIONAL WORKSTREAMS CREATED AND STARTED — `WS-DH-2026-0012` STAGES 0–4 RUN AND SUBSTANTIVELY COMPLETE, STAGE 5 OWNER ALIGNMENT PERSISTED UNDER `DEC-WS-DH-2026-0012-001`, STAGE 6 CURRENT AND NOT STARTED — `WS-DH-2026-0013` INVESTIGATION NOT YET RUN.
 - **Owner Advancement.** Approved 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00, and persisted here under `DEC-RM-DH-003-011`.
 - **Post-advancement verification.** Passed under the read-only targeted post-advancement verification (Prompt 13).
 - **Boundary.** Setting Sub-phase 3.1 as the current Sub-phase did **not** by itself start any Workstream. The Workstream starts recorded below rest on the separate Owner authorization of 05-08-2026 at 16:55 under `DEC-RM-DH-003-012`.
@@ -230,12 +230,12 @@ No item may be removed except through successful Acceptance, explicit Owner canc
 12. `RM-DH-004` financial execution.
 13. Any technical defect discovered by a later Persistent Knowledge Stage B audit.
 14. Any Project Knowledge installation.
-15. Memory Genesis investigation: **PACKAGE/START OWNER ACCEPTED — PERSISTENCE EXECUTED — INVESTIGATION NOT YET RUN — LOCAL PROMPT 01 NOT CONSUMED — AWAITING READ-ONLY PERSISTENCE VERIFICATION**.
+15. Memory Genesis investigation: **PROMOTED TO CURRENT EXECUTION SCOPE — LOCAL PROMPT 01 AND C1–C5 RUN — STAGES 0–4 SUBSTANTIVELY COMPLETE — STAGE 5 OWNER ALIGNMENT APPROVED — LOCAL PROMPT 02 GOVERNANCE PERSISTENCE COMPLETED — STAGE 6 QA AND ACCEPTANCE RE-AUDIT CURRENT AND NOT STARTED — LOCAL PROMPT 03 NOT CONSUMED**.
 16. Refactoring Baseline investigation: **PACKAGE/START OWNER ACCEPTED — PERSISTENCE EXECUTED — INVESTIGATION NOT YET RUN — LOCAL PROMPT 01 NOT CONSUMED — AWAITING READ-ONLY PERSISTENCE VERIFICATION**.
 17. Account-Type Playbook fixed-count defect: **RESOLVED — ACCEPTED — PERSISTED — POST-PERSISTENCE VERIFIED — RETAINED FOR TRACEABILITY**.
 18. Prompt-06 commit-topology deviation: **HISTORICAL DEVIATION — ACCEPTED — NON-BLOCKING — RETAINED FOR TRACEABILITY**.
 19. Prompt-10 durable Git Artifact: **EVIDENCE GAP RESOLVED — DURABLE GIT ARTIFACT VERIFIED — RETAINED FOR TRACEABILITY**.
-20. Sub-phase 3.1 foundational state: **PROMPT-16 CORRECTION OWNER ACCEPTED — BOTH FOUNDATIONAL PACKAGE/START STATES OWNER ACCEPTED — PROMPT-18 PERSISTENCE EXECUTED BUT FINAL ACCEPTANCE WAS BLOCKED BY THE REGISTER DEFECT — PROMPT-18-C1 REPAIR CURRENT — NO INVESTIGATION RUN — NO SUB-PHASE 3.2 ADVANCEMENT**. Prompt 15 remains FAILED with its Passed verdict withdrawn, superseded by the Prompt-17 read-only verification chain and the `DEC-RM-DH-003-013` Owner Acceptance, and the Prompt-18 persistence awaits the independent read-only verification (Prompt 19).
+20. Sub-phase 3.1 foundational state: **WS-DH-2026-0012 OWNER ALIGNMENT PERSISTED — STAGE 6 CURRENT AND NOT STARTED — WS-DH-2026-0013 INVESTIGATION NOT YET RUN — NO SUB-PHASE 3.2 ADVANCEMENT — PROJECT KNOWLEDGE NOT INSTALLED**.
 
 ### Phase 3 decisions
 
@@ -300,7 +300,7 @@ Owner Advancement:
 Granted 05-08-2026 — August, 15:51, Asia/Riyadh — UTC+03:00, and persisted under DEC-RM-DH-003-011
 
 Current Sub-phase:
-3.1 — Foundational Read-Only Audits — CURRENT — POST-ADVANCEMENT VERIFICATION PASSED — FIRST TWO WORKSTREAMS CREATED, STARTED AND PACKAGE/START OWNER ACCEPTED
+3.1 — Foundational Read-Only Audits — CURRENT — FIRST TWO WORKSTREAMS CREATED, STARTED AND PACKAGE/START OWNER ACCEPTED — WS-DH-2026-0012 OWNER ALIGNMENT PERSISTED AND STAGE 6 CURRENT — WS-DH-2026-0013 NOT RUN
 
 Owner start authorization for WS-DH-2026-0012 and WS-DH-2026-0013:
 Granted 05-08-2026 — August, 16:55, Asia/Riyadh — UTC+03:00, and persisted under DEC-RM-DH-003-012
@@ -309,17 +309,18 @@ Package and start Owner Acceptance for WS-DH-2026-0012 and WS-DH-2026-0013:
 GRANTED 05-08-2026 — August (Asia/Riyadh — UTC+03:00), exact time not recorded, and persisted under DEC-RM-DH-003-013
 
 Foundational Read-Only Audits:
-Started as lanes; no investigation executed
+WS-DH-2026-0012 investigation executed through Stage 4 and Owner aligned; WS-DH-2026-0013 not executed
 
 Workstreams:
-WS-DH-2026-0012 and WS-DH-2026-0013 — PACKAGE CREATED — ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
+WS-DH-2026-0012 — ACTIVE — STAGES 0–4 RUN, SUBSTANTIVELY COMPLETE, OWNER ALIGNED AND PERSISTED — STAGE 5 OWNER ALIGNMENT COMPLETE AND PERSISTED UNDER DEC-WS-DH-2026-0012-001 — STAGE 6 CURRENT — NOT STARTED — NO FORMAL ACCEPTANCE — NO CLOSURE
+WS-DH-2026-0013 — PACKAGE CREATED — ACTIVE — PACKAGE/START OWNER ACCEPTED — INVESTIGATION NOT YET RUN
 WS-DH-2026-0014 through WS-DH-2026-0020 — REGISTERED — PERMANENTLY RESERVED — ID CONSUMED and NOT STARTED
 
 Workstream packages:
 Two — WS-DH-2026-0012 and WS-DH-2026-0013
 
 Investigations:
-Not run
+WS-DH-2026-0012 — RUN through Stage 4; WS-DH-2026-0013 — not run
 
 Project Knowledge:
 NOT INSTALLED
