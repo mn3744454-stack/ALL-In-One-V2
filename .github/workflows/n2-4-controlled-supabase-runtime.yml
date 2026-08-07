@@ -7,6 +7,8 @@ on:
       - ".github/workflows/n2-4-controlled-supabase-runtime.yml"
       - "supabase/migrations/**"
       - "supabase/tests/database/n2_*.sql"
+      - "supabase/tests/database/ws0006_*.sql"
+      - "docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/evidence/slice-3a/rollback.sql"
       - "src/lib/finance/**"
       - "src/hooks/finance/useInvoicePayments.ts"
       - "src/components/finance/**"
@@ -21,6 +23,8 @@ on:
       - ".github/workflows/n2-4-controlled-supabase-runtime.yml"
       - "supabase/migrations/**"
       - "supabase/tests/database/n2_*.sql"
+      - "supabase/tests/database/ws0006_*.sql"
+      - "docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/evidence/slice-3a/rollback.sql"
       - "src/lib/finance/**"
       - "src/hooks/finance/useInvoicePayments.ts"
       - "src/components/finance/**"
@@ -35,6 +39,11 @@ permissions:
 concurrency:
   group: n2-4-runtime-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  ROLLBACK_SQL: docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/evidence/slice-3a/rollback.sql
+  CATALOG_SQL: supabase/tests/database/ws0006_slice3a_core_control_plane.test.sql
+  BEHAVIORAL_SQL: supabase/tests/database/ws0006_slice3a_behavioral.test.sql
 
 jobs:
   repository-contract:
@@ -120,5 +129,437 @@ jobs:
         with:
           name: n2-4-controlled-runtime-${{ github.sha }}
           path: n2-4-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ===================================================================
+  # WS-DH-2026-0006 / Slice 3A — Prompt 57 Part B
+  # Three INDEPENDENT disposable databases (PB-D9):
+  #   phase 1 — forward migration replay + Catalog + Behavioral QA
+  #   phase 2 — rollback rehearsal (guards, then successful rollback)
+  #   phase 3 — reconstruction equivalence against phase 1
+  # Every phase runs in its own GitHub job, therefore on its own runner
+  # with its own Docker daemon, volumes and data directory.
+  # No hosted or shared database credential is consumed anywhere.
+  # ===================================================================
+  ws0006-phase1:
+    name: WS0006 Slice 3A — Phase 1 forward and behavioral QA
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+
+      - name: CI Bootstrap Gate
+        run: |
+          set -e
+          set -o pipefail
+          mkdir -p ws0006-artifacts
+          {
+            echo "phase=1"
+            echo "runner=${RUNNER_NAME} os=${RUNNER_OS}"
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "commit=${GITHUB_SHA}"
+            echo "ref=${GITHUB_REF}"
+            echo "environment=ephemeral-github-hosted-runner"
+            docker version
+            supabase --version
+          } 2>&1 | tee ws0006-artifacts/environment.log
+          {
+            echo "--- hosted credential check ---"
+            for v in SUPABASE_DB_URL SUPABASE_ACCESS_TOKEN SUPABASE_SERVICE_ROLE_KEY DATABASE_URL PGHOST; do
+              if [ -n "${!v:-}" ]; then
+                echo "FAILED — PART-B CI BOOTSTRAP GATE: hosted credential ${v} is present"
+                exit 1
+              fi
+              echo "${v}=unset"
+            done
+            echo "--- test artifact discovery ---"
+            test -f "${CATALOG_SQL}" && echo "catalog test discovered"
+            test -f "${BEHAVIORAL_SQL}" && echo "behavioral test discovered"
+            test -f "${ROLLBACK_SQL}" && echo "rollback artifact discovered"
+            echo "--- part-a migration hash ---"
+            sha256sum supabase/migrations/20260806233227_4a4a2c93-e515-4570-8c94-89cce0b2a3fa.sql
+            sha256sum "${CATALOG_SQL}" "${BEHAVIORAL_SQL}" "${ROLLBACK_SQL}"
+          } 2>&1 | tee ws0006-artifacts/bootstrap.log
+
+      - name: Start disposable stack and replay every migration
+        run: |
+          set -e
+          set -o pipefail
+          supabase db start 2>&1 | tee ws0006-artifacts/migration-replay-phase1.log
+
+      - name: Verify PostgreSQL, pgTAP and Part-A objects
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          echo "DB_URL scheme=$(echo "$DB_URL" | cut -d: -f1)" >> ws0006-artifacts/bootstrap.log
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS pgtap;" 2>&1 | tee -a ws0006-artifacts/bootstrap.log
+          psql "$DB_URL" -Atc "SELECT current_setting('server_version');" | tee -a ws0006-artifacts/bootstrap.log
+          psql "$DB_URL" -Atc "SELECT extversion FROM pg_extension WHERE extname='pgtap';" | tee -a ws0006-artifacts/bootstrap.log
+          psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind='r';" | tee -a ws0006-artifacts/bootstrap.log
+          psql "$DB_URL" -Atc "SELECT count(*) FROM supabase_migrations.schema_migrations;" | tee -a ws0006-artifacts/bootstrap.log
+
+      - name: Run the corrected Catalog test
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          psql "$DB_URL" -Atq -f "${CATALOG_SQL}" 2>&1 | tee ws0006-artifacts/catalog-tests-phase1.log
+          if grep -q '^not ok' ws0006-artifacts/catalog-tests-phase1.log; then
+            echo "FAILED — CATALOG TESTS"; exit 1
+          fi
+
+      - name: Run the Behavioral test
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          psql "$DB_URL" -Atq -f "${BEHAVIORAL_SQL}" 2>&1 | tee ws0006-artifacts/behavioral-tests-phase1.log
+          if grep -q '^not ok' ws0006-artifacts/behavioral-tests-phase1.log; then
+            echo "FAILED — BEHAVIORAL TESTS"; exit 1
+          fi
+
+      - name: Prove zero rows after test rollback
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          psql "$DB_URL" -Atc "SELECT format('%s=%s', t, n) FROM (
+              SELECT 'import_batches' t, count(*) n FROM public.import_batches
+              UNION ALL SELECT 'import_source_files', count(*) FROM public.import_source_files
+              UNION ALL SELECT 'import_batch_files', count(*) FROM public.import_batch_files
+              UNION ALL SELECT 'import_staging_rows', count(*) FROM public.import_staging_rows
+              UNION ALL SELECT 'import_issues', count(*) FROM public.import_issues
+              UNION ALL SELECT 'import_events', count(*) FROM public.import_events) s ORDER BY 1;" \
+            | tee ws0006-artifacts/zero-row-phase1.log
+          if grep -qv '=0$' ws0006-artifacts/zero-row-phase1.log; then
+            echo "FAILED — BEHAVIORAL TESTS: fixtures leaked outside the test transaction"; exit 1
+          fi
+
+      - name: Capture the deterministic Part-A object fingerprint
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          cat > /tmp/ws0006_fingerprint.sql <<'SQL'
+          SELECT string_agg(line, E'\n' ORDER BY line) FROM (
+            SELECT format('COL|%s|%s|%s|%s|%s', c.relname, a.attname,
+                          format_type(a.atttypid, a.atttypmod), a.attnotnull,
+                          coalesce(pg_get_expr(d.adbin, d.adrelid), '')) AS line
+              FROM pg_class c
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+              JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
+              LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = a.attnum
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND c.relkind = 'r'
+            UNION ALL
+            SELECT format('CON|%s|%s|%s|%s', t.relname, k.conname, k.contype, pg_get_constraintdef(k.oid))
+              FROM pg_constraint k
+              JOIN pg_class t ON t.oid = k.conrelid
+              JOIN pg_namespace n ON n.oid = t.relnamespace
+             WHERE n.nspname = 'public' AND t.relname ~ '^import_'
+            UNION ALL
+            SELECT format('IDX|%s|%s|%s', tablename, indexname, indexdef)
+              FROM pg_indexes WHERE schemaname = 'public' AND tablename ~ '^import_'
+            UNION ALL
+            SELECT format('RLS|%s|%s|%s', c.relname, c.relrowsecurity, c.relforcerowsecurity)
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND c.relkind = 'r'
+            UNION ALL
+            SELECT format('ACL|%s|%s', c.relname,
+                          coalesce(array_to_string(ARRAY(SELECT unnest(c.relacl)::text ORDER BY 1), ','), ''))
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND c.relkind = 'r'
+            UNION ALL
+            SELECT format('POL|%s|%s', tablename, policyname)
+              FROM pg_policies WHERE schemaname = 'public' AND tablename ~ '^import_'
+            UNION ALL
+            SELECT format('TRG|%s|%s', c.relname, t.tgname)
+              FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND NOT t.tgisinternal
+          ) s;
+          SQL
+          psql "$DB_URL" -Atq -f /tmp/ws0006_fingerprint.sql > /tmp/ws0006_phase1_normalized.txt
+          sha256sum /tmp/ws0006_phase1_normalized.txt | awk '{print $1}' > ws0006-artifacts/fingerprint-phase1.txt
+          cat ws0006-artifacts/fingerprint-phase1.txt
+          psql "$DB_URL" -Atc "SELECT md5(string_agg(version, ',' ORDER BY version)) FROM supabase_migrations.schema_migrations;" \
+            >> ws0006-artifacts/fingerprint-phase1.txt
+
+      - name: Teardown phase 1
+        if: always()
+        run: |
+          mkdir -p ws0006-artifacts
+          supabase stop --no-backup 2>&1 | tee ws0006-artifacts/teardown-phase1.log || true
+
+      - name: Upload phase 1 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ws0006-slice3a-phase1-${{ github.sha }}
+          path: ws0006-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+  ws0006-phase2:
+    name: WS0006 Slice 3A — Phase 2 rollback rehearsal
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+
+      - name: CI Bootstrap Gate
+        run: |
+          set -e
+          set -o pipefail
+          mkdir -p ws0006-artifacts
+          {
+            echo "phase=2"
+            echo "runner=${RUNNER_NAME}"
+            echo "commit=${GITHUB_SHA}"
+            docker version
+            supabase --version
+            for v in SUPABASE_DB_URL SUPABASE_ACCESS_TOKEN SUPABASE_SERVICE_ROLE_KEY DATABASE_URL PGHOST; do
+              if [ -n "${!v:-}" ]; then echo "FAILED — PART-B CI BOOTSTRAP GATE: ${v} present"; exit 1; fi
+            done
+            test -f "${ROLLBACK_SQL}" && echo "rollback artifact discovered"
+          } 2>&1 | tee ws0006-artifacts/environment.log
+
+      - name: Start a second, independent disposable stack
+        run: |
+          set -e
+          set -o pipefail
+          supabase db start 2>&1 | tee ws0006-artifacts/migration-replay-phase2.log
+
+      - name: Capture the pre-rollback fingerprint
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          psql "$DB_URL" -Atc "SELECT string_agg(c.relname, ',' ORDER BY c.relname)
+              FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+             WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind='r';" \
+            | tee ws0006-artifacts/fingerprint-phase2-pre.txt
+
+      - name: Rollback guard — nonempty tables and legal hold
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          {
+            echo "=== fixture: synthetic tenant + batch (matrix 32) ==="
+            psql "$DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO auth.users (id, aud, role, email)
+          VALUES ('3a000000-0000-4000-8000-00000000a1a1','authenticated','authenticated','ws0006.synthetic.a@example.invalid');
+          INSERT INTO public.tenants (id, name, type, owner_id)
+          VALUES ('3a000000-0000-4000-8000-aaaaaaaaaaaa','WS0006 Synthetic Tenant A','stable','3a000000-0000-4000-8000-00000000a1a1');
+          INSERT INTO public.import_batches (id, tenant_id, batch_code, title)
+          VALUES ('3a000000-0000-4000-8000-00000000ba01','3a000000-0000-4000-8000-aaaaaaaaaaaa','WS0006-A-001','Synthetic Batch A1');
+          SQL
+            echo "=== matrix 32: guarded rollback must FAIL on nonempty tables ==="
+            if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}"; then
+              echo "FAILED — ROLLBACK GUARD TESTS: rollback succeeded while rows existed"; exit 1
+            fi
+            echo "guarded failure observed"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind='r';" | grep -qx 6
+            psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_batches;" | grep -qx 1
+            echo "schema and rows intact after the failed guarded rollback"
+
+            echo "=== matrix 33: legal-hold source file ==="
+            psql "$DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO public.import_source_files (id, tenant_id, original_filename, byte_size, sha256_hex,
+                                                  legal_hold, legal_hold_reason, legal_hold_set_at)
+          VALUES ('3a000000-0000-4000-8000-00000000f001','3a000000-0000-4000-8000-aaaaaaaaaaaa','a1.csv',1024,
+                  repeat('a1',32), true, 'synthetic legal hold', now());
+          SQL
+            if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}"; then
+              echo "FAILED — ROLLBACK GUARD TESTS: rollback succeeded with a legal hold present"; exit 1
+            fi
+            echo "guarded failure observed with legal hold present"
+            echo "NOTE: the empty-table guard fires before the legal-hold guard by design;"
+            echo "the legal-hold scenario is therefore rejected at the earliest guard."
+            psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind='r';" | grep -qx 6
+            echo "no partial drop occurred"
+
+            echo "=== fixture cleanup ==="
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -c "DELETE FROM public.import_source_files; DELETE FROM public.import_batches;"
+          } 2>&1 | tee ws0006-artifacts/rollback-guards-phase2.log
+
+      - name: Successful rollback rehearsal on empty tables
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_batches;" | grep -qx 0
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}" 2>&1 | tee ws0006-artifacts/rollback-success-phase2.log
+
+      - name: Post-rollback verification
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          {
+            echo "remaining import relations:"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind IN ('r','p','v','m','f');"
+            echo "sentinel objects:"
+            psql "$DB_URL" -Atc "SELECT format('tenants=%s invoices=%s ledger_entries=%s',
+              to_regclass('public.tenants') IS NOT NULL,
+              to_regclass('public.invoices') IS NOT NULL,
+              to_regclass('public.ledger_entries') IS NOT NULL);"
+            echo "migration history rows (must be unchanged, never manually edited):"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM supabase_migrations.schema_migrations;"
+          } 2>&1 | tee ws0006-artifacts/post-rollback-phase2.log
+          psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind IN ('r','p','v','m','f');" | grep -qx 0
+
+      - name: Teardown phase 2
+        if: always()
+        run: |
+          mkdir -p ws0006-artifacts
+          supabase stop --no-backup 2>&1 | tee ws0006-artifacts/teardown-phase2.log || true
+
+      - name: Upload phase 2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ws0006-slice3a-phase2-${{ github.sha }}
+          path: ws0006-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+  ws0006-phase3:
+    name: WS0006 Slice 3A — Phase 3 reconstruction equivalence
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [ws0006-phase1]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+
+      - name: Download the phase 1 fingerprint
+        uses: actions/download-artifact@v4
+        with:
+          name: ws0006-slice3a-phase1-${{ github.sha }}
+          path: phase1-evidence
+
+      - name: CI Bootstrap Gate
+        run: |
+          set -e
+          set -o pipefail
+          mkdir -p ws0006-artifacts
+          {
+            echo "phase=3"
+            echo "runner=${RUNNER_NAME}"
+            echo "commit=${GITHUB_SHA}"
+            docker version
+            supabase --version
+            for v in SUPABASE_DB_URL SUPABASE_ACCESS_TOKEN SUPABASE_SERVICE_ROLE_KEY DATABASE_URL PGHOST; do
+              if [ -n "${!v:-}" ]; then echo "FAILED — PART-B CI BOOTSTRAP GATE: ${v} present"; exit 1; fi
+            done
+          } 2>&1 | tee ws0006-artifacts/environment.log
+
+      - name: Start a third, independent disposable stack
+        run: |
+          set -e
+          set -o pipefail
+          supabase db start 2>&1 | tee ws0006-artifacts/migration-replay-phase3.log
+
+      - name: Run the corrected Catalog test
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS pgtap;"
+          psql "$DB_URL" -Atq -f "${CATALOG_SQL}" 2>&1 | tee ws0006-artifacts/catalog-tests-phase3.log
+          if grep -q '^not ok' ws0006-artifacts/catalog-tests-phase3.log; then
+            echo "FAILED — CATALOG TESTS"; exit 1
+          fi
+
+      - name: Capture the phase 3 fingerprint and compare with phase 1
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          cat > /tmp/ws0006_fingerprint.sql <<'SQL'
+          SELECT string_agg(line, E'\n' ORDER BY line) FROM (
+            SELECT format('COL|%s|%s|%s|%s|%s', c.relname, a.attname,
+                          format_type(a.atttypid, a.atttypmod), a.attnotnull,
+                          coalesce(pg_get_expr(d.adbin, d.adrelid), '')) AS line
+              FROM pg_class c
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+              JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
+              LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = a.attnum
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND c.relkind = 'r'
+            UNION ALL
+            SELECT format('CON|%s|%s|%s|%s', t.relname, k.conname, k.contype, pg_get_constraintdef(k.oid))
+              FROM pg_constraint k
+              JOIN pg_class t ON t.oid = k.conrelid
+              JOIN pg_namespace n ON n.oid = t.relnamespace
+             WHERE n.nspname = 'public' AND t.relname ~ '^import_'
+            UNION ALL
+            SELECT format('IDX|%s|%s|%s', tablename, indexname, indexdef)
+              FROM pg_indexes WHERE schemaname = 'public' AND tablename ~ '^import_'
+            UNION ALL
+            SELECT format('RLS|%s|%s|%s', c.relname, c.relrowsecurity, c.relforcerowsecurity)
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND c.relkind = 'r'
+            UNION ALL
+            SELECT format('ACL|%s|%s', c.relname,
+                          coalesce(array_to_string(ARRAY(SELECT unnest(c.relacl)::text ORDER BY 1), ','), ''))
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND c.relkind = 'r'
+            UNION ALL
+            SELECT format('POL|%s|%s', tablename, policyname)
+              FROM pg_policies WHERE schemaname = 'public' AND tablename ~ '^import_'
+            UNION ALL
+            SELECT format('TRG|%s|%s', c.relname, t.tgname)
+              FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'public' AND c.relname ~ '^import_' AND NOT t.tgisinternal
+          ) s;
+          SQL
+          psql "$DB_URL" -Atq -f /tmp/ws0006_fingerprint.sql > /tmp/ws0006_phase3_normalized.txt
+          sha256sum /tmp/ws0006_phase3_normalized.txt | awk '{print $1}' > ws0006-artifacts/fingerprint-phase3.txt
+          P1=$(head -n 1 phase1-evidence/fingerprint-phase1.txt)
+          P3=$(head -n 1 ws0006-artifacts/fingerprint-phase3.txt)
+          {
+            echo "phase1_fingerprint=${P1}"
+            echo "phase3_fingerprint=${P3}"
+          } | tee ws0006-artifacts/fingerprint-comparison.log
+          if [ "$P1" != "$P3" ]; then
+            echo "FAILED — RECONSTRUCTION EQUIVALENCE" | tee -a ws0006-artifacts/fingerprint-comparison.log
+            exit 1
+          fi
+          echo "PHASE 3 — PASSED" | tee -a ws0006-artifacts/fingerprint-comparison.log
+
+      - name: Teardown phase 3
+        if: always()
+        run: |
+          mkdir -p ws0006-artifacts
+          supabase stop --no-backup 2>&1 | tee ws0006-artifacts/teardown-phase3.log || true
+
+      - name: Upload phase 3 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ws0006-slice3a-phase3-${{ github.sha }}
+          path: ws0006-artifacts/
           if-no-files-found: warn
           retention-days: 14

@@ -15,7 +15,9 @@
 
 BEGIN;
 
-SELECT plan(31);
+-- Assertion plan: 43 catalog assertions (corrected; the authored-but-never
+-- executed Part-A value of 31 did not match the file's actual assertion count).
+SELECT plan(43);
 
 -- ---------------------------------------------------------------------
 -- 1. Exactly six Import relations, no unexpected Import table or view
@@ -200,15 +202,46 @@ SELECT is(
 
 -- ---------------------------------------------------------------------
 -- 7. Deny-all ACL and role inventory
+--
+-- APPLICATION-FACING RESTRICTED ROLES: DENY-ALL.
+-- GENERIC sandbox_exec: OWNER-ACCEPTED BOUNDED PLATFORM-MANAGED
+-- PRIVILEGED EXCEPTION (PB-D8). It is NOT an application-facing role,
+-- it may hold BYPASSRLS, and it is deliberately excluded from the
+-- blanket deny-all assertion below. It is NOT proof of universal
+-- deny-all.
+--
+-- PUBLIC is not a named role and is never passed through the
+-- named-role existence guard; it is inspected through ACL expansion
+-- with grantee OID 0.
 -- ---------------------------------------------------------------------
 SELECT is(
   (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace,
-        unnest(ARRAY['anon','authenticated','service_role','sandbox_exec',
-                     'sandbox_exec_vhxglsvxwwpmoqjabfmj','public']) AS r(rolename),
+        unnest(ARRAY['anon','authenticated','service_role',
+                     'sandbox_exec_vhxglsvxwwpmoqjabfmj']) AS r(rolename),
         unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) AS p(priv)
     WHERE n.nspname='public' AND c.relname LIKE 'import\_%' AND c.relkind='r'
+      AND EXISTS (SELECT 1 FROM pg_roles pr WHERE pr.rolname = r.rolename)
       AND has_table_privilege(r.rolename, c.oid, p.priv)), 0,
-  'no restricted role holds any direct privilege on any Import table');
+  'no application-facing restricted role holds any direct privilege on any Import table');
+
+SELECT is(
+  (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace,
+        LATERAL aclexplode(coalesce(c.relacl, '{}'::aclitem[])) a
+    WHERE n.nspname='public' AND c.relname LIKE 'import\_%' AND c.relkind='r'
+      AND a.grantee = 0), 0,
+  'PUBLIC holds zero privileges on the Import tables (grantee OID 0)');
+
+SELECT ok(
+  NOT EXISTS (
+    SELECT 1 FROM pg_roles WHERE rolname = 'sandbox_exec'
+  )
+  OR NOT EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace,
+         unnest(ARRAY['UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) AS p(priv)
+     WHERE n.nspname='public' AND c.relname LIKE 'import\_%' AND c.relkind='r'
+       AND has_table_privilege('sandbox_exec', c.oid, p.priv)
+  ),
+  'generic sandbox_exec is absent or holds at most SELECT and INSERT (bounded accepted exception)');
 
 SELECT is(
   (SELECT count(*)::int FROM pg_roles WHERE rolname IN ('anon','authenticated') AND rolbypassrls),
@@ -216,6 +249,10 @@ SELECT is(
 
 -- ---------------------------------------------------------------------
 -- 8. Zero functions, triggers, permission keys, Storage, and zero rows
+--
+-- permission_definitions and storage.buckets are environment-specific.
+-- Both are guarded with to_regclass so a fresh local database produces a
+-- controlled assertion result instead of an unhandled error.
 -- ---------------------------------------------------------------------
 SELECT is(
   (SELECT count(*)::int FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
@@ -229,12 +266,16 @@ SELECT is(
   'zero triggers (including updated_at triggers) exist on the Import tables');
 
 SELECT is(
-  (SELECT count(*)::int FROM public.permission_definitions WHERE key LIKE 'import%'), 0,
-  'zero Import permission keys exist');
+  CASE WHEN to_regclass('public.permission_definitions') IS NULL THEN 0
+       ELSE (SELECT count(*)::int FROM public.permission_definitions WHERE key LIKE 'import%')
+  END, 0,
+  'zero Import permission keys exist (or permission_definitions is absent in this environment)');
 
 SELECT is(
-  (SELECT count(*)::int FROM storage.buckets WHERE id ILIKE '%import%'), 0,
-  'zero Import Storage buckets exist');
+  CASE WHEN to_regclass('storage.buckets') IS NULL THEN 0
+       ELSE (SELECT count(*)::int FROM storage.buckets WHERE id ILIKE '%import%')
+  END, 0,
+  'zero Import Storage buckets exist (or storage.buckets is absent in this environment)');
 
 SELECT is(
   (SELECT (SELECT count(*) FROM public.import_batches)
@@ -244,6 +285,7 @@ SELECT is(
         + (SELECT count(*) FROM public.import_issues)
         + (SELECT count(*) FROM public.import_events))::int, 0,
   'all six Import tables are empty');
+
 
 SELECT * FROM finish();
 

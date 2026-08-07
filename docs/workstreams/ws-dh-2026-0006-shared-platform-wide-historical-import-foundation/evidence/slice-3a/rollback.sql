@@ -2,21 +2,34 @@
 -- WS-DH-2026-0006 — RM-DH-004 Phase 2 — Stage 2 — Slice 3A Part A
 -- GUARDED ROLLBACK ARTIFACT — Core Control Plane Schema Foundation
 --
--- Status: AUTHORED — NOT EXECUTED — PART B / LATER QA REQUIRED
+-- Status: CORRECTED IN PROMPT 57 PART B — REHEARSED IN EPHEMERAL CI ONLY
 --
--- PROHIBITION:
---   Destructive rollback is PROHIBITED once any accepted Historical
---   Import evidence exists. Once an Import Batch, source file, staging
---   row, issue or event has been accepted as evidence — or once any
---   legal hold has been set — this artifact must NOT be executed.
---   Executing it would destroy provenance and audit evidence.
---   In that case a forward corrective Migration is the only permitted
---   path.
+-- SCOPE AND SEMANTICS:
+--   * This script performs SCHEMA ROLLBACK ONLY.
+--   * It does NOT revert `supabase_migrations.schema_migrations` or any
+--     other migration-history registry, and no manual edit of migration
+--     history is permitted.
+--   * Migration-history and schema equivalence are proven separately,
+--     through complete Migration replay into a fresh disposable database
+--     (PB-D9 three-database design), not by this script.
+--
+-- EXECUTION BOUNDARY:
+--   * Execution against the shared / hosted database is PERMANENTLY
+--     PROHIBITED.
+--   * Execution is permitted only inside an ephemeral, disposable CI
+--     database during rollback rehearsal.
+--   * Execution after any accepted Historical Import evidence exists is
+--     PROHIBITED. Once an Import Batch, source file, staging row, issue
+--     or event has been accepted as evidence — or once any legal hold
+--     has been set — this artifact must NOT be executed. Executing it
+--     would destroy provenance and audit evidence. In that case a
+--     forward corrective Migration is the only permitted path.
 --
 -- This artifact is safe only while all six tables are provably empty.
 -- It performs no CASCADE, drops nothing outside the six authorized
 -- Slice-3A tables, and aborts atomically on any guard failure.
 -- =====================================================================
+
 
 BEGIN;
 
@@ -70,8 +83,12 @@ DO $$
 DECLARE
   v_n bigint;
 BEGIN
+  -- The relkind filter is mandatory: without it indexes, sequences and
+  -- other dependent relations named import_% are miscounted as Import
+  -- relations and the guard reports a false failure.
   SELECT count(*) INTO v_n FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-   WHERE n.nspname = 'public' AND c.relname LIKE 'import\_%';
+   WHERE n.nspname = 'public' AND c.relname LIKE 'import\_%'
+     AND c.relkind IN ('r', 'p', 'v', 'm', 'f');
   IF v_n <> 0 THEN
     RAISE EXCEPTION 'ROLLBACK GUARD FAILED: Import relations remain after drop';
   END IF;
