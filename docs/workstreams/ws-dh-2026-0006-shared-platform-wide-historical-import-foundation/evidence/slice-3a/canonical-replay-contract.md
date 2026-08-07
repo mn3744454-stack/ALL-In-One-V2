@@ -53,7 +53,7 @@ Supabase CLI **2.111.0**, proven from GitHub Actions Run #17 (Run ID `3114182154
 |---|---|
 | Path | `.github/workflows/ws0006-slice3a-canonical-replay.yml` |
 | Display name | WS0006 Slice 3A — Canonical Fresh Replay Only |
-| SHA-256 (post-write) | `dbf0b74a19348c8dbb4f1de0e5b04b47ca4a2bda6a8f5c6c9cee01bd2ba39fe4` |
+| SHA-256 (post-write) | `56d08e947b66833fc56f9c70361e52d605666bb034a8a5e7750743bf79ede23f` |
 
 The workflow recomputes and records its own SHA-256 at runtime into `repository-identity.log` and `final-verdict.txt`.
 
