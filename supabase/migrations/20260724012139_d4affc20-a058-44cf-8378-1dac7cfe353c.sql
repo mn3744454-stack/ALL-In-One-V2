@@ -102,9 +102,14 @@ BEGIN
   FROM public.invoice_items
   WHERE id = 'fedae37c-0fcb-42f4-8ed7-ec7f97c61193';
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'J5 preflight D7: J4.2 repaired item is missing';
-  END IF;
-  IF v_repaired.period_start IS NOT NULL
+    -- Clean-reconstruction guard, D7 historical verification only:
+    -- the J4.2 fixture is genuinely absent when its parent historical invoice is
+    -- also absent; any other absence is contradictory and must FAIL CLOSED.
+    IF EXISTS (SELECT 1 FROM public.invoices WHERE id = '59665729-81bd-423e-885b-7364232a4fe4') THEN
+      RAISE EXCEPTION 'J5 preflight D7: J4.2 repaired item is missing';
+    END IF;
+    RAISE NOTICE 'J5 preflight D7 SKIP: J4.2 historical fixture absent (clean reconstruction); D7 historical verification skipped';
+  ELSIF v_repaired.period_start IS NOT NULL
      OR v_repaired.period_end IS NOT NULL
      OR v_repaired.description <> 'Suni | Taif Branch | إيواء' THEN
     RAISE EXCEPTION 'J5 preflight D7: J4.2 repaired item state drifted (start=%, end=%, desc=%)',
