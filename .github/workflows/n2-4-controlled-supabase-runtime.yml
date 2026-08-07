@@ -351,13 +351,13 @@ jobs:
              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind='r';" \
             | tee ws0006-artifacts/fingerprint-phase2-pre.txt
 
-      - name: Rollback guard — nonempty tables and legal hold
+      - name: Matrix 32 — general non-empty guard (no legal hold present)
         run: |
           set -e
           set -o pipefail
           eval "$(supabase status -o env | sed 's/^/export /')"
           {
-            echo "=== fixture: synthetic tenant + batch (matrix 32) ==="
+            echo "=== fixture: synthetic tenant + batch, legal_hold strictly absent ==="
             psql "$DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
           INSERT INTO auth.users (id, aud, role, email)
           VALUES ('3a000000-0000-4000-8000-00000000a1a1','authenticated','authenticated','ws0006.synthetic.a@example.invalid');
@@ -365,37 +365,72 @@ jobs:
           VALUES ('3a000000-0000-4000-8000-aaaaaaaaaaaa','WS0006 Synthetic Tenant A','stable','3a000000-0000-4000-8000-00000000a1a1');
           INSERT INTO public.import_batches (id, tenant_id, batch_code, title)
           VALUES ('3a000000-0000-4000-8000-00000000ba01','3a000000-0000-4000-8000-aaaaaaaaaaaa','WS0006-A-001','Synthetic Batch A1');
+          INSERT INTO public.import_source_files (id, tenant_id, original_filename, byte_size, sha256_hex, legal_hold)
+          VALUES ('3a000000-0000-4000-8000-00000000f032','3a000000-0000-4000-8000-aaaaaaaaaaaa','m32.csv',1024,repeat('32',32), false);
           SQL
-            echo "=== matrix 32: guarded rollback must FAIL on nonempty tables ==="
-            if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}"; then
-              echo "FAILED — ROLLBACK GUARD TESTS: rollback succeeded while rows existed"; exit 1
-            fi
-            echo "guarded failure observed"
-            psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind='r';" | grep -qx 6
-            psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_batches;" | grep -qx 1
-            echo "schema and rows intact after the failed guarded rollback"
+            echo "precondition: zero rows may be under legal hold"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_source_files WHERE legal_hold = true;" | grep -qx 0
 
-            echo "=== matrix 33: legal-hold source file ==="
+            echo "=== matrix 32: guarded rollback must FAIL on the non-empty guard ==="
+            if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}" > matrix32-attempt.log 2>&1; then
+              echo "FAILED — MATRIX 32: rollback succeeded while rows existed"; cat matrix32-attempt.log; exit 1
+            fi
+            cat matrix32-attempt.log
+            grep -q 'ROLLBACK BLOCKED - IMPORT TABLES NOT EMPTY' matrix32-attempt.log \
+              || { echo "FAILED — MATRIX 32: non-empty guard did not raise its own error class"; exit 1; }
+            grep -q 'ROLLBACK BLOCKED - LEGAL HOLD EXISTS' matrix32-attempt.log \
+              && { echo "FAILED — MATRIX 32: legal-hold guard fired in a non-legal-hold scenario"; exit 1; }
+
+            echo "all six tables must survive the failed rollback transaction"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind IN ('r','p','v','m','f');" | grep -qx 6
+            echo "fixture rows must survive the failed rollback transaction"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_batches;" | grep -qx 1
+            psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_source_files;" | grep -qx 1
+
+            echo "=== matrix 32 cleanup ==="
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -c "DELETE FROM public.import_source_files; DELETE FROM public.import_batches;"
+            psql "$DB_URL" -Atc "SELECT (SELECT count(*) FROM public.import_source_files) + (SELECT count(*) FROM public.import_batches);" | grep -qx 0
+            echo "MATRIX-32 NONEMPTY-GUARD PASSED"
+          } 2>&1 | tee ws0006-artifacts/matrix32-nonempty-guard-phase2.log
+
+      - name: Matrix 33 — legal-hold guard (distinct, independently proven)
+        run: |
+          set -e
+          set -o pipefail
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          {
+            echo "=== fixture: bounded synthetic source file under legal hold ==="
             psql "$DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
           INSERT INTO public.import_source_files (id, tenant_id, original_filename, byte_size, sha256_hex,
                                                   legal_hold, legal_hold_reason, legal_hold_set_at)
-          VALUES ('3a000000-0000-4000-8000-00000000f001','3a000000-0000-4000-8000-aaaaaaaaaaaa','a1.csv',1024,
-                  repeat('a1',32), true, 'synthetic legal hold', now());
+          VALUES ('3a000000-0000-4000-8000-00000000f033','3a000000-0000-4000-8000-aaaaaaaaaaaa','m33.csv',1024,
+                  repeat('33',32), true, 'synthetic legal hold', now());
           SQL
-            if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}"; then
-              echo "FAILED — ROLLBACK GUARD TESTS: rollback succeeded with a legal hold present"; exit 1
-            fi
-            echo "guarded failure observed with legal hold present"
-            echo "NOTE: the empty-table guard fires before the legal-hold guard by design;"
-            echo "the legal-hold scenario is therefore rejected at the earliest guard."
-            psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind='r';" | grep -qx 6
-            echo "no partial drop occurred"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_source_files WHERE legal_hold = true;" | grep -qx 1
 
-            echo "=== fixture cleanup ==="
+            echo "=== matrix 33: guarded rollback must FAIL on the legal-hold guard ==="
+            if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}" > matrix33-attempt.log 2>&1; then
+              echo "FAILED — MATRIX 33: rollback succeeded with a legal hold present"; cat matrix33-attempt.log; exit 1
+            fi
+            cat matrix33-attempt.log
+            grep -q 'ROLLBACK BLOCKED - LEGAL HOLD EXISTS' matrix33-attempt.log \
+              || { echo "FAILED — MATRIX 33: legal-hold guard did not fire; the general non-empty guard is not an acceptable substitute"; exit 1; }
+            grep -q 'ROLLBACK BLOCKED - IMPORT TABLES NOT EMPTY' matrix33-attempt.log \
+              && { echo "FAILED — MATRIX 33: non-empty guard preempted the legal-hold guard"; exit 1; }
+
+            echo "all six tables must survive; no partial drop is permitted"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname='public' AND c.relname ~ '^import_' AND c.relkind IN ('r','p','v','m','f');" | grep -qx 6
+            echo "the legal-hold row must survive the failed rollback transaction"
+            psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_source_files WHERE legal_hold = true;" | grep -qx 1
+
+            echo "=== matrix 33 cleanup ==="
             psql "$DB_URL" -v ON_ERROR_STOP=1 -c "DELETE FROM public.import_source_files; DELETE FROM public.import_batches;"
-          } 2>&1 | tee ws0006-artifacts/rollback-guards-phase2.log
+            psql "$DB_URL" -Atc "SELECT (SELECT count(*) FROM public.import_source_files) + (SELECT count(*) FROM public.import_batches);" | grep -qx 0
+            echo "MATRIX-33 LEGAL-HOLD-GUARD PASSED"
+          } 2>&1 | tee ws0006-artifacts/matrix33-legal-hold-guard-phase2.log
+
 
       - name: Successful rollback rehearsal on empty tables
         run: |
