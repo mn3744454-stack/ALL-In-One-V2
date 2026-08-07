@@ -53,9 +53,27 @@ DECLARE
   v_bl_count_after            bigint;
   v_bl_sum_before             numeric;
   v_bl_sum_after              numeric;
+
+  -- Clean-reconstruction target presence
+  v_inv_exists                integer;
+  v_item_exists               integer;
 BEGIN
   -- Dedicated advisory transaction lock for J4.2
   PERFORM pg_advisory_xact_lock(hashtext('phase_n1b_j42_legacy_period_repair'));
+
+  -- Clean-reconstruction guard (three-state):
+  --   neither historical target present -> skip the historical repair entirely (no-op)
+  --   exactly one present               -> FAIL CLOSED (partial / contradictory state)
+  --   both present                      -> original historical repair, unchanged
+  SELECT count(*) INTO v_inv_exists  FROM public.invoices      WHERE id = v_invoice_id;
+  SELECT count(*) INTO v_item_exists FROM public.invoice_items WHERE id = v_item_id;
+
+  IF v_inv_exists = 0 AND v_item_exists = 0 THEN
+    RAISE NOTICE 'J4.2 SKIP: historical target invoice and invoice_item are both absent (clean reconstruction); no repair performed';
+    RETURN;
+  ELSIF v_inv_exists = 0 OR v_item_exists = 0 THEN
+    RAISE EXCEPTION 'J4.2 ABORT: partial historical fixture (invoice_present=%, item_present=%)', v_inv_exists, v_item_exists;
+  END IF;
 
   -- Row locks
   SELECT * INTO r_inv  FROM public.invoices     WHERE id = v_invoice_id FOR UPDATE;

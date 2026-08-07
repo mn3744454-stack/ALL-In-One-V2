@@ -10,8 +10,24 @@ DECLARE
   v_hdr_subtotal numeric; v_hdr_tax numeric; v_hdr_discount numeric; v_hdr_total numeric;
   v_updated int;
   v_global_bad int;
+  v_inv_exists int;
+  v_item_exists int;
 BEGIN
   PERFORM pg_advisory_xact_lock(hashtext('j4_1_tax_rate_snapshot_repair'));
+
+  -- Clean-reconstruction guard (three-state):
+  --   neither historical target present -> skip repair entirely (no-op)
+  --   exactly one present               -> FAIL CLOSED (partial historical fixture)
+  --   both present                      -> original historical repair, unchanged
+  SELECT count(*) INTO v_inv_exists  FROM public.invoices      WHERE id = v_invoice_id;
+  SELECT count(*) INTO v_item_exists FROM public.invoice_items WHERE id = v_item_id AND invoice_id = v_invoice_id;
+
+  IF v_inv_exists = 0 AND v_item_exists = 0 THEN
+    RAISE NOTICE 'J4.1 SKIP: historical target invoice and invoice_item are both absent (clean reconstruction); no repair performed';
+    RETURN;
+  ELSIF v_inv_exists = 0 OR v_item_exists = 0 THEN
+    RAISE EXCEPTION 'J4.1 abort: partial historical fixture (invoice_present=%, item_present=%)', v_inv_exists, v_item_exists;
+  END IF;
 
   -- Lock invoice + item
   PERFORM 1 FROM public.invoices WHERE id = v_invoice_id FOR UPDATE;
