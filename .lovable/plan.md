@@ -1,58 +1,72 @@
-# Prompt 57 — Part B Execution Contract (Owner Aligned)
+# Prompt 57 — Part B — Fresh-Rebuild Unblock Execution Contract (Owner Aligned)
 
-RM-DH-004 / Phase 2 / Stage 2 / Slice 3A — Behavioral QA Harness
-
-Status: OWNER ALIGNMENT COMPLETE — EXECUTION PENDING APPROVAL OF THIS PLAN.
-No new Prompt number consumed. Prompt 58 remains unconsumed.
+RM-DH-004 / Phase 2 / WS-DH-2026-0006 / Slice 3A
+Same-ID continuation of Prompt 57. No new Prompt number consumed. Prompt 58 remains unconsumed.
 
 ## Owner-aligned decisions
 
 | ID | Decision | Owner answer |
 |---|---|---|
-| PB-D1 | Primary test boundary | Ephemeral CI database |
-| PB-D2 | Fixture lifecycle | Approved — transaction-scoped deterministic fixtures in CI |
-| PB-D3 | Role impersonation | Approved — SET ROLE only inside CI test transactions; shared DB prohibited |
-| PB-D4 | Rollback rehearsal | Approved — Ephemeral CI only; shared DB rollback permanently prohibited |
-| PB-D7 | Behavioral QA scope | Approved — matrix 1–28 and 32–36; 29–31 deferred to Slice 3B |
-| PB-D8 | Generic `sandbox_exec` | Option A — accept as bounded platform-managed exception; narrow the deny-all claim; document it; Slice-3A Acceptance still requires explicit exception acceptance |
-| PB-D9 | Forward/rollback/forward | Option B — fresh disposable database / reset boundary per phase; no migration-history editing |
-| Scope | Four changed paths | Approved |
+| CI-D1 | Root cause | Accepted — pre-existing migration-chain debt, not a Prompt-57 regression |
+| CI-D2 | Remediation strategy | Option A — guard-only edits, applied to both proven blockers |
+| CI-D3 | Editing already-applied history | Approved, guard-only and semantics-preserving |
+| CI-D4 | Reconstruction contract | Retain full migration-chain replay from an empty database |
+| CI-D5 | CI rerun | Only after local replay is clean |
+| CI-D6 | Next scope | Minimal unblock only; no CI rerun in the same run |
+
+## Problem being fixed
+
+A fresh disposable database cannot replay the migration chain. Two migrations assert against live hosted fixtures and abort on an empty database:
+
+1. `20260723235157_c56d3417-17ad-4008-a846-8be103b0ebe1.sql` — verification-only, zero permanent schema effect. Aborts with `N1B_J3_VERIFY_FIXTURE_ACTOR_NOT_MEMBER` (P0001) because hard-coded tenant `145f2128…` / user `98439fe8…` do not exist.
+2. `20260726092019_69205b8e-fb7d-413e-82cf-1c9d03703c20.sql` — schema plus a one-row data repair. Aborts with `Blocking row not found` because hard-coded ledger row `43cdf7bf…` does not exist.
+
+Both are already applied to the hosted database, so guarded edits never re-run there and change nothing in production.
+
+## Fix pattern (the project's own precedent)
+
+`20260720173125_d616b20c…` already demonstrates the accepted pattern: detect the fixture, and when it is absent emit `RAISE NOTICE '… absent on clean rebuild; … will be skipped'` and continue. Both blockers adopt the same shape.
+
+## Work to perform
+
+1. `supabase/migrations/20260723235157_c56d3417-17ad-4008-a846-8be103b0ebe1.sql`
+   - Wrap the entire verification body in a fixture-presence check: tenant exists, user is an active member, required finance permissions present, cross-tenant fixtures present.
+   - When all present: behaviour is byte-for-byte unchanged, including every T2–T14 assertion and the zero-residue guards.
+   - When any is absent: `RAISE NOTICE` naming the missing fixture, skip the verification, leave the database untouched.
+   - No permanent schema effect exists in this file, so nothing else changes.
+
+2. `supabase/migrations/20260726092019_69205b8e-fb7d-413e-82cf-1c9d03703c20.sql`
+   - Keep all schema DDL, backfills, FK validation and integrity checks unconditional.
+   - Gate only the hard-coded blocking-row repair block on the row's existence: when `43cdf7bf…` is absent, `RAISE NOTICE` and skip the repair; when present, run every existing precondition and drift assertion unchanged.
+   - Preflight assertions over live data stay in place — they are vacuously true on an empty database.
+
+3. Any further migration proven to abort during local replay
+   - Guarded with the identical pattern, one at a time, each recorded in the evidence log.
+
+4. `docs/workstreams/ws-dh-2026-0006-.../evidence/slice-3a/fresh-rebuild-unblock.md` — new evidence artifact
+   - Replay log, list of guarded files, per-file pre/post SHA-256, unified diffs, and the statement that hosted migration history is unaffected.
+
+## Verification loop
+
+Run `supabase db start` against a local disposable stack, repeat until the full 326-migration chain replays clean. No hosted database writes at any point.
 
 ## Hard boundaries
 
-- Zero writes to the shared database: no DML, no `SET ROLE`, no rollback, no migration.
-- Only read-only catalog rechecks against the shared database.
-- No customer tenant data used anywhere; synthetic tenants only.
-- No fallback to the shared database if CI fails.
+- Zero hosted-database writes, DDL, DML, `SET ROLE`, or rollback execution.
+- No new migration file, no renumbering, no deletion, no migration-history edit.
+- No synthetic fixtures injected into the production migration chain.
+- No customer tenant and no production data in any test path.
+- No CI workflow edit unless local replay proves one necessary.
+- No CI rerun in this execution.
 
-## Work to perform (exactly four paths)
+## Acceptance criteria
 
-1. `supabase/tests/database/ws0006_slice3a_behavioral.test.sql` — new
-   - Synthetic tenants A and B created inside the test transaction, rolled back at the end.
-   - Behavioral matrix items 1–28 and 32–36: tenant-bound FK rejection, cross-tenant insert rejection, tenant-scoped checksum uniqueness (same hash allowed across tenants, rejected within one), RESTRICT delete behaviour, CHECK constraint rejections (state values, JSONB object shape, 64-hex SHA-256), partial unique index behaviour on `import_batch_files`, and FORCE RLS deny behaviour under `SET ROLE authenticated` / `anon` with zero policies present.
-   - Items 29–31 explicitly documented as Part-A limitations owned by Slice 3B.
+Full migration chain replays clean from an empty database; every guarded file behaves identically on a populated database; evidence artifact complete with hashes and diffs.
 
-2. `supabase/tests/database/ws0006_slice3a_core_control_plane.test.sql` — corrected
-   - Fresh-database-safe role-existence guard so a missing role fails cleanly instead of aborting.
-   - Generic `sandbox_exec` removed from the customer-facing deny-all assertion.
-   - Separate assertion reporting generic `sandbox_exec` as a platform-managed exception where the role exists.
-   - Customer-facing deny-all assertion retained for `anon`, `authenticated`, `service_role`, `PUBLIC` and the project-scoped sandbox role.
+## Exact stop
 
-3. `.github/workflows/n2-4-controlled-supabase-runtime.yml` — minimal edit
-   - Add `supabase/tests/database/ws0006_*` to the path filters.
-   - Add a Bootstrap Gate that proves Docker, Supabase CLI, `supabase db start`, pgTAP availability and full migration-chain replay before any test runs; failure stops the job with an exact failure report and no QA or Acceptance claim.
-   - Run corrected Catalog tests, then Behavioral tests.
-   - Run the PB-D9 rollback drill on a fresh disposable database per phase.
-   - Upload per-gate evidence; keep `if: always()` teardown.
+Stop after local clean replay is proven and evidence is written. Do not rerun CI, do not execute Behavioral QA, do not execute rollback or reconstruction equivalence, do not start Slice 3B/3C, do not claim Slice 3A Acceptance.
 
-4. `docs/workstreams/ws-dh-2026-0006-.../evidence/slice-3a/rollback.sql` — corrected
-   - Add the missing `relkind IN ('r','p','v','m','f')` filter to the post-drop guard.
-   - Document that dropping tables is schema rollback only and does not revert `supabase_migrations.schema_migrations`; migration-history equivalence is proven by the fresh-database-per-phase drill instead.
+## Out of scope
 
-## Evidence produced
-
-Environment log, migration replay log, pgTAP version, per-gate test output, rollback drill log, uploaded artifact, and SHA-256 of each changed file.
-
-## Explicitly out of scope
-
-Slice 3B, Slice 3C, permission keys, RLS policies, RPCs, storage buckets, edge functions, governance persistence, Prompt 58, and Slice-3A Acceptance (which remains blocked pending explicit acceptance of the PB-D8 bounded platform exception).
+Slice 3B, Slice 3C, permission keys, RLS policies, RPCs, storage buckets, edge functions, Prompt 58, and Slice-3A Acceptance.
