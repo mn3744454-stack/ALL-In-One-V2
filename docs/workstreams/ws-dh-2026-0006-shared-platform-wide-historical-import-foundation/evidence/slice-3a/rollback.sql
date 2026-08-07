@@ -83,8 +83,12 @@ DO $$
 DECLARE
   v_n bigint;
 BEGIN
+  -- The relkind filter is mandatory: without it indexes, sequences and
+  -- other dependent relations named import_% are miscounted as Import
+  -- relations and the guard reports a false failure.
   SELECT count(*) INTO v_n FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-   WHERE n.nspname = 'public' AND c.relname LIKE 'import\_%';
+   WHERE n.nspname = 'public' AND c.relname LIKE 'import\_%'
+     AND c.relkind IN ('r', 'p', 'v', 'm', 'f');
   IF v_n <> 0 THEN
     RAISE EXCEPTION 'ROLLBACK GUARD FAILED: Import relations remain after drop';
   END IF;
