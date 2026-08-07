@@ -1,72 +1,73 @@
-# Prompt 57 — Part B — Fresh-Rebuild Unblock Execution Contract (Owner Aligned)
+# Prompt 57 — Part B — Dedicated Canonical Replay-Only Workflow
 
 RM-DH-004 / Phase 2 / WS-DH-2026-0006 / Slice 3A
-Same-ID continuation of Prompt 57. No new Prompt number consumed. Prompt 58 remains unconsumed.
+Same-ID continuation. No new Prompt number consumed. Prompt 58 remains unconsumed.
+Status of this document: proposed contract for Owner approval. Nothing is implemented by it.
 
 ## Owner-aligned decisions
 
-| ID | Decision | Owner answer |
-|---|---|---|
-| CI-D1 | Root cause | Accepted — pre-existing migration-chain debt, not a Prompt-57 regression |
-| CI-D2 | Remediation strategy | Option A — guard-only edits, applied to both proven blockers |
-| CI-D3 | Editing already-applied history | Approved, guard-only and semantics-preserving |
-| CI-D4 | Reconstruction contract | Retain full migration-chain replay from an empty database |
-| CI-D5 | CI rerun | Only after local replay is clean |
-| CI-D6 | Next scope | Minimal unblock only; no CI rerun in the same run |
+| ID | Decision |
+|---|---|
+| CE-D1 | Canonical = official Supabase CLI + Supabase-managed local Docker stack from this repo's `supabase/config.toml`, disposable, no hosted credentials, no emulated schemas or extension stubs, no manual history stamping. Not hosted production equivalence. |
+| CE-D2 | Dedicated replay-only GitHub Actions workflow, manual dispatch only |
+| CE-D3 | Exact pinned CLI version; `2.111.0` only if Run #17 evidence proves it, otherwise stop for Owner Alignment |
+| CE-D4 | Fail-closed hosted-credential gate before local startup |
+| CE-D5 | Dedicated workflow — existing N2.4 stays unchanged |
+| CE-D6 | Replay-only, stop at first result |
+| CE-D7 | Owner-approved descendant of `4b82a7c5bb5c8e41654304cb3b1576a7954c2da3` only, with a path-diff proven clean |
 
-## Problem being fixed
+## Blocking precondition — CLI version proof
 
-A fresh disposable database cannot replay the migration chain. Two migrations assert against live hosted fixtures and abort on an empty database:
+Run #17 (`31141821543`) logs are not readable from this environment. Before the workflow is written, the exact CLI version must be established from authoritative existing evidence or supplied by the Owner. If neither is available: **STOP — CLI VERSION NOT PROVEN**, do not write the workflow, do not fall back to `latest`.
 
-1. `20260723235157_c56d3417-17ad-4008-a846-8be103b0ebe1.sql` — verification-only, zero permanent schema effect. Aborts with `N1B_J3_VERIFY_FIXTURE_ACTOR_NOT_MEMBER` (P0001) because hard-coded tenant `145f2128…` / user `98439fe8…` do not exist.
-2. `20260726092019_69205b8e-fb7d-413e-82cf-1c9d03703c20.sql` — schema plus a one-row data repair. Aborts with `Blocking row not found` because hard-coded ledger row `43cdf7bf…` does not exist.
+## Proposed changed-path envelope — exactly two paths
 
-Both are already applied to the hosted database, so guarded edits never re-run there and change nothing in production.
+1. `.github/workflows/ws0006-slice3a-canonical-replay.yml` — new, replay-only
+2. `docs/workstreams/ws-dh-2026-0006-shared-platform-wide-historical-import-foundation/evidence/slice-3a/canonical-replay-contract.md` — new evidence/contract artifact
 
-## Fix pattern (the project's own precedent)
+`.github/workflows/n2-4-controlled-supabase-runtime.yml`, `supabase/config.toml`, both frozen migrations, all other migrations, tests, rollback artifact and application code remain untouched. The new filename is absent from N2.4's path filters, so introducing it cannot trigger N2.4.
 
-`20260720173125_d616b20c…` already demonstrates the accepted pattern: detect the fixture, and when it is absent emit `RAISE NOTICE '… absent on clean rebuild; … will be skipped'` and continue. Both blockers adopt the same shape.
+## Proposed workflow shape
 
-## Work to perform
+- Triggers: `workflow_dispatch` only. No `push`, no `pull_request`, no `schedule`, no `workflow_call`, no path filters.
+- `permissions: contents: read`. No `environment:` reference. Single job, `runs-on: ubuntu-24.04`, timeout 60 minutes, concurrency group with `cancel-in-progress: false`.
+- Does not call, need, or reuse any N2.4 job.
 
-1. `supabase/migrations/20260723235157_c56d3417-17ad-4008-a846-8be103b0ebe1.sql`
-   - Wrap the entire verification body in a fixture-presence check: tenant exists, user is an active member, required finance permissions present, cross-tenant fixtures present.
-   - When all present: behaviour is byte-for-byte unchanged, including every T2–T14 assertion and the zero-residue guards.
-   - When any is absent: `RAISE NOTICE` naming the missing fixture, skip the verification, leave the database untouched.
-   - No permanent schema effect exists in this file, so nothing else changes.
+Steps, in order:
 
-2. `supabase/migrations/20260726092019_69205b8e-fb7d-413e-82cf-1c9d03703c20.sql`
-   - Keep all schema DDL, backfills, FK validation and integrity checks unconditional.
-   - Gate only the hard-coded blocking-row repair block on the row's existence: when `43cdf7bf…` is absent, `RAISE NOTICE` and skip the repair; when present, run every existing precondition and drift assertion unchanged.
-   - Preflight assertions over live data stay in place — they are vacuously true on an empty database.
+1. `actions/checkout@v4` at the dispatched ref.
+2. Record identity: repository, `GITHUB_SHA`, ref, runner name, `ImageVersion`, `docker version`, and — after CLI setup — the runtime output of `supabase --version`, asserted equal to the pinned version. → `environment.log`, `repository-identity.log`
+3. Fail-closed hosted-credential gate, before any Supabase command. Non-empty check with `exit 1` on: `SUPABASE_DB_URL`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_PROJECT_ID`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, `DATABASE_URL`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGURI`. Also assert `supabase/.temp` and `.supabase` do not exist. Values are never printed — PRESENT/ABSENT only. → `hosted-credential-gate.log`
+4. `supabase/setup-cli@v3` with the exact pinned `version:`.
+5. Assert migration count = 326 and record first and last filename. → `migration-count.log`
+6. Verify frozen hashes, `exit 1` on mismatch: `20260723235157_...` = `ca12218a2976a672bce6ddaa25454209cce6b7ca15f1aae437940d9851a3ff87`; `20260726092019_...` = `a563431bde0d587a5363fb36be5eb0f0fd25d8c2452548036865d73e17358add`. → `migration-hashes.log`
+7. `supabase db start` with `set -o pipefail`, full-chain replay, first failure captured verbatim, no retry, no skip, no continuation. → `migration-replay.log`
+8. On success only: record `supabase_migrations.schema_migrations` count, first and last version, PostgreSQL server version, and `supabase status` with keys/tokens/passwords redacted. → `local-status.log`
+9. Stop.
+10. `if: always()` — `supabase stop --no-backup`. → `teardown.log`
+11. `if: always()` — write one of the three verdicts and upload all artifacts. → `final-verdict.txt`
 
-3. Any further migration proven to abort during local replay
-   - Guarded with the identical pattern, one at a time, each recorded in the evidence log.
+## Explicitly absent from the workflow
 
-4. `docs/workstreams/ws-dh-2026-0006-.../evidence/slice-3a/fresh-rebuild-unblock.md` — new evidence artifact
-   - Replay log, list of guarded files, per-file pre/post SHA-256, unified diffs, and the statement that hosted migration history is unaffected.
+No `supabase test db`, no Catalog SQL, no Behavioral pgTAP, no fixture DML, no `SET ROLE`, no `rollback.sql`, no schema rollback, no Forward → Rollback → Forward, no reconstruction equivalence or fingerprint, no Slice 3B/3C step, no `supabase link`, no `db push`, no `migration repair`, no remote DB URL, no `secrets.*` reference. These constructs are not present in the file at all, so the job is structurally incapable of executing them.
 
-## Verification loop
+## Pre-dispatch gate (performed and reported before any run)
 
-Run `supabase db start` against a local disposable stack, repeat until the full 326-migration chain replays clean. No hosted database writes at any point.
+1. Report the exact execution SHA in full.
+2. Prove it is a descendant of `4b82a7c5bb5c8e41654304cb3b1576a7954c2da3`.
+3. Path-diff from `4b82a7c5` to the execution SHA; only the two authorized paths may appear.
+4. Re-verify both frozen migration hashes; no other migration may differ.
+5. On any unexpected path or unrelated commit: STOP, no dispatch, return for Owner Alignment.
+6. Once approved, that SHA is immutable for the replay — no silent advance to a newer commit.
 
-## Hard boundaries
+## Evidence package
 
-- Zero hosted-database writes, DDL, DML, `SET ROLE`, or rollback execution.
-- No new migration file, no renumbering, no deletion, no migration-history edit.
-- No synthetic fixtures injected into the production migration chain.
-- No customer tenant and no production data in any test path.
-- No CI workflow edit unless local replay proves one necessary.
-- No CI rerun in this execution.
+`environment.log`, `hosted-credential-gate.log`, `repository-identity.log`, `migration-hashes.log`, `migration-count.log`, `migration-replay.log`, `local-status.log` (on startup success), `teardown.log`, `final-verdict.txt` — each header-bound to RM-DH-004, WS-DH-2026-0006, Prompt 57, Slice 3A, execution SHA, workflow file SHA-256, execution time (Asia/Riyadh) and GitHub run ID. Retention 30 days.
 
-## Acceptance criteria
+## Result classification
 
-Full migration chain replays clean from an empty database; every guarded file behaves identically on a populated database; evidence artifact complete with hashes and diffs.
+Exactly one of: `CANONICAL FULL REPLAY PASSED`; `CANONICAL REPLAY BLOCKED AT <exact migration>`; `CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY`. No outcome confers repair authority. If the first canonical blocker is #308 it becomes a PROVEN CANONICAL FRESH-REBUILD BLOCKER and the run stops there — no enumeration past it, no remediation in the same run.
 
 ## Exact stop
 
-Stop after local clean replay is proven and evidence is written. Do not rerun CI, do not execute Behavioral QA, do not execute rollback or reconstruction equivalence, do not start Slice 3B/3C, do not claim Slice 3A Acceptance.
-
-## Out of scope
-
-Slice 3B, Slice 3C, permission keys, RLS policies, RPCs, storage buckets, edge functions, Prompt 58, and Slice-3A Acceptance.
+Stop after the workflow file and contract artifact are written and the pre-dispatch gate report is produced. Do not dispatch the workflow, do not run canonical replay, do not touch N2.4, do not execute Behavioral QA or rollback, do not start Slice 3B/3C, do not issue Prompt 58, do not claim Slice 3A Acceptance.
