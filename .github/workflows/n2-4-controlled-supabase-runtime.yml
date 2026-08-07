@@ -378,8 +378,9 @@ jobs:
             cat matrix32-attempt.log
             grep -q 'ROLLBACK BLOCKED - IMPORT TABLES NOT EMPTY' matrix32-attempt.log \
               || { echo "FAILED — MATRIX 32: non-empty guard did not raise its own error class"; exit 1; }
-            grep -q 'ROLLBACK BLOCKED - LEGAL HOLD EXISTS' matrix32-attempt.log \
-              && { echo "FAILED — MATRIX 32: legal-hold guard fired in a non-legal-hold scenario"; exit 1; }
+            if grep -q 'ROLLBACK BLOCKED - LEGAL HOLD EXISTS' matrix32-attempt.log; then
+              echo "FAILED — MATRIX 32: legal-hold guard fired in a non-legal-hold scenario"; exit 1
+            fi
 
             echo "all six tables must survive the failed rollback transaction"
             psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
@@ -416,8 +417,9 @@ jobs:
             cat matrix33-attempt.log
             grep -q 'ROLLBACK BLOCKED - LEGAL HOLD EXISTS' matrix33-attempt.log \
               || { echo "FAILED — MATRIX 33: legal-hold guard did not fire; the general non-empty guard is not an acceptable substitute"; exit 1; }
-            grep -q 'ROLLBACK BLOCKED - IMPORT TABLES NOT EMPTY' matrix33-attempt.log \
-              && { echo "FAILED — MATRIX 33: non-empty guard preempted the legal-hold guard"; exit 1; }
+            if grep -q 'ROLLBACK BLOCKED - IMPORT TABLES NOT EMPTY' matrix33-attempt.log; then
+              echo "FAILED — MATRIX 33: non-empty guard preempted the legal-hold guard"; exit 1
+            fi
 
             echo "all six tables must survive; no partial drop is permitted"
             psql "$DB_URL" -Atc "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
@@ -438,7 +440,9 @@ jobs:
           set -o pipefail
           eval "$(supabase status -o env | sed 's/^/export /')"
           psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_batches;" | grep -qx 0
+          psql "$DB_URL" -Atc "SELECT count(*) FROM public.import_source_files WHERE legal_hold = true;" | grep -qx 0
           psql "$DB_URL" -v ON_ERROR_STOP=1 -f "${ROLLBACK_SQL}" 2>&1 | tee ws0006-artifacts/rollback-success-phase2.log
+          echo "SCHEMA ROLLBACK REHEARSAL PASSED" | tee -a ws0006-artifacts/rollback-success-phase2.log
 
       - name: Post-rollback verification
         run: |
