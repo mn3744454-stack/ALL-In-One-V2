@@ -45,6 +45,58 @@ DECLARE
   v_err text;
 BEGIN
   ------------------------------------------------------------------
+  -- 0. CLEAN-RECONSTRUCTION FIXTURE-PRESENCE GUARD
+  --    Added under RM-DH-004 / WS-DH-2026-0006 / Slice 3A / Prompt 57
+  --    Part B (Owner-approved, guard-only, semantics-preserving).
+  --
+  --    This migration is a verification-only artifact: it creates no
+  --    permanent database object and depends entirely on historical
+  --    fixtures that exist only in the already-migrated hosted
+  --    database. On a clean reconstruction from an empty database
+  --    those fixtures are absent and the verification cannot run.
+  --
+  --    When every required historical fixture is present, the original
+  --    verification below executes completely unchanged, with every
+  --    assertion, error condition, cleanup step and zero-residue check
+  --    intact. When any required fixture is absent the verification is
+  --    skipped with a NOTICE and no permanent database effect.
+  --    Nothing is synthesized: no Tenant, User, membership, permission
+  --    or cross-Tenant fixture is ever created by this guard.
+  ------------------------------------------------------------------
+  IF NOT EXISTS (SELECT 1 FROM public.tenants WHERE id = v_tenant) THEN
+    RAISE NOTICE 'N1B_J3_VERIFY SKIPPED ON CLEAN RECONSTRUCTION - historical fixture Tenant % is absent; verification-only migration, no permanent database effect', v_tenant;
+    RETURN;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_user) THEN
+    RAISE NOTICE 'N1B_J3_VERIFY SKIPPED ON CLEAN RECONSTRUCTION - historical fixture User % is absent; verification-only migration, no permanent database effect', v_user;
+    RETURN;
+  END IF;
+
+  IF NOT public.is_active_tenant_member(v_user, v_tenant) THEN
+    RAISE NOTICE 'N1B_J3_VERIFY SKIPPED ON CLEAN RECONSTRUCTION - historical fixture actor % is not an active member of Tenant %; verification-only migration, no permanent database effect', v_user, v_tenant;
+    RETURN;
+  END IF;
+
+  IF NOT public.has_permission(v_user, v_tenant, 'finance.invoice.create')
+     OR NOT public.has_permission(v_user, v_tenant, 'finance.invoice.approve')
+     OR NOT public.has_permission(v_user, v_tenant, 'finance.invoice.update') THEN
+    RAISE NOTICE 'N1B_J3_VERIFY SKIPPED ON CLEAN RECONSTRUCTION - historical Finance permission fixtures are absent for actor % in Tenant %; verification-only migration, no permanent database effect', v_user, v_tenant;
+    RETURN;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.finance_invoice_number_counters
+                  WHERE tenant_id = v_tenant AND domain = 'manual')
+     OR NOT EXISTS (SELECT 1 FROM public.tenant_services
+                     WHERE tenant_id <> v_tenant AND is_active)
+     OR NOT EXISTS (SELECT 1 FROM public.lab_services
+                     WHERE tenant_id <> v_tenant AND is_active)
+     OR NOT EXISTS (SELECT 1 FROM public.stable_service_plans
+                     WHERE tenant_id <> v_tenant AND is_active) THEN
+    RAISE NOTICE 'N1B_J3_VERIFY SKIPPED ON CLEAN RECONSTRUCTION - historical invoice-counter or cross-Tenant fixtures are absent; verification-only migration, no permanent database effect';
+    RETURN;
+  END IF;
+  ------------------------------------------------------------------
   -- 1. Snapshot side-effect state BEFORE any writes.
   ------------------------------------------------------------------
   SELECT count(*), COALESCE(SUM(total_amount), 0)
