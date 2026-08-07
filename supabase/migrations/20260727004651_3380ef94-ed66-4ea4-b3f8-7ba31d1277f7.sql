@@ -553,3 +553,9 @@ BEGIN
    WHERE id = p_invoice_id;
 END
 $function$;
+
+ALTER FUNCTION public._finance_invoice_approve_inline(uuid,uuid,uuid)
+  OWNER TO postgres;
+
+REVOKE ALL ON FUNCTION public._finance_invoice_approve_inline(uuid,uuid,uuid)
+  FROM PUBLIC, anon, authenticated, service_role;
