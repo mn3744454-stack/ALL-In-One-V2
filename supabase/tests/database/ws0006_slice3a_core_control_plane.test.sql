@@ -15,7 +15,9 @@
 
 BEGIN;
 
-SELECT plan(33);
+-- Assertion plan: 43 catalog assertions (corrected; the authored-but-never
+-- executed Part-A value of 31 did not match the file's actual assertion count).
+SELECT plan(43);
 
 -- ---------------------------------------------------------------------
 -- 1. Exactly six Import relations, no unexpected Import table or view
