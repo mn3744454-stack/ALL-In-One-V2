@@ -82,6 +82,31 @@ BEGIN
   ) THEN RAISE EXCEPTION 'Preflight failed: payment without existing invoice'; END IF;
 
   ------------------------------------------------------------------
+  -- (B0) CLEAN-RECONSTRUCTION REPAIR-TARGET GUARD
+  --      Added under RM-DH-004 / WS-DH-2026-0006 / Slice 3A / Prompt 57
+  --      Part B (Owner-approved, guard-only, semantics-preserving).
+  --
+  --      Section (B)-(D) below is a one-row historical data repair that
+  --      targets a specific pre-existing ledger row. On a clean
+  --      reconstruction from an empty database that row does not exist
+  --      and there is nothing to repair. Only the repair is skipped:
+  --      the preflight assertions above and every schema change below
+  --      still execute unchanged.
+  --
+  --      The skip is permitted only when there is genuinely nothing to
+  --      repair. If any payment ledger row still lacks a session id the
+  --      original 'Blocking row not found' failure is raised unchanged.
+  ------------------------------------------------------------------
+  IF NOT EXISTS (SELECT 1 FROM ledger_entries WHERE id = v_blocking_id) THEN
+    SELECT COUNT(*) INTO v_null_pay_after
+      FROM ledger_entries WHERE entry_type='payment' AND payment_session_id IS NULL;
+    IF v_null_pay_after <> 0 THEN
+      RAISE EXCEPTION 'Blocking row not found';
+    END IF;
+    RAISE NOTICE 'PHASE N+2 SLICE 1 one-row repair SKIPPED ON CLEAN RECONSTRUCTION - historical blocking ledger row % is absent and no payment row lacks a session id', v_blocking_id;
+    RETURN;
+  END IF;
+  ------------------------------------------------------------------
   -- (B) LOCKED BLOCKING-ROW PRECONDITIONS
   ------------------------------------------------------------------
   SELECT * INTO v_row FROM ledger_entries WHERE id = v_blocking_id FOR UPDATE;
