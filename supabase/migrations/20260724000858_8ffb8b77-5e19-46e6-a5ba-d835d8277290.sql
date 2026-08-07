@@ -27,7 +27,21 @@ DECLARE
   v_inserts int := 0;
   v_item_count int;
   v_item_sum numeric;
+  v_target_count bigint;
 BEGIN
+  -- Clean-reconstruction guard (three-state):
+  --   0 targets  -> absent historical/demo fixture; skip the repair entirely (no-op)
+  --   1..4       -> partial historical fixture; FAIL CLOSED
+  --   exactly 5  -> original historical repair semantics, unchanged
+  SELECT count(*) INTO v_target_count FROM public.invoices WHERE id = ANY(v_targets);
+
+  IF v_target_count = 0 THEN
+    RAISE NOTICE 'J4.0 SKIP: none of the 5 historical/demo target invoices exist (clean reconstruction); no synthetic repair performed';
+    RETURN;
+  ELSIF v_target_count < 5 THEN
+    RAISE EXCEPTION 'J4.0 ABORT: partial historical fixture - expected 0 (clean reconstruction) or 5 (historical) targets, found %', v_target_count;
+  END IF;
+
   -- Snapshot global preservation checksums (before)
   SELECT count(*), coalesce(sum(subtotal),0), coalesce(sum(tax_amount),0), coalesce(sum(total_amount),0)
     INTO v_pre_invoices_count, v_pre_invoices_subtotal_sum, v_pre_invoices_tax_sum, v_pre_invoices_total_sum
