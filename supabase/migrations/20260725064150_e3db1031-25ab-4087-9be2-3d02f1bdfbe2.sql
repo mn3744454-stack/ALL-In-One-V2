@@ -111,30 +111,40 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- Live pre-Migration-A fingerprint assertion for public.create_source_checkout_invoice.
+    -- Three-state pre-Migration-A contract for public.create_source_checkout_invoice.
+  -- STATE A: absent on canonical clean reconstruction -> skip predecessor
+  -- fingerprints and allow this migration to create the authoritative function.
+  -- STATE B: present and matching historical predecessor -> preserve the
+  -- original raw/canonical fingerprint assertions.
+  -- STATE C: present but divergent -> fail closed on the original mismatch gates.
   IF pg_catalog.to_regprocedure(
        'public.create_source_checkout_invoice(uuid,uuid,jsonb)') IS NULL THEN
-    RAISE EXCEPTION 'J5_2_PREFLIGHT_LIVE_SOURCE_CHECKOUT_MISSING'
-      USING ERRCODE = '42883';
-  END IF;
-  v_def_raw   := pg_catalog.pg_get_functiondef(
-                   pg_catalog.to_regprocedure(
-                     'public.create_source_checkout_invoice(uuid,uuid,jsonb)'));
-  v_def_canon := pg_catalog.btrim(
-                   pg_catalog.regexp_replace(
-                     pg_catalog.replace(v_def_raw, E'\r\n', E'\n'),
-                     '[[:space:]]+', ' ', 'g'));
-  v_raw_fp   := pg_catalog.encode(extensions.digest(v_def_raw::bytea,   'sha256'), 'hex');
-  v_canon_fp := pg_catalog.encode(extensions.digest(v_def_canon::bytea, 'sha256'), 'hex');
-  IF v_raw_fp <> v_live_raw_fp THEN
-    RAISE EXCEPTION
-      'J5_2_PREFLIGHT_LIVE_SOURCE_CHECKOUT_RAW_FP_MISMATCH: expected %, got %',
-      v_live_raw_fp, v_raw_fp USING ERRCODE = '42P17';
-  END IF;
-  IF v_canon_fp <> v_live_canon_fp THEN
-    RAISE EXCEPTION
-      'J5_2_PREFLIGHT_LIVE_SOURCE_CHECKOUT_CANON_FP_MISMATCH: expected %, got %',
-      v_live_canon_fp, v_canon_fp USING ERRCODE = '42P17';
+    RAISE NOTICE
+      'J5_2_PREFLIGHT_LIVE_SOURCE_CHECKOUT_ABSENT_CLEAN_RECONSTRUCTION: predecessor absent; historical fingerprint checks skipped';
+  ELSE
+    v_def_raw   := pg_catalog.pg_get_functiondef(
+                     pg_catalog.to_regprocedure(
+                       'public.create_source_checkout_invoice(uuid,uuid,jsonb)'));
+    v_def_canon := pg_catalog.btrim(
+                     pg_catalog.regexp_replace(
+                       pg_catalog.replace(v_def_raw, E'\r\n', E'\n'),
+                       '[[:space:]]+', ' ', 'g'));
+    v_raw_fp   := pg_catalog.encode(
+                    extensions.digest(v_def_raw::bytea, 'sha256'), 'hex');
+    v_canon_fp := pg_catalog.encode(
+                    extensions.digest(v_def_canon::bytea, 'sha256'), 'hex');
+
+    IF v_raw_fp <> v_live_raw_fp THEN
+      RAISE EXCEPTION
+        'J5_2_PREFLIGHT_LIVE_SOURCE_CHECKOUT_RAW_FP_MISMATCH: expected %, got %',
+        v_live_raw_fp, v_raw_fp USING ERRCODE = '42P17';
+    END IF;
+
+    IF v_canon_fp <> v_live_canon_fp THEN
+      RAISE EXCEPTION
+        'J5_2_PREFLIGHT_LIVE_SOURCE_CHECKOUT_CANON_FP_MISMATCH: expected %, got %',
+        v_live_canon_fp, v_canon_fp USING ERRCODE = '42P17';
+    END IF;
   END IF;
 
   SELECT is_nullable, column_default INTO v_pit_col
