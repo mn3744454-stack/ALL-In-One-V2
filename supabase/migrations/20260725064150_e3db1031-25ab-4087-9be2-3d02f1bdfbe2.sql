@@ -111,7 +111,7 @@ BEGIN
     END IF;
   END LOOP;
 
-    -- Three-state pre-Migration-A contract for public.create_source_checkout_invoice.
+  -- Three-state pre-Migration-A contract for public.create_source_checkout_invoice.
   -- STATE A: absent on canonical clean reconstruction -> skip predecessor
   -- fingerprints and allow this migration to create the authoritative function.
   -- STATE B: present and matching historical predecessor -> preserve the
