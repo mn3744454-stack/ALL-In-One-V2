@@ -15,7 +15,7 @@
 
 BEGIN;
 
-SELECT plan(31);
+SELECT plan(33);
 
 -- ---------------------------------------------------------------------
 -- 1. Exactly six Import relations, no unexpected Import table or view
