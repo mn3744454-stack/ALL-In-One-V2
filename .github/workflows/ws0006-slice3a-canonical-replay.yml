@@ -1,0 +1,353 @@
+name: WS0006 Slice 3A — Canonical Fresh Replay Only
+
+# ======================================================================
+# RM-DH-004 / Phase 2 / WS-DH-2026-0006 / Slice 3A / Prompt 57
+# Dedicated canonical replay-only workflow.
+#
+# Sole purpose:
+#   exact approved SHA
+#     -> fail-closed hosted-credential and linkage gate
+#     -> official Supabase CLI 2.111.0
+#     -> Docker-backed disposable local Supabase stack
+#     -> complete ordered migration-chain replay
+#     -> first failure or clean completion
+#     -> teardown
+#     -> evidence upload
+#     -> STOP
+#
+# This workflow deliberately contains NO catalog test, NO behavioral
+# pgTAP test, NO fixture DML, NO role impersonation, NO rollback,
+# NO forward/rollback/forward, NO reconstruction equivalence,
+# NO Slice 3B or 3C step, and NO hosted Supabase operation.
+# It does not call, need or reuse any job of the N2.4 workflow.
+# Manual dispatch only: it never runs because it was committed.
+# ======================================================================
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ws0006-slice3a-canonical-replay
+  cancel-in-progress: false
+
+env:
+  RM: RM-DH-004
+  WS: WS-DH-2026-0006
+  PROMPT: "57"
+  SLICE: 3A
+  EXPECTED_CLI: 2.111.0
+  EXPECTED_MIGRATION_COUNT: "326"
+  FROZEN_1: supabase/migrations/20260723235157_c56d3417-17ad-4008-a846-8be103b0ebe1.sql
+  FROZEN_1_SHA256: ca12218a2976a672bce6ddaa25454209cce6b7ca15f1aae437940d9851a3ff87
+  FROZEN_2: supabase/migrations/20260726092019_69205b8e-fb7d-413e-82cf-1c9d03703c20.sql
+  FROZEN_2_SHA256: a563431bde0d587a5363fb36be5eb0f0fd25d8c2452548036865d73e17358add
+  SELF_WORKFLOW: .github/workflows/ws0006-slice3a-canonical-replay.yml
+  ART: ws0006-canonical-replay-artifacts
+
+jobs:
+  canonical-replay:
+    name: Canonical fresh full-chain migration replay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      # ---------------------------------------------------------------
+      # 1. Checkout the exact dispatched revision
+      # ---------------------------------------------------------------
+      - name: Check out the exact dispatched revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # ---------------------------------------------------------------
+      # 2. Repository, runner and Docker identity
+      # ---------------------------------------------------------------
+      - name: Record repository, runner and Docker identity
+        run: |
+          set -euo pipefail
+          mkdir -p "${ART}"
+          {
+            echo "roadmap=${RM}"
+            echo "workstream=${WS}"
+            echo "prompt=${PROMPT}"
+            echo "slice=${SLICE}"
+            echo "execution_sha=${GITHUB_SHA}"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "utc_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "governance_timezone=Asia/Riyadh UTC+03:00"
+            echo "---"
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "ref=${GITHUB_REF}"
+            echo "runner_name=${RUNNER_NAME}"
+            echo "runner_os=${RUNNER_OS}"
+            echo "runner_arch=${RUNNER_ARCH}"
+            echo "image_version=${ImageVersion:-unavailable}"
+            echo "os_release=$(. /etc/os-release; echo "${PRETTY_NAME}")"
+            echo "docker_client=$(docker version --format '{{.Client.Version}}' 2>/dev/null || echo unavailable)"
+            echo "docker_server=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unavailable)"
+          } | tee "${ART}/environment.log"
+
+      - name: Record repository identity and workflow hash
+        run: |
+          set -euo pipefail
+          mkdir -p "${ART}"
+          {
+            echo "roadmap=${RM}"
+            echo "workstream=${WS}"
+            echo "prompt=${PROMPT}"
+            echo "slice=${SLICE}"
+            echo "execution_sha=${GITHUB_SHA}"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "utc_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "governance_timezone=Asia/Riyadh UTC+03:00"
+            echo "---"
+            echo "workflow_path=${SELF_WORKFLOW}"
+            echo "workflow_sha256=$(sha256sum "${SELF_WORKFLOW}" | cut -d' ' -f1)"
+            echo "n2_4_present=$(test -f .github/workflows/n2-4-controlled-supabase-runtime.yml && echo yes || echo no)"
+            echo "n2_4_invoked=no"
+          } | tee "${ART}/repository-identity.log"
+          sha256sum "${SELF_WORKFLOW}" | cut -d' ' -f1 > "${ART}/.workflow-sha256"
+
+      # ---------------------------------------------------------------
+      # 3. Fail-closed hosted-credential and linked-project gate.
+      #    Runs BEFORE the Supabase CLI is installed or invoked.
+      #    Presence alone is the fail condition. Values are never read
+      #    into output; only ABSENT / PRESENT is printed.
+      # ---------------------------------------------------------------
+      - name: Fail-closed hosted-credential and linkage gate
+        run: |
+          set -euo pipefail
+          mkdir -p "${ART}"
+          gate_failed=0
+          {
+            echo "roadmap=${RM} workstream=${WS} prompt=${PROMPT} slice=${SLICE}"
+            echo "execution_sha=${GITHUB_SHA} run_id=${GITHUB_RUN_ID} run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "utc_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "--- hosted credential presence (values never printed) ---"
+            for v in SUPABASE_DB_URL SUPABASE_ACCESS_TOKEN SUPABASE_SERVICE_ROLE_KEY \
+                     SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_PROJECT_ID \
+                     SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD DATABASE_URL \
+                     PGHOST PGPORT PGUSER PGPASSWORD PGURI; do
+              if [ -n "${!v:-}" ]; then
+                echo "${v}=PRESENT"
+                gate_failed=1
+              else
+                echo "${v}=ABSENT"
+              fi
+            done
+            echo "--- local Supabase linkage metadata ---"
+            for p in supabase/.temp .supabase supabase/.branches; do
+              if [ -e "${p}" ]; then
+                echo "${p}=PRESENT"
+                gate_failed=1
+              else
+                echo "${p}=ABSENT"
+              fi
+            done
+            if [ "${gate_failed}" -ne 0 ]; then
+              echo "VERDICT=FAILED — HOSTED CREDENTIAL OR LINKAGE GATE"
+            else
+              echo "VERDICT=PASSED — NO HOSTED CREDENTIAL, NO LINKAGE METADATA"
+            fi
+          } | tee "${ART}/hosted-credential-gate.log"
+          if [ "${gate_failed}" -ne 0 ]; then
+            echo "CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY" > "${ART}/final-verdict.txt"
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------
+      # 4. Install the official Supabase CLI, exactly pinned
+      # ---------------------------------------------------------------
+      - name: Install the official Supabase CLI 2.111.0
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.111.0
+
+      # ---------------------------------------------------------------
+      # 5. Assert the installed CLI version
+      # ---------------------------------------------------------------
+      - name: Verify the installed Supabase CLI version
+        run: |
+          set -euo pipefail
+          actual="$(supabase --version | tr -d '[:space:]')"
+          echo "supabase_cli_expected=${EXPECTED_CLI}" | tee -a "${ART}/environment.log"
+          echo "supabase_cli_actual=${actual}" | tee -a "${ART}/environment.log"
+          if [ "${actual}" != "${EXPECTED_CLI}" ]; then
+            echo "CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY" > "${ART}/final-verdict.txt"
+            echo "Supabase CLI version assertion failed"
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------
+      # 6. Migration inventory gate
+      # ---------------------------------------------------------------
+      - name: Migration inventory gate
+        run: |
+          set -euo pipefail
+          count="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d '[:space:]')"
+          first="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | sort | head -n 1)"
+          last="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | sort | tail -n 1)"
+          {
+            echo "execution_sha=${GITHUB_SHA} run_id=${GITHUB_RUN_ID}"
+            echo "migration_count_expected=${EXPECTED_MIGRATION_COUNT}"
+            echo "migration_count_actual=${count}"
+            echo "first_migration=${first}"
+            echo "last_migration=${last}"
+          } | tee "${ART}/migration-count.log"
+          if [ "${count}" != "${EXPECTED_MIGRATION_COUNT}" ]; then
+            echo "CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY" > "${ART}/final-verdict.txt"
+            echo "Migration inventory drift"
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------
+      # 7. Frozen historical migration hash gate
+      # ---------------------------------------------------------------
+      - name: Frozen historical migration hash gate
+        run: |
+          set -euo pipefail
+          h1="$(sha256sum "${FROZEN_1}" | cut -d' ' -f1)"
+          h2="$(sha256sum "${FROZEN_2}" | cut -d' ' -f1)"
+          {
+            echo "execution_sha=${GITHUB_SHA} run_id=${GITHUB_RUN_ID}"
+            echo "frozen_1_path=${FROZEN_1}"
+            echo "frozen_1_expected=${FROZEN_1_SHA256}"
+            echo "frozen_1_actual=${h1}"
+            echo "frozen_2_path=${FROZEN_2}"
+            echo "frozen_2_expected=${FROZEN_2_SHA256}"
+            echo "frozen_2_actual=${h2}"
+          } | tee "${ART}/migration-hashes.log"
+          if [ "${h1}" != "${FROZEN_1_SHA256}" ] || [ "${h2}" != "${FROZEN_2_SHA256}" ]; then
+            echo "CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY" > "${ART}/final-verdict.txt"
+            echo "Frozen migration hash drift"
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------
+      # 8. Canonical fresh replay. Exactly one attempt. No retry,
+      #    no skip, no manual apply, no repair, no history stamping.
+      #    Exit code is captured so classification, teardown and
+      #    evidence upload always run.
+      # ---------------------------------------------------------------
+      - name: Canonical fresh full-chain migration replay
+        id: replay
+        run: |
+          set -uo pipefail
+          echo "replay_started_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee "${ART}/migration-replay.log"
+          set +e
+          supabase db start 2>&1 | tee -a "${ART}/migration-replay.log"
+          rc="${PIPESTATUS[0]}"
+          set -e
+          echo "replay_exit_code=${rc}" | tee -a "${ART}/migration-replay.log"
+          echo "replay_finished_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee -a "${ART}/migration-replay.log"
+          echo "rc=${rc}" >> "${GITHUB_OUTPUT}"
+
+      # ---------------------------------------------------------------
+      # 9. First-failure classification
+      # ---------------------------------------------------------------
+      - name: Classify the first canonical result
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p "${ART}"
+          rc="${{ steps.replay.outputs.rc }}"
+          if [ -z "${rc}" ]; then
+            if [ ! -s "${ART}/final-verdict.txt" ]; then
+              echo "CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY" > "${ART}/final-verdict.txt"
+            fi
+          elif [ "${rc}" = "0" ]; then
+            echo "CANONICAL FULL REPLAY PASSED" > "${ART}/final-verdict.txt"
+          else
+            failed=""
+            if [ -f "${ART}/migration-replay.log" ]; then
+              failed="$(grep -oE 'Applying migration [0-9]{14}_[A-Za-z0-9._-]+\.sql' "${ART}/migration-replay.log" \
+                        | tail -n 1 | sed 's/^Applying migration //')"
+            fi
+            if [ -n "${failed}" ]; then
+              echo "CANONICAL REPLAY BLOCKED AT ${failed}" > "${ART}/final-verdict.txt"
+            else
+              echo "CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY" > "${ART}/final-verdict.txt"
+            fi
+          fi
+          {
+            echo ""
+            echo "roadmap=${RM} workstream=${WS} prompt=${PROMPT} slice=${SLICE}"
+            echo "execution_sha=${GITHUB_SHA} run_id=${GITHUB_RUN_ID} run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "workflow_path=${SELF_WORKFLOW}"
+            echo "workflow_sha256=$(cat "${ART}/.workflow-sha256" 2>/dev/null || echo unavailable)"
+            echo "utc_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "governance_timezone=Asia/Riyadh UTC+03:00"
+            echo "no_repair_authority=this verdict confers no migration repair authority"
+          } >> "${ART}/final-verdict.txt"
+          cat "${ART}/final-verdict.txt"
+
+      # ---------------------------------------------------------------
+      # 10. Success-only local status evidence. Explicit allowlist:
+      #     raw `supabase status` output is written to a temporary file
+      #     outside the artifact directory and is never uploaded.
+      # ---------------------------------------------------------------
+      - name: Collect success-only local status evidence
+        if: steps.replay.outputs.rc == '0'
+        run: |
+          set -euo pipefail
+          raw="$(mktemp)"
+          trap 'rm -f "${raw}"' EXIT
+          supabase status -o env > "${raw}" 2>/dev/null || true
+          db_url="$(grep -E '^DB_URL=' "${raw}" | head -n 1 | cut -d= -f2- | tr -d '"')"
+          {
+            echo "execution_sha=${GITHUB_SHA} run_id=${GITHUB_RUN_ID}"
+            echo "stack=local disposable supabase (docker)"
+            echo "db_url_scheme=$(printf '%s' "${db_url}" | cut -d: -f1)"
+            echo "db_url_host_is_local=$(printf '%s' "${db_url}" | grep -qE '@(127\.0\.0\.1|localhost)' && echo yes || echo no)"
+            echo "postgres_server_version=$(psql "${db_url}" -Atc "SELECT current_setting('server_version');")"
+            echo "schema_migrations_count=$(psql "${db_url}" -Atc 'SELECT count(*) FROM supabase_migrations.schema_migrations;')"
+            echo "first_recorded_version=$(psql "${db_url}" -Atc 'SELECT min(version) FROM supabase_migrations.schema_migrations;')"
+            echo "last_recorded_version=$(psql "${db_url}" -Atc 'SELECT max(version) FROM supabase_migrations.schema_migrations;')"
+          } > "${ART}/local-status.log"
+          cat "${ART}/local-status.log"
+
+      # ---------------------------------------------------------------
+      # 11. Teardown, always. No backup is ever produced.
+      # ---------------------------------------------------------------
+      - name: Tear down the disposable stack
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p "${ART}"
+          {
+            echo "teardown_started_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            supabase stop --no-backup 2>&1 || echo "teardown_note=stop reported nothing running or failed; no verdict implied"
+            echo "teardown_finished_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } | tee "${ART}/teardown.log"
+          rm -f "${ART}/.workflow-sha256"
+
+      # ---------------------------------------------------------------
+      # 12. Evidence upload, always, before any failure enforcement
+      # ---------------------------------------------------------------
+      - name: Upload the canonical replay evidence package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WS0006-Slice3A-CanonicalReplay-${{ github.run_id }}
+          path: ws0006-canonical-replay-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+      # ---------------------------------------------------------------
+      # 13. Final enforcement. Success only for a clean full replay.
+      # ---------------------------------------------------------------
+      - name: Enforce the final canonical verdict
+        if: always()
+        run: |
+          set -uo pipefail
+          verdict="$(head -n 1 "${ART}/final-verdict.txt" 2>/dev/null || echo 'CANONICAL ENVIRONMENT BOOTSTRAP FAILED BEFORE MIGRATION REPLAY')"
+          echo "FINAL VERDICT: ${verdict}"
+          case "${verdict}" in
+            "CANONICAL FULL REPLAY PASSED") exit 0 ;;
+            *) exit 1 ;;
+          esac
