@@ -40,35 +40,40 @@ DECLARE
   v_t text;
   v_n bigint;
 BEGIN
-  -- Guard 1: all six expected tables must exist
+  -- STEP 1 — Existence Guard: all six expected tables must exist.
   FOREACH v_t IN ARRAY v_tables LOOP
     IF to_regclass('public.' || v_t) IS NULL THEN
-      RAISE EXCEPTION 'ROLLBACK GUARD FAILED: expected table public.% does not exist', v_t;
+      RAISE EXCEPTION 'ROLLBACK BLOCKED - EXPECTED TABLE MISSING: public.%', v_t;
     END IF;
   END LOOP;
 
-  -- Guard 2: no unexpected Import relation may be present
+  -- STEP 1b — Existence Guard: no unexpected scoped Import relation may be present.
   SELECT count(*) INTO v_n FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
    WHERE n.nspname = 'public' AND c.relname LIKE 'import\_%'
      AND c.relkind IN ('r','p','v','m','f');
   IF v_n <> 6 THEN
-    RAISE EXCEPTION 'ROLLBACK GUARD FAILED: expected exactly 6 Import relations, found %', v_n;
+    RAISE EXCEPTION 'ROLLBACK BLOCKED - UNEXPECTED IMPORT RELATION INVENTORY: expected exactly 6 Import relations, found %', v_n;
   END IF;
 
-  -- Guard 3: every table must be empty
+  -- STEP 2 — Legal-Hold Guard.
+  -- This guard MUST run before the general non-empty guard: any row under
+  -- legal hold necessarily makes its table non-empty, so if the non-empty
+  -- guard ran first the Legal-Hold branch could never be reached or proven.
+  -- No private row data is exposed; only a count is reported.
+  SELECT count(*) INTO v_n FROM public.import_source_files WHERE legal_hold = true;
+  IF v_n <> 0 THEN
+    RAISE EXCEPTION 'ROLLBACK BLOCKED - LEGAL HOLD EXISTS: % source file(s) under legal hold', v_n;
+  END IF;
+
+  -- STEP 3 — General Non-Empty Guard: every table must be empty.
   FOREACH v_t IN ARRAY v_tables LOOP
     EXECUTE format('SELECT count(*) FROM public.%I', v_t) INTO v_n;
     IF v_n <> 0 THEN
-      RAISE EXCEPTION 'ROLLBACK GUARD FAILED: public.% contains % row(s); destructive rollback is prohibited', v_t, v_n;
+      RAISE EXCEPTION 'ROLLBACK BLOCKED - IMPORT TABLES NOT EMPTY: public.% contains % row(s); destructive rollback is prohibited', v_t, v_n;
     END IF;
   END LOOP;
-
-  -- Guard 4: no legal hold may exist
-  SELECT count(*) INTO v_n FROM public.import_source_files WHERE legal_hold = true;
-  IF v_n <> 0 THEN
-    RAISE EXCEPTION 'ROLLBACK GUARD FAILED: % source file(s) under legal hold', v_n;
-  END IF;
 END $$;
+
 
 -- Child-to-parent drop order, RESTRICT only, no CASCADE.
 DROP TABLE public.import_events       RESTRICT;
