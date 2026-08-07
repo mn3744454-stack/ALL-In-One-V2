@@ -7,9 +7,11 @@
 -- =====================================================================
 DO $$
 DECLARE
-  v_expected_default_grantees text[] := ARRAY['anon','authenticated','postgres','sandbox_exec','sandbox_exec_vhxglsvxwwpmoqjabfmj','service_role'];
-  v_actual_default_grantees text[];
-  v_role text;
+  v_mandatory_roles          text[] := ARRAY['anon','authenticated','service_role'];
+  v_optional_roles           text[] := ARRAY['sandbox_exec','sandbox_exec_vhxglsvxwwpmoqjabfmj'];
+  v_allowed_default_grantees text[] := ARRAY['anon','authenticated','postgres','service_role'];
+  v_actual_default_grantees  text[];
+  v_role                     text;
 BEGIN
   -- Migration authority
   IF NOT has_schema_privilege(current_user, 'public', 'CREATE') THEN
@@ -52,24 +54,54 @@ BEGIN
     RAISE EXCEPTION 'PRECONDITION FAILED: gen_random_uuid() is not available';
   END IF;
 
-  -- Restricted roles exist
-  FOREACH v_role IN ARRAY ARRAY['anon','authenticated','service_role','sandbox_exec','sandbox_exec_vhxglsvxwwpmoqjabfmj'] LOOP
+  -- Mandatory restricted roles must exist.
+  FOREACH v_role IN ARRAY v_mandatory_roles LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = v_role) THEN
-      RAISE EXCEPTION 'PRECONDITION FAILED: expected restricted role % does not exist', v_role;
+      RAISE EXCEPTION
+        'PRECONDITION FAILED: expected mandatory restricted role % does not exist',
+        v_role;
     END IF;
   END LOOP;
 
-  -- Default ACL automatic grantees on new public tables owned by postgres
-  SELECT array_agg(DISTINCT g ORDER BY g) INTO v_actual_default_grantees
+  -- Optional hosted-only sandbox roles are never created.
+  -- When present, include them in the environment-aware default-ACL allowlist.
+  -- When absent, record the skip and continue.
+  FOREACH v_role IN ARRAY v_optional_roles LOOP
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = v_role) THEN
+      v_allowed_default_grantees :=
+        array_append(v_allowed_default_grantees, v_role);
+    ELSE
+      RAISE NOTICE
+        'PRECONDITION NOTICE: optional restricted role % does not exist; sandbox-specific checks will be skipped',
+        v_role;
+    END IF;
+  END LOOP;
+
+  -- Default ACL observations for new public tables owned by postgres.
+  -- Hosted/platform-specific rows may be absent on canonical clean reconstruction.
+  SELECT array_agg(DISTINCT g ORDER BY g)
+    INTO v_actual_default_grantees
   FROM (
     SELECT split_part(unnest(d.defaclacl)::text, '=', 1) AS g
     FROM pg_default_acl d
     JOIN pg_namespace n ON n.oid = d.defaclnamespace
-    WHERE n.nspname = 'public' AND d.defaclobjtype = 'r'
+    WHERE n.nspname = 'public'
+      AND d.defaclobjtype = 'r'
       AND pg_get_userbyid(d.defaclrole) = 'postgres'
   ) s;
-  IF v_actual_default_grantees IS DISTINCT FROM v_expected_default_grantees THEN
-    RAISE EXCEPTION 'PRECONDITION FAILED: default ACL grantees drifted: %', v_actual_default_grantees;
+
+  IF v_actual_default_grantees IS NULL THEN
+    RAISE NOTICE
+      'PRECONDITION NOTICE: no postgres relation default-ACL rows found for schema public; continuing to explicit deny-all enforcement';
+  ELSIF EXISTS (
+    SELECT 1
+    FROM unnest(v_actual_default_grantees) AS observed(grantee)
+    WHERE NOT (observed.grantee = ANY(v_allowed_default_grantees))
+  ) THEN
+    RAISE EXCEPTION
+      'PRECONDITION FAILED: unexpected default ACL grantee observed: actual=%, allowed=%',
+      v_actual_default_grantees,
+      v_allowed_default_grantees;
   END IF;
 END $$;
 
@@ -379,18 +411,75 @@ ALTER TABLE public.import_events       FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE
   public.import_batches, public.import_source_files, public.import_batch_files,
   public.import_staging_rows, public.import_issues, public.import_events
-FROM PUBLIC, anon, authenticated, service_role, sandbox_exec, sandbox_exec_vhxglsvxwwpmoqjabfmj;
+FROM PUBLIC, anon, authenticated, service_role;
+
+DO $deny_optional_sandbox_roles$
+DECLARE
+  v_role text;
+BEGIN
+  FOREACH v_role IN ARRAY ARRAY[
+    'sandbox_exec',
+    'sandbox_exec_vhxglsvxwwpmoqjabfmj'
+  ] LOOP
+    IF EXISTS (
+      SELECT 1
+      FROM pg_roles
+      WHERE rolname = v_role
+    ) THEN
+      EXECUTE format(
+        'REVOKE ALL ON TABLE public.import_batches, public.import_source_files, public.import_batch_files, public.import_staging_rows, public.import_issues, public.import_events FROM %I',
+        v_role
+      );
+    ELSE
+      RAISE NOTICE
+        'DENY-ALL NOTICE: optional restricted role % absent; role-specific REVOKE skipped',
+        v_role;
+    END IF;
+  END LOOP;
+END
+$deny_optional_sandbox_roles$;
 
 -- =====================================================================
 -- 10. CATALOG-ONLY POSTCONDITION GUARD
 -- =====================================================================
 DO $$
 DECLARE
-  v_tables text[] := ARRAY['import_batches','import_source_files','import_batch_files',
-                           'import_staging_rows','import_issues','import_events'];
-  v_restricted text[] := ARRAY['anon','authenticated','service_role','sandbox_exec','sandbox_exec_vhxglsvxwwpmoqjabfmj'];
-  v_t text; v_r text; v_n bigint; v_priv text;
+  v_tables text[] := ARRAY[
+    'import_batches',
+    'import_source_files',
+    'import_batch_files',
+    'import_staging_rows',
+    'import_issues',
+    'import_events'
+  ];
+  v_restricted text[] := ARRAY[
+    'anon',
+    'authenticated',
+    'service_role'
+  ];
+  v_optional_restricted text[] := ARRAY[
+    'sandbox_exec',
+    'sandbox_exec_vhxglsvxwwpmoqjabfmj'
+  ];
+  v_t text;
+  v_r text;
+  v_n bigint;
+  v_priv text;
 BEGIN
+  -- Include optional sandbox roles in deny-all postconditions only when present.
+  FOREACH v_r IN ARRAY v_optional_restricted LOOP
+    IF EXISTS (
+      SELECT 1
+      FROM pg_roles
+      WHERE rolname = v_r
+    ) THEN
+      v_restricted := array_append(v_restricted, v_r);
+    ELSE
+      RAISE NOTICE
+        'POSTCONDITION NOTICE: optional restricted role % absent; role-specific privilege verification skipped',
+        v_r;
+    END IF;
+  END LOOP;
   SELECT count(*) INTO v_n FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
    WHERE n.nspname = 'public' AND c.relname LIKE 'import\_%'
      AND c.relkind IN ('r','p','v','m','f');
