@@ -10,8 +10,12 @@ SET LOCAL search_path = "$user", public;
 -- =========================================================
 DO $stage_b_pre$
 DECLARE
-  v_hash text;
-  v_cnt  bigint;
+  v_hash             text;
+  v_cnt              bigint;
+  v_sig              text;
+  v_fn               oid;
+  v_auth_required    boolean;
+  v_service_required boolean;
 BEGIN
   -- PostgreSQL 17 major assertion
   IF current_setting('server_version_num')::int < 170000
@@ -98,11 +102,62 @@ BEGIN
     RAISE EXCEPTION 'STAGE_B_TABLE_ACL_PRESTATE_DRIFT: % / %', v_cnt, v_hash;
   END IF;
 
-  -- Function-ACL pre-state (fourteen-function freeze set)
-  SELECT md5(string_agg(line, ';' ORDER BY line)), count(*) INTO v_hash, v_cnt
-  FROM (
-    SELECT format('%s|%s|%s|%s|%s', o::regprocedure::text, a.grantor, a.grantee,
-                  a.privilege_type, a.is_grantable) AS line
+  -- Function ACL/security pre-state.
+  --
+  -- POS-PRESENT:
+  --   Preserve the authoritative historical fourteen-function aggregate
+  --   fingerprint and fourteen-function security contract unchanged.
+  --
+  -- POS-ABSENT:
+  --   Canonical clean reconstruction has no managed create_pos_sale creator.
+  --   Verify the thirteen real finance functions structurally from managed
+  --   chain intent instead of inventing a replacement aggregate fingerprint.
+  IF pg_catalog.to_regprocedure(
+       'public.create_pos_sale(uuid,uuid,jsonb)'
+     ) IS NOT NULL THEN
+
+    -- POS-PRESENT: authoritative historical fourteen-function ACL freeze.
+    SELECT md5(string_agg(line, ';' ORDER BY line)), count(*)
+      INTO v_hash, v_cnt
+    FROM (
+      SELECT format(
+               '%s|%s|%s|%s|%s',
+               o::regprocedure::text,
+               a.grantor,
+               a.grantee,
+               a.privilege_type,
+               a.is_grantable
+             ) AS line
+      FROM unnest(ARRAY[
+        to_regprocedure('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)'),
+        to_regprocedure('public._finance_invoice_approve_inline(uuid,uuid,uuid)'),
+        to_regprocedure('public.create_invoice_with_items(uuid,uuid,jsonb)'),
+        to_regprocedure('public.update_invoice_with_items(uuid,uuid,uuid,jsonb)'),
+        to_regprocedure('public.delete_draft_invoice(uuid,uuid,uuid)'),
+        to_regprocedure('public.approve_invoice(uuid,uuid,uuid)'),
+        to_regprocedure('public.cancel_invoice(uuid,uuid,uuid,date,text)'),
+        to_regprocedure('public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)'),
+        to_regprocedure('public.post_payment_session(uuid,uuid,jsonb)'),
+        to_regprocedure('public.post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)'),
+        to_regprocedure('public.post_expense_with_ledger(uuid,uuid,uuid)'),
+        to_regprocedure('public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)'),
+        to_regprocedure('public.create_source_checkout_invoice(uuid,uuid,jsonb)'),
+        to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)')
+      ]::oid[]) AS o
+      JOIN pg_proc p ON p.oid = o,
+           aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) AS a
+    ) s;
+
+    IF v_cnt <> 65
+       OR v_hash IS DISTINCT FROM 'b4138d2f6c8bf2ca01c41d437976d116' THEN
+      RAISE EXCEPTION
+        'STAGE_B_FUNCTION_ACL_PRESTATE_DRIFT: % / %',
+        v_cnt, v_hash;
+    END IF;
+
+    -- POS-PRESENT: fourteen functions must retain the historical
+    -- owner / SECURITY DEFINER / search_path contract.
+    SELECT count(*) INTO v_cnt
     FROM unnest(ARRAY[
       to_regprocedure('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)'),
       to_regprocedure('public._finance_invoice_approve_inline(uuid,uuid,uuid)'),
@@ -119,36 +174,148 @@ BEGIN
       to_regprocedure('public.create_source_checkout_invoice(uuid,uuid,jsonb)'),
       to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)')
     ]::oid[]) AS o
-    JOIN pg_proc p ON p.oid = o,
-    aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) AS a
-  ) s;
-  IF v_cnt <> 65 OR v_hash IS DISTINCT FROM 'b4138d2f6c8bf2ca01c41d437976d116' THEN
-    RAISE EXCEPTION 'STAGE_B_FUNCTION_ACL_PRESTATE_DRIFT: % / %', v_cnt, v_hash;
-  END IF;
+    JOIN pg_proc p ON p.oid = o
+    WHERE p.proowner = 'postgres'::regrole
+      AND p.prosecdef IS TRUE
+      AND EXISTS (
+        SELECT 1
+        FROM unnest(p.proconfig) cfg
+        WHERE cfg = 'search_path=""'
+      );
 
-  -- Function security: fourteen functions owner postgres, SECURITY DEFINER, search_path=""
-  SELECT count(*) INTO v_cnt
-  FROM unnest(ARRAY[
-    to_regprocedure('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)'),
-    to_regprocedure('public._finance_invoice_approve_inline(uuid,uuid,uuid)'),
-    to_regprocedure('public.create_invoice_with_items(uuid,uuid,jsonb)'),
-    to_regprocedure('public.update_invoice_with_items(uuid,uuid,uuid,jsonb)'),
-    to_regprocedure('public.delete_draft_invoice(uuid,uuid,uuid)'),
-    to_regprocedure('public.approve_invoice(uuid,uuid,uuid)'),
-    to_regprocedure('public.cancel_invoice(uuid,uuid,uuid,date,text)'),
-    to_regprocedure('public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)'),
-    to_regprocedure('public.post_payment_session(uuid,uuid,jsonb)'),
-    to_regprocedure('public.post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)'),
-    to_regprocedure('public.post_expense_with_ledger(uuid,uuid,uuid)'),
-    to_regprocedure('public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)'),
-    to_regprocedure('public.create_source_checkout_invoice(uuid,uuid,jsonb)'),
-    to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)')
-  ]::oid[]) AS o
-  JOIN pg_proc p ON p.oid = o
-  WHERE p.proowner = 'postgres'::regrole
-    AND p.prosecdef IS TRUE
-    AND EXISTS (SELECT 1 FROM unnest(p.proconfig) cfg WHERE cfg = 'search_path=""');
-  IF v_cnt <> 14 THEN RAISE EXCEPTION 'STAGE_B_FUNCTION_SECURITY_PRESTATE_DRIFT: %', v_cnt; END IF;
+    IF v_cnt <> 14 THEN
+      RAISE EXCEPTION
+        'STAGE_B_FUNCTION_SECURITY_PRESTATE_DRIFT: %',
+        v_cnt;
+    END IF;
+
+  ELSE
+
+    -- POS-ABSENT: expected canonical clean-reconstruction branch.
+    RAISE NOTICE
+      'STAGE_B_POS_ABSENT_CLEAN_RECONSTRUCTION: create_pos_sale absent; using thirteen-function managed semantic ACL contract';
+
+    FOR v_sig, v_auth_required, v_service_required IN
+      SELECT *
+      FROM (
+        VALUES
+          ('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)', false, false),
+          ('public._finance_invoice_approve_inline(uuid,uuid,uuid)',                                    false, false),
+          ('public.create_invoice_with_items(uuid,uuid,jsonb)',                                       true,  false),
+          ('public.update_invoice_with_items(uuid,uuid,uuid,jsonb)',                                  true,  false),
+          ('public.delete_draft_invoice(uuid,uuid,uuid)',                                             true,  false),
+          ('public.approve_invoice(uuid,uuid,uuid)',                                                  true,  false),
+          ('public.cancel_invoice(uuid,uuid,uuid,date,text)',                                         true,  false),
+          ('public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',                         true,  false),
+          ('public.post_payment_session(uuid,uuid,jsonb)',                                            true,  true),
+          ('public.post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)',                             true,  false),
+          ('public.post_expense_with_ledger(uuid,uuid,uuid)',                                         true,  false),
+          ('public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)',                   true,  false),
+          ('public.create_source_checkout_invoice(uuid,uuid,jsonb)',                                  true,  false)
+      ) AS expected(sig, auth_required, service_required)
+    LOOP
+      v_fn := pg_catalog.to_regprocedure(v_sig);
+
+      IF v_fn IS NULL THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_FUNCTION_MISSING: %',
+          v_sig
+          USING ERRCODE = '42883';
+      END IF;
+
+      -- Stable function-security contract.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p
+      WHERE p.oid = v_fn
+        AND p.proowner = 'postgres'::regrole
+        AND p.prosecdef IS TRUE
+        AND EXISTS (
+          SELECT 1
+          FROM unnest(p.proconfig) cfg
+          WHERE cfg = 'search_path=""'
+        );
+
+      IF v_cnt <> 1 THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_FUNCTION_SECURITY_DRIFT: %',
+          v_sig;
+      END IF;
+
+      -- Fail closed on any EXECUTE grantee outside the exact managed
+      -- allowlist for this function, or on any grant option.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p,
+           LATERAL aclexplode(
+             COALESCE(p.proacl, acldefault('f', p.proowner))
+           ) AS a
+      WHERE p.oid = v_fn
+        AND a.privilege_type = 'EXECUTE'
+        AND (
+          a.is_grantable IS TRUE
+          OR NOT (
+            CASE
+              WHEN a.grantee = 0::oid THEN 'PUBLIC'
+              ELSE pg_catalog.pg_get_userbyid(a.grantee)
+            END = 'postgres'
+            OR (
+              CASE
+                WHEN a.grantee = 0::oid THEN 'PUBLIC'
+                ELSE pg_catalog.pg_get_userbyid(a.grantee)
+              END = 'authenticated'
+              AND v_auth_required
+            )
+            OR (
+              CASE
+                WHEN a.grantee = 0::oid THEN 'PUBLIC'
+                ELSE pg_catalog.pg_get_userbyid(a.grantee)
+              END = 'service_role'
+              AND v_service_required
+            )
+          )
+        );
+
+      IF v_cnt <> 0 THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_FUNCTION_UNEXPECTED_EXECUTE: % / %',
+          v_sig, v_cnt;
+      END IF;
+
+      -- authenticated must be present exactly where managed intent
+      -- directly requires it, and absent everywhere else.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p,
+           LATERAL aclexplode(
+             COALESCE(p.proacl, acldefault('f', p.proowner))
+           ) AS a
+      WHERE p.oid = v_fn
+        AND a.privilege_type = 'EXECUTE'
+        AND a.is_grantable IS FALSE
+        AND a.grantee = 'authenticated'::regrole;
+
+      IF (v_cnt = 1) IS DISTINCT FROM v_auth_required THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_AUTHENTICATED_EXECUTE_DRIFT: % / %',
+          v_sig, v_cnt;
+      END IF;
+
+      -- service_role is managed-authorized only for post_payment_session.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p,
+           LATERAL aclexplode(
+             COALESCE(p.proacl, acldefault('f', p.proowner))
+           ) AS a
+      WHERE p.oid = v_fn
+        AND a.privilege_type = 'EXECUTE'
+        AND a.is_grantable IS FALSE
+        AND a.grantee = 'service_role'::regrole;
+
+      IF (v_cnt = 1) IS DISTINCT FROM v_service_required THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_SERVICE_ROLE_EXECUTE_DRIFT: % / %',
+          v_sig, v_cnt;
+      END IF;
+    END LOOP;
+  END IF;
 
   -- Helper pre-state: exact three helpers at search_path=public
   SELECT count(*) INTO v_cnt
@@ -244,9 +411,19 @@ GRANT SELECT
   ON TABLE public.customer_balances
   TO anon, authenticated;
 
-REVOKE EXECUTE
-  ON FUNCTION public.create_pos_sale(uuid,uuid,jsonb)
-  FROM PUBLIC, anon, authenticated;
+DO $stage_b_pos_revoke$
+BEGIN
+  IF pg_catalog.to_regprocedure(
+       'public.create_pos_sale(uuid,uuid,jsonb)'
+     ) IS NOT NULL THEN
+    EXECUTE
+      'REVOKE EXECUTE ON FUNCTION public.create_pos_sale(uuid,uuid,jsonb) FROM PUBLIC, anon, authenticated';
+  ELSE
+    RAISE NOTICE
+      'STAGE_B_POS_ABSENT_REVOKE_SKIPPED: create_pos_sale absent on canonical clean reconstruction';
+  END IF;
+END
+$stage_b_pos_revoke$;
 
 ALTER FUNCTION public.has_permission(uuid,uuid,text)
   SET search_path = public, pg_temp;
@@ -268,10 +445,14 @@ COMMENT ON TABLE public.customer_balances IS
 -- =========================================================
 DO $stage_b_post$
 DECLARE
-  v_hash text;
-  v_cnt  bigint;
-  v_b_cnt bigint;
-  v_b_hash text;
+  v_hash             text;
+  v_cnt              bigint;
+  v_b_cnt            bigint;
+  v_b_hash           text;
+  v_sig              text;
+  v_fn               oid;
+  v_auth_required    boolean;
+  v_service_required boolean;
 BEGIN
   -- Policy target
   SELECT count(*) INTO v_cnt
@@ -331,37 +512,197 @@ BEGIN
   WHERE has_table_privilege(r, t, pr);
   IF v_cnt <> 0 THEN RAISE EXCEPTION 'STAGE_B_BROWSER_WRITE_REMAINS: %', v_cnt; END IF;
 
-  -- Function-ACL target
-  SELECT md5(string_agg(line, ';' ORDER BY line)), count(*) INTO v_hash, v_cnt
-  FROM (
-    SELECT format('%s|%s|%s|%s|%s', o::regprocedure::text, a.grantor, a.grantee,
-                  a.privilege_type, a.is_grantable) AS line
-    FROM unnest(ARRAY[
-      to_regprocedure('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)'),
-      to_regprocedure('public._finance_invoice_approve_inline(uuid,uuid,uuid)'),
-      to_regprocedure('public.create_invoice_with_items(uuid,uuid,jsonb)'),
-      to_regprocedure('public.update_invoice_with_items(uuid,uuid,uuid,jsonb)'),
-      to_regprocedure('public.delete_draft_invoice(uuid,uuid,uuid)'),
-      to_regprocedure('public.approve_invoice(uuid,uuid,uuid)'),
-      to_regprocedure('public.cancel_invoice(uuid,uuid,uuid,date,text)'),
-      to_regprocedure('public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)'),
-      to_regprocedure('public.post_payment_session(uuid,uuid,jsonb)'),
-      to_regprocedure('public.post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)'),
-      to_regprocedure('public.post_expense_with_ledger(uuid,uuid,uuid)'),
-      to_regprocedure('public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)'),
-      to_regprocedure('public.create_source_checkout_invoice(uuid,uuid,jsonb)'),
-      to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)')
-    ]::oid[]) AS o
-    JOIN pg_proc p ON p.oid = o,
-    aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) AS a
-  ) s;
-  IF v_cnt <> 63 OR v_hash IS DISTINCT FROM 'f2507d9a41a1bc76319b553328d8dd09' THEN
-    RAISE EXCEPTION 'STAGE_B_FUNCTION_ACL_TARGET: % / %', v_cnt, v_hash;
-  END IF;
+  -- Function ACL/security target.
+  --
+  -- POS-PRESENT:
+  --   Preserve the authoritative historical fourteen-function post-state
+  --   aggregate fingerprint and POS browser-role denial unchanged.
+  --
+  -- POS-ABSENT:
+  --   Canonical clean reconstruction has no managed create_pos_sale creator.
+  --   Verify the thirteen real finance functions structurally from managed
+  --   chain intent instead of inventing a replacement aggregate fingerprint.
+  IF pg_catalog.to_regprocedure(
+       'public.create_pos_sale(uuid,uuid,jsonb)'
+     ) IS NOT NULL THEN
 
-  IF has_function_privilege('anon','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')
-     OR has_function_privilege('authenticated','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE') THEN
-    RAISE EXCEPTION 'STAGE_B_POS_EXECUTE_REMAINS';
+    -- POS-PRESENT: authoritative historical fourteen-function target ACL freeze.
+    SELECT md5(string_agg(line, ';' ORDER BY line)), count(*)
+      INTO v_hash, v_cnt
+    FROM (
+      SELECT format(
+               '%s|%s|%s|%s|%s',
+               o::regprocedure::text,
+               a.grantor,
+               a.grantee,
+               a.privilege_type,
+               a.is_grantable
+             ) AS line
+      FROM unnest(ARRAY[
+        to_regprocedure('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)'),
+        to_regprocedure('public._finance_invoice_approve_inline(uuid,uuid,uuid)'),
+        to_regprocedure('public.create_invoice_with_items(uuid,uuid,jsonb)'),
+        to_regprocedure('public.update_invoice_with_items(uuid,uuid,uuid,jsonb)'),
+        to_regprocedure('public.delete_draft_invoice(uuid,uuid,uuid)'),
+        to_regprocedure('public.approve_invoice(uuid,uuid,uuid)'),
+        to_regprocedure('public.cancel_invoice(uuid,uuid,uuid,date,text)'),
+        to_regprocedure('public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)'),
+        to_regprocedure('public.post_payment_session(uuid,uuid,jsonb)'),
+        to_regprocedure('public.post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)'),
+        to_regprocedure('public.post_expense_with_ledger(uuid,uuid,uuid)'),
+        to_regprocedure('public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)'),
+        to_regprocedure('public.create_source_checkout_invoice(uuid,uuid,jsonb)'),
+        to_regprocedure('public.create_pos_sale(uuid,uuid,jsonb)')
+      ]::oid[]) AS o
+      JOIN pg_proc p ON p.oid = o,
+           aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) AS a
+    ) s;
+
+    IF v_cnt <> 63
+       OR v_hash IS DISTINCT FROM 'f2507d9a41a1bc76319b553328d8dd09' THEN
+      RAISE EXCEPTION
+        'STAGE_B_FUNCTION_ACL_TARGET: % / %',
+        v_cnt, v_hash;
+    END IF;
+
+    IF has_function_privilege(
+         'anon',
+         'public.create_pos_sale(uuid,uuid,jsonb)',
+         'EXECUTE'
+       )
+       OR has_function_privilege(
+         'authenticated',
+         'public.create_pos_sale(uuid,uuid,jsonb)',
+         'EXECUTE'
+       ) THEN
+      RAISE EXCEPTION 'STAGE_B_POS_EXECUTE_REMAINS';
+    END IF;
+
+  ELSE
+
+    -- POS-ABSENT: canonical clean-reconstruction branch.
+    RAISE NOTICE
+      'STAGE_B_POS_ABSENT_TARGET_CHECK: create_pos_sale absent; verifying thirteen-function managed semantic ACL contract';
+
+    FOR v_sig, v_auth_required, v_service_required IN
+      SELECT *
+      FROM (
+        VALUES
+          ('public._finance_ledger_insert(uuid,uuid,text,text,uuid,numeric,date,text,text,uuid,jsonb,uuid)', false, false),
+          ('public._finance_invoice_approve_inline(uuid,uuid,uuid)',                                    false, false),
+          ('public.create_invoice_with_items(uuid,uuid,jsonb)',                                       true,  false),
+          ('public.update_invoice_with_items(uuid,uuid,uuid,jsonb)',                                  true,  false),
+          ('public.delete_draft_invoice(uuid,uuid,uuid)',                                             true,  false),
+          ('public.approve_invoice(uuid,uuid,uuid)',                                                  true,  false),
+          ('public.cancel_invoice(uuid,uuid,uuid,date,text)',                                         true,  false),
+          ('public.post_payment(uuid,uuid,uuid,numeric,date,text,uuid,jsonb)',                         true,  false),
+          ('public.post_payment_session(uuid,uuid,jsonb)',                                            true,  true),
+          ('public.post_invoice_payments(uuid,uuid,uuid,uuid,date,jsonb)',                             true,  false),
+          ('public.post_expense_with_ledger(uuid,uuid,uuid)',                                         true,  false),
+          ('public.post_manual_ledger_adjustment(uuid,uuid,uuid,numeric,date,text)',                   true,  false),
+          ('public.create_source_checkout_invoice(uuid,uuid,jsonb)',                                  true,  false)
+      ) AS expected(sig, auth_required, service_required)
+    LOOP
+      v_fn := pg_catalog.to_regprocedure(v_sig);
+
+      IF v_fn IS NULL THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_TARGET_FUNCTION_MISSING: %',
+          v_sig
+          USING ERRCODE = '42883';
+      END IF;
+
+      -- Owner / SECURITY DEFINER / search_path contract.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p
+      WHERE p.oid = v_fn
+        AND p.proowner = 'postgres'::regrole
+        AND p.prosecdef IS TRUE
+        AND EXISTS (
+          SELECT 1
+          FROM unnest(p.proconfig) cfg
+          WHERE cfg = 'search_path=""'
+        );
+
+      IF v_cnt <> 1 THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_TARGET_FUNCTION_SECURITY_DRIFT: %',
+          v_sig;
+      END IF;
+
+      -- Fail closed on any effective EXECUTE principal outside the exact
+      -- managed allowlist, or on any grant option.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p,
+           LATERAL aclexplode(
+             COALESCE(p.proacl, acldefault('f', p.proowner))
+           ) AS a
+      WHERE p.oid = v_fn
+        AND a.privilege_type = 'EXECUTE'
+        AND (
+          a.is_grantable IS TRUE
+          OR NOT (
+            CASE
+              WHEN a.grantee = 0::oid THEN 'PUBLIC'
+              ELSE pg_catalog.pg_get_userbyid(a.grantee)
+            END = 'postgres'
+            OR (
+              CASE
+                WHEN a.grantee = 0::oid THEN 'PUBLIC'
+                ELSE pg_catalog.pg_get_userbyid(a.grantee)
+              END = 'authenticated'
+              AND v_auth_required
+            )
+            OR (
+              CASE
+                WHEN a.grantee = 0::oid THEN 'PUBLIC'
+                ELSE pg_catalog.pg_get_userbyid(a.grantee)
+              END = 'service_role'
+              AND v_service_required
+            )
+          )
+        );
+
+      IF v_cnt <> 0 THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_TARGET_UNEXPECTED_EXECUTE: % / %',
+          v_sig, v_cnt;
+      END IF;
+
+      -- authenticated must exist exactly where managed intent requires it.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p,
+           LATERAL aclexplode(
+             COALESCE(p.proacl, acldefault('f', p.proowner))
+           ) AS a
+      WHERE p.oid = v_fn
+        AND a.privilege_type = 'EXECUTE'
+        AND a.is_grantable IS FALSE
+        AND a.grantee = 'authenticated'::regrole;
+
+      IF (v_cnt = 1) IS DISTINCT FROM v_auth_required THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_TARGET_AUTHENTICATED_EXECUTE_DRIFT: % / %',
+          v_sig, v_cnt;
+      END IF;
+
+      -- service_role is managed-authorized only for post_payment_session.
+      SELECT count(*) INTO v_cnt
+      FROM pg_proc p,
+           LATERAL aclexplode(
+             COALESCE(p.proacl, acldefault('f', p.proowner))
+           ) AS a
+      WHERE p.oid = v_fn
+        AND a.privilege_type = 'EXECUTE'
+        AND a.is_grantable IS FALSE
+        AND a.grantee = 'service_role'::regrole;
+
+      IF (v_cnt = 1) IS DISTINCT FROM v_service_required THEN
+        RAISE EXCEPTION
+          'STAGE_B_CLEAN_TARGET_SERVICE_ROLE_EXECUTE_DRIFT: % / %',
+          v_sig, v_cnt;
+      END IF;
+    END LOOP;
   END IF;
 
   -- Helper target proconfig
@@ -412,13 +753,32 @@ BEGIN
     RAISE EXCEPTION 'STAGE_B_TRUSTED_SCHEMA_CHANGED';
   END IF;
 
-  -- service_role and owner authority preserved
-  IF NOT (has_table_privilege('service_role','public.ledger_entries','SELECT')
-      AND has_table_privilege('service_role','public.ledger_entries','INSERT')
-      AND has_table_privilege('service_role','public.customer_balances','SELECT')
-      AND has_table_privilege('service_role','public.customer_balances','INSERT')
-      AND has_function_privilege('service_role','public.create_pos_sale(uuid,uuid,jsonb)','EXECUTE')) THEN
+  -- service_role table authority is mandatory in every environment.
+  IF NOT (
+       has_table_privilege('service_role','public.ledger_entries','SELECT')
+   AND has_table_privilege('service_role','public.ledger_entries','INSERT')
+   AND has_table_privilege('service_role','public.customer_balances','SELECT')
+   AND has_table_privilege('service_role','public.customer_balances','INSERT')
+  ) THEN
     RAISE EXCEPTION 'STAGE_B_SERVICE_ROLE_AUTHORITY_LOST';
+  END IF;
+
+  -- POS authority is required only on the legitimate POS-PRESENT branch.
+  IF pg_catalog.to_regprocedure(
+       'public.create_pos_sale(uuid,uuid,jsonb)'
+     ) IS NOT NULL THEN
+    IF NOT has_function_privilege(
+         'service_role',
+         pg_catalog.to_regprocedure(
+           'public.create_pos_sale(uuid,uuid,jsonb)'
+         ),
+         'EXECUTE'
+       ) THEN
+      RAISE EXCEPTION 'STAGE_B_SERVICE_ROLE_POS_AUTHORITY_LOST';
+    END IF;
+  ELSE
+    RAISE NOTICE
+      'STAGE_B_POS_ABSENT_SERVICE_ROLE_CHECK_SKIPPED: create_pos_sale absent on canonical clean reconstruction';
   END IF;
 
   -- Financial-row invariance
