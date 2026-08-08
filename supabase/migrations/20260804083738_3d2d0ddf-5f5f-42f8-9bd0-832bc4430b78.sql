@@ -13,6 +13,7 @@ DECLARE
   v_hash             text;
   v_cnt              bigint;
   v_sig              text;
+  v_sem_hash         text;
   v_fn               oid;
   v_auth_required    boolean;
   v_service_required boolean;
@@ -88,7 +89,8 @@ BEGIN
       ('ledger_entries','Permission-based insert ledger entries'));
   IF v_cnt <> 4 THEN RAISE EXCEPTION 'STAGE_B_TARGET_POLICIES_MISSING: %', v_cnt; END IF;
 
-  -- Table-ACL pre-state
+  -- Table-ACL pre-state: accept either the frozen historical state or the
+  -- proven canonical clean-reconstruction semantic state; fail closed otherwise.
   SELECT md5(string_agg(line, ';' ORDER BY line)), count(*) INTO v_hash, v_cnt
   FROM (
     SELECT format('public.%s|%s|%s|%s|%s', c.relname, a.grantor, a.grantee,
@@ -98,7 +100,31 @@ BEGIN
     WHERE ns.nspname = 'public'
       AND c.relname IN ('ledger_entries','customer_balances')
   ) s;
-  IF v_cnt <> 72 OR v_hash IS DISTINCT FROM 'f1567096c582eaaea20a816cc99cd269' THEN
+
+  SELECT md5(string_agg(line, ';' ORDER BY line COLLATE "C")) INTO v_sem_hash
+  FROM (
+    SELECT format(
+      'public.%s|%s|%s|%s|%s',
+      c.relname,
+      COALESCE(gr.rolname::text, format('<MISSING_OID_%s>', a.grantor)),
+      CASE WHEN a.grantee = 0::oid THEN 'PUBLIC'
+           ELSE COALESCE(ge.rolname::text, format('<MISSING_OID_%s>', a.grantee)) END,
+      a.privilege_type,
+      CASE WHEN a.is_grantable THEN 'true' ELSE 'false' END
+    ) AS line
+    FROM pg_class c
+    JOIN pg_namespace ns ON ns.oid = c.relnamespace
+    CROSS JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) AS a
+    LEFT JOIN pg_roles gr ON gr.oid = a.grantor
+    LEFT JOIN pg_roles ge ON ge.oid = a.grantee
+    WHERE ns.nspname = 'public'
+      AND c.relname IN ('ledger_entries','customer_balances')
+  ) s;
+
+  IF NOT (
+       (v_cnt = 72 AND v_hash IS NOT DISTINCT FROM 'f1567096c582eaaea20a816cc99cd269')
+    OR (v_cnt = 40 AND v_sem_hash IS NOT DISTINCT FROM '8e93ede755b2b354a7cda93ed92221f3')
+  ) THEN
       -- G-A1 diagnostic-only ACL composition evidence. Observational only.
     RAISE NOTICE 'G_A1_DIAGNOSTIC_BEGIN|scope=public.ledger_entries,public.customer_balances';
     RAISE NOTICE 'G_A1_ACL_TOTAL_COUNT=%', v_cnt;
@@ -194,14 +220,14 @@ BEGIN
     ) s;
     RAISE NOTICE 'G_A1_SEMANTIC_MD5=%', v_sig;
 
-    -- D7: comparisons; neither comparison changes the frozen guard.
+    -- D7: comparisons; neither comparison changes the fail-closed guard.
     RAISE NOTICE 'G_A1_RUN4_COMPARISON|actual_count=%|actual_oid_md5=%|reference_count=40|reference_oid_md5=e501726247d48849ceb998960c349478|match=%',
       v_cnt, v_hash,
       CASE WHEN v_cnt = 40 AND v_hash IS NOT DISTINCT FROM 'e501726247d48849ceb998960c349478'
            THEN 'true' ELSE 'false' END;
-    RAISE NOTICE 'G_A1_FROZEN_GUARD_COMPARISON|actual_count=%|actual_oid_md5=%|reference_count=72|reference_oid_md5=f1567096c582eaa20a816cc99cd269|match=%',
+    RAISE NOTICE 'G_A1_FROZEN_GUARD_COMPARISON|actual_count=%|actual_oid_md5=%|reference_count=72|reference_oid_md5=f1567096c582eaaea20a816cc99cd269|match=%',
       v_cnt, v_hash,
-      CASE WHEN v_cnt = 72 AND v_hash IS NOT DISTINCT FROM 'f1567096c582eaa20a816cc99cd269'
+      CASE WHEN v_cnt = 72 AND v_hash IS NOT DISTINCT FROM 'f1567096c582eaaea20a816cc99cd269'
            THEN 'true' ELSE 'false' END;
 
     -- D8-A/B: table/RLS/relacl context and column-ACL census.
@@ -597,6 +623,12 @@ GRANT SELECT
   ON TABLE public.customer_balances
   TO anon, authenticated;
 
+-- Preserve the current hosted service_role compatibility contract explicitly
+-- on canonical clean reconstruction. No grant option is conferred.
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN
+  ON TABLE public.ledger_entries, public.customer_balances
+  TO service_role;
+
 DO $stage_b_pos_revoke$
 BEGIN
   IF pg_catalog.to_regprocedure(
@@ -670,20 +702,7 @@ BEGIN
     RAISE EXCEPTION 'STAGE_B_POLICY_TARGET_HASH: %', v_hash;
   END IF;
 
-  -- Table-ACL target
-  SELECT md5(string_agg(line, ';' ORDER BY line)), count(*) INTO v_hash, v_cnt
-  FROM (
-    SELECT format('public.%s|%s|%s|%s|%s', c.relname, a.grantor, a.grantee,
-                  a.privilege_type, a.is_grantable) AS line
-    FROM pg_class c JOIN pg_namespace ns ON ns.oid = c.relnamespace,
-         aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) AS a
-    WHERE ns.nspname='public' AND c.relname IN ('ledger_entries','customer_balances')
-  ) s;
-  IF v_cnt <> 44 OR v_hash IS DISTINCT FROM '204017a1207bc68a246c3415e3975478' THEN
-    RAISE EXCEPTION 'STAGE_B_TABLE_ACL_TARGET: % / %', v_cnt, v_hash;
-  END IF;
-
-  -- Effective browser table privileges
+  -- Effective browser table privileges: SELECT only, never grantable.
   IF NOT (has_table_privilege('anon','public.ledger_entries','SELECT')
       AND has_table_privilege('authenticated','public.ledger_entries','SELECT')
       AND has_table_privilege('anon','public.customer_balances','SELECT')
@@ -697,6 +716,70 @@ BEGIN
        unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) pr
   WHERE has_table_privilege(r, t, pr);
   IF v_cnt <> 0 THEN RAISE EXCEPTION 'STAGE_B_BROWSER_WRITE_REMAINS: %', v_cnt; END IF;
+
+  SELECT count(*) INTO v_cnt
+  FROM unnest(ARRAY['anon','authenticated']) r,
+       unnest(ARRAY['public.ledger_entries','public.customer_balances']) t,
+       unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) pr
+  WHERE has_table_privilege(r, t, pr || ' WITH GRANT OPTION');
+  IF v_cnt <> 0 THEN RAISE EXCEPTION 'STAGE_B_BROWSER_GRANT_OPTION_REMAINS: %', v_cnt; END IF;
+
+  -- service_role compatibility contract: all eight table privileges on both
+  -- finance tables, directly granted, with no grant option.
+  SELECT count(*) INTO v_cnt
+  FROM unnest(ARRAY['public.ledger_entries','public.customer_balances']) t,
+       unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) pr
+  WHERE has_table_privilege('service_role', t, pr);
+  IF v_cnt <> 16 THEN
+    RAISE EXCEPTION 'STAGE_B_SERVICE_ROLE_AUTHORITY_LOST: %', v_cnt;
+  END IF;
+
+  SELECT count(*) INTO v_cnt
+  FROM unnest(ARRAY['public.ledger_entries','public.customer_balances']) t,
+       unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) pr
+  WHERE has_table_privilege('service_role', t, pr || ' WITH GRANT OPTION');
+  IF v_cnt <> 0 THEN
+    RAISE EXCEPTION 'STAGE_B_SERVICE_ROLE_GRANT_OPTION_PRESENT: %', v_cnt;
+  END IF;
+
+  SELECT count(*) INTO v_cnt
+  FROM pg_class c
+  JOIN pg_namespace ns ON ns.oid = c.relnamespace
+  CROSS JOIN LATERAL aclexplode(c.relacl) AS a
+  WHERE ns.nspname = 'public'
+    AND c.relname IN ('ledger_entries','customer_balances')
+    AND a.grantee = 'service_role'::regrole
+    AND a.privilege_type = ANY(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']::text[])
+    AND a.is_grantable IS FALSE;
+  IF v_cnt <> 16 THEN
+    RAISE EXCEPTION 'STAGE_B_SERVICE_ROLE_DIRECT_ACL_MISMATCH: %', v_cnt;
+  END IF;
+
+  SELECT count(*) INTO v_cnt
+  FROM pg_class c
+  JOIN pg_namespace ns ON ns.oid = c.relnamespace
+  CROSS JOIN LATERAL aclexplode(c.relacl) AS a
+  WHERE ns.nspname = 'public'
+    AND c.relname IN ('ledger_entries','customer_balances')
+    AND a.grantee = 'service_role'::regrole
+    AND (
+      a.is_grantable IS TRUE
+      OR NOT (a.privilege_type = ANY(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']::text[]))
+    );
+  IF v_cnt <> 0 THEN
+    RAISE EXCEPTION 'STAGE_B_SERVICE_ROLE_DIRECT_ACL_UNEXPECTED: %', v_cnt;
+  END IF;
+
+  SELECT count(*) INTO v_cnt
+  FROM pg_class c
+  JOIN pg_namespace ns ON ns.oid = c.relnamespace
+  CROSS JOIN LATERAL aclexplode(c.relacl) AS a
+  WHERE ns.nspname = 'public'
+    AND c.relname IN ('ledger_entries','customer_balances')
+    AND a.grantee = 0::oid;
+  IF v_cnt <> 0 THEN
+    RAISE EXCEPTION 'STAGE_B_PUBLIC_TABLE_ACL_PRESENT: %', v_cnt;
+  END IF;
 
   -- Function ACL/security target.
   --
@@ -937,16 +1020,6 @@ BEGIN
   IF has_schema_privilege('anon','public','CREATE')
      OR has_schema_privilege('authenticated','public','CREATE') THEN
     RAISE EXCEPTION 'STAGE_B_TRUSTED_SCHEMA_CHANGED';
-  END IF;
-
-  -- service_role table authority is mandatory in every environment.
-  IF NOT (
-       has_table_privilege('service_role','public.ledger_entries','SELECT')
-   AND has_table_privilege('service_role','public.ledger_entries','INSERT')
-   AND has_table_privilege('service_role','public.customer_balances','SELECT')
-   AND has_table_privilege('service_role','public.customer_balances','INSERT')
-  ) THEN
-    RAISE EXCEPTION 'STAGE_B_SERVICE_ROLE_AUTHORITY_LOST';
   END IF;
 
   -- POS authority is required only on the legitimate POS-PRESENT branch.
