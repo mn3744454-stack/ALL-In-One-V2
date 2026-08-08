@@ -189,9 +189,13 @@ jobs:
       - name: Migration inventory gate
         run: |
           set -euo pipefail
-          count="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d '[:space:]')"
-          first="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | sort | head -n 1)"
-          last="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | sort | tail -n 1)"
+          inv="$(mktemp)"
+          trap 'rm -f "${inv}"' EXIT
+          find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
+            | LC_ALL=C sort > "${inv}"
+          count="$(wc -l < "${inv}" | tr -d '[:space:]')"
+          first="$(sed -n '1p' "${inv}")"
+          last="$(sed -n '$p' "${inv}")"
           {
             echo "execution_sha=${GITHUB_SHA} run_id=${GITHUB_RUN_ID}"
             echo "migration_count_expected=${EXPECTED_MIGRATION_COUNT}"
@@ -298,12 +302,17 @@ jobs:
           raw="$(mktemp)"
           trap 'rm -f "${raw}"' EXIT
           supabase status -o env > "${raw}" 2>/dev/null || true
-          db_url="$(grep -E '^DB_URL=' "${raw}" | head -n 1 | cut -d= -f2- | tr -d '"')"
+          db_url="$(sed -n 's/^DB_URL=//p' "${raw}" | sed -n '1p' | tr -d '"')"
+          db_url_scheme="${db_url%%:*}"
+          case "${db_url}" in
+            *@127.0.0.1*|*@localhost*) db_url_host_is_local=yes ;;
+            *)                         db_url_host_is_local=no  ;;
+          esac
           {
             echo "execution_sha=${GITHUB_SHA} run_id=${GITHUB_RUN_ID}"
             echo "stack=local disposable supabase (docker)"
-            echo "db_url_scheme=$(printf '%s' "${db_url}" | cut -d: -f1)"
-            echo "db_url_host_is_local=$(printf '%s' "${db_url}" | grep -qE '@(127\.0\.0\.1|localhost)' && echo yes || echo no)"
+            echo "db_url_scheme=${db_url_scheme}"
+            echo "db_url_host_is_local=${db_url_host_is_local}"
             echo "postgres_server_version=$(psql "${db_url}" -Atc "SELECT current_setting('server_version');")"
             echo "schema_migrations_count=$(psql "${db_url}" -Atc 'SELECT count(*) FROM supabase_migrations.schema_migrations;')"
             echo "first_recorded_version=$(psql "${db_url}" -Atc 'SELECT min(version) FROM supabase_migrations.schema_migrations;')"

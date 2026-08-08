@@ -53,8 +53,9 @@ Supabase CLI **2.111.0**, proven from GitHub Actions Run #17 (Run ID `3114182154
 |---|---|
 | Path | `.github/workflows/ws0006-slice3a-canonical-replay.yml` |
 | Display name | WS0006 Slice 3A — Canonical Fresh Replay Only |
-| SHA-256 (post-write) | `56d08e947b66833fc56f9c70361e52d605666bb034a8a5e7750743bf79ede23f` |
+| SHA-256 (post-write) | `1ea5c151ef9aa51c664014e6f848d32f2a708a709f0845310980196cde8a2b95` |
 
+Superseded workflow SHA-256 (pre-correction, rollback baseline): `56d08e947b66833fc56f9c70361e52d605666bb034a8a5e7750743bf79ede23f`, observed at runtime in Run #3 (run id 31227178585). Superseded by the bounded Prompt-57 inventory-gate and status-evidence correction.
 The workflow recomputes and records its own SHA-256 at runtime into `repository-identity.log` and `final-verdict.txt`.
 
 ## G. Trigger contract
