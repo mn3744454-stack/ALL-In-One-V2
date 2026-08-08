@@ -99,6 +99,192 @@ BEGIN
       AND c.relname IN ('ledger_entries','customer_balances')
   ) s;
   IF v_cnt <> 72 OR v_hash IS DISTINCT FROM 'f1567096c582eaaea20a816cc99cd269' THEN
+      -- G-A1 diagnostic-only ACL composition evidence. Observational only.
+    RAISE NOTICE 'G_A1_DIAGNOSTIC_BEGIN|scope=public.ledger_entries,public.customer_balances';
+    RAISE NOTICE 'G_A1_ACL_TOTAL_COUNT=%', v_cnt;
+    RAISE NOTICE 'G_A1_OID_COUPLED_MD5=%', v_hash;
+
+    -- D1: full ACL enumeration, one NOTICE per row.
+    FOR v_sig IN
+      SELECT format(
+        'G_A1_ACL_ROW|schema=public|table=%s|grantor_name=%s|grantor_oid=%s|grantee_name=%s|grantee_oid=%s|privilege=%s|is_grantable=%s|acl_is_default=%s|owner_name=%s',
+        c.relname,
+        COALESCE(gr.rolname::text, format('<MISSING_OID_%s>', a.grantor)),
+        a.grantor,
+        CASE WHEN a.grantee = 0::oid THEN 'PUBLIC'
+             ELSE COALESCE(ge.rolname::text, format('<MISSING_OID_%s>', a.grantee)) END,
+        a.grantee, a.privilege_type,
+        CASE WHEN a.is_grantable THEN 'true' ELSE 'false' END,
+        CASE WHEN c.relacl IS NULL THEN 'true' ELSE 'false' END,
+        COALESCE(ow.rolname::text, format('<MISSING_OID_%s>', c.relowner))
+      )
+      FROM pg_class c
+      JOIN pg_namespace ns ON ns.oid = c.relnamespace
+      CROSS JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) AS a
+      LEFT JOIN pg_roles gr ON gr.oid = a.grantor
+      LEFT JOIN pg_roles ge ON ge.oid = a.grantee
+      LEFT JOIN pg_roles ow ON ow.oid = c.relowner
+      WHERE ns.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      ORDER BY c.relname::text COLLATE "C",
+               (CASE WHEN a.grantee = 0::oid THEN 'PUBLIC'
+                     ELSE COALESCE(ge.rolname::text, format('<MISSING_OID_%s>', a.grantee)) END) COLLATE "C",
+               a.privilege_type COLLATE "C",
+               COALESCE(gr.rolname::text, format('<MISSING_OID_%s>', a.grantor)) COLLATE "C",
+               a.grantor, a.grantee
+    LOOP
+      RAISE NOTICE '%', v_sig;
+    END LOOP;
+
+    -- D3: per-table ACL row counts.
+    FOR v_sig IN
+      SELECT format('G_A1_ACL_TABLE_COUNT|schema=public|table=%s|count=%s', c.relname, count(*))
+      FROM pg_class c
+      JOIN pg_namespace ns ON ns.oid = c.relnamespace
+      CROSS JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) AS a
+      WHERE ns.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      GROUP BY c.relname
+      ORDER BY c.relname::text COLLATE "C"
+    LOOP
+      RAISE NOTICE '%', v_sig;
+    END LOOP;
+
+    -- D4: per-table/per-grantee privilege summaries.
+    FOR v_sig IN
+      SELECT format(
+        'G_A1_ACL_GRANTEE_SUMMARY|schema=public|table=%s|grantee_name=%s|grantee_oid=%s|privilege_count=%s|privileges=%s|any_grant_option=%s',
+        s.table_name, s.grantee_name, s.grantee_oid, count(*),
+        string_agg(s.privilege_type, ',' ORDER BY s.privilege_type COLLATE "C"),
+        CASE WHEN bool_or(s.is_grantable) THEN 'true' ELSE 'false' END
+      )
+      FROM (
+        SELECT c.relname::text AS table_name,
+               CASE WHEN a.grantee = 0::oid THEN 'PUBLIC'
+                    ELSE COALESCE(ge.rolname::text, format('<MISSING_OID_%s>', a.grantee)) END AS grantee_name,
+               a.grantee AS grantee_oid, a.privilege_type, a.is_grantable
+        FROM pg_class c
+        JOIN pg_namespace ns ON ns.oid = c.relnamespace
+        CROSS JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) AS a
+        LEFT JOIN pg_roles ge ON ge.oid = a.grantee
+        WHERE ns.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      ) s
+      GROUP BY s.table_name, s.grantee_name, s.grantee_oid
+      ORDER BY s.table_name COLLATE "C", s.grantee_name COLLATE "C", s.grantee_oid
+    LOOP
+      RAISE NOTICE '%', v_sig;
+    END LOOP;
+
+    -- D6: OID-free semantic fingerprint (diagnostic only).
+    SELECT md5(string_agg(line, ';' ORDER BY line COLLATE "C")) INTO v_sig
+    FROM (
+      SELECT format(
+        'public.%s|%s|%s|%s|%s',
+        c.relname,
+        COALESCE(gr.rolname::text, format('<MISSING_OID_%s>', a.grantor)),
+        CASE WHEN a.grantee = 0::oid THEN 'PUBLIC'
+             ELSE COALESCE(ge.rolname::text, format('<MISSING_OID_%s>', a.grantee)) END,
+        a.privilege_type,
+        CASE WHEN a.is_grantable THEN 'true' ELSE 'false' END
+      ) AS line
+      FROM pg_class c
+      JOIN pg_namespace ns ON ns.oid = c.relnamespace
+      CROSS JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) AS a
+      LEFT JOIN pg_roles gr ON gr.oid = a.grantor
+      LEFT JOIN pg_roles ge ON ge.oid = a.grantee
+      WHERE ns.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+    ) s;
+    RAISE NOTICE 'G_A1_SEMANTIC_MD5=%', v_sig;
+
+    -- D7: comparisons; neither comparison changes the frozen guard.
+    RAISE NOTICE 'G_A1_RUN4_COMPARISON|actual_count=%|actual_oid_md5=%|reference_count=40|reference_oid_md5=e501726247d48849ceb998960c349478|match=%',
+      v_cnt, v_hash,
+      CASE WHEN v_cnt = 40 AND v_hash IS NOT DISTINCT FROM 'e501726247d48849ceb998960c349478'
+           THEN 'true' ELSE 'false' END;
+    RAISE NOTICE 'G_A1_FROZEN_GUARD_COMPARISON|actual_count=%|actual_oid_md5=%|reference_count=72|reference_oid_md5=f1567096c582eaa20a816cc99cd269|match=%',
+      v_cnt, v_hash,
+      CASE WHEN v_cnt = 72 AND v_hash IS NOT DISTINCT FROM 'f1567096c582eaa20a816cc99cd269'
+           THEN 'true' ELSE 'false' END;
+
+    -- D8-A/B: table/RLS/relacl context and column-ACL census.
+    FOR v_sig IN
+      SELECT format(
+        'G_A1_TABLE_CONTEXT|schema=public|table=%s|owner_name=%s|owner_oid=%s|rls=%s|force_rls=%s|relacl_is_null=%s',
+        c.relname, COALESCE(ow.rolname::text, format('<MISSING_OID_%s>', c.relowner)), c.relowner,
+        CASE WHEN c.relrowsecurity THEN 'true' ELSE 'false' END,
+        CASE WHEN c.relforcerowsecurity THEN 'true' ELSE 'false' END,
+        CASE WHEN c.relacl IS NULL THEN 'true' ELSE 'false' END
+      )
+      FROM pg_class c
+      JOIN pg_namespace ns ON ns.oid = c.relnamespace
+      LEFT JOIN pg_roles ow ON ow.oid = c.relowner
+      WHERE ns.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      ORDER BY c.relname::text COLLATE "C"
+    LOOP
+      RAISE NOTICE '%', v_sig;
+    END LOOP;
+
+    FOR v_sig IN
+      SELECT format('G_A1_COLUMN_ACL_COUNT|schema=public|table=%s|attacl_nonnull_count=%s',
+                    c.relname, count(*) FILTER (WHERE a.attacl IS NOT NULL))
+      FROM pg_class c
+      JOIN pg_namespace ns ON ns.oid = c.relnamespace
+      JOIN pg_attribute a ON a.attrelid = c.oid
+      WHERE ns.nspname = 'public' AND c.relname IN ('ledger_entries','customer_balances')
+      GROUP BY c.relname
+      ORDER BY c.relname::text COLLATE "C"
+    LOOP
+      RAISE NOTICE '%', v_sig;
+    END LOOP;
+
+    -- D8-C: relevant role existence/OIDs.
+    FOR v_sig IN
+      SELECT format('G_A1_ROLE_CONTEXT|role_name=%s|exists=%s|oid=%s',
+                    wanted.role_name,
+                    CASE WHEN r.oid IS NULL THEN 'false' ELSE 'true' END,
+                    COALESCE(r.oid::text, '<ABSENT>'))
+      FROM unnest(ARRAY[
+        'postgres'::text,'anon','authenticated','service_role','supabase_admin','dashboard_user',
+        'supabase_auth_admin','supabase_storage_admin','authenticator','pgbouncer','sandbox_exec'
+      ]) WITH ORDINALITY AS wanted(role_name, ord)
+      LEFT JOIN pg_roles r ON r.rolname = wanted.role_name
+      ORDER BY wanted.ord
+    LOOP
+      RAISE NOTICE '%', v_sig;
+    END LOOP;
+
+    -- D8-D: relevant table default ACL entries, global or public-schema.
+    FOR v_sig IN
+      SELECT format(
+        'G_A1_DEFAULT_ACL|namespace=%s|owner_name=%s|owner_oid=%s|object_type=%s|grantee_name=%s|grantee_oid=%s|privilege=%s|is_grantable=%s',
+        CASE WHEN d.defaclnamespace = 0::oid THEN '<GLOBAL>'
+             ELSE COALESCE(ns.nspname::text, format('<MISSING_OID_%s>', d.defaclnamespace)) END,
+        COALESCE(owner_r.rolname::text, format('<MISSING_OID_%s>', d.defaclrole)), d.defaclrole,
+        d.defaclobjtype,
+        CASE WHEN a.grantee = 0::oid THEN 'PUBLIC'
+             ELSE COALESCE(ge.rolname::text, format('<MISSING_OID_%s>', a.grantee)) END,
+        a.grantee, a.privilege_type,
+        CASE WHEN a.is_grantable THEN 'true' ELSE 'false' END
+      )
+      FROM pg_default_acl d
+      LEFT JOIN pg_namespace ns ON ns.oid = d.defaclnamespace
+      LEFT JOIN pg_roles owner_r ON owner_r.oid = d.defaclrole
+      CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
+      LEFT JOIN pg_roles ge ON ge.oid = a.grantee
+      WHERE d.defaclobjtype = 'r' AND (d.defaclnamespace = 0::oid OR ns.nspname = 'public')
+      ORDER BY
+        (CASE WHEN d.defaclnamespace = 0::oid THEN '<GLOBAL>'
+              ELSE COALESCE(ns.nspname::text, format('<MISSING_OID_%s>', d.defaclnamespace)) END) COLLATE "C",
+        COALESCE(owner_r.rolname::text, format('<MISSING_OID_%s>', d.defaclrole)) COLLATE "C",
+        d.defaclrole,
+        (CASE WHEN a.grantee = 0::oid THEN 'PUBLIC'
+              ELSE COALESCE(ge.rolname::text, format('<MISSING_OID_%s>', a.grantee)) END) COLLATE "C",
+        a.grantee, a.privilege_type COLLATE "C"
+    LOOP
+      RAISE NOTICE '%', v_sig;
+    END LOOP;
+
+    -- D8-E: server version.
+    RAISE NOTICE 'G_A1_SERVER_VERSION=%', current_setting('server_version');
+    RAISE NOTICE 'G_A1_DIAGNOSTIC_END';
     RAISE EXCEPTION 'STAGE_B_TABLE_ACL_PRESTATE_DRIFT: % / %', v_cnt, v_hash;
   END IF;
 
